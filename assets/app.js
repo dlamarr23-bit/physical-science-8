@@ -10,6 +10,16 @@
     });
   }
 
+  /* ---------- load shared visual guides on every page ---------- */
+  function loadVisuals(){
+    if(document.querySelector('script[data-science-visuals]')) return;
+    var script = document.createElement('script');
+    script.src = './assets/visuals-rich.js';
+    script.defer = true;
+    script.setAttribute('data-science-visuals','true');
+    document.head.appendChild(script);
+  }
+
   /* ---------- progress tracking (localStorage) ---------- */
   var STORE_KEY = "ps8-progress-v1";
   function getProgress(){
@@ -267,6 +277,7 @@
 
   document.addEventListener("DOMContentLoaded", function(){
     injectIcons();
+    loadVisuals();
     initDrawer();
     initVocab();
     initGlossaryTerms();
