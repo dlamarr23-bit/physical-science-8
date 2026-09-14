@@ -298,6 +298,22 @@ main{ padding:36px 0 70px; }
 .quiz-score.good{ color:var(--good); }
 .quiz-score.bad{ color:var(--bad); }
 
+/* ---------------- CAST-style practice item ---------------- */
+.cast-item{
+  background:#fffdf6; border:1.5px solid #f0dfa8; border-radius:var(--radius);
+  padding:24px 26px 26px; margin-top:14px; box-shadow:var(--shadow-sm);
+}
+.cast-badge{
+  display:inline-block; background:#b8860b; color:#fff; font-weight:800; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.06em; padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.cast-stimulus{ font-size:1rem; color:var(--ink); margin:0 0 6px; }
+.cast-table-wrap{ overflow-x:auto; margin:16px 0; }
+table.cast-table{ border-collapse:collapse; width:100%; min-width:340px; font-size:.92rem; background:#fff; }
+table.cast-table th, table.cast-table td{ border:1px solid var(--line); padding:9px 14px; text-align:left; }
+table.cast-table th{ background:var(--paper-soft); font-weight:700; }
+table.cast-table tbody tr:nth-child(even){ background:#fafafb; }
+
 /* ---------------- prev/next + footer ---------------- */
 .chapter-nav{ display:flex; justify-content:space-between; gap:16px; margin-top:50px; flex-wrap:wrap; }
 .chapter-nav a{
