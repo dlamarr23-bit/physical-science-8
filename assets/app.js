@@ -14,7 +14,7 @@
   function loadVisuals(){
     if(document.querySelector('script[data-science-visuals]')) return;
     var script = document.createElement('script');
-    script.src = './assets/visuals.js';
+    script.src = './assets/visuals-rich.js';
     script.defer = true;
     script.setAttribute('data-science-visuals','true');
     document.head.appendChild(script);
