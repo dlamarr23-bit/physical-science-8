@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Inertia and Net Forces — person pushing a box with force vectors</title>
+  <desc id="desc">A person pushes a box to the right. Applied force is larger than friction. Gravity and normal force balance vertically, so the net force and acceleration point right.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#eef7ff"/><stop offset="1" stop-color="#fbfdff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".14"/></filter>
+    <marker id="redArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12Z" fill="#e63946"/></marker>
+    <marker id="blueArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12Z" fill="#1982c4"/></marker>
+    <marker id="greenArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12Z" fill="#2a9d6f"/></marker>
+    <marker id="purpleArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12Z" fill="#6a4c93"/></marker>
+    <style>
+      text{font-family:'Poppins',Arial,sans-serif;fill:#1b1f2a}.title{font-size:30px;font-weight:800}.label{font-size:18px;font-weight:800}.note{font-size:17px;font-weight:600;fill:#4a5063}.small{font-size:15px;font-weight:700;fill:#4a5063}
+    </style>
+  </defs>
+  <rect width="1200" height="680" rx="28" fill="url(#wall)"/>
+  <text x="600" y="52" text-anchor="middle" class="title">Forces have both size and direction</text>
+  <text x="600" y="82" text-anchor="middle" class="note">The arrows are force vectors. Longer arrows represent larger forces.</text>
+
+  <!-- floor -->
+  <rect x="0" y="520" width="1200" height="160" fill="#ece8df"/>
+  <path d="M0 520 H1200" stroke="#d3cec3" stroke-width="5"/>
+
+  <!-- person -->
+  <g transform="translate(250 360)">
+    <circle cx="0" cy="-118" r="34" fill="#efc29d"/>
+    <path d="M-38 -78 Q0 -106 38 -78 L50 44 H-50Z" fill="#4361ee"/>
+    <path d="M-12 42 L-52 156 M20 42 L76 144" stroke="#263149" stroke-width="20" stroke-linecap="round"/>
+    <path d="M28 -58 L134 3" stroke="#efc29d" stroke-width="20" stroke-linecap="round"/>
+    <path d="M-32 -48 L-88 40" stroke="#efc29d" stroke-width="18" stroke-linecap="round"/>
+    <path d="M-88 40 L-128 84" stroke="#263149" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="-132" cy="90" r="10" fill="#263149"/>
+  </g>
+
+  <!-- box -->
+  <g filter="url(#shadow)">
+    <rect x="455" y="330" width="260" height="190" rx="22" fill="#ffd166" stroke="#c89211" stroke-width="5"/>
+    <path d="M455 392 H715" stroke="#e2ae32" stroke-width="5"/>
+    <path d="M585 330 V520" stroke="#e2ae32" stroke-width="5"/>
+    <rect x="536" y="366" width="98" height="52" rx="12" fill="#fff6d5"/>
+    <text x="585" y="400" text-anchor="middle" class="label">BOX</text>
+  </g>
+
+  <!-- force vectors -->
+  <path d="M585 314 H950" stroke="#e63946" stroke-width="13" marker-end="url(#redArrow)"/>
+  <text x="820" y="292" text-anchor="middle" class="label" fill="#e63946">APPLIED FORCE = 120 N</text>
+
+  <path d="M585 540 H395" stroke="#1982c4" stroke-width="10" marker-end="url(#blueArrow)"/>
+  <text x="410" y="576" text-anchor="middle" class="label" fill="#1982c4">FRICTION = 40 N</text>
+
+  <path d="M585 330 V150" stroke="#2a9d6f" stroke-width="11" marker-end="url(#greenArrow)"/>
+  <text x="610" y="170" class="label" fill="#2a9d6f">NORMAL FORCE</text>
+
+  <path d="M585 520 V640" stroke="#6a4c93" stroke-width="11" marker-end="url(#purpleArrow)"/>
+  <text x="610" y="628" class="label" fill="#6a4c93">GRAVITY</text>
+
+  <!-- explanation card -->
+  <g filter="url(#shadow)">
+    <rect x="820" y="390" width="310" height="190" rx="24" fill="#fff"/>
+  </g>
+  <text x="975" y="430" text-anchor="middle" class="label">HORIZONTAL FORCES</text>
+  <text x="975" y="466" text-anchor="middle" class="note">120 N right − 40 N left</text>
+  <text x="975" y="502" text-anchor="middle" font-family="Poppins,Arial,sans-serif" font-size="25" font-weight="800" fill="#e63946">NET FORCE = 80 N →</text>
+  <text x="975" y="536" text-anchor="middle" class="small">The box accelerates to the right.</text>
+
+  <rect x="72" y="112" width="320" height="108" rx="20" fill="#ffffff" stroke="#dfe4ec" stroke-width="3"/>
+  <text x="232" y="148" text-anchor="middle" class="label">VERTICAL FORCES BALANCE</text>
+  <text x="232" y="180" text-anchor="middle" class="note">normal force upward</text>
+  <text x="232" y="205" text-anchor="middle" class="note">= gravity downward</text>
+</svg>
