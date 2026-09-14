@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changes in Energy at the Molecular Level · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u5">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="active" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 5, Chapter 16 &middot; Thermal Energy &amp; Heat Flow</span>
+      <h1>Changes in Energy at the Molecular Level</h1>
+    </div>
+    <div class="hero-icon" data-icon="u5-t2"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>If you could shrink down small enough to ride on a water molecule, what would you feel happening as ice melts into water, and then as that water heats up until it boils away as steam?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Particles Are Always in Motion</h2>
+<p>Every single substance around you — the air you breathe, the water in your glass, the desk you're sitting at — is made of tiny particles that are constantly moving. In gases, particles zoom around freely in straight lines, bumping into each other and into the walls of whatever container holds them, with lots of empty space between them. In liquids, particles are packed closer together and can slide and flow past one another, which is why liquids can be poured but still hold together. In solids, particles are packed tightly in place and mostly just vibrate — they jiggle back and forth but don't have enough energy to break free from their neighbors and move around.</p>
+<p>This particle behavior explains properties you already know from experience. A <span class="gloss-term" data-def="A state of matter in which particles move freely with large spaces between them, expanding to fill any container.">gas</span> will expand to fill any container because its particles zoom freely with huge gaps between them. A <span class="gloss-term" data-def="A state of matter in which particles are close together but can slide past one another, so it holds a fixed volume but takes the shape of its container.">liquid</span> takes the shape of its container but keeps a fixed volume, because its particles can slide around each other but still stay close together. A <span class="gloss-term" data-def="A state of matter in which particles are packed tightly and mostly vibrate in fixed positions, giving it a definite shape.">solid</span> holds a definite shape because its particles are locked into place, only vibrating rather than sliding or flying free.</p>
+<h2>Where Gas Pressure Comes From</h2>
+<p>Ever wonder why a balloon pushes outward on your hands, or why a bag of chips puffs up when you take it to the mountains? That's <span class="gloss-term" data-def="The force created when gas particles collide with the surfaces of their container; caused by particle motion.">gas pressure</span>, and it comes directly from <span class="gloss-term" data-def="The constant movement — vibrating, sliding, or flying — of the tiny particles that make up all matter.">particle motion</span>. Gas particles are constantly zooming around and slamming into the walls of their container, billions of times per second. Each tiny collision pushes on the wall a little bit, and all those collisions added together create the force we feel as pressure. The faster the particles move (higher temperature) or the more particles there are in a space, the more collisions happen, and the higher the pressure gets.</p>
+<h2>Adding or Removing Energy Changes Particle Speed</h2>
+<p>When you add thermal energy to a substance — say, by heating a pot of water on the stove — that energy doesn't just disappear. It makes the particles move faster, increasing their average <span class="gloss-term" data-def="The energy of motion; in particles, faster movement means higher kinetic energy.">kinetic energy</span>. That's exactly what a rising temperature reading means: the particles, on average, are moving with more energy. Remove thermal energy, like when you put a soda in the freezer, and the particles slow down, losing kinetic energy, which shows up as a dropping temperature.</p>
+<p>If you keep adding or removing enough energy, something dramatic can happen: the particles gain or lose so much energy that the substance actually changes state. Add enough energy to ice, and eventually the vibrating particles gain enough energy to break free of their fixed positions and start sliding — the ice melts into liquid water. Keep adding energy, and the liquid water particles eventually gain enough energy to escape each other completely and fly free as steam. The same process runs in reverse when you remove energy: gas particles slow down and clump into a liquid, and liquid particles slow down further until they lock into a solid.</p>
+<h2>Not Every Substance Changes State at the Same Point</h2>
+<p>Here's something important: different substances change state at completely different temperatures, because it depends on the substance's <span class="gloss-term" data-def="The specific type of particles a substance is made of, which determines properties like the temperature at which it changes state.">chemical makeup</span> — how strongly its particles attract each other. Water freezes at 0°C and boils at 100°C, but the metal iron doesn't melt until a scorching 1,538°C, while the gas nitrogen is already boiling at a frigid -196°C. This is why a candle can melt (wax has weak attractions between its particles, so it melts around 60°C) sitting right next to a metal candle holder that stays completely solid at the same temperature. Pressure matters too — water boils at a lower temperature on a tall mountain, where air pressure is lower, which is actually why recipe instructions sometimes change at high altitudes.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Popcorn Popping</h4><p>Heating a popcorn kernel adds enough thermal energy to turn the tiny bit of water inside into steam, and the pressure from that fast-moving steam eventually bursts the kernel open.</p></div><div class="example-card"><h4>Why a Pressure Cooker Cooks Faster</h4><p>A sealed pressure cooker traps steam, raising the pressure and letting water reach a higher temperature than it could in an open pot, giving the particles in the food more energy and speeding up cooking.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both show what happens when you add thermal energy to particles in a small enclosed space — their motion and pressure increase dramatically, sometimes with dramatic results.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">FS</div>
+    <div><h4>Food Scientists</h4><p>Food scientists study exactly how heat changes the molecules in food — how proteins change shape when cooked, or how steam pressure builds during sealed cooking. Companies that design instant noodles, pressure cookers, or popcorn bags hire food scientists to fine-tune cooking times and temperatures.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Particle motion<span class="hint">tap to flip</span></div>
+        <div class="vface back">The constant movement — vibrating, sliding, or flying — of the tiny particles that make up all matter.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Solid<span class="hint">tap to flip</span></div>
+        <div class="vface back">A state of matter in which particles are packed tightly and mostly vibrate in fixed positions, giving it a definite shape.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Liquid<span class="hint">tap to flip</span></div>
+        <div class="vface back">A state of matter in which particles are close together but can slide past one another, so it holds a fixed volume but takes the shape of its container.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Gas<span class="hint">tap to flip</span></div>
+        <div class="vface back">A state of matter in which particles move freely with large spaces between them, expanding to fill any container.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Gas pressure<span class="hint">tap to flip</span></div>
+        <div class="vface back">The force created when gas particles collide with the surfaces of their container; caused by particle motion.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Kinetic energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">The energy of motion; in particles, faster movement means higher kinetic energy.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">State of matter<span class="hint">tap to flip</span></div>
+        <div class="vface back">One of the forms matter can take — commonly solid, liquid, or gas — determined by how particles move and how far apart they are.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Chemical makeup<span class="hint">tap to flip</span></div>
+        <div class="vface back">The specific type of particles a substance is made of, which determines properties like the temperature at which it changes state.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Explainer: What are the different states of matter?</h4>
+        <div class="rsource">Science News Explores</div>
+        <a class="rlink" href="https://www.snexplores.org/article/explainer-states-matter-solid-liquid-gas-plasma" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>States of Matter: Basics</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/states-of-matter-basics" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/21CR01rlmv4" title="States Of Matter - Solids, Liquids &amp; Gases | Properties of Matter | Chemistry" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>States Of Matter - Solids, Liquids &amp; Gases | Properties of Matter | Chemistry</h4>
+        <div class="rsource">FuseSchool - Global Education on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=21CR01rlmv4" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u5-t2" data-source="quizdata-u5-t2">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. What is the main difference between how particles behave in a solid compared to a gas?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u5-t2" value="0"> Solid particles don&#x27;t move at all; gas particles move constantly.</label><label class="qchoice"><input type="radio" name="q0-u5-t2" value="1"> Solid particles mostly vibrate in fixed positions; gas particles move freely with large spaces between them.</label><label class="qchoice"><input type="radio" name="q0-u5-t2" value="2"> Solid particles are farther apart than gas particles.</label><label class="qchoice"><input type="radio" name="q0-u5-t2" value="3"> There is no real difference; both move in exactly the same way.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. A sealed bag of chips puffs up and looks more inflated when you drive it up into the mountains. What causes this?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u5-t2" value="0"> The chips inside grow larger as they cool down.</label><label class="qchoice"><input type="radio" name="q1-u5-t2" value="1"> Gas particles inside the bag stop moving at high altitude.</label><label class="qchoice"><input type="radio" name="q1-u5-t2" value="2"> Outside air pressure is lower, so the gas particles inside push the bag outward more relative to the outside.</label><label class="qchoice"><input type="radio" name="q1-u5-t2" value="3"> Higher altitude makes plastic bags physically expand on their own.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. As you heat a pot of water on the stove, what is actually happening to the water particles as the temperature rises?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u5-t2" value="0"> The particles are shrinking in size.</label><label class="qchoice"><input type="radio" name="q2-u5-t2" value="1"> The particles are moving with increasing average kinetic energy (speeding up).</label><label class="qchoice"><input type="radio" name="q2-u5-t2" value="2"> The particles are disappearing one by one.</label><label class="qchoice"><input type="radio" name="q2-u5-t2" value="3"> The particles stop moving completely until it boils.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Iron melts at 1,538°C, while candle wax melts around 60°C. What best explains this huge difference?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u5-t2" value="0"> Iron and wax are actually the same substance measured differently.</label><label class="qchoice"><input type="radio" name="q3-u5-t2" value="1"> The difference depends on the chemical makeup of each substance — how strongly its particles attract each other.</label><label class="qchoice"><input type="radio" name="q3-u5-t2" value="2"> Wax has no particles, so it doesn&#x27;t really melt.</label><label class="qchoice"><input type="radio" name="q3-u5-t2" value="3"> Melting points are random and have no scientific explanation.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. When liquid water is cooled down and freezes into solid ice, what happens to its particles?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u5-t2" value="0"> The particles gain energy and move faster.</label><label class="qchoice"><input type="radio" name="q4-u5-t2" value="1"> The particles lose energy, slow down, and lock into fixed vibrating positions.</label><label class="qchoice"><input type="radio" name="q4-u5-t2" value="2"> The particles disappear entirely.</label><label class="qchoice"><input type="radio" name="q4-u5-t2" value="3"> The particles turn into a completely different chemical substance.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u5-t2">[{"question": "What is the main difference between how particles behave in a solid compared to a gas?", "choices": ["Solid particles don't move at all; gas particles move constantly.", "Solid particles mostly vibrate in fixed positions; gas particles move freely with large spaces between them.", "Solid particles are farther apart than gas particles.", "There is no real difference; both move in exactly the same way."], "answerIndex": 1, "explanation": "Solid particles vibrate in place while staying locked together, whereas gas particles move freely and are spread far apart."}, {"question": "A sealed bag of chips puffs up and looks more inflated when you drive it up into the mountains. What causes this?", "choices": ["The chips inside grow larger as they cool down.", "Gas particles inside the bag stop moving at high altitude.", "Outside air pressure is lower, so the gas particles inside push the bag outward more relative to the outside.", "Higher altitude makes plastic bags physically expand on their own."], "answerIndex": 2, "explanation": "Lower outside air pressure at altitude means there's less push-back on the bag, so the gas pressure from particles colliding inside the bag makes it puff out more."}, {"question": "As you heat a pot of water on the stove, what is actually happening to the water particles as the temperature rises?", "choices": ["The particles are shrinking in size.", "The particles are moving with increasing average kinetic energy (speeding up).", "The particles are disappearing one by one.", "The particles stop moving completely until it boils."], "answerIndex": 1, "explanation": "Adding thermal energy increases the average kinetic energy of the particles, which is exactly what a rising temperature measures."}, {"question": "Iron melts at 1,538\u00b0C, while candle wax melts around 60\u00b0C. What best explains this huge difference?", "choices": ["Iron and wax are actually the same substance measured differently.", "The difference depends on the chemical makeup of each substance \u2014 how strongly its particles attract each other.", "Wax has no particles, so it doesn't really melt.", "Melting points are random and have no scientific explanation."], "answerIndex": 1, "explanation": "The temperature at which a substance changes state depends on its chemical makeup, since different particles attract each other with different strengths."}, {"question": "When liquid water is cooled down and freezes into solid ice, what happens to its particles?", "choices": ["The particles gain energy and move faster.", "The particles lose energy, slow down, and lock into fixed vibrating positions.", "The particles disappear entirely.", "The particles turn into a completely different chemical substance."], "answerIndex": 1, "explanation": "Removing thermal energy causes particles to lose kinetic energy and slow down until they settle into the fixed, vibrating arrangement of a solid."}]</script>
+
+  <div class="chapter-nav"><a href="./u5-t1.html"><span class="dir">&larr; Previous</span>Energy Transfer and Temperature</a><a class="next" href="./u5-t3.html"><span class="dir">Next &rarr;</span>Phase Changes and Energy Transfer</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

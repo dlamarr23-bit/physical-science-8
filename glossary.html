@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Reference</span>
+      <h1>Glossary</h1>
+      <p class="lede">Every vocabulary word from every chapter, all in one place.</p>
+    </div>
+    <div class="hero-icon" data-icon="u4-t1"></div>
+  </div>
+</div>
+<main class="container">
+  <input class="glossary-search" id="glossarySearch" type="search" placeholder="Search terms…" oninput="
+    document.querySelectorAll('.gterm').forEach(function(el){
+      el.style.display = el.getAttribute('data-term').includes(this.value.toLowerCase()) ? '' : 'none';
+    }.bind(this))">
+  <div class="glossary-letter">A</div><div class="gterm" data-term="absorption">
+        <b>Absorption</b>When a material takes in a wave&#x27;s energy instead of reflecting or transmitting it, often converting it into heat.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="acceleration">
+        <b>Acceleration</b>The rate at which an object&#x27;s speed or direction changes over time.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="acceleration due to gravity">
+        <b>Acceleration due to gravity</b>The rate at which gravity speeds up a falling object, about 9.8 meters per second squared near Earth&#x27;s surface, the same for all masses in a vacuum.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="gterm" data-term="action-reaction pair">
+        <b>Action-reaction pair</b>Two equal, opposite forces that occur when two objects interact, each acting on a different object.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="air resistance">
+        <b>Air resistance</b>A force caused by air pushing back against a moving object, which can slow falling objects depending on their shape and surface area.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="gterm" data-term="airbag">
+        <b>Airbag</b>A safety device that inflates during a crash to slow a passenger&#x27;s motion more gently and absorb energy.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="amorphous">
+        <b>amorphous</b>Describing a solid material whose atoms or molecules are arranged in a disordered, non-repeating way, like glass or plastic.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="amplitude">
+        <b>Amplitude</b>The height of a wave from its resting position to its peak; bigger amplitude means the wave carries more energy.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="analog signal">
+        <b>Analog signal</b>A signal that varies smoothly and continuously, like the natural vibration of a guitar string.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="analog signal">
+        <b>Analog signal</b>A signal that represents information as a smooth, continuously varying wave, like the grooves on a vinyl record.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="atom">
+        <b>atom</b>The smallest basic unit of an element, like a single tiny building block of matter.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="attract">
+        <b>attract</b>To pull toward something else, like opposite magnetic poles pulling toward each other.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="attractive force">
+        <b>Attractive force</b>A force that pulls objects toward each other rather than pushing them apart; gravity is always attractive.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="glossary-letter">B</div><div class="gterm" data-term="balanced chemical equation">
+        <b>balanced chemical equation</b>A chemical equation where the same number of each type of atom appears on both sides of the arrow.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="balanced forces">
+        <b>Balanced forces</b>Forces acting on an object that cancel each other out, resulting in no change in motion.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="biodegradable">
+        <b>biodegradable</b>Able to break down naturally into harmless substances over time through the action of living organisms.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="bit">
+        <b>Bit</b>The smallest unit of digital information, represented as either a 1 or a 0.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="braking distance">
+        <b>Braking distance</b>The distance a vehicle travels while slowing to a stop.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="glossary-letter">C</div><div class="gterm" data-term="chemical makeup">
+        <b>Chemical makeup</b>The specific type of particles a substance is made of, which determines properties like the temperature at which it changes state.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="chemical property">
+        <b>chemical property</b>A trait that only shows up when a substance undergoes a chemical change, such as flammability or reactivity with acid.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="chemical reaction">
+        <b>chemical reaction</b>A process where atoms rearrange to form one or more new substances with different properties than the starting materials.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="circuit">
+        <b>circuit</b>A complete path that allows electric current to flow from a power source, through components, and back again.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="closed system">
+        <b>closed system</b>A system where no matter can enter or leave, allowing an accurate before-and-after mass comparison.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="collision">
+        <b>Collision</b>An event in which two or more objects strike each other, often transferring energy and force between them.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="collision damage">
+        <b>Collision damage</b>The harm caused during an impact, influenced heavily by speed and, to a lesser degree, mass.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="compass">
+        <b>compass</b>A tool with a free-spinning magnetized needle that lines up with Earth&#x27;s magnetic field to point toward magnetic north.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="condensation">
+        <b>Condensation</b>The phase change from gas to liquid as particles lose energy and pull closer together.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="conductor">
+        <b>Conductor</b>A material, like most metals, that allows thermal energy to flow through it quickly and easily.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="conservation of energy">
+        <b>Conservation of energy</b>The principle that energy cannot be created or destroyed, only transformed or transferred between objects and forms.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="constant speed">
+        <b>Constant speed</b>Moving the same distance in each equal time interval, shown as a straight line on a distance vs. time graph.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="core">
+        <b>core</b>A piece of material, often iron, placed inside a coil of wire to strengthen the magnetic field it produces.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="crumple zone">
+        <b>Crumple zone</b>A part of a car designed to crush during a crash, absorbing and spreading out kinetic energy to protect passengers.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="crystal lattice">
+        <b>crystal lattice</b>A repeating, orderly 3D pattern of atoms or ions, like the structure found in table salt or diamond.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="crystalline structure">
+        <b>crystalline structure</b>A solid material with atoms or ions arranged in an orderly, repeating 3D pattern.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="glossary-letter">D</div><div class="gterm" data-term="data">
+        <b>Data</b>Recorded measurements, like distance and time, used to study and predict motion.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="deceleration">
+        <b>Deceleration</b>A decrease in speed over time, a type of acceleration in the opposite direction of motion.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="density">
+        <b>density</b>How much mass is packed into a certain amount of space (mass divided by volume).
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="design constraint">
+        <b>Design constraint</b>A limit an engineer must work within when building something, such as cost, size, or available materials.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="design criteria">
+        <b>Design criteria</b>The specific requirements a device must meet to be considered successful, such as &quot;keeps ice from melting for 6 hours.&quot;
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="digital signal">
+        <b>Digital signal</b>A signal that represents information as a sequence of discrete values, usually 1s and 0s (bits).
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="distance">
+        <b>Distance</b>The total length of the path an object has traveled.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="distance vs. time graph">
+        <b>Distance vs. time graph</b>A graph that shows how an object&#x27;s distance from a starting point changes over time.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="glossary-letter">E</div><div class="gterm" data-term="electric charge">
+        <b>electric charge</b>A basic property of matter (positive or negative) that causes electric and magnetic forces between objects.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="electric current">
+        <b>electric current</b>The flow of electric charge through a wire or circuit, usually carried by moving electrons.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="electric field">
+        <b>electric field</b>The invisible region of space around a charged object where it can push or pull on other charged objects.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="electromagnet">
+        <b>electromagnet</b>A magnet created by electric current flowing through a coil of wire, which can be turned on and off and adjusted in strength.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="electromagnetic spectrum">
+        <b>Electromagnetic spectrum</b>The full range of electromagnetic waves, from long, low-frequency radio waves to short, high-frequency gamma rays.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="electromagnetic wave">
+        <b>Electromagnetic wave</b>A wave made of vibrating electric and magnetic fields that can travel through empty space without a medium.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="encode">
+        <b>Encode</b>To convert information, like sound or images, into a pattern a wave can carry.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="endothermic reaction">
+        <b>endothermic reaction</b>A chemical reaction that absorbs thermal energy, making its surroundings feel colder.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="energy transfer">
+        <b>Energy transfer</b>The movement of energy from one object or form to another.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="energy transformation">
+        <b>Energy transformation</b>The process of energy changing from one form into another, such as potential energy changing into kinetic energy.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="equal and opposite">
+        <b>Equal and opposite</b>Describes two forces that have the same strength but point in opposite directions.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="evaporation/boiling">
+        <b>Evaporation/Boiling</b>The phase change from liquid to gas as particles gain enough energy to escape each other&#x27;s attraction.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="evidence of energy transfer">
+        <b>Evidence of energy transfer</b>Observable clues, such as changes in motion, temperature, or sound, that show energy has moved between objects.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="exothermic reaction">
+        <b>exothermic reaction</b>A chemical reaction that releases thermal energy, making its surroundings feel warmer.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="glossary-letter">F</div><div class="gterm" data-term="ferromagnetic material">
+        <b>ferromagnetic material</b>A material, such as iron, nickel, or cobalt, whose electrons can line up to make the material strongly magnetic.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="fiber optic cable">
+        <b>Fiber optic cable</b>A thin strand of glass that transmits digital information as pulses of light over long distances.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="field">
+        <b>Field</b>An invisible region of space around an object where its force, like gravity, magnetism, or electric charge, can affect other objects without touching them.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="gterm" data-term="flammability">
+        <b>flammability</b>A chemical property describing whether a substance will catch fire and burn.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="force">
+        <b>Force</b>A push or a pull that can change an object&#x27;s motion.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="force diagram">
+        <b>Force diagram</b>A drawing that uses arrows to show the direction and relative strength of forces acting on an object.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="gterm" data-term="frame of reference">
+        <b>Frame of reference</b>A reference point plus a direction, used together to fully describe an object&#x27;s motion.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="freezing">
+        <b>Freezing</b>The phase change from liquid to solid as particles lose energy and lock into fixed positions.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="frequency">
+        <b>Frequency</b>The number of complete waves that pass a point in one second, measured in hertz (Hz).
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="friction">
+        <b>Friction</b>A force that resists motion between two surfaces that are touching and sliding against each other.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="friction">
+        <b>Friction</b>A force that resists motion between surfaces in contact, often converting some kinetic energy into heat.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="glossary-letter">G</div><div class="gterm" data-term="gas">
+        <b>Gas</b>A state of matter in which particles move freely with large spaces between them, expanding to fill any container.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="gas pressure">
+        <b>Gas pressure</b>The force created when gas particles collide with the surfaces of their container; caused by particle motion.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="gravitational field">
+        <b>gravitational field</b>The invisible region of space around any object with mass where it can pull other masses toward it.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="gravitational potential energy (gpe)">
+        <b>Gravitational potential energy (GPE)</b>Stored energy an object has because of its height above the ground; the higher it is, the more it has.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="gravity">
+        <b>Gravity</b>The pulling force that pulls objects toward each other, and toward Earth in particular near its surface.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="glossary-letter">H</div><div class="gterm" data-term="heat">
+        <b>Heat</b>Thermal energy that is moving from a hotter object to a cooler object.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="height">
+        <b>Height</b>The vertical distance an object is above a chosen starting point, usually the ground.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="glossary-letter">I</div><div class="gterm" data-term="induction">
+        <b>induction</b>The process by which a changing magnetic field near a wire can create, or induce, an electric current in that wire.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="inertia">
+        <b>Inertia</b>The tendency of an object to resist changes to its motion, staying at rest or continuing in motion unless a force acts on it.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="insulator">
+        <b>Insulator</b>A material, like foam, wood, or air, that resists the flow of thermal energy and slows it down.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="inverse relationship">
+        <b>Inverse relationship</b>A pattern where one quantity goes down as another goes up, such as gravitational force decreasing as distance increases.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="glossary-letter">J</div><div class="gterm" data-term="joule (j)">
+        <b>Joule (J)</b>The unit scientists use to measure energy, including gravitational potential energy.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="glossary-letter">K</div><div class="gterm" data-term="kinetic energy">
+        <b>Kinetic energy</b>The energy an object has because it is moving.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="kinetic energy">
+        <b>Kinetic energy</b>The energy an object has due to its motion, which increases rapidly as speed increases.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="kinetic energy">
+        <b>Kinetic energy</b>The energy an object has because it is moving; it depends on both mass and speed.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="kinetic energy">
+        <b>Kinetic energy</b>The energy an object or particle has because it is moving.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="kinetic energy">
+        <b>Kinetic energy</b>The energy of motion; in particles, faster movement means higher kinetic energy.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="glossary-letter">L</div><div class="gterm" data-term="latent heat">
+        <b>Latent heat</b>The thermal energy absorbed or released during a phase change that goes into rearranging particles rather than changing temperature.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="law of conservation of matter">
+        <b>law of conservation of matter</b>The scientific rule stating that matter cannot be created or destroyed in a chemical reaction, only rearranged.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="liquid">
+        <b>Liquid</b>A state of matter in which particles are close together but can slide past one another, so it holds a fixed volume but takes the shape of its container.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="glossary-letter">M</div><div class="gterm" data-term="magnetic domain">
+        <b>magnetic domain</b>A tiny region inside a magnetic material where groups of electrons spin in the same direction, acting like a mini magnet.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="magnetic field">
+        <b>magnetic field</b>The invisible region of space around a magnet where its force can be felt by other magnetic objects.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="magnetic force">
+        <b>Magnetic force</b>An attractive or repulsive force between magnets or magnetic materials that, like gravity, can act at a distance.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="magnetic potential energy">
+        <b>magnetic potential energy</b>Stored energy in a system of magnetic objects that depends on how they are positioned and how far apart they are.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="magnetism">
+        <b>magnetism</b>A force caused by moving electric charges (like spinning electrons) that lets certain materials push or pull on each other without touching.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="magnitude">
+        <b>Magnitude</b>The size or amount of something, such as how large a force or amount of damage is.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="manufacturing">
+        <b>manufacturing</b>The process of using energy and chemical processes to turn raw materials into new, useful products.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="mass">
+        <b>Mass</b>The amount of matter in an object, which determines how much inertia it has.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="mass">
+        <b>Mass</b>The amount of matter in an object, which affects both its inertia and how much it accelerates under a given force.
+        <div class="gunit"><a href="./u1-t5.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="gterm" data-term="mass">
+        <b>Mass</b>The amount of matter in an object; more mass means more gravitational potential energy at the same height.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="mass">
+        <b>Mass</b>The amount of matter in an object, one of the two factors that determines the strength of gravitational force between two objects.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="gterm" data-term="mass">
+        <b>Mass</b>The amount of matter in an object; more mass generally requires more total thermal energy to cause the same temperature change or phase change.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="medium">
+        <b>Medium</b>The material — like air, water, or a solid — that a mechanical wave travels through.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="melting">
+        <b>Melting</b>The phase change from solid to liquid as particles gain enough energy to break free of fixed positions.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="melting point / boiling point">
+        <b>melting point / boiling point</b>The specific temperature at which a substance changes from solid to liquid, or liquid to gas.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="microplastic">
+        <b>microplastic</b>A tiny fragment of plastic, often smaller than a grain of rice, that forms as larger plastic items break down.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="molecule">
+        <b>molecule</b>Two or more atoms bonded together, like O2 (two oxygen atoms) or H2O (water).
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="momentum">
+        <b>Momentum</b>A property of a moving object based on its mass and velocity, which is transferred and conserved during collisions.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="motion">
+        <b>Motion</b>A change in an object&#x27;s position over time, compared to a reference point.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="glossary-letter">N</div><div class="gterm" data-term="natural material">
+        <b>natural material</b>A material that occurs in nature and is used with little or no chemical alteration, like wood, cotton, or wool.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="natural resource">
+        <b>natural resource</b>A material or substance from the Earth, like petroleum, minerals, or plants, that people use to make other things.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="newton&#x27;s third law">
+        <b>Newton&#x27;s third law</b>The scientific law stating that for every action force, there is an equal and opposite reaction force.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="noise">
+        <b>Noise</b>Unwanted interference or errors that distort a signal during transmission.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="nonrenewable resource">
+        <b>nonrenewable resource</b>A natural resource, like fossil fuels, that is used up much faster than it can be replaced by nature.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="glossary-letter">O</div><div class="gterm" data-term="oxidation">
+        <b>oxidation</b>A chemical reaction, like rusting, where a substance reacts with oxygen to form a new compound.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="glossary-letter">P</div><div class="gterm" data-term="particle motion">
+        <b>Particle motion</b>The constant movement — vibrating, sliding, or flying — of the tiny particles that make up all matter.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="perspective">
+        <b>Perspective</b>The particular point of view from which someone observes and describes motion.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="petroleum">
+        <b>petroleum</b>A natural, oily liquid found underground that is refined into fuels and used as a raw material for plastics.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="phase change">
+        <b>Phase change</b>A transformation of a substance between solid, liquid, and gas states, caused by adding or removing thermal energy.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="physical change">
+        <b>physical change</b>A change in a substance&#x27;s form or state (like melting or tearing) where no new substance is created.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="physical property">
+        <b>physical property</b>A feature of a substance you can observe or measure without changing what the substance is, like color, odor, or density.
+        <div class="gunit"><a href="./u6-t1.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="physical property">
+        <b>physical property</b>A trait you can observe or measure without changing what the substance chemically is, such as color, density, or boiling point.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="pitch">
+        <b>Pitch</b>How high or low a sound seems, determined by the frequency of the sound wave.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="pole">
+        <b>pole</b>One of the two ends of a magnet (north or south) where the magnetic field is strongest.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="polymer">
+        <b>polymer</b>A material made of long chains of repeating molecular units, common in plastics.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="position">
+        <b>Position</b>The exact location of an object at a certain moment, usually described using a reference point.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="position">
+        <b>Position</b>Where an object is located, especially how high or low it sits compared to a reference point like the ground.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="potential energy">
+        <b>Potential energy</b>Energy that is stored and waiting to be used, rather than energy that&#x27;s currently making something move.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="prediction">
+        <b>Prediction</b>A scientific estimate about what will happen, based on patterns in data.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="prism">
+        <b>Prism</b>A transparent object that splits white light into its full spectrum of colors by refracting each wavelength differently.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="proportional relationship">
+        <b>Proportional relationship</b>A relationship where one quantity changes at the same rate as another, like how kinetic energy doubles when mass doubles.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="protective feature">
+        <b>Protective feature</b>A design element, like a seatbelt or crumple zone, meant to reduce injury during a collision.
+        <div class="gunit"><a href="./u1-t6.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="glossary-letter">R</div><div class="gterm" data-term="radio wave">
+        <b>Radio wave</b>A low-frequency electromagnetic wave commonly used to transmit information wirelessly, such as for wifi or cell phones.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="rate of heating/cooling">
+        <b>Rate of heating/cooling</b>How quickly a material&#x27;s temperature changes when it gains or loses thermal energy, which differs by material type.
+        <div class="gunit"><a href="./u5-t3.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
+      </div><div class="gterm" data-term="raw material">
+        <b>raw material</b>A natural resource, like petroleum, sand, or plant matter, that is processed to make other products.
+        <div class="gunit"><a href="./u6-t3.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="gterm" data-term="rearrange">
+        <b>rearrange</b>To connect atoms in a different pattern or combination, without creating or destroying any of them.
+        <div class="gunit"><a href="./u6-t2.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
+      </div><div class="gterm" data-term="reference point">
+        <b>Reference point</b>A fixed object or location you compare another object&#x27;s position to, in order to tell if it&#x27;s moving.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="reference point">
+        <b>Reference point</b>The starting level you measure height and potential energy from, such as the ground or the floor.
+        <div class="gunit"><a href="./u2-t1.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="reflection">
+        <b>Reflection</b>When a wave bounces off a surface instead of passing through it.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="refraction">
+        <b>Refraction</b>The bending of a wave as it passes from one medium into another and changes speed.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="refraction">
+        <b>Refraction</b>The bending of light as it passes between materials of different densities, such as air and water.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="relative motion">
+        <b>Relative motion</b>How an object&#x27;s movement appears to change depending on what you compare it to.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="repel">
+        <b>repel</b>To push away from something else, like two like magnetic poles pushing apart.
+        <div class="gunit"><a href="./u3-t1.html">Electricity &amp; Magnetism &middot; Magnetism</a></div>
+      </div><div class="gterm" data-term="restraint">
+        <b>Restraint</b>A device, like a seatbelt, that applies a force to keep an object moving together with another object.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="glossary-letter">S</div><div class="gterm" data-term="slope">
+        <b>Slope</b>The steepness of a line on a graph; on a distance vs. time graph, slope equals speed.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="solenoid">
+        <b>solenoid</b>A coil of wire, often wrapped around a core, that produces a magnetic field when electric current flows through it.
+        <div class="gunit"><a href="./u3-t2.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div>
+      </div><div class="gterm" data-term="solid">
+        <b>Solid</b>A state of matter in which particles are packed tightly and mostly vibrate in fixed positions, giving it a definite shape.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="sound energy">
+        <b>Sound energy</b>Energy carried by vibrations traveling through the air, produced when objects collide or shake.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="speed">
+        <b>Speed</b>How fast an object&#x27;s position changes, calculated as distance divided by time.
+        <div class="gunit"><a href="./u1-t2.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="squared relationship">
+        <b>Squared relationship</b>A relationship where one quantity increases with the square of another, like how kinetic energy quadruples when speed doubles.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="gterm" data-term="state of matter">
+        <b>State of matter</b>One of the forms matter can take — commonly solid, liquid, or gas — determined by how particles move and how far apart they are.
+        <div class="gunit"><a href="./u5-t2.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
+      </div><div class="gterm" data-term="stationary">
+        <b>Stationary</b>Not moving relative to a chosen reference point.
+        <div class="gunit"><a href="./u1-t1.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="sustainability">
+        <b>sustainability</b>Meeting human needs in a way that doesn&#x27;t damage the environment or use up resources for future generations.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="synthetic material">
+        <b>synthetic material</b>A material made through a human-designed chemical process, usually starting from a natural raw material.
+        <div class="gunit"><a href="./u6-t4.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div>
+      </div><div class="gterm" data-term="system">
+        <b>System</b>A group of objects being studied together, such as a truck and everything on it.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="system">
+        <b>System</b>Two or more objects being considered together, especially when studying how they interact and exchange energy, like a ball and Earth, or two magnets.
+        <div class="gunit"><a href="./u2-t3.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy to Kinetic Energy</a></div>
+      </div><div class="glossary-letter">T</div><div class="gterm" data-term="temperature">
+        <b>Temperature</b>A measure of the average kinetic energy (average speed) of the particles in a substance — basically, how fast the particles are jiggling or zooming around on average.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="thermal (heat) energy">
+        <b>Thermal (heat) energy</b>Energy related to the temperature of an object, often produced by friction.
+        <div class="gunit"><a href="./u1-t4.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="thermal energy">
+        <b>Thermal energy</b>The total kinetic energy of all the moving, vibrating, and colliding particles in a substance.
+        <div class="gunit"><a href="./u5-t1.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="total internal reflection">
+        <b>Total internal reflection</b>The way light bounces repeatedly off the inner walls of a fiber optic cable, keeping it traveling forward instead of escaping.
+        <div class="gunit"><a href="./u4-t3.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="transmission">
+        <b>Transmission</b>When a wave passes through a material, like light passing through clear glass.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="glossary-letter">U</div><div class="gterm" data-term="unbalanced (net) force">
+        <b>Unbalanced (net) force</b>The overall force remaining after all forces on an object are combined, causing a change in motion.
+        <div class="gunit"><a href="./u1-t3.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
+      </div><div class="gterm" data-term="universal law of gravitation">
+        <b>Universal law of gravitation</b>The rule that any two objects with mass attract each other, with the force depending on their masses and the distance between them.
+        <div class="gunit"><a href="./u2-t2.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
+      </div><div class="glossary-letter">V</div><div class="gterm" data-term="vacuum">
+        <b>Vacuum</b>A space completely empty of matter; light can travel through it, but sound cannot.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="gterm" data-term="visible light">
+        <b>Visible light</b>The narrow band of the electromagnetic spectrum that human eyes can detect, seen as the colors of the rainbow.
+        <div class="gunit"><a href="./u4-t2.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
+      </div><div class="glossary-letter">W</div><div class="gterm" data-term="wave">
+        <b>Wave</b>A disturbance that carries energy from one place to another without permanently moving the matter it travels through.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="wavelength">
+        <b>Wavelength</b>The distance from one point on a wave to the exact same point on the next wave, like peak to peak.
+        <div class="gunit"><a href="./u4-t1.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

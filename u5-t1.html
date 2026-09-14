@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Transfer and Temperature · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u5">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="active" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 5, Chapter 15 &middot; Thermal Energy &amp; Heat Flow</span>
+      <h1>Energy Transfer and Temperature</h1>
+    </div>
+    <div class="hero-icon" data-icon="u5-t1"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>When you touch a metal doorknob and a wooden door on the same cold morning, the doorknob feels colder — even though they&#x27;re the same temperature. What&#x27;s actually going on, and how is that different from temperature itself?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Heat vs. Temperature: Not the Same Thing</h2>
+<p>People use the words "<span class="gloss-term" data-def="Thermal energy that is moving from a hotter object to a cooler object.">heat</span>" and "<span class="gloss-term" data-def="A measure of the average kinetic energy (average speed) of the particles in a substance — basically, how fast the particles are jiggling or zooming around on average.">temperature</span>" like they mean the same thing, but in science they're two different ideas. Temperature is a measurement of how fast the particles in a substance are jiggling around, on average. Heat is <span class="gloss-term" data-def="The total kinetic energy of all the moving, vibrating, and colliding particles in a substance.">thermal energy</span> actually moving from a hotter object to a cooler one. Think of it this way: temperature is like a speedometer reading for a swarm of tiny particles, while heat is the energy that flows between two swarms when they meet.</p>
+<p>Here's the mind-bender: a huge iceberg and a cup of hot tea can have very different temperatures, but the iceberg actually contains way more total thermal energy, simply because it's made of a massive amount of matter. Total thermal energy depends on temperature AND on how much matter (and what kind) you have. That's why a spark from a sparkler can be thousands of degrees but won't burn you — there's so little matter in that tiny spark that it doesn't carry much total energy.</p>
+<p>Heat always flows one direction on its own: from hot to cold, never the reverse. That's why your hot cocoa cools down toward room temperature and never spontaneously gets hotter sitting on the counter, and why the ice cube in your drink melts while cooling the soda around it.</p>
+<h2>Why the Metal Doorknob Feels Colder</h2>
+<p>Back to that doorknob mystery: metal and wood in the same room are actually the same temperature. But metal is a <span class="gloss-term" data-def="A material, like most metals, that allows thermal energy to flow through it quickly and easily.">conductor</span> — a material that transfers thermal energy quickly — while wood is an <span class="gloss-term" data-def="A material, like foam, wood, or air, that resists the flow of thermal energy and slows it down.">insulator</span>, a material that resists thermal energy flow. When your warm hand touches the metal, heat rushes out of your hand fast, and nerve endings in your skin sense that rapid energy loss as "cold." Touch the wood, and heat leaves your hand much more slowly, so it feels warmer even though the thermometer would read the exact same number for both.</p>
+<p>This conductor-versus-insulator idea is everywhere in daily life. Pots and pans are often made of metal (a good conductor) so heat moves quickly from the stove into your food, but their handles are often plastic or wood (insulators) so you don't burn your hand. A thermos keeps coffee hot for hours by using layers of insulating material — and often a vacuum gap — to drastically slow the flow of heat out of the hot liquid.</p>
+<h2>Designing to Control Heat Flow</h2>
+<p>Engineers use exactly this science when they design things like coolers, thermoses, winter coats, and solar cookers. If you want to keep something cold (like ice in a cooler on a summer trip), you choose insulating materials — foam, thick plastic, trapped air pockets — that slow down heat flowing in from the hot outside world. If you want to capture and use heat, like in a solar cooker, you design surfaces that absorb sunlight efficiently and trap that thermal energy, sometimes using dark colors and reflective panels to funnel more energy in one direction.</p>
+<p>Real engineering always involves <span class="gloss-term" data-def="The specific requirements a device must meet to be considered successful, such as &quot;keeps ice from melting for 6 hours.&quot;">design criteria</span> (what the device needs to do, like "keep ice frozen for 6 hours") and constraints (limits like cost, size, or available materials). Engineers build a prototype, test it — often by measuring temperature over time — and then redesign based on the data. If your cooler's ice melts too fast, you might add a layer of insulation or seal gaps where warm air sneaks in, then test again.</p>
+<h2>Evidence That Energy Has Moved</h2>
+<p>How do you know when thermal energy has been transferred to or from an object? You look for evidence: a change in temperature (a thermometer reading goes up or down), a change in motion (particles speeding up or slowing down, which can even change the state of matter), or sometimes a change in sound (like popping and cracking as materials expand or contract when heated or cooled). Whenever you see one of these changes, energy has moved into or out of that object — it doesn't just happen on its own.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Sea Breezes at the Beach</h4><p>Land heats up and cools down faster than water, which is why a cool breeze often blows from the ocean toward shore on a hot afternoon — heat flowing from the warmer land and air toward the cooler sea air replacing it.</p></div><div class="example-card"><h4>Why Metal Feels Colder Than Wood</h4><p>A metal railing and a wooden fence sitting outside at the same temperature feel different to the touch because metal pulls heat away from your hand much faster than wood does.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples show heat naturally flowing from warmer things to cooler things — whether that&#x27;s warm land heating the air above it, or your warm hand losing heat to cold metal.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">M</div>
+    <div><h4>Meteorologists</h4><p>Meteorologists study exactly how heat moves through the atmosphere and oceans to predict weather, from daily sea breezes to massive hurricanes. Understanding heat flow between land, water, and air is one of the most basic tools they use to build tomorrow&#x27;s forecast.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Temperature<span class="hint">tap to flip</span></div>
+        <div class="vface back">A measure of the average kinetic energy (average speed) of the particles in a substance — basically, how fast the particles are jiggling or zooming around on average.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Heat<span class="hint">tap to flip</span></div>
+        <div class="vface back">Thermal energy that is moving from a hotter object to a cooler object.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Thermal energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">The total kinetic energy of all the moving, vibrating, and colliding particles in a substance.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Conductor<span class="hint">tap to flip</span></div>
+        <div class="vface back">A material, like most metals, that allows thermal energy to flow through it quickly and easily.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Insulator<span class="hint">tap to flip</span></div>
+        <div class="vface back">A material, like foam, wood, or air, that resists the flow of thermal energy and slows it down.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Kinetic energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">The energy an object or particle has because it is moving.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Design constraint<span class="hint">tap to flip</span></div>
+        <div class="vface back">A limit an engineer must work within when building something, such as cost, size, or available materials.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Design criteria<span class="hint">tap to flip</span></div>
+        <div class="vface back">The specific requirements a device must meet to be considered successful, such as &quot;keeps ice from melting for 6 hours.&quot;</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Explainer: How heat moves</h4>
+        <div class="rsource">Science News Explores</div>
+        <a class="rlink" href="https://www.snexplores.org/article/explainer-how-heat-moves" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Energy Forms and Changes</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/energy-forms-and-changes" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/tuSC0ObB-qY" title="The Physics of Heat: Crash Course Physics #22" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>The Physics of Heat: Crash Course Physics #22</h4>
+        <div class="rsource">CrashCourse on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=tuSC0ObB-qY" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u5-t1" data-source="quizdata-u5-t1">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. A metal spoon and a wooden spoon have been sitting on the same kitchen counter all morning. Which statement is TRUE?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u5-t1" value="0"> The metal spoon has a lower temperature than the wooden spoon.</label><label class="qchoice"><input type="radio" name="q0-u5-t1" value="1"> They are the same temperature, but the metal spoon conducts heat away from your hand faster, so it feels colder.</label><label class="qchoice"><input type="radio" name="q0-u5-t1" value="2"> The wooden spoon has more total thermal energy because wood insulates better.</label><label class="qchoice"><input type="radio" name="q0-u5-t1" value="3"> Temperature and &quot;feels cold&quot; always mean exactly the same thing.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. Which best describes the difference between heat and temperature?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u5-t1" value="0"> Heat and temperature are two different words for the exact same measurement.</label><label class="qchoice"><input type="radio" name="q1-u5-t1" value="1"> Temperature measures total energy in an object; heat measures particle speed.</label><label class="qchoice"><input type="radio" name="q1-u5-t1" value="2"> Temperature measures average particle kinetic energy; heat is thermal energy moving from hot to cold.</label><label class="qchoice"><input type="radio" name="q1-u5-t1" value="3"> Heat only occurs in gases, while temperature only applies to solids and liquids.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. A tiny spark from a sparkler can be over 1,000°C but doesn&#x27;t burn your skin when it lands on you briefly. Why not?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u5-t1" value="0"> The spark isn&#x27;t actually that hot; the number is exaggerated.</label><label class="qchoice"><input type="radio" name="q2-u5-t1" value="1"> The spark has very little matter in it, so even though its temperature is high, its total thermal energy is small.</label><label class="qchoice"><input type="radio" name="q2-u5-t1" value="2"> Sparks transfer heat from cold to hot, which reverses the burning process.</label><label class="qchoice"><input type="radio" name="q2-u5-t1" value="3"> Human skin is a perfect insulator against all heat.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. An engineer is designing an insulated lunch box to keep a cold drink cold for 8 hours. Which material choice best fits this goal?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u5-t1" value="0"> A thin sheet of aluminum, because metal looks nice.</label><label class="qchoice"><input type="radio" name="q3-u5-t1" value="1"> Thick foam padding with trapped air pockets, because it&#x27;s a good insulator.</label><label class="qchoice"><input type="radio" name="q3-u5-t1" value="2"> A material that is an excellent conductor, so heat moves in quickly.</label><label class="qchoice"><input type="radio" name="q3-u5-t1" value="3"> No material matters, since heat only flows out of an object, never in.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. You notice a metal railing outside making faint creaking and popping sounds on a chilly morning as the sun starts to warm it. What is this sound evidence of?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u5-t1" value="0"> Nothing — metal makes random sounds for no reason.</label><label class="qchoice"><input type="radio" name="q4-u5-t1" value="1"> Energy is being transferred to the railing, causing it to expand and shift.</label><label class="qchoice"><input type="radio" name="q4-u5-t1" value="2"> The railing is losing all of its thermal energy at once.</label><label class="qchoice"><input type="radio" name="q4-u5-t1" value="3"> Sound only happens when temperature stays exactly constant.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u5-t1">[{"question": "A metal spoon and a wooden spoon have been sitting on the same kitchen counter all morning. Which statement is TRUE?", "choices": ["The metal spoon has a lower temperature than the wooden spoon.", "They are the same temperature, but the metal spoon conducts heat away from your hand faster, so it feels colder.", "The wooden spoon has more total thermal energy because wood insulates better.", "Temperature and \"feels cold\" always mean exactly the same thing."], "answerIndex": 1, "explanation": "Both spoons are at room temperature, but metal conducts heat away from your warm hand much faster than wood, which is why it feels colder to the touch."}, {"question": "Which best describes the difference between heat and temperature?", "choices": ["Heat and temperature are two different words for the exact same measurement.", "Temperature measures total energy in an object; heat measures particle speed.", "Temperature measures average particle kinetic energy; heat is thermal energy moving from hot to cold.", "Heat only occurs in gases, while temperature only applies to solids and liquids."], "answerIndex": 2, "explanation": "Temperature reflects the average kinetic energy of particles, while heat specifically refers to thermal energy transferring from a warmer object to a cooler one."}, {"question": "A tiny spark from a sparkler can be over 1,000\u00b0C but doesn't burn your skin when it lands on you briefly. Why not?", "choices": ["The spark isn't actually that hot; the number is exaggerated.", "The spark has very little matter in it, so even though its temperature is high, its total thermal energy is small.", "Sparks transfer heat from cold to hot, which reverses the burning process.", "Human skin is a perfect insulator against all heat."], "answerIndex": 1, "explanation": "Total thermal energy depends on both temperature and the amount of matter present, and a spark contains only a tiny amount of matter."}, {"question": "An engineer is designing an insulated lunch box to keep a cold drink cold for 8 hours. Which material choice best fits this goal?", "choices": ["A thin sheet of aluminum, because metal looks nice.", "Thick foam padding with trapped air pockets, because it's a good insulator.", "A material that is an excellent conductor, so heat moves in quickly.", "No material matters, since heat only flows out of an object, never in."], "answerIndex": 1, "explanation": "Insulators like foam with trapped air slow the flow of heat from the warm surroundings into the cold drink, keeping it cold longer."}, {"question": "You notice a metal railing outside making faint creaking and popping sounds on a chilly morning as the sun starts to warm it. What is this sound evidence of?", "choices": ["Nothing \u2014 metal makes random sounds for no reason.", "Energy is being transferred to the railing, causing it to expand and shift.", "The railing is losing all of its thermal energy at once.", "Sound only happens when temperature stays exactly constant."], "answerIndex": 1, "explanation": "Sound, along with temperature and motion changes, is evidence that thermal energy has been transferred to or from an object."}]</script>
+
+  <div class="chapter-nav"><a href="./u4-t3.html"><span class="dir">&larr; Previous</span>Waves &amp; Information Technology</a><a class="next" href="./u5-t2.html"><span class="dir">Next &rarr;</span>Changes in Energy at the Molecular Level</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

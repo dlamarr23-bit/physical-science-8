@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frames of Reference · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u1">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block current">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="active" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 1, Chapter 1 &middot; Energy of Motion</span>
+      <h1>Frames of Reference</h1>
+    </div>
+    <div class="hero-icon" data-icon="u1-t1"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>If you watched the crash from inside the car, from the sidewalk, and from a helicopter overhead, would the car look like it was moving the same way each time?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>It Depends on Where You&#x27;re Standing</h2>
+<p>Picture the crash-test dummy sitting in the driver's seat as the car speeds toward the pole. To the dummy, the dashboard and steering wheel never move — they're always right there, perfectly still. But to a scientist standing on the sidewalk watching the whole thing happen, that same car is clearly zooming past at high speed. Neither person is wrong. They're just using a different <span class="gloss-term" data-def="A fixed object or location you compare another object&#x27;s position to, in order to tell if it&#x27;s moving.">reference point</span>, which is the fixed spot or object you compare <span class="gloss-term" data-def="A change in an object&#x27;s position over time, compared to a reference point.">motion</span> to in order to decide whether something is moving and how fast.</p>
+<p>This is one of the trickiest but coolest ideas in physics: motion isn't something an object just "has." It only makes sense when you say what you're comparing it to. A passenger sitting still in a moving car isn't moving relative to the car, but is absolutely moving relative to the road, the pole, and everything else outside the window.</p>
+<h2>Building a Frame of Reference</h2>
+<p>A <span class="gloss-term" data-def="A reference point plus a direction, used together to fully describe an object&#x27;s motion.">frame of reference</span> is the whole setup you use to measure motion — it includes your reference point plus a direction, like "north" or "forward," so you can describe exactly how something is moving, not just that it's moving. Without both pieces, a description of motion is incomplete. Saying "the car is moving" tells you almost nothing. Saying "the car is moving forward, away from the mailbox, toward the pole" actually paints a picture.</p>
+<p>Scientists get to choose whatever frame of reference is most useful for the situation, and that choice is really just about convenience. If you're studying how the crash-test dummy behaves inside the truck, it might be easiest to use the truck bed itself as your frame of reference. If you're studying how fast the whole truck is approaching the pole, the road is a much better choice. Neither frame is more "correct" than the other — they're just useful for answering different questions.</p>
+<h2>Why This Matters for the Crash</h2>
+<p>Here's where it gets wild: right before the crash, the crash-test dummy on the open truck bed is moving forward at the same speed as the truck. Relative to the truck bed, the dummy looks like it's just sitting there, not moving at all. But relative to the road, the dummy is racing forward just as fast as the truck is. When the truck suddenly slams into something and stops, the dummy — with nothing holding it in place — keeps going at that same speed relative to the road, which is exactly why it goes flying off the back. You'll dig deeper into why that happens in the next few topics, but it all starts with understanding that motion always depends on your point of view.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Passing Cars on the Highway</h4><p>If you&#x27;re riding in a car going 65 mph and another car passes you going 70 mph, that car only looks like it&#x27;s crawling by — even though both cars are flying down the road relative to someone standing on the shoulder.</p></div><div class="example-card"><h4>Flying Against the Wind</h4><p>A jet cruising at 500 mph relative to the air around it might only cover 420 mph relative to the ground if it&#x27;s fighting a strong headwind — or 580 mph if that same wind pushes from behind.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples show the same idea: an object&#x27;s speed only means something once you say what it&#x27;s being compared to. Change the reference point, and the same motion can look completely different.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">CA</div>
+    <div><h4>Commercial Airline Pilots &amp; Flight Dispatchers</h4><p>Pilots and dispatchers plan every single flight around frames of reference. Before takeoff, a dispatcher calculates the plane&#x27;s airspeed (its speed through the air) and compares it to wind data to predict groundspeed (how fast it&#x27;s actually covering distance over the Earth). Get the frame of reference wrong, and a flight could run low on fuel or misjudge exactly when to start descending toward the runway.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Motion<span class="hint">tap to flip</span></div>
+        <div class="vface back">A change in an object&#x27;s position over time, compared to a reference point.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Reference point<span class="hint">tap to flip</span></div>
+        <div class="vface back">A fixed object or location you compare another object&#x27;s position to, in order to tell if it&#x27;s moving.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Frame of reference<span class="hint">tap to flip</span></div>
+        <div class="vface back">A reference point plus a direction, used together to fully describe an object&#x27;s motion.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Relative motion<span class="hint">tap to flip</span></div>
+        <div class="vface back">How an object&#x27;s movement appears to change depending on what you compare it to.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Position<span class="hint">tap to flip</span></div>
+        <div class="vface back">The exact location of an object at a certain moment, usually described using a reference point.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Perspective<span class="hint">tap to flip</span></div>
+        <div class="vface back">The particular point of view from which someone observes and describes motion.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Stationary<span class="hint">tap to flip</span></div>
+        <div class="vface back">Not moving relative to a chosen reference point.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Motion</h4>
+        <div class="rsource">CK-12 Foundation</div>
+        <a class="rlink" href="https://www.ck12.org/physics/Motion/lesson/Motion-MS-PS/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Ladybug Motion 2D</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/ladybug-motion-2d" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/ypQPSH1qkI4" title="Frames of Reference | Movement and Forces | Middle School Physics" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Frames of Reference | Movement and Forces | Middle School Physics</h4>
+        <div class="rsource">Khan Academy on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=ypQPSH1qkI4" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u1-t1" data-source="quizdata-u1-t1">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. What two things does a frame of reference need in order to fully describe motion?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u1-t1" value="0"> A speedometer and a stopwatch</label><label class="qchoice"><input type="radio" name="q0-u1-t1" value="1"> A reference point and a direction</label><label class="qchoice"><input type="radio" name="q0-u1-t1" value="2"> A driver and a passenger</label><label class="qchoice"><input type="radio" name="q0-u1-t1" value="3"> A camera and a graph</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. A crash-test dummy sits still in a car seat while the car speeds down the road. Relative to the car, is the dummy moving?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u1-t1" value="0"> Yes, it&#x27;s moving very fast</label><label class="qchoice"><input type="radio" name="q1-u1-t1" value="1"> No, it appears stationary relative to the car</label><label class="qchoice"><input type="radio" name="q1-u1-t1" value="2"> It depends on the color of the car</label><label class="qchoice"><input type="radio" name="q1-u1-t1" value="3"> Motion can&#x27;t be described in a moving car</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. Why might a scientist choose the road, rather than the truck bed, as a frame of reference when studying a crash?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u1-t1" value="0"> The road frame is the only correct one</label><label class="qchoice"><input type="radio" name="q2-u1-t1" value="1"> The truck bed can&#x27;t be used as a frame of reference</label><label class="qchoice"><input type="radio" name="q2-u1-t1" value="2"> It depends on which question the scientist wants to answer</label><label class="qchoice"><input type="radio" name="q2-u1-t1" value="3"> Roads move faster than trucks</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Two people watch the same car crash: one from inside the car, one from the sidewalk. Why might they describe the car&#x27;s motion differently?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u1-t1" value="0"> One of them must be measuring wrong</label><label class="qchoice"><input type="radio" name="q3-u1-t1" value="1"> They are using different frames of reference</label><label class="qchoice"><input type="radio" name="q3-u1-t1" value="2"> Cars move differently depending on who is watching</label><label class="qchoice"><input type="radio" name="q3-u1-t1" value="3"> Only the sidewalk observer can measure real motion</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Which of these is the best example of a reference point?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u1-t1" value="0"> The feeling of speed</label><label class="qchoice"><input type="radio" name="q4-u1-t1" value="1"> A stop sign that stays in a fixed location</label><label class="qchoice"><input type="radio" name="q4-u1-t1" value="2"> The color of a moving object</label><label class="qchoice"><input type="radio" name="q4-u1-t1" value="3"> The sound of screeching tires</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u1-t1">[{"question": "What two things does a frame of reference need in order to fully describe motion?", "choices": ["A speedometer and a stopwatch", "A reference point and a direction", "A driver and a passenger", "A camera and a graph"], "answerIndex": 1, "explanation": "A frame of reference combines a fixed reference point with a direction so motion can be described completely."}, {"question": "A crash-test dummy sits still in a car seat while the car speeds down the road. Relative to the car, is the dummy moving?", "choices": ["Yes, it's moving very fast", "No, it appears stationary relative to the car", "It depends on the color of the car", "Motion can't be described in a moving car"], "answerIndex": 1, "explanation": "Since the dummy stays in the same spot relative to the car's seat, it is not moving relative to the car, even though it is moving relative to the road."}, {"question": "Why might a scientist choose the road, rather than the truck bed, as a frame of reference when studying a crash?", "choices": ["The road frame is the only correct one", "The truck bed can't be used as a frame of reference", "It depends on which question the scientist wants to answer", "Roads move faster than trucks"], "answerIndex": 2, "explanation": "Different frames of reference are chosen for convenience, depending on what motion the scientist wants to describe."}, {"question": "Two people watch the same car crash: one from inside the car, one from the sidewalk. Why might they describe the car's motion differently?", "choices": ["One of them must be measuring wrong", "They are using different frames of reference", "Cars move differently depending on who is watching", "Only the sidewalk observer can measure real motion"], "answerIndex": 1, "explanation": "Each observer's frame of reference changes how the car's motion appears to them, but both descriptions can be correct."}, {"question": "Which of these is the best example of a reference point?", "choices": ["The feeling of speed", "A stop sign that stays in a fixed location", "The color of a moving object", "The sound of screeching tires"], "answerIndex": 1, "explanation": "A reference point must be a fixed location or object that other motion can be compared against."}]</script>
+
+  <div class="chapter-nav"><span></span><a class="next" href="./u1-t2.html"><span class="dir">Next &rarr;</span>Speed and Distance/Time Graphs</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal Law of Gravity · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u2">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="active" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 2, Chapter 8 &middot; Gravity &amp; Energy Related to Position</span>
+      <h1>Universal Law of Gravity</h1>
+    </div>
+    <div class="hero-icon" data-icon="u2-t2"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>Every falling object near Earth speeds up at the exact same rate, so why doesn&#x27;t gravity pull on a feather and a bowling ball with the exact same force?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>A Pull With No Strings Attached</h2>
+<p>Gravity is strange when you really think about it. It's a force, which means it can push or pull objects, yet it never needs to touch anything to do its job. The Moon orbits Earth without any rope connecting them, and you're pulled toward the ground without anything physically grabbing you. Scientists describe this by saying gravity acts at a distance, and it always pulls objects together. Gravity never pushes things apart; it only attracts.</p>
+<p>Here's another key rule: gravity requires at least two objects. It doesn't make sense to talk about the gravity of a single object all by itself in empty space with nothing else around. Gravity is always a relationship between two masses pulling on each other, even if one of them, like Earth, is doing almost all of the noticeable pulling.</p>
+<h2>More Mass, More Force. More Distance, Less Force.</h2>
+<p>Even though gravity is a universal force acting between literally any two objects with <span class="gloss-term" data-def="The amount of matter in an object, one of the two factors that determines the strength of gravitational force between two objects.">mass</span>, it doesn't pull on everything with equal strength. Two things change how strong the force of gravity is between objects. The first is mass: the more mass two objects have, the stronger the gravitational force pulling them together. That's why Earth's gravity noticeably affects you, but your gravity and your friend's gravity pulling on each other is far too tiny to ever feel.</p>
+<p>The second factor is distance. The farther apart two objects are, the weaker the gravitational force between them becomes. Move two objects twice as far apart, and the force drops off fast. This means gravity has an <span class="gloss-term" data-def="A pattern where one quantity goes down as another goes up, such as gravitational force decreasing as distance increases.">inverse relationship</span> with distance: as distance goes up, force goes down. Put mass and distance together, and you can explain why planets, stars, and moons produce gravity strong enough to notice, while two backpacks sites next to each other on a desk don't visibly attract each other at all.</p>
+<h2>Same Acceleration, Different Force</h2>
+<p>Here's a detail that confuses a lot of people: near Earth's surface, gravity accelerates every object at the same rate, about 9.8 meters per second every second, regardless of mass. Drop a bowling ball and a marble at the same instant in a vacuum, and they hit the ground at the same time. That seems to contradict the idea that mass matters, but it doesn't. The force of gravity pulling on the bowling ball actually is bigger than the force pulling on the marble, but the bowling ball also has more mass to move, and those two effects cancel out perfectly, leaving the same acceleration for both.</p>
+<p>Outside of a vacuum, though, things look different. Drop a feather and a bowling ball in a regular room, and the bowling ball wins easily. That's not because gravity treats them differently, it's because of <span class="gloss-term" data-def="A force caused by air pushing back against a moving object, which can slow falling objects depending on their shape and surface area.">air resistance</span> and surface area. A feather has a large surface area for its tiny mass, so air pushes back against it much more, slowing its fall dramatically. A tightly balled-up piece of paper falls faster than a flat sheet of the same paper for exactly this reason.</p>
+<h2>Fields and Force Diagrams</h2>
+<p>So how does gravity reach across empty space without touching anything? Scientists explain this using the idea of a <span class="gloss-term" data-def="An invisible region of space around an object where its force, like gravity, magnetism, or electric charge, can affect other objects without touching them.">field</span>, an invisible region of influence that surrounds any object with mass. Earth's gravitational field fills the space around our planet, and any object that enters that field feels a pull toward Earth's center, even though nothing is physically connecting them. Electric charges and magnets create their own kinds of fields too, which is why magnets can attract metal from across a table without touching it.</p>
+<p>Scientists and engineers often draw force diagrams to show these invisible pulls visually. An arrow represents a force, pointing in the direction the force acts, with a longer arrow meaning a stronger force. If you drew a <span class="gloss-term" data-def="A drawing that uses arrows to show the direction and relative strength of forces acting on an object.">force diagram</span> of Earth pulling on the Moon compared to Earth pulling on a satellite much closer by, the arrow toward the closer satellite would generally need to reflect the different distances and masses involved.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Gravity-Assist Space Missions</h4><p>NASA has sent spacecraft like Voyager 1 on flybys of massive planets like Jupiter specifically to use the planet&#x27;s gravity to slingshot the spacecraft to higher speeds, saving enormous amounts of fuel.</p></div><div class="example-card"><h4>Why the Moon Doesn&#x27;t Fall on Us</h4><p>The Moon is constantly falling toward Earth due to gravity, but it&#x27;s also moving sideways fast enough that it keeps missing — resulting in the orbit we see every night.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples depend on the same rule: every object with mass pulls on every other object with mass, and that pull gets weaker with distance — mission planners and the Moon&#x27;s orbit both follow this one universal law.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">OM</div>
+    <div><h4>Orbital Mechanics Engineers (Astrodynamicists)</h4><p>These specialists calculate the exact paths spacecraft need to follow by accounting for the gravitational pull of the Sun, Earth, Moon, and other planets. A tiny miscalculation in these gravity equations could send a multi-million-dollar spacecraft missing its target by thousands of miles.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Universal law of gravitation<span class="hint">tap to flip</span></div>
+        <div class="vface back">The rule that any two objects with mass attract each other, with the force depending on their masses and the distance between them.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Field<span class="hint">tap to flip</span></div>
+        <div class="vface back">An invisible region of space around an object where its force, like gravity, magnetism, or electric charge, can affect other objects without touching them.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Inverse relationship<span class="hint">tap to flip</span></div>
+        <div class="vface back">A pattern where one quantity goes down as another goes up, such as gravitational force decreasing as distance increases.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Acceleration due to gravity<span class="hint">tap to flip</span></div>
+        <div class="vface back">The rate at which gravity speeds up a falling object, about 9.8 meters per second squared near Earth&#x27;s surface, the same for all masses in a vacuum.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Air resistance<span class="hint">tap to flip</span></div>
+        <div class="vface back">A force caused by air pushing back against a moving object, which can slow falling objects depending on their shape and surface area.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Force diagram<span class="hint">tap to flip</span></div>
+        <div class="vface back">A drawing that uses arrows to show the direction and relative strength of forces acting on an object.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Attractive force<span class="hint">tap to flip</span></div>
+        <div class="vface back">A force that pulls objects toward each other rather than pushing them apart; gravity is always attractive.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Mass<span class="hint">tap to flip</span></div>
+        <div class="vface back">The amount of matter in an object, one of the two factors that determines the strength of gravitational force between two objects.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Newton&#x27;s Theory of Universal Gravitation</h4>
+        <div class="rsource">NASA</div>
+        <a class="rlink" href="https://www.nasa.gov/stem-content/newtons-theory-of-universal-gravitation/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Gravity Force Lab</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/gravity-force-lab" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/ljRlB6TuMOU" title="Defining Gravity: Crash Course Kids #4.1" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Defining Gravity: Crash Course Kids #4.1</h4>
+        <div class="rsource">Crash Course Kids on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=ljRlB6TuMOU" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u2-t2" data-source="quizdata-u2-t2">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. Which statement correctly describes gravity between any two objects in the universe?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u2-t2" value="0"> Gravity only exists between planets and stars</label><label class="qchoice"><input type="radio" name="q0-u2-t2" value="1"> Gravity can push objects apart if they are far enough away</label><label class="qchoice"><input type="radio" name="q0-u2-t2" value="2"> Gravity is always an attractive force between any two masses</label><label class="qchoice"><input type="radio" name="q0-u2-t2" value="3"> Gravity requires physical contact between two objects to work</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. Planet X and Planet Y have identical masses, but Planet Y is twice as far from a nearby star as Planet X. How does the star&#x27;s gravitational pull on each planet compare?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u2-t2" value="0"> The star pulls equally hard on both planets</label><label class="qchoice"><input type="radio" name="q1-u2-t2" value="1"> The star pulls harder on Planet Y since it is farther away</label><label class="qchoice"><input type="radio" name="q1-u2-t2" value="2"> The star pulls harder on Planet X since it is closer</label><label class="qchoice"><input type="radio" name="q1-u2-t2" value="3"> Distance has no effect on gravitational force</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. A hammer and a feather are dropped at the same time on the surface of the Moon, where there is no air. What happens?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u2-t2" value="0"> The hammer hits the ground first because it has more mass</label><label class="qchoice"><input type="radio" name="q2-u2-t2" value="1"> The feather hits the ground first because it is lighter</label><label class="qchoice"><input type="radio" name="q2-u2-t2" value="2"> They hit the ground at the same time because there&#x27;s no air resistance</label><label class="qchoice"><input type="radio" name="q2-u2-t2" value="3"> Neither object falls because the Moon has no gravity</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Why don&#x27;t two students sitting next to each other in class notice any gravitational pull between them?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u2-t2" value="0"> Gravity doesn&#x27;t apply to people, only to planets</label><label class="qchoice"><input type="radio" name="q3-u2-t2" value="1"> Their masses are far too small to create a noticeable force</label><label class="qchoice"><input type="radio" name="q3-u2-t2" value="2"> Gravity between objects the same size always cancels out</label><label class="qchoice"><input type="radio" name="q3-u2-t2" value="3"> They are moving too fast for gravity to act</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. A crumpled piece of paper and a flat sheet of the exact same paper are dropped from the same height in a normal room. What is the best explanation for why the crumpled paper lands first?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u2-t2" value="0"> The crumpled paper has more mass than the flat sheet</label><label class="qchoice"><input type="radio" name="q4-u2-t2" value="1"> Gravity pulls harder on smaller objects</label><label class="qchoice"><input type="radio" name="q4-u2-t2" value="2"> The flat sheet has more surface area, so air resistance slows it down more</label><label class="qchoice"><input type="radio" name="q4-u2-t2" value="3"> The flat sheet has less gravitational potential energy</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u2-t2">[{"question": "Which statement correctly describes gravity between any two objects in the universe?", "choices": ["Gravity only exists between planets and stars", "Gravity can push objects apart if they are far enough away", "Gravity is always an attractive force between any two masses", "Gravity requires physical contact between two objects to work"], "answerIndex": 2, "explanation": "Gravity always pulls objects toward each other and acts at a distance without needing contact."}, {"question": "Planet X and Planet Y have identical masses, but Planet Y is twice as far from a nearby star as Planet X. How does the star's gravitational pull on each planet compare?", "choices": ["The star pulls equally hard on both planets", "The star pulls harder on Planet Y since it is farther away", "The star pulls harder on Planet X since it is closer", "Distance has no effect on gravitational force"], "answerIndex": 2, "explanation": "Gravitational force decreases as distance increases, so the closer planet experiences a stronger pull."}, {"question": "A hammer and a feather are dropped at the same time on the surface of the Moon, where there is no air. What happens?", "choices": ["The hammer hits the ground first because it has more mass", "The feather hits the ground first because it is lighter", "They hit the ground at the same time because there's no air resistance", "Neither object falls because the Moon has no gravity"], "answerIndex": 2, "explanation": "Without air resistance, all objects accelerate due to gravity at the same rate regardless of their mass."}, {"question": "Why don't two students sitting next to each other in class notice any gravitational pull between them?", "choices": ["Gravity doesn't apply to people, only to planets", "Their masses are far too small to create a noticeable force", "Gravity between objects the same size always cancels out", "They are moving too fast for gravity to act"], "answerIndex": 1, "explanation": "Gravitational force depends on mass, and everyday objects like people have far too little mass to produce a noticeable pull on each other."}, {"question": "A crumpled piece of paper and a flat sheet of the exact same paper are dropped from the same height in a normal room. What is the best explanation for why the crumpled paper lands first?", "choices": ["The crumpled paper has more mass than the flat sheet", "Gravity pulls harder on smaller objects", "The flat sheet has more surface area, so air resistance slows it down more", "The flat sheet has less gravitational potential energy"], "answerIndex": 2, "explanation": "Even though gravity accelerates both sheets equally, the flat sheet's larger surface area creates more air resistance, slowing its fall."}]</script>
+
+  <div class="chapter-nav"><a href="./u2-t1.html"><span class="dir">&larr; Previous</span>Gravitational Potential Energy</a><a class="next" href="./u2-t3.html"><span class="dir">Next &rarr;</span>Gravitational Potential Energy to Kinetic Energy</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

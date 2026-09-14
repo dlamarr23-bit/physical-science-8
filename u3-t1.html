@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnetism · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u3">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="active" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 3, Chapter 10 &middot; Electricity &amp; Magnetism</span>
+      <h1>Magnetism</h1>
+    </div>
+    <div class="hero-icon" data-icon="u3-t1"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>How can a refrigerator magnet grab a metal spoon from an inch away, and why does a compass needle always swing around to point north no matter where you are on Earth?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>What Actually Makes Something Magnetic?</h2>
+<p>Every atom in the universe has electrons buzzing around its center, and each of those electrons behaves a little like a tiny spinning top. That spin creates a super small magnetic effect. In most materials, electrons spin in every random direction, so all those tiny magnetic effects cancel each other out and the material shows no <span class="gloss-term" data-def="A force caused by moving electric charges (like spinning electrons) that lets certain materials push or pull on each other without touching.">magnetism</span> at all.</p>
+<p>But in materials like iron, nickel, and cobalt, something special can happen: groups of electrons can line up and spin in the same direction. When enough of these tiny electron magnets point the same way, their effects add together instead of canceling out, and the whole object becomes magnetic. This is why a steel paperclip can become magnetic after you rub it with a magnet, and it's also why Earth itself acts like a giant magnet, thanks to swirling molten iron deep in its core.</p>
+<p>That's the reason a <span class="gloss-term" data-def="A tool with a free-spinning magnetized needle that lines up with Earth&#x27;s magnetic field to point toward magnetic north.">compass</span> works anywhere on the planet. The compass needle is a tiny magnet that is free to spin, and it lines up with Earth's own <span class="gloss-term" data-def="The invisible region of space around a magnet where its force can be felt by other magnetic objects.">magnetic field</span>, always pointing toward magnetic north. You don't need to plug a compass into anything or charge it up. It's just responding to a field that has been there the whole time.</p>
+<h2>Invisible Fields You Can Actually See Evidence Of</h2>
+<p>You can't see a magnetic field with your bare eyes, but you can absolutely see what it does. Sprinkle iron filings near a bar magnet and they snap into curved lines that loop from one end of the magnet to the other. Hold a compass near a strong magnet and watch the needle spin to point along those same invisible lines. Both are solid evidence that something real is spreading out through the space around the magnet, even though that something is invisible.</p>
+<p>Scientists call this region of influence a magnetic field. Every magnet, from the small button magnet on your locker to the entire planet Earth, is surrounded by one. The field is strongest right at the magnet's poles and gets weaker the farther out you go, eventually fading into nothing.</p>
+<p>Here's the key idea though: for two magnetic objects to actually push or pull on each other, their fields have to overlap and interact. If you hold a magnet across the room from a paperclip, nothing happens, because the fields never reach each other. Move the magnet close enough that its field reaches the paperclip, and suddenly the paperclip goes flying toward it.</p>
+<h2>Distance Changes Everything</h2>
+<p>Try this thought experiment: hold two refrigerator magnets a few centimeters apart with their opposite poles facing each other. You'll feel almost nothing. Now slowly bring them closer together. The pull gets stronger and stronger, until at the last centimeter or so it feels like the magnets suddenly leap together on their own.</p>
+<p>That's because the closer two magnetic objects get, the more strongly their fields overlap, and the stronger the force between them becomes. Distance is one of the biggest factors in how strongly magnets interact with each other. The same idea explains repulsion too: push two magnets together north-pole to north-pole, and the closer they get, the harder they shove back against your hand.</p>
+<p>Positioning matters just as much as distance. Two magnets lined up pole-to-pole (north facing south) <span class="gloss-term" data-def="To pull toward something else, like opposite magnetic poles pulling toward each other.">attract</span>, while the same two magnets flipped so like poles face each other will <span class="gloss-term" data-def="To push away from something else, like two like magnetic poles pushing apart.">repel</span>. And the strength of the magnets themselves matters too. A tiny craft-store magnet and a industrial neodymium magnet the same distance away will pull very differently, because one simply has a stronger field to begin with.</p>
+<h2>Energy Stored in the Space Between Magnets</h2>
+<p>Think about pulling two attracting magnets apart. It takes effort, right? Your muscles do work to separate them, and that energy doesn't just disappear. It gets stored as <span class="gloss-term" data-def="Stored energy in a system of magnetic objects that depends on how they are positioned and how far apart they are.">magnetic potential energy</span> in the system of the two magnets, similar to how stretching a rubber band stores energy in the rubber band.</p>
+<p>The closer together two attracting magnets are forced to stay apart, the more potential energy is stored in that stretched-out arrangement, ready to be released. That's why when you finally let go, the magnets snap together with a loud clack, converting all that stored potential energy into the kinetic energy of motion and sound.</p>
+<p>The same pattern works in reverse for two magnets that repel each other. Pushing like poles closer together stores more potential energy, and the moment you let go, they push apart and release that energy as motion. Engineers use exactly this idea to design magnetic door latches, magnetic building toys, and even high-speed maglev trains that float and glide using stored magnetic energy instead of wheels and friction.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Compasses and Earth&#x27;s Magnetic Field</h4><p>A compass needle lines up with Earth&#x27;s own magnetic field, generated deep inside the planet by swirling molten iron — the reason compasses have guided navigation for centuries.</p></div><div class="example-card"><h4>Magnetic Junkyard Cranes</h4><p>The giant electromagnetic cranes used at junkyards and recycling centers can lift an entire car using a magnetic field, then release the metal instantly by switching the field off.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both show magnetic fields exerting real force on objects without ever touching them — whether that field comes from deep inside our planet or a machine built to sort scrap metal.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">G</div>
+    <div><h4>Geophysicists</h4><p>Geophysicists study Earth&#x27;s magnetic field to understand everything from why compasses work to how the field shields us from dangerous particles streaming off the Sun. Some even track how Earth&#x27;s magnetic north pole slowly drifts over time — information airlines and mapping companies need to keep navigation systems accurate.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">magnetism<span class="hint">tap to flip</span></div>
+        <div class="vface back">A force caused by moving electric charges (like spinning electrons) that lets certain materials push or pull on each other without touching.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">magnetic field<span class="hint">tap to flip</span></div>
+        <div class="vface back">The invisible region of space around a magnet where its force can be felt by other magnetic objects.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">pole<span class="hint">tap to flip</span></div>
+        <div class="vface back">One of the two ends of a magnet (north or south) where the magnetic field is strongest.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">attract<span class="hint">tap to flip</span></div>
+        <div class="vface back">To pull toward something else, like opposite magnetic poles pulling toward each other.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">repel<span class="hint">tap to flip</span></div>
+        <div class="vface back">To push away from something else, like two like magnetic poles pushing apart.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">ferromagnetic material<span class="hint">tap to flip</span></div>
+        <div class="vface back">A material, such as iron, nickel, or cobalt, whose electrons can line up to make the material strongly magnetic.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">magnetic domain<span class="hint">tap to flip</span></div>
+        <div class="vface back">A tiny region inside a magnetic material where groups of electrons spin in the same direction, acting like a mini magnet.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">magnetic potential energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">Stored energy in a system of magnetic objects that depends on how they are positioned and how far apart they are.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">compass<span class="hint">tap to flip</span></div>
+        <div class="vface back">A tool with a free-spinning magnetized needle that lines up with Earth&#x27;s magnetic field to point toward magnetic north.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Scientists Say: Magnetism</h4>
+        <div class="rsource">Science News Explores</div>
+        <a class="rlink" href="https://www.snexplores.org/article/scientists-say-magnetism-definition-pronunciation" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Magnets and Electromagnets</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/magnets-and-electromagnets" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/s94suB5uLWw" title="Magnetism: Crash Course Physics #32" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Magnetism: Crash Course Physics #32</h4>
+        <div class="rsource">CrashCourse on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=s94suB5uLWw" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u3-t1" data-source="quizdata-u3-t1">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. Why do materials like iron become magnetic while materials like plastic never do?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u3-t1" value="0"> In iron, groups of spinning electrons can line up in the same direction, but in plastic they can&#x27;t</label><label class="qchoice"><input type="radio" name="q0-u3-t1" value="1"> Iron atoms are heavier than plastic atoms</label><label class="qchoice"><input type="radio" name="q0-u3-t1" value="2"> Plastic has no electrons at all</label><label class="qchoice"><input type="radio" name="q0-u3-t1" value="3"> Iron is always cold and plastic is always warm</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. Two bar magnets are being moved closer together, opposite poles facing each other. What happens to the magnetic potential energy stored in the system as the distance decreases?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u3-t1" value="0"> It increases</label><label class="qchoice"><input type="radio" name="q1-u3-t1" value="1"> It decreases</label><label class="qchoice"><input type="radio" name="q1-u3-t1" value="2"> It stays exactly the same</label><label class="qchoice"><input type="radio" name="q1-u3-t1" value="3"> It disappears completely</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. A student holds a strong magnet on one side of a thick brick wall and a paperclip on the other side, far enough apart that the fields don&#x27;t overlap. What will happen?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u3-t1" value="0"> Nothing, because the magnetic fields never reach each other</label><label class="qchoice"><input type="radio" name="q2-u3-t1" value="1"> The paperclip will definitely fly through the wall</label><label class="qchoice"><input type="radio" name="q2-u3-t1" value="2"> The wall will become magnetized instead</label><label class="qchoice"><input type="radio" name="q2-u3-t1" value="3"> The magnet will lose all of its magnetism</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Which pair of poles will attract each other?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u3-t1" value="0"> A north pole and a south pole</label><label class="qchoice"><input type="radio" name="q3-u3-t1" value="1"> Two north poles</label><label class="qchoice"><input type="radio" name="q3-u3-t1" value="2"> Two south poles</label><label class="qchoice"><input type="radio" name="q3-u3-t1" value="3"> Poles never attract, only repel</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Why does a compass needle always point toward Earth&#x27;s magnetic north, even without batteries or a plug?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u3-t1" value="0"> The needle is a small magnet that lines up with Earth&#x27;s own magnetic field</label><label class="qchoice"><input type="radio" name="q4-u3-t1" value="1"> The needle is attracted to the sun&#x27;s gravity</label><label class="qchoice"><input type="radio" name="q4-u3-t1" value="2"> Compasses only work near the equator</label><label class="qchoice"><input type="radio" name="q4-u3-t1" value="3"> The needle spins randomly and just happens to look like it points north</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u3-t1">[{"question": "Why do materials like iron become magnetic while materials like plastic never do?", "choices": ["In iron, groups of spinning electrons can line up in the same direction, but in plastic they can't", "Iron atoms are heavier than plastic atoms", "Plastic has no electrons at all", "Iron is always cold and plastic is always warm"], "answerIndex": 0, "explanation": "Magnetism comes from spinning electrons lining up in the same direction, which only happens in certain materials like iron, nickel, and cobalt."}, {"question": "Two bar magnets are being moved closer together, opposite poles facing each other. What happens to the magnetic potential energy stored in the system as the distance decreases?", "choices": ["It increases", "It decreases", "It stays exactly the same", "It disappears completely"], "answerIndex": 0, "explanation": "As magnetic objects get closer together, the magnetic potential energy stored in the system increases."}, {"question": "A student holds a strong magnet on one side of a thick brick wall and a paperclip on the other side, far enough apart that the fields don't overlap. What will happen?", "choices": ["Nothing, because the magnetic fields never reach each other", "The paperclip will definitely fly through the wall", "The wall will become magnetized instead", "The magnet will lose all of its magnetism"], "answerIndex": 0, "explanation": "Magnetic objects only affect each other when their magnetic fields actually overlap and interact; if they're too far apart, nothing happens."}, {"question": "Which pair of poles will attract each other?", "choices": ["A north pole and a south pole", "Two north poles", "Two south poles", "Poles never attract, only repel"], "answerIndex": 0, "explanation": "Opposite poles (north and south) attract, while like poles (north-north or south-south) repel."}, {"question": "Why does a compass needle always point toward Earth's magnetic north, even without batteries or a plug?", "choices": ["The needle is a small magnet that lines up with Earth's own magnetic field", "The needle is attracted to the sun's gravity", "Compasses only work near the equator", "The needle spins randomly and just happens to look like it points north"], "answerIndex": 0, "explanation": "Earth acts like a giant magnet, and the free-spinning magnetized needle in a compass naturally lines up with Earth's magnetic field."}]</script>
+
+  <div class="chapter-nav"><a href="./u2-t3.html"><span class="dir">&larr; Previous</span>Gravitational Potential Energy to Kinetic Energy</a><a class="next" href="./u3-t2.html"><span class="dir">Next &rarr;</span>Electromagnetic Fields</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

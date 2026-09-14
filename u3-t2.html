@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electromagnetic Fields · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u3">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="active" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 3, Chapter 11 &middot; Electricity &amp; Magnetism</span>
+      <h1>Electromagnetic Fields</h1>
+    </div>
+    <div class="hero-icon" data-icon="u3-t2"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>How can a giant crane at a junkyard lift an entire car with a magnet one second, then drop it exactly where it wants a moment later? The secret is that electricity can create magnetism you can switch on and off.</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>From Electric Current to Magnetism</h2>
+<p>For a long time, people thought electricity and magnetism were two completely separate things. Then scientists discovered something surprising: whenever <span class="gloss-term" data-def="The flow of electric charge through a wire or circuit, usually carried by moving electrons.">electric current</span> flows through a wire, it creates a magnetic field around that wire. Run current through a straight piece of wire and a compass placed nearby will actually twitch and swing to point along the new field, even though there's no permanent magnet anywhere in sight.</p>
+<p>This discovery meant that magnetism isn't only something certain materials have naturally, like a chunk of iron. Magnetism can also be created on demand, just by pushing <span class="gloss-term" data-def="A basic property of matter (positive or negative) that causes electric and magnetic forces between objects.">electric charge</span> through a conductor. That single idea is the foundation of an <span class="gloss-term" data-def="A magnet created by electric current flowing through a coil of wire, which can be turned on and off and adjusted in strength.">electromagnet</span>: a magnet that only exists because current is flowing through wire.</p>
+<p>Unlike a bar magnet you buy at the store, an electromagnet has an on/off switch built right into how it works. No current, no magnetic field. Flip the current on, and a magnetic field appears out of nowhere.</p>
+<h2>Coils, Cores, and Current: Building a Stronger Electromagnet</h2>
+<p>A single straight wire carrying current makes a fairly weak magnetic field. But wind that same wire into a coil, called a <span class="gloss-term" data-def="A coil of wire, often wrapped around a core, that produces a magnetic field when electric current flows through it.">solenoid</span>, and something powerful happens: the magnetic field from each loop of wire adds together with the fields from all the other loops, creating one much stronger combined field down the center of the coil.</p>
+<p>That means the number of turns of wire is one of the biggest factors controlling an electromagnet's strength. Ten loops make a noticeably stronger magnet than two loops, using the exact same wire and the exact same current. Add an iron <span class="gloss-term" data-def="A piece of material, often iron, placed inside a coil of wire to strengthen the magnetic field it produces.">core</span> through the center of the coil, and the field gets even stronger, because the iron itself becomes magnetized and boosts the effect.</p>
+<p>The other major factor is current strength. Crank up the amount of electric current flowing through the coil, and the magnetic field gets stronger right along with it. Turn the current down, and the field weakens. This is exactly why the same electromagnet can be built to lift a soda can one day and a full-size car the next: engineers just adjust the coil's turns and the current running through it.</p>
+<h2>Electromagnets on the Job</h2>
+<p>This adjustable, switchable magnetism is incredibly useful. At a junkyard, an enormous electromagnetic crane lowers over a pile of scrap metal, and the operator flips a switch that sends current surging through a massive coil. The resulting magnetic field is strong enough to lift an entire car body straight into the air. When the crane swings the car to the right spot, the operator cuts the current, the magnetic field disappears instantly, and the car drops exactly where it's needed. A permanent magnet could never do that job, because it can't be switched off.</p>
+<p>Electromagnets also make doorbells buzz, by pulling a small metal striker against a bell whenever you press the button and complete the <span class="gloss-term" data-def="A complete path that allows electric current to flow from a power source, through components, and back again.">circuit</span>. They spin the shafts inside electric motors, using changing magnetic fields to create constant rotation that powers everything from blenders to electric cars. And they run in reverse inside generators, where spinning magnets near coils of wire actually produce electric current, which is how power plants generate the electricity that reaches your house.</p>
+<p>In every one of these machines, the same basic rule applies: change the current, change the number of coils, or change the core material, and you change how strong (or weak) the magnetic force becomes.</p>
+<h2>Three Invisible Fields, One Big Idea</h2>
+<p>Magnetic fields aren't the only kind of invisible force field in nature. Gravitational fields surround every object with mass and pull other masses toward them, which is why you stay stuck to the ground and why the moon orbits Earth. Electric fields surround every electrically charged object and can push or pull on other charges nearby, static cling and lightning included. And magnetic fields surround magnets and current-carrying wires, pushing or pulling on other magnetic objects.</p>
+<p>All three fields share the same big idea: they let objects exert forces on each other without ever touching, and all three get weaker as distance increases. Electric force works a lot like magnetic force in that way. Two charged objects close together pull or push much harder than the same two objects far apart, and the size and type of charge matters too. A strongly charged balloon rubbed on hair will grab tiny bits of paper from close range, but move it a few feet away and the effect vanishes.</p>
+<p>Just like with magnets, moving charged objects closer together changes the potential energy stored in the system, and nearby magnetic fields can even influence how charged particles move. That overlap between electricity and magnetism is exactly why scientists eventually realized they aren't really separate forces at all. They're deeply connected, which is exactly what makes electromagnets possible in the first place.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>MRI Machines</h4><p>Hospitals use MRI (Magnetic Resonance Imaging) machines that contain some of the most powerful electromagnets on Earth to create detailed images inside a patient&#x27;s body without any surgery.</p></div><div class="example-card"><h4>Electric Motors in Everyday Devices</h4><p>Everything from an electric toothbrush to an electric car uses an electromagnet whose field can be precisely controlled by adjusting the current — exactly what makes electric motors spin.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both technologies rely on this chapter&#x27;s core idea — that electric current creates a controllable magnetic field — and that control is what makes them useful, whether spinning a motor or scanning a body.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">BE</div>
+    <div><h4>Biomedical Engineers</h4><p>Biomedical engineers design and maintain the electromagnets inside MRI machines, balancing incredibly strong magnetic fields with patient safety. The electromagnets in a hospital MRI are thousands of times stronger than a refrigerator magnet, so engineers must plan for everything from medical implants to loose metal objects in the room.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">electromagnet<span class="hint">tap to flip</span></div>
+        <div class="vface back">A magnet created by electric current flowing through a coil of wire, which can be turned on and off and adjusted in strength.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">electric current<span class="hint">tap to flip</span></div>
+        <div class="vface back">The flow of electric charge through a wire or circuit, usually carried by moving electrons.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">solenoid<span class="hint">tap to flip</span></div>
+        <div class="vface back">A coil of wire, often wrapped around a core, that produces a magnetic field when electric current flows through it.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">circuit<span class="hint">tap to flip</span></div>
+        <div class="vface back">A complete path that allows electric current to flow from a power source, through components, and back again.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">electric field<span class="hint">tap to flip</span></div>
+        <div class="vface back">The invisible region of space around a charged object where it can push or pull on other charged objects.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">gravitational field<span class="hint">tap to flip</span></div>
+        <div class="vface back">The invisible region of space around any object with mass where it can pull other masses toward it.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">induction<span class="hint">tap to flip</span></div>
+        <div class="vface back">The process by which a changing magnetic field near a wire can create, or induce, an electric current in that wire.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">electric charge<span class="hint">tap to flip</span></div>
+        <div class="vface back">A basic property of matter (positive or negative) that causes electric and magnetic forces between objects.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">core<span class="hint">tap to flip</span></div>
+        <div class="vface back">A piece of material, often iron, placed inside a coil of wire to strengthen the magnetic field it produces.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Electromagnet</h4>
+        <div class="rsource">CK-12 Foundation</div>
+        <a class="rlink" href="https://flexbooks.ck12.org/cbook/ck-12-middle-school-physical-science-flexbook-2.0/section/22.4/primary/lesson/electromagnet-ms-ps/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Faraday&#x27;s Electromagnetic Lab</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/faradays-electromagnetic-lab" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/oEEYMhPY5tY" title="Current &amp; Magnetic Fields | Magnetism | Physics | FuseSchool" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Current &amp; Magnetic Fields | Magnetism | Physics | FuseSchool</h4>
+        <div class="rsource">FuseSchool - Global Education on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=oEEYMhPY5tY" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u3-t2" data-source="quizdata-u3-t2">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. What happens to the magnetic field around a wire when there is no electric current flowing through it?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u3-t2" value="0"> There is no magnetic field at all</label><label class="qchoice"><input type="radio" name="q0-u3-t2" value="1"> The magnetic field becomes stronger than usual</label><label class="qchoice"><input type="radio" name="q0-u3-t2" value="2"> The field stays exactly the same as when current is flowing</label><label class="qchoice"><input type="radio" name="q0-u3-t2" value="3"> The wire becomes a permanent magnet forever</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. An engineer wants to make an electromagnet stronger without changing the power source. Which two changes would help?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u3-t2" value="0"> Increase the number of coil turns and add an iron core</label><label class="qchoice"><input type="radio" name="q1-u3-t2" value="1"> Remove all the coils and use a single straight wire</label><label class="qchoice"><input type="radio" name="q1-u3-t2" value="2"> Paint the wire a different color and use thinner wire</label><label class="qchoice"><input type="radio" name="q1-u3-t2" value="3"> Disconnect the battery from the circuit</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. Why is an electromagnet, rather than a permanent magnet, used in a junkyard crane that lifts and drops cars?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u3-t2" value="0"> Because the electromagnet&#x27;s field can be switched on and off by controlling the current</label><label class="qchoice"><input type="radio" name="q2-u3-t2" value="1"> Because permanent magnets are always more expensive to build</label><label class="qchoice"><input type="radio" name="q2-u3-t2" value="2"> Because electromagnets never wear out while permanent magnets do</label><label class="qchoice"><input type="radio" name="q2-u3-t2" value="3"> Because permanent magnets cannot lift any metal at all</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Which three types of fields let objects exert forces on each other without touching?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u3-t2" value="0"> Gravitational, electric, and magnetic fields</label><label class="qchoice"><input type="radio" name="q3-u3-t2" value="1"> Sound, light, and heat fields</label><label class="qchoice"><input type="radio" name="q3-u3-t2" value="2"> Solid, liquid, and gas fields</label><label class="qchoice"><input type="radio" name="q3-u3-t2" value="3"> Red, green, and blue fields</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Two charged balloons are brought closer together. Based on how electric forces work, what should happen to the force between them?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u3-t2" value="0"> The force between them gets stronger as the distance decreases</label><label class="qchoice"><input type="radio" name="q4-u3-t2" value="1"> The force between them disappears completely at any distance</label><label class="qchoice"><input type="radio" name="q4-u3-t2" value="2"> The force stays exactly the same no matter the distance</label><label class="qchoice"><input type="radio" name="q4-u3-t2" value="3"> The charges instantly cancel each other out</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u3-t2">[{"question": "What happens to the magnetic field around a wire when there is no electric current flowing through it?", "choices": ["There is no magnetic field at all", "The magnetic field becomes stronger than usual", "The field stays exactly the same as when current is flowing", "The wire becomes a permanent magnet forever"], "answerIndex": 0, "explanation": "An electromagnet's magnetic field exists only because of the electric current flowing through it, so no current means no field."}, {"question": "An engineer wants to make an electromagnet stronger without changing the power source. Which two changes would help?", "choices": ["Increase the number of coil turns and add an iron core", "Remove all the coils and use a single straight wire", "Paint the wire a different color and use thinner wire", "Disconnect the battery from the circuit"], "answerIndex": 0, "explanation": "More turns of wire in the coil and an iron core both boost the strength of the magnetic field an electromagnet produces."}, {"question": "Why is an electromagnet, rather than a permanent magnet, used in a junkyard crane that lifts and drops cars?", "choices": ["Because the electromagnet's field can be switched on and off by controlling the current", "Because permanent magnets are always more expensive to build", "Because electromagnets never wear out while permanent magnets do", "Because permanent magnets cannot lift any metal at all"], "answerIndex": 0, "explanation": "An electromagnet can be turned off by cutting the current, instantly releasing whatever it's holding, which a permanent magnet can't do."}, {"question": "Which three types of fields let objects exert forces on each other without touching?", "choices": ["Gravitational, electric, and magnetic fields", "Sound, light, and heat fields", "Solid, liquid, and gas fields", "Red, green, and blue fields"], "answerIndex": 0, "explanation": "Gravitational, electric, and magnetic fields are all invisible regions of influence that let objects push or pull on each other at a distance."}, {"question": "Two charged balloons are brought closer together. Based on how electric forces work, what should happen to the force between them?", "choices": ["The force between them gets stronger as the distance decreases", "The force between them disappears completely at any distance", "The force stays exactly the same no matter the distance", "The charges instantly cancel each other out"], "answerIndex": 0, "explanation": "Like magnetic force, electric force depends on distance between charges, growing stronger as charged objects get closer together."}]</script>
+
+  <div class="chapter-nav"><a href="./u3-t1.html"><span class="dir">&larr; Previous</span>Magnetism</a><a class="next" href="./u4-t1.html"><span class="dir">Next &rarr;</span>Intro to Wave Properties</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

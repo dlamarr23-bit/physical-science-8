@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gravitational Potential Energy · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u2">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="active" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 2, Chapter 7 &middot; Gravity &amp; Energy Related to Position</span>
+      <h1>Gravitational Potential Energy</h1>
+    </div>
+    <div class="hero-icon" data-icon="u2-t1"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>Why does a roller coaster cart parked at the top of a 200-foot hill feel so much more dangerous than the same cart sitting on flat ground? The answer is energy you can&#x27;t even see yet.</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Energy That&#x27;s Just Waiting Around</h2>
+<p>Not all energy is busy doing something. Some energy just sits and waits, stored up until the right moment to be released. Scientists call this stored energy <span class="gloss-term" data-def="Energy that is stored and waiting to be used, rather than energy that&#x27;s currently making something move.">potential energy</span>, and one of the most common kinds comes from an object's <span class="gloss-term" data-def="Where an object is located, especially how high or low it sits compared to a reference point like the ground.">position</span> above the ground. A book balanced on the edge of a shelf, a diver standing on a high platform, and a roller coaster cart clicking its way up the first big hill all have this in common: they're loaded with energy they haven't used yet.</p>
+<p>This particular type of stored energy is called gravitational potential energy, or GPE for short. It exists because <span class="gloss-term" data-def="The pulling force that pulls objects toward each other, and toward Earth in particular near its surface.">gravity</span> is always ready to pull things back down toward Earth. The moment something falls, drops, or rolls downhill, that waiting energy gets put to work.</p>
+<h2>Height Is the Key Ingredient</h2>
+<p>So what actually decides how much gravitational potential energy an object has? Distance above the ground is the big one. The higher an object sits, the farther gravity has to pull it, and the more energy is packed into that position. A cart sitting at the very top of a 200-foot hill has way more GPE than the same cart halfway down, and a book on a top shelf has more GPE than a book on the floor.</p>
+<p><span class="gloss-term" data-def="The amount of matter in an object; more mass means more gravitational potential energy at the same height.">Mass</span> matters too. A bowling ball sitting on a shelf has more gravitational potential energy than a tennis ball sitting on the exact same shelf, because there's simply more "stuff" for gravity to act on. So gravitational potential energy depends on two things working together: how much mass the object has, and how high above the ground it sits. Change either one, and the stored energy changes with it.</p>
+<h2>Spotting GPE in the Real World</h2>
+<p>Once you start looking for gravitational potential energy, you'll notice it everywhere. Water held behind a dam is loaded with GPE, which is exactly why dams can spin turbines and generate electricity when that water is released downward. A pole vaulter at the top of their jump, a kid at the top of a playground slide, and an apple hanging on a high branch are all storing energy in the same basic way.</p>
+<p>Engineers who design roller coasters use this idea on purpose. They build the very first hill as the tallest point on the entire ride, because that's where the cart needs to store the maximum amount of gravitational potential energy. Every hill after that is a little shorter, since the ride is slowly spending the energy that was banked at the top.</p>
+<h2>Where Do We Measure From?</h2>
+<p>Here's a detail that trips people up: gravitational potential energy is always measured relative to some starting point, usually the ground or whatever surface an object could fall onto. A cart at the top of a hill has GPE compared to the ground below it, but if that same cart could fall into a canyon underneath the track, it would have even more GPE relative to the canyon floor.</p>
+<p>This is why the same object can be described as having different amounts of GPE depending on what it's being compared to. The important habit to build is always asking, "Higher than what?" before deciding how much stored energy an object really has.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  <div class="section-figure">
+      <h3 style="margin-top:0;">Gravitational Potential Energy vs. Height</h3>
+      <canvas data-chart="chart-u2-t1-cfg" height="110"></canvas>
+      <script type="application/json" id="chart-u2-t1-cfg">{"type": "bar", "data": {"labels": ["1 m", "2 m", "3 m", "4 m", "5 m"], "datasets": [{"label": "Potential energy (relative units)", "data": [1, 2, 3, 4, 5], "backgroundColor": "#6a4c93"}]}, "options": {"responsive": true, "plugins": {"legend": {"display": false}}, "scales": {"y": {"title": {"display": true, "text": "Potential energy"}}, "x": {"title": {"display": true, "text": "Height above ground"}}}}}</script>
+      <figcaption>For the same object, potential energy climbs in a straight line as height increases.</figcaption>
+    </div>
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Hydroelectric Dams</h4><p>Water held behind a dam at a high elevation has enormous gravitational potential energy. When it&#x27;s released and falls, that energy spins turbines that generate electricity for entire cities.</p></div><div class="example-card"><h4>A High Dive Platform</h4><p>A diver standing on a 10-meter platform has far more gravitational potential energy than one on a 1-meter board — which is exactly why the high dive results in a much bigger splash.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both show that height above the ground stores energy — the higher something is, the more potential energy it has, whether that energy will power a city or just make a bigger splash.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">HP</div>
+    <div><h4>Hydroelectric Power Engineers</h4><p>These engineers design dams by calculating exactly how much gravitational potential energy a reservoir of water can store at a given height, then size the turbines to convert that falling water into electricity. Taller dams with bigger reservoirs, like the Hoover Dam, can power millions of homes.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Gravitational potential energy (GPE)<span class="hint">tap to flip</span></div>
+        <div class="vface back">Stored energy an object has because of its height above the ground; the higher it is, the more it has.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Potential energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">Energy that is stored and waiting to be used, rather than energy that&#x27;s currently making something move.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Position<span class="hint">tap to flip</span></div>
+        <div class="vface back">Where an object is located, especially how high or low it sits compared to a reference point like the ground.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Mass<span class="hint">tap to flip</span></div>
+        <div class="vface back">The amount of matter in an object; more mass means more gravitational potential energy at the same height.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Height<span class="hint">tap to flip</span></div>
+        <div class="vface back">The vertical distance an object is above a chosen starting point, usually the ground.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Reference point<span class="hint">tap to flip</span></div>
+        <div class="vface back">The starting level you measure height and potential energy from, such as the ground or the floor.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Joule (J)<span class="hint">tap to flip</span></div>
+        <div class="vface back">The unit scientists use to measure energy, including gravitational potential energy.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Gravity<span class="hint">tap to flip</span></div>
+        <div class="vface back">The pulling force that pulls objects toward each other, and toward Earth in particular near its surface.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Explainer: Kinetic and potential energy</h4>
+        <div class="rsource">Science News Explores</div>
+        <a class="rlink" href="https://www.snexplores.org/article/explainer-kinetic-potential-energy-physics" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Energy Skate Park</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/energy-skate-park" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      
+      <div class="rbody">
+        <h4>The Physics of Roller Coasters</h4>
+        <div class="rsource">TED-Ed on YouTube</div>
+        <a class="rlink" href="https://ed.ted.com/best_of_web/Acrfo8Xj" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u2-t1" data-source="quizdata-u2-t1">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. A ball is lifted from the floor to the top of a bookshelf. What happens to its gravitational potential energy?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u2-t1" value="0"> It decreases because the ball is farther from the floor</label><label class="qchoice"><input type="radio" name="q0-u2-t1" value="1"> It increases because the ball&#x27;s height above the ground increased</label><label class="qchoice"><input type="radio" name="q0-u2-t1" value="2"> It stays exactly the same no matter the height</label><label class="qchoice"><input type="radio" name="q0-u2-t1" value="3"> It disappears until the ball starts moving</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. Two identical carts are on a roller coaster track. Cart A is at the top of a 30-meter hill, and Cart B is at the top of a 60-meter hill. Which cart has more gravitational potential energy?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u2-t1" value="0"> Cart A, because it is lower and more stable</label><label class="qchoice"><input type="radio" name="q1-u2-t1" value="1"> Cart B, because it is twice as high above the ground</label><label class="qchoice"><input type="radio" name="q1-u2-t1" value="2"> They have the same amount of energy since they&#x27;re identical carts</label><label class="qchoice"><input type="radio" name="q1-u2-t1" value="3"> Neither cart has potential energy until it starts moving</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. Which pair of objects, sitting at the exact same height, would have different amounts of gravitational potential energy?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u2-t1" value="0"> A red basketball and a blue basketball of the same size and weight</label><label class="qchoice"><input type="radio" name="q2-u2-t1" value="1"> A bowling ball and a tennis ball</label><label class="qchoice"><input type="radio" name="q2-u2-t1" value="2"> Two identical bricks</label><label class="qchoice"><input type="radio" name="q2-u2-t1" value="3"> The same rock measured twice</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Why do engineers build the very first hill of a roller coaster as the tallest hill on the ride?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u2-t1" value="0"> Tall hills use less steel to build</label><label class="qchoice"><input type="radio" name="q3-u2-t1" value="1"> It stores the maximum gravitational potential energy the ride will use</label><label class="qchoice"><input type="radio" name="q3-u2-t1" value="2"> Riders prefer starting slowly and ending quickly</label><label class="qchoice"><input type="radio" name="q3-u2-t1" value="3"> Tall hills reduce the mass of the cart</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. A backpack sits on a table that is on the second floor of a building. Compared to the ground floor far below, its gravitational potential energy relative to the ground floor is...</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u2-t1" value="0"> Zero, because it isn&#x27;t falling</label><label class="qchoice"><input type="radio" name="q4-u2-t1" value="1"> Less than its GPE relative to the tabletop</label><label class="qchoice"><input type="radio" name="q4-u2-t1" value="2"> Greater than its GPE relative to the tabletop, because the ground floor is farther away</label><label class="qchoice"><input type="radio" name="q4-u2-t1" value="3"> Impossible to determine without knowing its color</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u2-t1">[{"question": "A ball is lifted from the floor to the top of a bookshelf. What happens to its gravitational potential energy?", "choices": ["It decreases because the ball is farther from the floor", "It increases because the ball's height above the ground increased", "It stays exactly the same no matter the height", "It disappears until the ball starts moving"], "answerIndex": 1, "explanation": "Gravitational potential energy increases as an object's height above a reference point increases."}, {"question": "Two identical carts are on a roller coaster track. Cart A is at the top of a 30-meter hill, and Cart B is at the top of a 60-meter hill. Which cart has more gravitational potential energy?", "choices": ["Cart A, because it is lower and more stable", "Cart B, because it is twice as high above the ground", "They have the same amount of energy since they're identical carts", "Neither cart has potential energy until it starts moving"], "answerIndex": 1, "explanation": "With mass being equal, greater height above the ground means greater gravitational potential energy."}, {"question": "Which pair of objects, sitting at the exact same height, would have different amounts of gravitational potential energy?", "choices": ["A red basketball and a blue basketball of the same size and weight", "A bowling ball and a tennis ball", "Two identical bricks", "The same rock measured twice"], "answerIndex": 1, "explanation": "A bowling ball has much more mass than a tennis ball, so even at the same height it stores more gravitational potential energy."}, {"question": "Why do engineers build the very first hill of a roller coaster as the tallest hill on the ride?", "choices": ["Tall hills use less steel to build", "It stores the maximum gravitational potential energy the ride will use", "Riders prefer starting slowly and ending quickly", "Tall hills reduce the mass of the cart"], "answerIndex": 1, "explanation": "The tallest hill lets the cart store the most gravitational potential energy possible, which powers the rest of the ride."}, {"question": "A backpack sits on a table that is on the second floor of a building. Compared to the ground floor far below, its gravitational potential energy relative to the ground floor is...", "choices": ["Zero, because it isn't falling", "Less than its GPE relative to the tabletop", "Greater than its GPE relative to the tabletop, because the ground floor is farther away", "Impossible to determine without knowing its color"], "answerIndex": 2, "explanation": "Gravitational potential energy depends on the reference point chosen; measured from farther below, the height (and GPE) is greater."}]</script>
+
+  <div class="chapter-nav"><a href="./u1-t6.html"><span class="dir">&larr; Previous</span>Collisions and Newton&#x27;s Third Law</a><a class="next" href="./u2-t2.html"><span class="dir">Next &rarr;</span>Universal Law of Gravity</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

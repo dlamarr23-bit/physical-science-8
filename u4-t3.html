@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waves &amp; Information Technology · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u4">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="active" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 4, Chapter 14 &middot; Waves Transmitting Energy &amp; Information</span>
+      <h1>Waves &amp; Information Technology</h1>
+    </div>
+    <div class="hero-icon" data-icon="u4-t3"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>A vinyl record and a streamed song can play the exact same music — so why does the digital version survive scratches, copies, and distance so much better than the analog one?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Two Ways to Encode a Message</h2>
+<p>Every time you send information through a wave, that information has to be encoded — turned into a pattern the wave can carry. There are two fundamentally different ways to do this: analog and digital. An <span class="gloss-term" data-def="A signal that represents information as a smooth, continuously varying wave, like the grooves on a vinyl record.">analog signal</span> encodes information as a smooth, continuously changing wave, exactly mirroring the original sound or image. A vinyl record works this way: tiny, continuously varying grooves are physically carved into the record to match the exact shape of the original sound wave, and a needle traces those grooves to recreate the music.</p>
+<p>A <span class="gloss-term" data-def="A signal that represents information as a sequence of discrete values, usually 1s and 0s (bits).">digital signal</span> instead breaks information down into discrete numbers — specifically, a stream of 1s and 0s called bits. A digital music file doesn't store a continuous wave shape; it stores thousands of numerical snapshots of the wave taken every second, then rebuilds an extremely close approximation of the original sound when you hit play. It looks less "natural," but that difference turns out to be a superpower.</p>
+<h2>Why Digital Wins for Long-Distance Communication</h2>
+<p>Here's the problem with analog signals: every time they travel, get copied, or pass through interference (static, <span class="gloss-term" data-def="Unwanted interference or errors that distort a signal during transmission.">noise</span>, scratches), tiny errors creep in and are impossible to separate from the real signal — because the whole signal is one smooth, continuous wave, there's no way to tell an error from real data. That's why an old vinyl record picks up crackles and pops over time, and why a weak analog radio station gets fuzzy and staticky the farther you drive from the transmitter.</p>
+<p>Digital signals solve this beautifully. Because the information is just a sequence of numbers (1s and 0s), a receiving device only has to decide between two options at each point — is this a 1 or a 0? Even if some noise sneaks in during transmission, it's usually easy to tell what the original <span class="gloss-term" data-def="The smallest unit of digital information, represented as either a 1 or a 0.">bit</span> was supposed to be, and many digital systems can detect and even correct errors automatically. That's why a streamed song sounds identical whether it just left the server or traveled halfway around the world, and why a digital photo can be copied a thousand times with zero loss in quality — something an analog photocopy could never do.</p>
+<h2>From Vibration to Light and Back Again</h2>
+<p>Modern communication technology is a nonstop relay race between mechanical and electromagnetic waves. When you talk into your phone, your voice creates a mechanical sound wave in the air. Your phone's microphone converts that mechanical wave into an electrical signal, digitizes it into 1s and 0s, and then converts it again into an electromagnetic wave — a <span class="gloss-term" data-def="A low-frequency electromagnetic wave commonly used to transmit information wirelessly, such as for wifi or cell phones.">radio wave</span> — that can travel enormous distances at the speed of light without needing any medium at all.</p>
+<p>Fiber optic cables take this even further, converting digital signals into pulses of light that race down hair-thin strands of glass, bouncing off the inner walls through <span class="gloss-term" data-def="The way light bounces repeatedly off the inner walls of a fiber optic cable, keeping it traveling forward instead of escaping.">total internal reflection</span> for hundreds or even thousands of miles with almost no signal loss. Wifi routers do something similar, broadcasting your digitized data as radio waves through the air to every device in your house. At the other end, your friend's phone or laptop receives that electromagnetic wave, converts the digital data back into an electrical signal, and finally turns it back into a mechanical sound wave that vibrates a speaker — recreating your voice, your music, or your video call, often thousands of miles from where it started, all within a fraction of a second.</p>
+<h2>Real Technology, Real Impact</h2>
+<p>This analog-to-digital revolution touches nearly every piece of technology you use. CDs and streaming services replaced analog cassette tapes because digital audio doesn't degrade with each play or copy. Cell phones convert your voice into digital radio signals that can be compressed, encrypted, and transmitted efficiently across cell towers spanning entire countries. Wifi networks pack enormous amounts of digital information — video, photos, messages — into radio waves broadcast through your home. And fiber optic internet, which carries digital information as pulses of light, now forms the backbone of the global internet, moving unbelievable amounts of data between continents through cables laid across the ocean floor.</p>
+<p>From talking drums to fiber optic cables, the core idea has never changed: waves carry both energy and information, and civilizations advance by getting better at encoding, transmitting, and decoding that information across greater distances, more reliably, and with less lost along the way.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Streaming Video Through Fiber Optic Cables</h4><p>When you stream a video, the information travels as pulses of light through hair-thin glass fiber optic cables, sometimes for thousands of miles, as a digital signal that stays clear the entire way.</p></div><div class="example-card"><h4>Vinyl Records vs. Streaming Music</h4><p>A vinyl record stores sound as a continuously changing analog groove that can wear down and get scratchy over time, while a digital music file stores the same song as precise numbers that sound identical no matter how many times it&#x27;s copied.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples highlight this chapter&#x27;s key advantage of digital signals — they resist the noise, wear, and errors that naturally creep into analog signals over distance or time.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">TE</div>
+    <div><h4>Telecommunications Engineers</h4><p>Telecommunications engineers design the fiber-optic and wireless networks that carry digital information around the world. They constantly work to squeeze more data through cables and radio waves while keeping the signal as error-free as possible for billions of users.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Analog signal<span class="hint">tap to flip</span></div>
+        <div class="vface back">A signal that represents information as a smooth, continuously varying wave, like the grooves on a vinyl record.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Digital signal<span class="hint">tap to flip</span></div>
+        <div class="vface back">A signal that represents information as a sequence of discrete values, usually 1s and 0s (bits).</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Bit<span class="hint">tap to flip</span></div>
+        <div class="vface back">The smallest unit of digital information, represented as either a 1 or a 0.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Noise<span class="hint">tap to flip</span></div>
+        <div class="vface back">Unwanted interference or errors that distort a signal during transmission.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Fiber optic cable<span class="hint">tap to flip</span></div>
+        <div class="vface back">A thin strand of glass that transmits digital information as pulses of light over long distances.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Total internal reflection<span class="hint">tap to flip</span></div>
+        <div class="vface back">The way light bounces repeatedly off the inner walls of a fiber optic cable, keeping it traveling forward instead of escaping.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Radio wave<span class="hint">tap to flip</span></div>
+        <div class="vface back">A low-frequency electromagnetic wave commonly used to transmit information wirelessly, such as for wifi or cell phones.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Encode<span class="hint">tap to flip</span></div>
+        <div class="vface back">To convert information, like sound or images, into a pattern a wave can carry.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>What&#x27;s the Difference Between Analog and Digital Technology?</h4>
+        <div class="rsource">HowStuffWorks</div>
+        <a class="rlink" href="https://electronics.howstuffworks.com/question7.htm" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Radio Waves &amp; Electromagnetic Fields</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/radio-waves" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/PEYdn56pdcQ" title="Analog vs. digital signals" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Analog vs. digital signals</h4>
+        <div class="rsource">Khan Academy on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=PEYdn56pdcQ" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u4-t3" data-source="quizdata-u4-t3">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. What is the key difference between an analog signal and a digital signal?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u4-t3" value="0"> Analog signals travel faster than digital signals</label><label class="qchoice"><input type="radio" name="q0-u4-t3" value="1"> Analog signals are a smooth, continuous wave, while digital signals are made of discrete values like 1s and 0s</label><label class="qchoice"><input type="radio" name="q0-u4-t3" value="2"> Digital signals can only carry pictures, not sound</label><label class="qchoice"><input type="radio" name="q0-u4-t3" value="3"> Analog signals cannot carry any information at all</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. Why does a streamed digital song usually sound just as clear after traveling across the world as it did at the source?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u4-t3" value="0"> Digital signals never encounter any noise</label><label class="qchoice"><input type="radio" name="q1-u4-t3" value="1"> Small errors from noise are easy to detect and correct since each bit is just a 1 or a 0</label><label class="qchoice"><input type="radio" name="q1-u4-t3" value="2"> Digital signals travel through a vacuum only</label><label class="qchoice"><input type="radio" name="q1-u4-t3" value="3"> Digital music does not actually travel through any wave</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. What allows light to travel for miles down a fiber optic cable without escaping the glass?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u4-t3" value="0"> Total internal reflection off the inner walls of the cable</label><label class="qchoice"><input type="radio" name="q2-u4-t3" value="1"> The light converts into sound partway through</label><label class="qchoice"><input type="radio" name="q2-u4-t3" value="2"> The cable is filled with air to slow the light down</label><label class="qchoice"><input type="radio" name="q2-u4-t3" value="3"> Radio waves push the light forward</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. When you speak into a cell phone, what is the correct order of wave conversions that happens?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u4-t3" value="0"> Radio wave to mechanical wave to electrical signal</label><label class="qchoice"><input type="radio" name="q3-u4-t3" value="1"> Mechanical sound wave to digital electrical signal to electromagnetic radio wave</label><label class="qchoice"><input type="radio" name="q3-u4-t3" value="2"> Light wave to mechanical wave directly</label><label class="qchoice"><input type="radio" name="q3-u4-t3" value="3"> The sound wave never changes form at all</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Why do old vinyl records develop crackles and pops that a digital music file does not?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u4-t3" value="0"> Vinyl records use radio waves instead of sound</label><label class="qchoice"><input type="radio" name="q4-u4-t3" value="1"> Scratches and wear directly distort the continuous analog groove, and there&#x27;s no way to separate that noise from the real signal</label><label class="qchoice"><input type="radio" name="q4-u4-t3" value="2"> Digital files are physically larger than vinyl grooves</label><label class="qchoice"><input type="radio" name="q4-u4-t3" value="3"> Vinyl records do not actually store any sound information</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u4-t3">[{"question": "What is the key difference between an analog signal and a digital signal?", "choices": ["Analog signals travel faster than digital signals", "Analog signals are a smooth, continuous wave, while digital signals are made of discrete values like 1s and 0s", "Digital signals can only carry pictures, not sound", "Analog signals cannot carry any information at all"], "answerIndex": 1, "explanation": "Analog signals continuously vary to match the original wave, while digital signals encode information as discrete numerical values."}, {"question": "Why does a streamed digital song usually sound just as clear after traveling across the world as it did at the source?", "choices": ["Digital signals never encounter any noise", "Small errors from noise are easy to detect and correct since each bit is just a 1 or a 0", "Digital signals travel through a vacuum only", "Digital music does not actually travel through any wave"], "answerIndex": 1, "explanation": "Because digital data only requires distinguishing between two values, minor noise can usually be identified and corrected, unlike with continuous analog signals."}, {"question": "What allows light to travel for miles down a fiber optic cable without escaping the glass?", "choices": ["Total internal reflection off the inner walls of the cable", "The light converts into sound partway through", "The cable is filled with air to slow the light down", "Radio waves push the light forward"], "answerIndex": 0, "explanation": "Light bounces repeatedly off the inner walls of the fiber optic cable through total internal reflection, keeping the signal traveling forward."}, {"question": "When you speak into a cell phone, what is the correct order of wave conversions that happens?", "choices": ["Radio wave to mechanical wave to electrical signal", "Mechanical sound wave to digital electrical signal to electromagnetic radio wave", "Light wave to mechanical wave directly", "The sound wave never changes form at all"], "answerIndex": 1, "explanation": "A phone converts the mechanical sound wave of your voice into a digital electrical signal, then into an electromagnetic radio wave for transmission."}, {"question": "Why do old vinyl records develop crackles and pops that a digital music file does not?", "choices": ["Vinyl records use radio waves instead of sound", "Scratches and wear directly distort the continuous analog groove, and there's no way to separate that noise from the real signal", "Digital files are physically larger than vinyl grooves", "Vinyl records do not actually store any sound information"], "answerIndex": 1, "explanation": "Because an analog signal is one continuous wave, physical damage or noise blends directly into the signal with no easy way to correct it."}]</script>
+
+  <div class="chapter-nav"><a href="./u4-t2.html"><span class="dir">&larr; Previous</span>Light Waves</a><a class="next" href="./u5-t1.html"><span class="dir">Next &rarr;</span>Energy Transfer and Temperature</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

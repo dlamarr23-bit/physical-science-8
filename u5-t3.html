@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase Changes and Energy Transfer · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u5">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="active" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 5, Chapter 17 &middot; Thermal Energy &amp; Heat Flow</span>
+      <h1>Phase Changes and Energy Transfer</h1>
+    </div>
+    <div class="hero-icon" data-icon="u5-t3"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>You pull an ice pop from the freezer and set it on a plate. Ten minutes later, it&#x27;s a sticky puddle. Where did all that thermal energy come from, and why does the temperature of the melting ice pop stay put at 0°C the whole time it&#x27;s melting?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Melting, Freezing, and Everything In Between</h2>
+<p>A <span class="gloss-term" data-def="A transformation of a substance between solid, liquid, and gas states, caused by adding or removing thermal energy.">phase change</span> (also called a change of state) happens when a substance transforms between solid, liquid, and gas because thermal energy has been added or removed. You already know the names for these transitions from everyday life: ice melts into water, water freezes into ice, water boils away into steam, and steam condenses back into liquid water on a cold mirror after a shower. Every single one of these changes is really a story about energy moving into or out of a substance's particles.</p>
+<p>When you add energy to a solid like ice, its particles vibrate harder and harder until they finally have enough energy to break free of their fixed positions — that's <span class="gloss-term" data-def="The phase change from solid to liquid as particles gain enough energy to break free of fixed positions.">melting</span>. Add even more energy to the resulting liquid, and eventually particles gain enough energy to escape each other's attraction entirely and become a gas — that's boiling or evaporating. Removing energy runs the whole process backward: gas particles slow down and pull together into a liquid (<span class="gloss-term" data-def="The phase change from gas to liquid as particles lose energy and pull closer together.">condensation</span>), and liquid particles slow down further until they lock into a solid (<span class="gloss-term" data-def="The phase change from liquid to solid as particles lose energy and lock into fixed positions.">freezing</span>).</p>
+<h2>The Melting Ice Cube Mystery</h2>
+<p>Here's something that surprises a lot of people: while an ice cube is actively melting, its temperature stays at exactly 0°C the entire time — it doesn't gradually warm up as it turns to liquid. So where is all that added thermal energy going if not into raising the temperature? It's going into breaking apart the rigid structure that holds the solid's particles in fixed positions, freeing them to slide around as a liquid. Only after ALL of the ice has completely melted does additional added energy start raising the temperature of the now-liquid water above 0°C. The same thing happens in reverse when water freezes, and again when water boils at 100°C — the temperature holds steady during the whole transition while energy reorganizes the particles' arrangement.</p>
+<p>This matters for something you might have investigated in class: comparing how different masses of ice melt in the same amount of water. A large ice cube takes longer to fully melt than a small ice chip in the same warm water, because it takes more total thermal energy to melt more matter — even though both pieces of ice are made of identical particles at the identical starting temperature.</p>
+<h2>Different Materials, Different Rates</h2>
+<p>Not all materials heat up or cool down at the same rate, even when they receive or lose the exact same amount of thermal energy. If you leave a metal spoon and a wooden spoon of equal <span class="gloss-term" data-def="The amount of matter in an object; more mass generally requires more total thermal energy to cause the same temperature change or phase change.">mass</span> in the same pot of hot soup, the metal spoon heats up much faster. This is partly about how well each material conducts heat, but it's also about a property scientists can measure precisely: how much energy it takes to change a certain mass of a material by a certain number of degrees. That's why a sandy beach can feel scorching hot under your feet at noon while the ocean water just a few steps away stays comfortably cool — sand and water absorb and release thermal energy at very different rates for the same amount of sunlight energy.</p>
+<h2>Engineering With Phase Changes in Mind</h2>
+<p>Understanding phase changes and energy transfer is exactly what lets engineers design better coolers, solar cookers, and insulated packaging. A cooler packed with ice works because the ice absorbs huge amounts of thermal energy from its surroundings while melting — energy that would otherwise be warming your drinks — all while its own temperature holds steady at 0°C, acting like a temperature-stabilizing sponge for heat. Some high-tech cooling packs use special materials engineered to melt at just the right temperature to soak up extra thermal energy exactly when it's needed most.</p>
+<p>When engineers test and redesign these devices, they're constantly applying everything from this unit: choosing insulating materials to slow heat transfer, understanding that mass and material type affect how fast something heats or cools, and using the steady temperature of a phase change to their advantage. The next time you see condensation dripping down a cold glass of lemonade on a summer day — water vapor from the air losing energy and condensing back into liquid on the cold surface — you're watching phase-change physics happen right in front of you.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  <div class="section-figure">
+      <h3 style="margin-top:0;">Heating Curve for Water</h3>
+      <canvas data-chart="chart-u5-t3-cfg" height="110"></canvas>
+      <script type="application/json" id="chart-u5-t3-cfg">{"type": "line", "data": {"labels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], "datasets": [{"label": "Temperature (\u00b0C)", "data": [-20, -15, -10, -5, 0, 0, 0, 0, 0, 0, 14.285714285714286, 28.571428571428573, 42.857142857142854, 57.142857142857146, 71.42857142857143, 85.71428571428571, 100.0, 100, 100, 100, 100, 100, 110], "borderColor": "#f77f00", "backgroundColor": "#f77f00", "borderWidth": 3, "pointRadius": 3, "tension": 0, "fill": false}]}, "options": {"responsive": true, "plugins": {"legend": {"display": false}}, "scales": {"x": {"title": {"display": true, "text": "Thermal energy added \u2192"}}, "y": {"title": {"display": true, "text": "Temperature (\u00b0C)"}}}}}</script>
+      <figcaption>Temperature climbs steadily — until the substance is changing state. During melting and boiling, all the added energy goes into breaking particle attractions, not raising the temperature, so the graph flattens out.</figcaption>
+    </div>
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Sweating to Cool Down</h4><p>When sweat evaporates off your skin, it absorbs a large amount of thermal energy in the process — exactly why sweating cools your body down on a hot day.</p></div><div class="example-card"><h4>Keeping Vaccines Cold with Dry Ice</h4><p>Some vaccines have to be shipped using dry ice (frozen carbon dioxide). As it changes directly from a solid to a gas, it absorbs a huge amount of heat from its surroundings, keeping the container extremely cold for days.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples rely on this chapter&#x27;s heating-curve idea — a substance changing state absorbs or releases a large burst of energy without necessarily changing temperature, which is exactly why phase changes are so useful for cooling things down.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">CE</div>
+    <div><h4>Cryogenic Engineers</h4><p>Cryogenic engineers work with extremely cold materials and design systems — from vaccine shipping containers to astronaut spacesuits to medical freezers — that use phase changes to control temperature precisely across long trips or extreme environments.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Phase change<span class="hint">tap to flip</span></div>
+        <div class="vface back">A transformation of a substance between solid, liquid, and gas states, caused by adding or removing thermal energy.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Melting<span class="hint">tap to flip</span></div>
+        <div class="vface back">The phase change from solid to liquid as particles gain enough energy to break free of fixed positions.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Freezing<span class="hint">tap to flip</span></div>
+        <div class="vface back">The phase change from liquid to solid as particles lose energy and lock into fixed positions.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Evaporation/Boiling<span class="hint">tap to flip</span></div>
+        <div class="vface back">The phase change from liquid to gas as particles gain enough energy to escape each other&#x27;s attraction.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Condensation<span class="hint">tap to flip</span></div>
+        <div class="vface back">The phase change from gas to liquid as particles lose energy and pull closer together.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Latent heat<span class="hint">tap to flip</span></div>
+        <div class="vface back">The thermal energy absorbed or released during a phase change that goes into rearranging particles rather than changing temperature.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Mass<span class="hint">tap to flip</span></div>
+        <div class="vface back">The amount of matter in an object; more mass generally requires more total thermal energy to cause the same temperature change or phase change.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Rate of heating/cooling<span class="hint">tap to flip</span></div>
+        <div class="vface back">How quickly a material&#x27;s temperature changes when it gains or loses thermal energy, which differs by material type.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Kids science: Melting and Boiling</h4>
+        <div class="rsource">Ducksters</div>
+        <a class="rlink" href="https://www.ducksters.com/science/melting_and_boiling.php" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>States of Matter</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/states-of-matter" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/xYU7RSoOZ0U" title="Changes of State | Matter | Physics" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Changes of State | Matter | Physics</h4>
+        <div class="rsource">FuseSchool - Global Education on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=xYU7RSoOZ0U" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u5-t3" data-source="quizdata-u5-t3">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. While an ice cube is melting on a warm counter, its temperature reading stays at 0°C the whole time. Where is the added thermal energy going?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u5-t3" value="0"> It&#x27;s disappearing completely and being destroyed.</label><label class="qchoice"><input type="radio" name="q0-u5-t3" value="1"> It&#x27;s going into breaking apart the fixed particle arrangement of the solid, not into raising temperature.</label><label class="qchoice"><input type="radio" name="q0-u5-t3" value="2"> The ice cube isn&#x27;t actually absorbing any energy at all.</label><label class="qchoice"><input type="radio" name="q0-u5-t3" value="3"> It&#x27;s being reflected away by the ice&#x27;s surface.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. A large ice cube and a small ice chip, both starting at 0°C, are placed in identical cups of warm water. What would you expect to observe?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u5-t3" value="0"> Both melt in exactly the same amount of time regardless of size.</label><label class="qchoice"><input type="radio" name="q1-u5-t3" value="1"> The small ice chip takes longer to melt because it has less energy.</label><label class="qchoice"><input type="radio" name="q1-u5-t3" value="2"> The large ice cube takes longer to fully melt because more mass requires more total thermal energy to melt.</label><label class="qchoice"><input type="radio" name="q1-u5-t3" value="3"> Neither will melt because ice always stays solid in water.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. On a hot sunny day, beach sand becomes scorching hot to walk on while nearby ocean water stays comfortably cool. What best explains this?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u5-t3" value="0"> Sand and water absorb and release thermal energy at very different rates for the same energy input.</label><label class="qchoice"><input type="radio" name="q2-u5-t3" value="1"> The sun only shines directly on the sand, never on the water.</label><label class="qchoice"><input type="radio" name="q2-u5-t3" value="2"> Water is a solid and doesn&#x27;t absorb heat at all.</label><label class="qchoice"><input type="radio" name="q2-u5-t3" value="3"> Sand has no particles, so it can&#x27;t hold thermal energy.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Which phase change occurs when water vapor in warm air touches a cold glass of lemonade and turns into liquid droplets on the outside of the glass?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u5-t3" value="0"> Melting</label><label class="qchoice"><input type="radio" name="q3-u5-t3" value="1"> Boiling</label><label class="qchoice"><input type="radio" name="q3-u5-t3" value="2"> Freezing</label><label class="qchoice"><input type="radio" name="q3-u5-t3" value="3"> Condensation</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Why do some cooling packs use special materials engineered to melt at a specific temperature, rather than just staying solid or liquid?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u5-t3" value="0"> Melting materials absorb large amounts of thermal energy from their surroundings while holding a steady temperature, keeping nearby items cool longer.</label><label class="qchoice"><input type="radio" name="q4-u5-t3" value="1"> Melting has nothing to do with absorbing energy.</label><label class="qchoice"><input type="radio" name="q4-u5-t3" value="2"> Solid materials always cool things faster than melting materials.</label><label class="qchoice"><input type="radio" name="q4-u5-t3" value="3"> Engineers avoid using phase changes in real designs because they are unpredictable.</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u5-t3">[{"question": "While an ice cube is melting on a warm counter, its temperature reading stays at 0\u00b0C the whole time. Where is the added thermal energy going?", "choices": ["It's disappearing completely and being destroyed.", "It's going into breaking apart the fixed particle arrangement of the solid, not into raising temperature.", "The ice cube isn't actually absorbing any energy at all.", "It's being reflected away by the ice's surface."], "answerIndex": 1, "explanation": "During a phase change, added thermal energy goes into rearranging particles rather than increasing their average kinetic energy, so temperature holds steady until the phase change is complete."}, {"question": "A large ice cube and a small ice chip, both starting at 0\u00b0C, are placed in identical cups of warm water. What would you expect to observe?", "choices": ["Both melt in exactly the same amount of time regardless of size.", "The small ice chip takes longer to melt because it has less energy.", "The large ice cube takes longer to fully melt because more mass requires more total thermal energy to melt.", "Neither will melt because ice always stays solid in water."], "answerIndex": 2, "explanation": "More mass means more total thermal energy is required to complete the phase change, so the larger ice cube takes longer to melt."}, {"question": "On a hot sunny day, beach sand becomes scorching hot to walk on while nearby ocean water stays comfortably cool. What best explains this?", "choices": ["Sand and water absorb and release thermal energy at very different rates for the same energy input.", "The sun only shines directly on the sand, never on the water.", "Water is a solid and doesn't absorb heat at all.", "Sand has no particles, so it can't hold thermal energy."], "answerIndex": 0, "explanation": "Different materials heat up and cool down at different rates even when receiving the same amount of thermal energy, which is why sand and water reach different temperatures in the same sunlight."}, {"question": "Which phase change occurs when water vapor in warm air touches a cold glass of lemonade and turns into liquid droplets on the outside of the glass?", "choices": ["Melting", "Boiling", "Freezing", "Condensation"], "answerIndex": 3, "explanation": "Condensation happens when gas particles lose thermal energy to a cold surface and pull together into a liquid."}, {"question": "Why do some cooling packs use special materials engineered to melt at a specific temperature, rather than just staying solid or liquid?", "choices": ["Melting materials absorb large amounts of thermal energy from their surroundings while holding a steady temperature, keeping nearby items cool longer.", "Melting has nothing to do with absorbing energy.", "Solid materials always cool things faster than melting materials.", "Engineers avoid using phase changes in real designs because they are unpredictable."], "answerIndex": 0, "explanation": "A melting material absorbs a large, steady amount of thermal energy from its surroundings during its phase change, making it useful for keeping things cool."}]</script>
+
+  <div class="chapter-nav"><a href="./u5-t2.html"><span class="dir">&larr; Previous</span>Changes in Energy at the Molecular Level</a><a class="next" href="./u6-t1.html"><span class="dir">Next &rarr;</span>Molecular Composition</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

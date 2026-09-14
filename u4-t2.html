@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Light Waves · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u4">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block current">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="active" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 4, Chapter 13 &middot; Waves Transmitting Energy &amp; Information</span>
+      <h1>Light Waves</h1>
+    </div>
+    <div class="hero-icon" data-icon="u4-t2"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>Light can bounce off a mirror, bend as it enters water, and travel from the Sun across empty space to reach your skin — so how is light different from every other wave you&#x27;ve studied, and why does that difference matter?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Light Behaves Like a Wave, With One Big Twist</h2>
+<p>Light bounces, bends, and can be blocked or absorbed just like the mechanical waves you explored with springs and ripple tanks. Shine a flashlight at a mirror and it reflects straight back at you, following the exact same rules of reflection as a wave bouncing off the edge of a ripple tank. Shine it through a glass of water and you'll see it refract, bending as it crosses from air into water because light slows down when it enters a denser material.</p>
+<p>But light has one enormous difference from sound: it doesn't need a medium at all. Sound needs air, water, or a solid to travel through, which is why there's no sound in the <span class="gloss-term" data-def="A space completely empty of matter; light can travel through it, but sound cannot.">vacuum</span> of space. Light, however, is an <span class="gloss-term" data-def="A wave made of vibrating electric and magnetic fields that can travel through empty space without a medium.">electromagnetic wave</span> — a wave made of vibrating electric and magnetic fields, not vibrating matter — so it travels just fine through the emptiness of space. That's exactly how sunlight crosses 93 million miles of empty space to warm your face.</p>
+<h2>Absorption, Reflection, and Refraction in Everyday Materials</h2>
+<p>What happens when light hits an object depends on both the frequency of the light and the material it hits. A red shirt looks red because the fabric absorbs every color of light except red, which it reflects back to your eyes. A clear glass window lets most light pass straight through (<span class="gloss-term" data-def="When a wave passes through a material, like light passing through clear glass.">transmission</span>), while a mirror is built to reflect almost all of it. Black pavement gets scorching hot on a sunny day because dark materials absorb most light energy and convert it into heat instead of reflecting or transmitting it.</p>
+<p>Engineers exploit these behaviors on purpose. Sunglasses use tinted materials that absorb certain frequencies of light to protect your eyes. Camera and eyeglass lenses are precisely curved pieces of glass that refract light in controlled ways to focus an image. Mirrors are coated with reflective metal to bounce nearly all light back. Even soundproofing foam in a recording studio is chosen because its bumpy shape and soft material absorb sound waves instead of reflecting them around the room, showing that the same principles — reflection, <span class="gloss-term" data-def="When a material takes in a wave&#x27;s energy instead of reflecting or transmitting it, often converting it into heat.">absorption</span>, and transmission — apply across totally different types of waves.</p>
+<h2>One Rainbow, One Giant Spectrum</h2>
+<p>When white light passes through a <span class="gloss-term" data-def="A transparent object that splits white light into its full spectrum of colors by refracting each wavelength differently.">prism</span>, it splits into a rainbow of colors — red, orange, yellow, green, blue, indigo, and violet. Each color you see is really just <span class="gloss-term" data-def="The narrow band of the electromagnetic spectrum that human eyes can detect, seen as the colors of the rainbow.">visible light</span> at a different frequency and wavelength: red has the longest wavelength and lowest frequency of visible light, while violet has the shortest wavelength and highest frequency. But that rainbow is only a tiny sliver of something much bigger: the <span class="gloss-term" data-def="The full range of electromagnetic waves, from long, low-frequency radio waves to short, high-frequency gamma rays.">electromagnetic spectrum</span>.</p>
+<p>The electromagnetic spectrum includes every type of electromagnetic wave, from radio waves with wavelengths longer than a football field, through microwaves, infrared, visible light, ultraviolet, and all the way to X-rays and gamma rays with wavelengths smaller than an atom. Every single one of these is fundamentally the same kind of wave as visible light — just at a different frequency. Higher-frequency EM waves carry more energy, which is why X-rays can pass through soft tissue to photograph your bones, while low-frequency radio waves can safely pass through walls carrying nothing more than a Wi-Fi signal.</p>
+<p>Society uses different parts of this spectrum constantly: microwave ovens vibrate water molecules in food to cook it, infrared cameras detect body heat in the dark, ultraviolet light disinfects water and hospital equipment, and radio waves broadcast everything from music stations to the signal your phone uses to make a call. You're surrounded by invisible waves nearly every moment of your life.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Polarized Sunglasses</h4><p>Polarized sunglasses block certain light waves reflecting off flat surfaces like water or roads, cutting down glare using the same reflection ideas used to describe how light interacts with materials.</p></div><div class="example-card"><h4>Studying Starlight</h4><p>Scientists can determine what a distant star is made of just by studying the specific colors of light it gives off, without ever traveling anywhere near it.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples depend on carefully studying how light waves interact with matter — either controlling that interaction to cut glare, or reading the information already encoded in the light itself.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">A</div>
+    <div><h4>Astronomers</h4><p>Astronomers use instruments called spectrographs to split starlight into its individual wavelengths, similar to how a prism creates a rainbow. The exact pattern of colors present or missing tells them what elements a star or planet&#x27;s atmosphere contains — letting scientists study objects trillions of miles away without ever touching them.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Electromagnetic wave<span class="hint">tap to flip</span></div>
+        <div class="vface back">A wave made of vibrating electric and magnetic fields that can travel through empty space without a medium.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Electromagnetic spectrum<span class="hint">tap to flip</span></div>
+        <div class="vface back">The full range of electromagnetic waves, from long, low-frequency radio waves to short, high-frequency gamma rays.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Visible light<span class="hint">tap to flip</span></div>
+        <div class="vface back">The narrow band of the electromagnetic spectrum that human eyes can detect, seen as the colors of the rainbow.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Absorption<span class="hint">tap to flip</span></div>
+        <div class="vface back">When a material takes in a wave&#x27;s energy instead of reflecting or transmitting it, often converting it into heat.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Transmission<span class="hint">tap to flip</span></div>
+        <div class="vface back">When a wave passes through a material, like light passing through clear glass.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Refraction<span class="hint">tap to flip</span></div>
+        <div class="vface back">The bending of light as it passes between materials of different densities, such as air and water.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Prism<span class="hint">tap to flip</span></div>
+        <div class="vface back">A transparent object that splits white light into its full spectrum of colors by refracting each wavelength differently.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Vacuum<span class="hint">tap to flip</span></div>
+        <div class="vface back">A space completely empty of matter; light can travel through it, but sound cannot.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Explore the Electromagnetic Spectrum</h4>
+        <div class="rsource">NASA Space Place</div>
+        <a class="rlink" href="https://spaceplace.nasa.gov/magic-windows/en/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Bending Light</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/legacy/bending-light" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/508ZsmsIlno" title="Electromagnetic Waves" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Electromagnetic Waves</h4>
+        <div class="rsource">FuseSchool - Global Education on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=508ZsmsIlno" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u4-t2" data-source="quizdata-u4-t2">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. Why can sunlight reach Earth through the vacuum of space, but sound cannot?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u4-t2" value="0"> Light is much slower than sound</label><label class="qchoice"><input type="radio" name="q0-u4-t2" value="1"> Light is an electromagnetic wave and does not need a medium to travel, unlike sound</label><label class="qchoice"><input type="radio" name="q0-u4-t2" value="2"> Space is not actually empty</label><label class="qchoice"><input type="radio" name="q0-u4-t2" value="3"> Sound waves are too heavy to travel far</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. A red shirt appears red in sunlight because the fabric mostly:</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u4-t2" value="0"> Absorbs red light and reflects every other color</label><label class="qchoice"><input type="radio" name="q1-u4-t2" value="1"> Reflects red light and absorbs every other color</label><label class="qchoice"><input type="radio" name="q1-u4-t2" value="2"> Transmits all colors of light equally</label><label class="qchoice"><input type="radio" name="q1-u4-t2" value="3"> Creates its own red light</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. Which part of the electromagnetic spectrum has the shortest wavelength and highest energy?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u4-t2" value="0"> Radio waves</label><label class="qchoice"><input type="radio" name="q2-u4-t2" value="1"> Infrared</label><label class="qchoice"><input type="radio" name="q2-u4-t2" value="2"> Visible light</label><label class="qchoice"><input type="radio" name="q2-u4-t2" value="3"> Gamma rays</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Why does a straw appear to bend where it enters a glass of water?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u4-t2" value="0"> Reflection off the water&#x27;s surface</label><label class="qchoice"><input type="radio" name="q3-u4-t2" value="1"> Refraction as light changes speed moving between air and water</label><label class="qchoice"><input type="radio" name="q3-u4-t2" value="2"> Absorption of light by the straw</label><label class="qchoice"><input type="radio" name="q3-u4-t2" value="3"> The straw physically bends in water</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. A mirror and a pair of sunglasses handle light very differently on purpose. What is happening?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u4-t2" value="0"> Mirrors absorb light while sunglasses transmit it unchanged</label><label class="qchoice"><input type="radio" name="q4-u4-t2" value="1"> Mirrors are built to reflect nearly all light, while sunglasses are built to absorb certain frequencies of light</label><label class="qchoice"><input type="radio" name="q4-u4-t2" value="2"> Both materials transmit all light equally</label><label class="qchoice"><input type="radio" name="q4-u4-t2" value="3"> Neither material interacts with light at all</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u4-t2">[{"question": "Why can sunlight reach Earth through the vacuum of space, but sound cannot?", "choices": ["Light is much slower than sound", "Light is an electromagnetic wave and does not need a medium to travel, unlike sound", "Space is not actually empty", "Sound waves are too heavy to travel far"], "answerIndex": 1, "explanation": "Electromagnetic waves like light are made of vibrating fields, not vibrating matter, so they can cross the empty vacuum of space."}, {"question": "A red shirt appears red in sunlight because the fabric mostly:", "choices": ["Absorbs red light and reflects every other color", "Reflects red light and absorbs every other color", "Transmits all colors of light equally", "Creates its own red light"], "answerIndex": 1, "explanation": "An object's color comes from the wavelengths of light it reflects back to your eyes while absorbing the rest."}, {"question": "Which part of the electromagnetic spectrum has the shortest wavelength and highest energy?", "choices": ["Radio waves", "Infrared", "Visible light", "Gamma rays"], "answerIndex": 3, "explanation": "Gamma rays sit at the high-frequency, short-wavelength, high-energy end of the electromagnetic spectrum."}, {"question": "Why does a straw appear to bend where it enters a glass of water?", "choices": ["Reflection off the water's surface", "Refraction as light changes speed moving between air and water", "Absorption of light by the straw", "The straw physically bends in water"], "answerIndex": 1, "explanation": "Light refracts, or bends, when it passes from one medium (air) into another (water) with a different density."}, {"question": "A mirror and a pair of sunglasses handle light very differently on purpose. What is happening?", "choices": ["Mirrors absorb light while sunglasses transmit it unchanged", "Mirrors are built to reflect nearly all light, while sunglasses are built to absorb certain frequencies of light", "Both materials transmit all light equally", "Neither material interacts with light at all"], "answerIndex": 1, "explanation": "Materials are engineered based on how they interact with light \u2014 mirrors maximize reflection, tinted lenses maximize absorption of certain wavelengths."}]</script>
+
+  <div class="chapter-nav"><a href="./u4-t1.html"><span class="dir">&larr; Previous</span>Intro to Wave Properties</a><a class="next" href="./u4-t3.html"><span class="dir">Next &rarr;</span>Waves &amp; Information Technology</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

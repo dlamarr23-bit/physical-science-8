@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Transfer via Friction · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u1">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block current">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="active" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 1, Chapter 4 &middot; Energy of Motion</span>
+      <h1>Energy Transfer via Friction</h1>
+    </div>
+    <div class="hero-icon" data-icon="u1-t4"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>After the crash, the truck screeches to a stop instead of sliding forever — where does all that motion energy actually go?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Energy Doesn&#x27;t Just Disappear</h2>
+<p>Any moving object has <span class="gloss-term" data-def="The energy an object has because it is moving.">kinetic energy</span>, which is simply the energy an object has because it's moving. The faster something moves, or the more mass it has, the more kinetic energy it carries. Our speeding truck, right before the crash, has a lot of kinetic energy built up. One of the most important rules in all of science is that energy can't just vanish — it can only be transferred to something else or transformed into a different form.</p>
+<p>So when the truck suddenly slams into the pole and stops, all that kinetic energy has to go somewhere. Some of it gets transferred into the pole and the truck's crumpling metal frame, some turns into <span class="gloss-term" data-def="Energy carried by vibrations traveling through the air, produced when objects collide or shake.">sound energy</span> (that loud crunching bang you'd hear), and some turns into heat. Nothing about the crash destroys energy — it just moves it around and changes its form.</p>
+<h2>Friction: A Sneaky Way Energy Escapes</h2>
+<p>Even before the crash, the truck was already losing some of its kinetic energy to <span class="gloss-term" data-def="A force that resists motion between two surfaces that are touching and sliding against each other.">friction</span>, a force that resists motion whenever two surfaces rub or slide against each other. Every time the tires touch the pavement, or a sliding crash-test dummy scrapes against the truck bed, friction is at work, converting motion energy into heat energy. That's why a rolling ball eventually slows down and stops on a flat sidewalk even without anyone or anything obviously pushing on it — friction between the ball and the ground is constantly transferring its kinetic energy away as heat.</p>
+<p>You can actually feel this transfer happen: rub your hands together quickly and you'll notice they warm up. That warmth is proof that the kinetic energy of your moving hands is being converted into thermal energy by friction.</p>
+<h2>Spotting Evidence of Energy Transfer</h2>
+<p>Since you can't see energy directly, scientists look for clues — evidence — that energy has been transferred from one object to another. Three of the biggest clues are changes in motion, changes in temperature, and sound. In our crash, all three show up at once: the truck's motion suddenly changes (it stops), the crumpled metal and tires heat up slightly from the impact and friction, and a loud crash sound blasts outward, carrying away some of that energy as sound waves.</p>
+<p>Understanding <span class="gloss-term" data-def="The movement of energy from one object or form to another.">energy transfer</span> through friction is exactly why cars are designed with crumple zones — sections built to bend and crush on purpose during a collision. By crumpling, the car's frame absorbs and spreads out the kinetic energy over a longer distance and time, transferring it into bent metal instead of directly into the passengers. It's a clever way of using energy transfer to protect people.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>Running Shoe Tread Patterns</h4><p>Shoe companies design the bumpy tread on sneakers specifically to increase friction with the ground, so runners can push off harder without slipping.</p></div><div class="example-card"><h4>Rubbing Cold Hands Together</h4><p>Rubbing your palms together on a cold day converts the energy of motion into heat through friction — the same reason a bike&#x27;s brake pads get hot after a long downhill ride.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both show friction doing the same job: turning the energy of motion into heat, whether that&#x27;s a helpful warm-up or something engineers have to plan around, like worn brake pads.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">TW</div>
+    <div><h4>Tribologists (Friction &amp; Wear Scientists)</h4><p>Tribologists study exactly how much grip different materials create when they rub together. Shoe and tire companies hire tribologists to test hundreds of tread patterns and rubber recipes to find the grippiest combination for running shoes, hiking boots, or race car tires.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Kinetic energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">The energy an object has because it is moving.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Energy transfer<span class="hint">tap to flip</span></div>
+        <div class="vface back">The movement of energy from one object or form to another.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Friction<span class="hint">tap to flip</span></div>
+        <div class="vface back">A force that resists motion between two surfaces that are touching and sliding against each other.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Thermal (heat) energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">Energy related to the temperature of an object, often produced by friction.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Sound energy<span class="hint">tap to flip</span></div>
+        <div class="vface back">Energy carried by vibrations traveling through the air, produced when objects collide or shake.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Crumple zone<span class="hint">tap to flip</span></div>
+        <div class="vface back">A part of a car designed to crush during a crash, absorbing and spreading out kinetic energy to protect passengers.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Evidence of energy transfer<span class="hint">tap to flip</span></div>
+        <div class="vface back">Observable clues, such as changes in motion, temperature, or sound, that show energy has moved between objects.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Friction</h4>
+        <div class="rsource">CK-12 Foundation</div>
+        <a class="rlink" href="https://flexbooks.ck12.org/cbook/ck-12-middle-school-physical-science-flexbook-2.0/section/10.4/primary/lesson/friction-ms-ps/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>Energy Skate Park: Basics</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/energy-skate-park-basics" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/fo_pmp5rtzo" title="Friction: Crash Course Physics #6" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Friction: Crash Course Physics #6</h4>
+        <div class="rsource">Crash Course Physics on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=fo_pmp5rtzo" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u1-t4" data-source="quizdata-u1-t4">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. What happens to the truck&#x27;s kinetic energy when it crashes into the pole and stops?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u1-t4" value="0"> It disappears completely</label><label class="qchoice"><input type="radio" name="q0-u1-t4" value="1"> It is transferred into forms like sound, heat, and bent metal</label><label class="qchoice"><input type="radio" name="q0-u1-t4" value="2"> It turns into mass</label><label class="qchoice"><input type="radio" name="q0-u1-t4" value="3"> It stays as kinetic energy forever</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. What is friction?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u1-t4" value="0"> A force that speeds up moving objects</label><label class="qchoice"><input type="radio" name="q1-u1-t4" value="1"> A force that resists motion between two touching, sliding surfaces</label><label class="qchoice"><input type="radio" name="q1-u1-t4" value="2"> A type of kinetic energy</label><label class="qchoice"><input type="radio" name="q1-u1-t4" value="3"> A force that only exists in crashes</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. Which of these is NOT typically evidence that energy has been transferred?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u1-t4" value="0"> A change in motion</label><label class="qchoice"><input type="radio" name="q2-u1-t4" value="1"> A change in temperature</label><label class="qchoice"><input type="radio" name="q2-u1-t4" value="2"> A sound being produced</label><label class="qchoice"><input type="radio" name="q2-u1-t4" value="3"> An object&#x27;s color changing</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. Why do cars have crumple zones?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u1-t4" value="0"> To make cars lighter</label><label class="qchoice"><input type="radio" name="q3-u1-t4" value="1"> To absorb and spread out kinetic energy during a crash, protecting passengers</label><label class="qchoice"><input type="radio" name="q3-u1-t4" value="2"> To increase a car&#x27;s top speed</label><label class="qchoice"><input type="radio" name="q3-u1-t4" value="3"> To reduce the cost of building cars</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Why do your hands feel warm after rubbing them together quickly?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u1-t4" value="0"> Friction transfers the kinetic energy of motion into heat energy</label><label class="qchoice"><input type="radio" name="q4-u1-t4" value="1"> Your hands create new energy</label><label class="qchoice"><input type="radio" name="q4-u1-t4" value="2"> Rubbing removes energy from the air</label><label class="qchoice"><input type="radio" name="q4-u1-t4" value="3"> This has nothing to do with energy transfer</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u1-t4">[{"question": "What happens to the truck's kinetic energy when it crashes into the pole and stops?", "choices": ["It disappears completely", "It is transferred into forms like sound, heat, and bent metal", "It turns into mass", "It stays as kinetic energy forever"], "answerIndex": 1, "explanation": "Energy cannot be destroyed, so the truck's kinetic energy is transferred into other forms like sound, heat, and the crumpling of metal."}, {"question": "What is friction?", "choices": ["A force that speeds up moving objects", "A force that resists motion between two touching, sliding surfaces", "A type of kinetic energy", "A force that only exists in crashes"], "answerIndex": 1, "explanation": "Friction is a force that opposes motion whenever two surfaces slide against each other."}, {"question": "Which of these is NOT typically evidence that energy has been transferred?", "choices": ["A change in motion", "A change in temperature", "A sound being produced", "An object's color changing"], "answerIndex": 3, "explanation": "Color change isn't a standard sign of energy transfer, while changes in motion, temperature, and sound are common evidence of it."}, {"question": "Why do cars have crumple zones?", "choices": ["To make cars lighter", "To absorb and spread out kinetic energy during a crash, protecting passengers", "To increase a car's top speed", "To reduce the cost of building cars"], "answerIndex": 1, "explanation": "Crumple zones are designed to crush on purpose, absorbing kinetic energy so less of it reaches the passengers."}, {"question": "Why do your hands feel warm after rubbing them together quickly?", "choices": ["Friction transfers the kinetic energy of motion into heat energy", "Your hands create new energy", "Rubbing removes energy from the air", "This has nothing to do with energy transfer"], "answerIndex": 0, "explanation": "Friction between your hands converts some of their kinetic energy into thermal (heat) energy."}]</script>
+
+  <div class="chapter-nav"><a href="./u1-t3.html"><span class="dir">&larr; Previous</span>Inertia and Net Forces</a><a class="next" href="./u1-t5.html"><span class="dir">Next &rarr;</span>Mass and Acceleration</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

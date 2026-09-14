@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed and Distance/Time Graphs · Physical Science 8</title>
+<meta name="description" content="An interactive middle school science textbook — Units 1–6">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+</head>
+<body data-unit="u1">
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <span>Physical Science 8<small>Physical Science &middot; Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block current">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="active" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Unit 1, Chapter 2 &middot; Energy of Motion</span>
+      <h1>Speed and Distance/Time Graphs</h1>
+    </div>
+    <div class="hero-icon" data-icon="u1-t2"></div>
+  </div>
+</div>
+<main class="container">
+  <div class="callout">
+    <div class="label">Big Question</div>
+    <p>Could you have predicted exactly how the crash would unfold just by looking at a graph of the car&#x27;s motion before impact?</p>
+  </div>
+
+  <div class="chapter-body">
+    <div class="prose">
+      <h2>Turning Motion into Numbers</h2>
+<p>Once you know how to describe motion using a frame of reference, the next step is measuring it. <span class="gloss-term" data-def="How fast an object&#x27;s position changes, calculated as distance divided by time.">Speed</span> tells you how quickly an object's position is changing — specifically, how much <span class="gloss-term" data-def="The total length of the path an object has traveled.">distance</span> it covers in a certain amount of time. If the truck in our crash scenario travels 60 meters in 3 seconds, its speed is 20 meters per second. That single number lets you compare the truck's motion to a bicycle, a sprinting cheetah, or another car, no matter how different those situations look.</p>
+<p>Speed is calculated by dividing distance traveled by the time it took: speed = distance ÷ time. It sounds simple, but this one relationship is the foundation for predicting almost everything about how objects move, including how much time a driver has to react before hitting something.</p>
+<h2>Reading a Distance vs. Time Graph</h2>
+<p>Numbers are useful, but graphs let you see motion at a glance. A <span class="gloss-term" data-def="A graph that shows how an object&#x27;s distance from a starting point changes over time.">distance vs. time graph</span> plots how far an object has traveled (on the vertical axis) against how much time has passed (on the horizontal axis). The steepness of the line — its <span class="gloss-term" data-def="The steepness of a line on a graph; on a distance vs. time graph, slope equals speed.">slope</span> — tells you the object's speed. A steep line means the object is covering a lot of distance in a short time, so it's moving fast. A flatter line means it's moving slowly, and a perfectly flat, horizontal line means the object has stopped completely.</p>
+<p>If you saw a distance vs. time graph for our crash-test truck, you'd expect to see a fairly steep, straight line right up until the moment of impact — and then the line would go completely flat, because the truck's distance from its starting point stops increasing the instant it slams into the pole. That sudden change in slope, from steep to flat, is a graph's way of showing a sudden, dramatic stop.</p>
+<h2>Using Graphs to Predict a Crash</h2>
+<p>Here's why this matters beyond just reading charts: if you know an object's speed and its distance from an obstacle, you can predict when and how hard it will hit. Engineers and safety researchers actually do this kind of analysis using real recorded motion <span class="gloss-term" data-def="Recorded measurements, like distance and time, used to study and predict motion.">data</span>. Tools like Vernier Graphical Analysis let scientists and students collect motion data from sensors — for example, tracking a toy car rolling toward a barrier — and instantly turn that data into a distance vs. time graph.</p>
+<p>By studying the slope of that graph, you could estimate the truck's speed in the seconds before the crash and use it to predict how much force the impact would involve. This is exactly the kind of thinking real crash-safety engineers use to design safer cars, better seatbelts, and smarter warning systems.</p>
+
+    </div>
+    <div class="margin-rail" id="marginRail"></div>
+  </div>
+
+  <div class="section-figure">
+      <h3 style="margin-top:0;">Distance vs. Time for Three Speeds</h3>
+      <canvas data-chart="chart-u1-t2-cfg" height="110"></canvas>
+      <script type="application/json" id="chart-u1-t2-cfg">{"type": "line", "data": {"labels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "datasets": [{"label": "Slow (2 m/s)", "data": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20], "borderColor": "#e63946", "backgroundColor": "#e63946", "borderWidth": 3, "pointRadius": 3, "tension": 0, "fill": false}, {"label": "Medium (5 m/s)", "data": [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50], "borderColor": "#f77f00", "backgroundColor": "#f77f00", "borderWidth": 3, "pointRadius": 3, "tension": 0, "fill": false}, {"label": "Fast (9 m/s)", "data": [0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90], "borderColor": "#1982c4", "backgroundColor": "#1982c4", "borderWidth": 3, "pointRadius": 3, "tension": 0, "fill": false}]}, "options": {"responsive": true, "plugins": {"legend": {"position": "bottom"}}, "scales": {"x": {"title": {"display": true, "text": "Time (seconds)"}}, "y": {"title": {"display": true, "text": "Distance (meters)"}}}}}</script>
+      <figcaption>The steeper the line, the greater the slope — and slope on a distance/time graph is speed.</figcaption>
+    </div>
+
+  <h2>Real-World Connections</h2>
+  <div class="examples-grid"><div class="example-card"><h4>GPS Watches on the Track</h4><p>Runners and cyclists wear GPS watches that record their position every second. Coaches download that data and plot it as a distance vs. time graph to see exactly where an athlete sped up, slowed down, or held a steady pace.</p></div><div class="example-card"><h4>Automated Highway Speed Cameras</h4><p>Some highways use two cameras a known distance apart; if a car passes both faster than the time limit allows, the system calculates its average speed automatically — the same distance-over-time math as reading a graph&#x27;s slope.</p></div></div>
+  <div class="connection-note"><span class="tag">How they tie together</span><span>Both tools turn a moving object&#x27;s position over time into one number — speed — using the exact same relationship: speed equals distance divided by time.</span></div>
+
+  <h2>Meet the Scientist</h2>
+  <div class="scientist-card">
+    <div class="savatar">SP</div>
+    <div><h4>Sports Performance Analysts</h4><p>Sports scientists use graphs just like the ones in this chapter to help elite athletes improve. By studying a distance vs. time graph from a 400-meter race, an analyst can pinpoint the exact stretch of track where a sprinter lost speed and design a specific drill to fix it — turning a line on a graph into a training plan.</p></div>
+  </div>
+
+  <h2>Key Vocabulary</h2>
+  <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too — tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
+  <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Speed<span class="hint">tap to flip</span></div>
+        <div class="vface back">How fast an object&#x27;s position changes, calculated as distance divided by time.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Distance<span class="hint">tap to flip</span></div>
+        <div class="vface back">The total length of the path an object has traveled.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Distance vs. time graph<span class="hint">tap to flip</span></div>
+        <div class="vface back">A graph that shows how an object&#x27;s distance from a starting point changes over time.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Slope<span class="hint">tap to flip</span></div>
+        <div class="vface back">The steepness of a line on a graph; on a distance vs. time graph, slope equals speed.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Constant speed<span class="hint">tap to flip</span></div>
+        <div class="vface back">Moving the same distance in each equal time interval, shown as a straight line on a distance vs. time graph.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Data<span class="hint">tap to flip</span></div>
+        <div class="vface back">Recorded measurements, like distance and time, used to study and predict motion.</div>
+      </div></div><div class="vcard"><div class="vcard-inner">
+        <div class="vface front">Prediction<span class="hint">tap to flip</span></div>
+        <div class="vface back">A scientific estimate about what will happen, based on patterns in data.</div>
+      </div></div></div>
+
+  <h2>Explore More</h2>
+  <div class="resource-grid">
+    <div class="rcard">
+      <div class="rtag">Read</div>
+      <div class="rbody">
+        <h4>Distance - Time Graphs</h4>
+        <div class="rsource">CK-12 Foundation</div>
+        <a class="rlink" href="https://www.ck12.org/physics/position-vs-time-graphs/lesson/Distance-Time-Graphs/" target="_blank" rel="noopener">Open article &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="rtag">Try the simulation</div>
+      <div class="rbody">
+        <h4>The Moving Man</h4>
+        <div class="rsource">PhET Interactive Simulations</div>
+        <a class="rlink" href="https://phet.colorado.edu/en/simulations/moving-man" target="_blank" rel="noopener">Launch simulation &rarr;</a>
+      </div></div>
+<div class="rcard">
+      <div class="video-embed"><iframe src="https://www.youtube.com/embed/lrHAnr9cYdQ" title="Distance Time Graphs" allowfullscreen loading="lazy"></iframe></div>
+      <div class="rbody">
+        <h4>Distance Time Graphs</h4>
+        <div class="rsource">FuseSchool on YouTube</div>
+        <a class="rlink" href="https://www.youtube.com/watch?v=lrHAnr9cYdQ" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+      </div></div>
+  </div>
+
+  <h2>Chapter Review</h2>
+  <div class="quiz" data-chapter="u1-t2" data-source="quizdata-u1-t2">
+    
+      <div class="quiz-q" data-index="0">
+        <p class="qtext">1. How is speed calculated?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q0-u1-t2" value="0"> Time divided by distance</label><label class="qchoice"><input type="radio" name="q0-u1-t2" value="1"> Distance divided by time</label><label class="qchoice"><input type="radio" name="q0-u1-t2" value="2"> Distance multiplied by time</label><label class="qchoice"><input type="radio" name="q0-u1-t2" value="3"> Distance minus time</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="1">
+        <p class="qtext">2. On a distance vs. time graph, what does a steeper line represent?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q1-u1-t2" value="0"> A slower speed</label><label class="qchoice"><input type="radio" name="q1-u1-t2" value="1"> A faster speed</label><label class="qchoice"><input type="radio" name="q1-u1-t2" value="2"> No motion at all</label><label class="qchoice"><input type="radio" name="q1-u1-t2" value="3"> A shorter distance</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="2">
+        <p class="qtext">3. What would a distance vs. time graph look like right after the truck crashes into the pole and stops?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q2-u1-t2" value="0"> The line would suddenly become flat</label><label class="qchoice"><input type="radio" name="q2-u1-t2" value="1"> The line would keep rising at the same steep angle</label><label class="qchoice"><input type="radio" name="q2-u1-t2" value="2"> The line would go straight down</label><label class="qchoice"><input type="radio" name="q2-u1-t2" value="3"> The graph would disappear</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="3">
+        <p class="qtext">4. A car travels 100 meters in 5 seconds at a constant speed. What is its speed?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q3-u1-t2" value="0"> 5 meters per second</label><label class="qchoice"><input type="radio" name="q3-u1-t2" value="1"> 20 meters per second</label><label class="qchoice"><input type="radio" name="q3-u1-t2" value="2"> 100 meters per second</label><label class="qchoice"><input type="radio" name="q3-u1-t2" value="3"> 500 meters per second</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+      <div class="quiz-q" data-index="4">
+        <p class="qtext">5. Why might engineers use tools like motion sensors and graphing software to study a crash?</p>
+        <div class="quiz-choices">
+          <label class="qchoice"><input type="radio" name="q4-u1-t2" value="0"> To make the crash look more dramatic</label><label class="qchoice"><input type="radio" name="q4-u1-t2" value="1"> To collect real data and use graphs to predict motion and impact</label><label class="qchoice"><input type="radio" name="q4-u1-t2" value="2"> Because graphs are required by law</label><label class="qchoice"><input type="radio" name="q4-u1-t2" value="3"> To replace the need for seatbelts</label>
+        </div>
+        <div class="qfeedback"></div>
+      </div>
+    <div class="quiz-actions">
+      <button class="btn js-check">Check My Answers</button>
+      <button class="btn secondary js-retry" style="display:none;">Try Again</button>
+      <span class="quiz-score"></span>
+    </div>
+  </div>
+  <script type="application/json" id="quizdata-u1-t2">[{"question": "How is speed calculated?", "choices": ["Time divided by distance", "Distance divided by time", "Distance multiplied by time", "Distance minus time"], "answerIndex": 1, "explanation": "Speed is a measure of distance traveled divided by the time it took."}, {"question": "On a distance vs. time graph, what does a steeper line represent?", "choices": ["A slower speed", "A faster speed", "No motion at all", "A shorter distance"], "answerIndex": 1, "explanation": "A steeper slope on a distance vs. time graph means more distance is covered per unit of time, which means a faster speed."}, {"question": "What would a distance vs. time graph look like right after the truck crashes into the pole and stops?", "choices": ["The line would suddenly become flat", "The line would keep rising at the same steep angle", "The line would go straight down", "The graph would disappear"], "answerIndex": 0, "explanation": "Once the truck stops moving, its distance from the starting point no longer increases, so the line becomes horizontal (flat)."}, {"question": "A car travels 100 meters in 5 seconds at a constant speed. What is its speed?", "choices": ["5 meters per second", "20 meters per second", "100 meters per second", "500 meters per second"], "answerIndex": 1, "explanation": "Dividing 100 meters by 5 seconds gives a speed of 20 meters per second."}, {"question": "Why might engineers use tools like motion sensors and graphing software to study a crash?", "choices": ["To make the crash look more dramatic", "To collect real data and use graphs to predict motion and impact", "Because graphs are required by law", "To replace the need for seatbelts"], "answerIndex": 1, "explanation": "Motion data and graphs let engineers analyze speed and predict how a collision will unfold, which helps them design safer vehicles."}]</script>
+
+  <div class="chapter-nav"><a href="./u1-t1.html"><span class="dir">&larr; Previous</span>Frames of Reference</a><a class="next" href="./u1-t3.html"><span class="dir">Next &rarr;</span>Inertia and Net Forces</a></div>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook — Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>
