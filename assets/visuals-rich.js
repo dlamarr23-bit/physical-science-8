@@ -43,42 +43,20 @@
     removeOldVisuals();
     var main=document.querySelector('main.container');
     if(!main) return;
-
     var fig=document.createElement('figure');
     fig.className='chapter-infographic';
-    fig.style.margin='28px 0 34px';
-    fig.style.background='#fff';
-    fig.style.border='1px solid var(--line)';
-    fig.style.borderRadius='18px';
-    fig.style.overflow='hidden';
-    fig.style.boxShadow='var(--shadow)';
-
+    fig.style.cssText='margin:28px 0 34px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)';
     var img=document.createElement('img');
     img.src='./assets/chapter-posters/'+chapter+'.webp';
     img.alt=captions[chapter]||'Chapter science infographic';
-    img.loading='eager';
-    img.decoding='async';
-    img.style.display='block';
-    img.style.width='100%';
-    img.style.height='auto';
-    img.style.background='#fff';
-
+    img.loading='eager'; img.decoding='async';
+    img.style.cssText='display:block;width:100%;height:auto;background:#fff';
     var cap=document.createElement('figcaption');
     cap.textContent=captions[chapter]||'';
-    cap.style.padding='12px 16px 14px';
-    cap.style.fontFamily='Poppins,system-ui,sans-serif';
-    cap.style.fontSize='.9rem';
-    cap.style.lineHeight='1.55';
-    cap.style.color='var(--ink-soft)';
-    cap.style.borderTop='1px solid var(--line)';
-
-    fig.appendChild(img);
-    fig.appendChild(cap);
+    cap.style.cssText='padding:12px 16px 14px;font-family:Poppins,system-ui,sans-serif;font-size:.9rem;line-height:1.55;color:var(--ink-soft);border-top:1px solid var(--line)';
+    fig.appendChild(img); fig.appendChild(cap);
     var callout=main.querySelector(':scope > .callout');
-    if(callout) callout.insertAdjacentElement('afterend',fig);
-    else main.insertBefore(fig,main.firstChild);
+    if(callout) callout.insertAdjacentElement('afterend',fig); else main.insertBefore(fig,main.firstChild);
   }
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',insert);
-  else insert();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',insert); else insert();
 })();
