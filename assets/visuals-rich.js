@@ -1,12 +1,19 @@
-/* Physical Science 8 — chapter-specific infographic loader */
+/* Physical Science 8 — approved chapter-specific poster loader */
 (function(){
   'use strict';
 
   var page=(location.pathname.split('/').pop()||'');
   var chapter=/^u[1-6]-t[1-6]\.html$/.test(page) ? page.replace('.html','') : null;
 
-  /* Do not inject any generic graphic on the homepage, glossary, or unit overview pages. */
-  if(!chapter) return;
+  function removeOldVisuals(){
+    document.querySelectorAll('.science-visual,.rich-visual,.chapter-infographic,.science-overview,.visual-guide').forEach(function(el){el.remove();});
+  }
+
+  if(!chapter){
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',removeOldVisuals);
+    else removeOldVisuals();
+    return;
+  }
 
   var captions={
     'u1-t1':'Frames of Reference: the same motion can be described differently from different reference points.',
@@ -33,11 +40,9 @@
   };
 
   function insert(){
+    removeOldVisuals();
     var main=document.querySelector('main.container');
     if(!main) return;
-
-    /* Remove visual blocks from earlier versions before adding the correct chapter image. */
-    main.querySelectorAll('.science-visual,.rich-visual,.chapter-infographic').forEach(function(el){el.remove();});
 
     var fig=document.createElement('figure');
     fig.className='chapter-infographic';
@@ -49,7 +54,7 @@
     fig.style.boxShadow='var(--shadow)';
 
     var img=document.createElement('img');
-    img.src='./assets/chapter-infographics/'+chapter+'.svg';
+    img.src='./assets/chapter-posters/'+chapter+'.webp';
     img.alt=captions[chapter]||'Chapter science infographic';
     img.loading='eager';
     img.decoding='async';
@@ -67,7 +72,8 @@
     cap.style.color='var(--ink-soft)';
     cap.style.borderTop='1px solid var(--line)';
 
-    fig.appendChild(img); fig.appendChild(cap);
+    fig.appendChild(img);
+    fig.appendChild(cap);
     var callout=main.querySelector(':scope > .callout');
     if(callout) callout.insertAdjacentElement('afterend',fig);
     else main.insertBefore(fig,main.firstChild);
