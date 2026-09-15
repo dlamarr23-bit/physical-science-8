@@ -10,7 +10,7 @@
     });
   }
 
-  /* ---------- load shared visual guides on every page ---------- */
+  /* ---------- load approved chapter-specific visual guides ---------- */
   function loadVisuals(){
     if(document.querySelector('script[data-science-visuals]')) return;
     var script = document.createElement('script');
@@ -78,201 +78,106 @@
       if(!dataEl) return;
       var questions;
       try { questions = JSON.parse(dataEl.textContent); } catch(e){ return; }
+      if(!Array.isArray(questions) || !questions.length) return;
 
-      var checkBtn = quizEl.querySelector(".js-check");
-      var retryBtn = quizEl.querySelector(".js-retry");
-      var scoreEl = quizEl.querySelector(".quiz-score");
-      var checked = false;
+      var idx = 0, score = 0, answered = false;
+      var qEl = quizEl.querySelector(".qtext");
+      var optsEl = quizEl.querySelector(".options");
+      var feedbackEl = quizEl.querySelector(".feedback");
+      var nextBtn = quizEl.querySelector(".nextQ");
+      var resetBtn = quizEl.querySelector(".resetQ");
+      var scoreEl = quizEl.querySelector(".score");
+      var progressEl = quizEl.querySelector(".qprogress");
 
-      function grade(){
-        if(checked) return;
-        checked = true;
-        var correctCount = 0;
-        questions.forEach(function(q, i){
-          var qEl = quizEl.querySelector('.quiz-q[data-index="'+i+'"]');
-          var chosen = qEl.querySelector('input[name="q'+i+'-'+chapterId+'"]:checked');
-          var choiceEls = qEl.querySelectorAll(".qchoice");
-          var feedback = qEl.querySelector(".qfeedback");
-          var isCorrect = chosen && parseInt(chosen.value,10) === q.answerIndex;
-          if(isCorrect) correctCount++;
-          choiceEls.forEach(function(cEl, idx){
-            cEl.classList.remove("correct","incorrect");
-            if(idx === q.answerIndex) cEl.classList.add("correct");
-            else if(chosen && parseInt(chosen.value,10) === idx) cEl.classList.add("incorrect");
-            cEl.style.pointerEvents = "none";
+      function render(){
+        if(idx >= questions.length){
+          qEl.textContent = "Quiz complete!";
+          optsEl.innerHTML = "";
+          feedbackEl.textContent = "You scored " + score + " out of " + questions.length + ".";
+          nextBtn.style.display = "none";
+          resetBtn.style.display = "inline-flex";
+          scoreEl.textContent = score + "/" + questions.length;
+          progressEl.textContent = questions.length + "/" + questions.length;
+          var prev = getProgress()[chapterId];
+          var best = prev && typeof prev.best === "number" ? Math.max(prev.best, score) : score;
+          setProgress(chapterId, {visited:true, best:best, total:questions.length});
+          paintNavChecks();
+          return;
+        }
+        answered = false;
+        feedbackEl.textContent = "";
+        nextBtn.disabled = true;
+        resetBtn.style.display = "none";
+        var q = questions[idx];
+        qEl.textContent = q.q;
+        optsEl.innerHTML = "";
+        q.options.forEach(function(opt, i){
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "option";
+          b.textContent = opt;
+          b.addEventListener("click", function(){
+            if(answered) return;
+            answered = true;
+            optsEl.querySelectorAll("button").forEach(function(x){ x.disabled = true; });
+            if(i === q.answer){
+              score++;
+              b.classList.add("correct");
+              feedbackEl.textContent = q.explain || "Correct.";
+            }else{
+              b.classList.add("wrong");
+              var buttons = optsEl.querySelectorAll("button");
+              if(buttons[q.answer]) buttons[q.answer].classList.add("correct");
+              feedbackEl.textContent = q.explain || "Not quite.";
+            }
+            scoreEl.textContent = score + "/" + questions.length;
+            nextBtn.disabled = false;
           });
-          if(feedback){
-            // innerHTML: explanation text may contain a real <sub> tag for a chemical formula.
-            feedback.innerHTML = (isCorrect ? "Correct! " : "Not quite. ") + q.explanation;
-            feedback.classList.add("show", isCorrect ? "right" : "wrong");
-          }
+          optsEl.appendChild(b);
         });
-        var pct = Math.round((correctCount/questions.length)*100);
-        scoreEl.textContent = "You scored " + correctCount + " / " + questions.length + " (" + pct + "%)";
-        scoreEl.classList.add(pct >= 60 ? "good" : "bad");
-        checkBtn.style.display = "none";
-        retryBtn.style.display = "inline-block";
-
-        var prevBest = (getProgress()[chapterId] || {}).best || 0;
-        setProgress(chapterId, {visited:true, best: Math.max(prevBest, correctCount), total: questions.length});
-        paintNavChecks();
+        scoreEl.textContent = score + "/" + questions.length;
+        progressEl.textContent = (idx+1) + "/" + questions.length;
       }
 
-      function reset(){
-        checked = false;
-        questions.forEach(function(q,i){
-          var qEl = quizEl.querySelector('.quiz-q[data-index="'+i+'"]');
-          qEl.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
-          qEl.querySelectorAll(".qchoice").forEach(function(cEl){ cEl.classList.remove("correct","incorrect"); cEl.style.pointerEvents=""; });
-          var feedback = qEl.querySelector(".qfeedback");
-          if(feedback){ feedback.classList.remove("show","right","wrong"); }
-        });
-        scoreEl.textContent = "";
-        scoreEl.classList.remove("good","bad");
-        checkBtn.style.display = "inline-block";
-        retryBtn.style.display = "none";
-      }
-
-      if(checkBtn) checkBtn.addEventListener("click", grade);
-      if(retryBtn) retryBtn.addEventListener("click", reset);
+      nextBtn.addEventListener("click", function(){ if(answered){ idx++; render(); } });
+      resetBtn.addEventListener("click", function(){ idx = 0; score = 0; render(); });
+      render();
     });
   }
 
-  /* ---------- CAST-style practice item: single question, check + reveal explanation ---------- */
-  function initCastItems(){
-    document.querySelectorAll(".cast-item").forEach(function(el){
-      var dataEl = document.getElementById(el.getAttribute("data-source"));
-      if(!dataEl) return;
-      var data;
-      try { data = JSON.parse(dataEl.textContent); } catch(e){ return; }
-
-      var checkBtn = el.querySelector(".js-cast-check");
-      var retryBtn = el.querySelector(".js-cast-retry");
-      var feedback = el.querySelector(".qfeedback");
-      var choiceEls = el.querySelectorAll(".qchoice");
-
-      function grade(){
-        var chosen = el.querySelector('input[type="radio"]:checked');
-        if(!chosen) return;
-        var chosenIndex = parseInt(chosen.value, 10);
-        var isCorrect = chosenIndex === data.answerIndex;
-        choiceEls.forEach(function(cEl, idx){
-          cEl.classList.remove("correct", "incorrect");
-          if(idx === data.answerIndex) cEl.classList.add("correct");
-          else if(idx === chosenIndex) cEl.classList.add("incorrect");
-          cEl.style.pointerEvents = "none";
-        });
-        feedback.innerHTML = (isCorrect ? "Correct! " : "Not quite. ") + data.explanation;
-        feedback.classList.add("show", isCorrect ? "right" : "wrong");
-        checkBtn.style.display = "none";
-        retryBtn.style.display = "inline-block";
-      }
-
-      function reset(){
-        el.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
-        choiceEls.forEach(function(cEl){ cEl.classList.remove("correct", "incorrect"); cEl.style.pointerEvents = ""; });
-        feedback.classList.remove("show", "right", "wrong");
-        feedback.innerHTML = "";
-        checkBtn.style.display = "inline-block";
-        retryBtn.style.display = "none";
-      }
-
-      if(checkBtn) checkBtn.addEventListener("click", grade);
-      if(retryBtn) retryBtn.addEventListener("click", reset);
-    });
-  }
-
-  /* ---------- in-text glossary terms: click to pop out a definition ---------- */
-  function initGlossaryTerms(){
-    var terms = document.querySelectorAll(".gloss-term");
-    if(!terms.length) return;
-    var rail = document.getElementById("marginRail");
-    var backdrop = document.createElement("div");
-    backdrop.className = "term-popout-backdrop";
-    document.body.appendChild(backdrop);
-    var current = null; // {el, popout}
-
-    function isDesktop(){
-      return !!rail && window.matchMedia("(min-width: 981px)").matches;
-    }
-
-    function closePopout(){
-      if(current){
-        current.popout.remove();
-        current.el.classList.remove("active");
-        current.el.setAttribute("aria-expanded", "false");
-        current = null;
-      }
-      backdrop.classList.remove("show");
-    }
-
-    function openPopout(el){
-      if(current && current.el === el){ closePopout(); return; }
-      closePopout();
-      var pop = document.createElement("div");
-      pop.className = "term-popout";
-      var closeBtn = document.createElement("button");
-      closeBtn.className = "pt-close";
-      closeBtn.setAttribute("aria-label", "Close definition");
-      closeBtn.innerHTML = "&times;";
-      closeBtn.addEventListener("click", function(e){ e.stopPropagation(); closePopout(); });
-      var termDiv = document.createElement("div");
-      termDiv.className = "pt-term";
-      termDiv.textContent = el.textContent;
-      var defDiv = document.createElement("p");
-      defDiv.className = "pt-def";
-      // innerHTML (not textContent): definitions may contain a real <sub> tag
-      // for chemical formulas (e.g. H<sub>2</sub>O) that needs to render as markup.
-      defDiv.innerHTML = el.getAttribute("data-def") || "";
-      pop.appendChild(closeBtn);
-      pop.appendChild(termDiv);
-      pop.appendChild(defDiv);
-
-      if(isDesktop()){
-        rail.appendChild(pop);
-        var railRect = rail.getBoundingClientRect();
-        var elRect = el.getBoundingClientRect();
-        var top = Math.max(0, (elRect.top - railRect.top) + rail.scrollTop);
-        pop.style.top = top + "px";
-      } else {
-        pop.classList.add("mobile");
-        document.body.appendChild(pop);
-        backdrop.classList.add("show");
-      }
-      el.classList.add("active");
-      el.setAttribute("aria-expanded", "true");
-      current = {el: el, popout: pop};
-    }
-
-    terms.forEach(function(el){
-      el.setAttribute("role", "button");
-      el.setAttribute("tabindex", "0");
-      el.setAttribute("aria-expanded", "false");
-      el.addEventListener("click", function(e){ e.stopPropagation(); openPopout(el); });
-      el.addEventListener("keydown", function(e){
-        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openPopout(el); }
+  /* ---------- glossary live filter ---------- */
+  function initGlossaryFilter(){
+    var search = document.getElementById("glossarySearch");
+    if(!search) return;
+    var entries = Array.prototype.slice.call(document.querySelectorAll(".glossary-entry"));
+    search.addEventListener("input", function(){
+      var needle = search.value.toLowerCase().trim();
+      entries.forEach(function(entry){
+        entry.style.display = !needle || entry.textContent.toLowerCase().indexOf(needle) !== -1 ? "" : "none";
       });
     });
-
-    backdrop.addEventListener("click", closePopout);
-    document.addEventListener("click", function(e){
-      if(current && !current.popout.contains(e.target) && e.target !== current.el) closePopout();
-    });
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopout(); });
-    window.addEventListener("resize", closePopout);
   }
 
-  /* ---------- simple line/heating-curve/bar charts (Chart.js, if config present) ---------- */
-  function initCharts(){
-    if(typeof Chart === "undefined") return;
-    document.querySelectorAll("canvas[data-chart]").forEach(function(canvas){
-      var cfgEl = document.getElementById(canvas.getAttribute("data-chart"));
-      if(!cfgEl) return;
-      try{
-        var cfg = JSON.parse(cfgEl.textContent);
-        new Chart(canvas.getContext("2d"), cfg);
-      }catch(e){ console.warn("chart config error", e); }
+  /* ---------- vocabulary glossary links ---------- */
+  function initGlossaryTerms(){
+    document.querySelectorAll("[data-glossary]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var term = el.getAttribute("data-glossary");
+        if(term) window.location.href = "glossary.html#" + encodeURIComponent(term);
+      });
     });
+  }
+
+  /* ---------- print helper ---------- */
+  function initPrint(){
+    document.querySelectorAll("[data-print]").forEach(function(btn){ btn.addEventListener("click", function(){ window.print(); }); });
+  }
+
+  /* ---------- active page + visited state ---------- */
+  function initProgress(){
+    var id = document.body.getAttribute("data-chapter");
+    markVisited(id);
+    paintNavChecks();
   }
 
   document.addEventListener("DOMContentLoaded", function(){
@@ -280,12 +185,10 @@
     loadVisuals();
     initDrawer();
     initVocab();
-    initGlossaryTerms();
     initQuizzes();
-    initCastItems();
-    initCharts();
-    var bodyChapter = document.body.getAttribute("data-chapter-id");
-    if(bodyChapter) markVisited(bodyChapter);
-    paintNavChecks();
+    initGlossaryFilter();
+    initGlossaryTerms();
+    initPrint();
+    initProgress();
   });
 })();
