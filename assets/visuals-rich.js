@@ -1,69 +1,78 @@
-/* Physical Science 8 — approved photo-based multi-panel visual guides */
+/* Physical Science 8 — chapter-specific infographic loader */
 (function(){
-'use strict';
-var page=(location.pathname.split('/').pop()||'index.html'); if(page.indexOf('.')<0) page='index.html';
-var U='https://images.unsplash.com/';
-var PH={
- motion:U+'photo-1530137073520-4ea6e2f10a48?auto=format&fit=crop&w=1200&q=80',
- bike:U+'photo-1529422643029-d4585747aaf2?auto=format&fit=crop&w=1200&q=80',
- car:U+'photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80',
- push:U+'photo-1564510714747-69c3bc1fab41?auto=format&fit=crop&w=1200&q=80',
- mountain:U+'photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
- coaster:'https://images.pexels.com/photos/66143/pexels-photo-66143.jpeg?auto=compress&dpr=1&w=1200',
- earth:U+'photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80',
- magnet:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bar-magnet-iron-filings%20max.jpg',
- electric:U+'photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1200&q=80',
- wave:U+'photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80',
- ocean:U+'photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
- prism:U+'photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=80',
- phone:U+'photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80',
- heat:U+'photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80',
- coffee:U+'photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80',
- ice:U+'photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=1200&q=80',
- lab:U+'photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80',
- molecules:U+'photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80',
- rust:U+'photo-1534274988757-a28bf1a57c17?auto=format&fit=crop&w=1200&q=80',
- cotton:U+'photo-1594179047519-f347310d3322?auto=format&fit=crop&w=1200&q=80',
- factory:U+'photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80'
-};
-function waveSvg(){return '<svg viewBox="0 0 520 260"><rect width="520" height="260" fill="#eef7ff"/><path d="M20 140q55-95 110 0t110 0t110 0t110 0" fill="none" stroke="#1769c2" stroke-width="8"/><line x1="20" y1="140" x2="500" y2="140" stroke="#98a6b8" stroke-dasharray="8 8"/><path d="M130 140V48" stroke="#ef476f" stroke-width="5"/><path d="M130 40H350" stroke="#2a9d6f" stroke-width="5"/><text x="165" y="90">amplitude</text><text x="220" y="30">wavelength</text><text x="72" y="70">crest</text><text x="255" y="238">trough</text></svg>'}
-function forceSvg(){return '<svg viewBox="0 0 520 260"><rect width="520" height="260" fill="#f8fbff"/><rect x="190" y="90" width="140" height="100" rx="8" fill="#b88452"/><path d="M330 140h120" stroke="#e63946" stroke-width="8"/><path d="M190 140H85" stroke="#2a7fd4" stroke-width="5"/><path d="M260 90V35" stroke="#2a9d6f" stroke-width="6"/><path d="M260 190v55" stroke="#6a4c93" stroke-width="6"/><text x="350" y="125">applied force</text><text x="75" y="125">friction</text><text x="280" y="44">normal</text><text x="280" y="238">gravity</text></svg>'}
-function graphSvg(){return '<svg viewBox="0 0 520 260"><rect width="520" height="260" fill="#fff"/><path d="M65 210V35M65 210H480" stroke="#263149" stroke-width="4"/><path d="M65 210L445 55" stroke="#1769c2" stroke-width="8"/><path d="M65 210L445 145" stroke="#e63946" stroke-width="8"/><text x="350" y="50">faster = steeper</text><text x="350" y="135">slower</text><text x="245" y="248">time</text><text x="8" y="80">distance</text></svg>'}
-function particlesSvg(){return '<svg viewBox="0 0 520 260"><rect width="250" height="260" fill="#fff0ef"/><rect x="270" width="250" height="260" fill="#edf6ff"/><g fill="#e63946"><circle cx="55" cy="70" r="12"/><circle cx="120" cy="120" r="12"/><circle cx="185" cy="75" r="12"/><circle cx="80" cy="190" r="12"/><circle cx="200" cy="185" r="12"/></g><g fill="#2a7fd4"><circle cx="325" cy="80" r="12"/><circle cx="390" cy="120" r="12"/><circle cx="455" cy="80" r="12"/><circle cx="350" cy="190" r="12"/><circle cx="455" cy="185" r="12"/></g><text x="75" y="35">hotter: faster</text><text x="330" y="35">cooler: slower</text></svg>'}
-function moleculeSvg(){return '<svg viewBox="0 0 520 260"><rect width="520" height="260" fill="#eef5fb"/><circle cx="180" cy="130" r="48" fill="#e63946"/><circle cx="105" cy="175" r="34" fill="#f0f2f5"/><circle cx="255" cy="175" r="34" fill="#f0f2f5"/><text x="167" y="140" fill="white">O</text><text x="95" y="185">H</text><text x="245" y="185">H</text><text x="325" y="125">H₂O</text><text x="325" y="160">2 hydrogen</text><text x="325" y="190">1 oxygen</text></svg>'}
-var D={
-'index.html':['Physical Science 8','One course — six connected ideas',[['Motion & Forces',PH.motion,'Forces change motion.'],['Gravity & Position Energy',PH.mountain,'Height stores gravitational potential energy.'],['Electricity & Magnetism',PH.electric,'Fields can push or pull without touching.'],['Waves & Information',PH.ocean,'Waves transfer energy and information.'],['Thermal Energy',PH.heat,'Heat moves from warmer to cooler objects.'],['Matter & Reactions',PH.lab,'Atoms combine and rearrange to make substances.']],['The six ideas are connected.','Energy can change form and move between objects.','Forces, fields, and waves explain interactions.','Models and evidence help explain the physical world.']],
-'glossary.html':['Science Vocabulary Guide','Words are easier to learn when they are tied to real examples.',[['Motion & Force',PH.bike,'Motion, force, friction, gravity'],['Waves & Light',PH.prism,'Wave, light, wavelength, reflection'],['Thermal Energy',PH.heat,'Thermal energy, temperature, heat, conductor'],['Matter & Reactions',PH.lab,'Matter, mass, chemical reaction, solution']],['Use vocabulary to describe observations precisely.','Science words have specific meanings.','Group terms by topic to see connections.','Use the glossary while reading each chapter.']],
-'u1.html':['Unit 1: Motion and Forces','Describing motion and explaining why it changes.',[['Frames of Reference',PH.car,'Motion depends on the observer.'],['Speed & Graphs',PH.bike,'Speed compares distance and time.'],['Net Force & Inertia',PH.motion,'A net force changes motion.'],['Friction / Acceleration / Collisions',PH.car,'Forces can speed up, slow down, or change direction.']],['Motion is relative.','Speed describes how fast position changes.','A net force changes velocity.','Friction and collisions involve forces and energy transfer.']],
-'u1-t1.html':['Frames of Reference','The same motion can look different from different viewpoints.',[['Inside a moving vehicle',PH.car,'A passenger can be at rest relative to the vehicle.'],['Roadside observer',PH.car,'The same passenger is moving relative to the road.'],['Another moving system',PH.bike,'Motion is always described relative to a chosen reference point.']],['Motion is relative.','An object can be at rest in one frame and moving in another.','Always name the reference point.','Different descriptions can both be correct.']],
-'u1-t2.html':['Speed and Distance-Time Graphs','A steeper distance-time line means faster motion.',[['Real-world motion',PH.bike,'Different objects can cover the same distance in different times.'],['Distance-time graph',graphSvg(),'Slope represents speed.'],['Stopped object',PH.car,'A flat line means distance is not changing.']],['The x-axis shows time.','The y-axis shows distance.','Slope represents speed.','A flat line means zero speed.']],
-'u1-t3.html':['Inertia and Net Forces','Objects resist changes in motion; unbalanced forces cause acceleration.',[['Pushing an object',PH.push,'A push can overcome friction and create a net force.'],['Force vectors',forceSvg(),'Vertical forces can balance while horizontal forces do not.'],['Inertia in everyday life',PH.motion,'Without a net force, motion stays unchanged.']],['Inertia resists changes in motion.','Balanced forces give net force = 0.','Unbalanced forces change velocity.','Acceleration points in the direction of net force.']],
-'u1-t4.html':['Energy Transfer via Friction','Friction opposes motion and can produce thermal energy.',[['Bicycle braking',PH.bike,'Brake surfaces rub, slowing the wheel.'],['Tires on pavement',PH.car,'Friction between tires and road changes motion.'],['Heat from rubbing surfaces',PH.heat,'Some kinetic energy becomes thermal energy.']],['Friction opposes relative motion.','Friction can slow objects.','Friction transfers energy into heat.','Surface type and contact force affect friction.']],
-'u1-t5.html':['Mass and Acceleration','For the same force, a smaller mass accelerates more.',[['Light cart',PH.push,'Less mass gives greater acceleration for the same force.'],['Heavy load',PH.factory,'More mass gives less acceleration for the same force.'],['Newton’s Second Law',forceSvg(),'F = ma links force, mass, and acceleration.']],['More force gives more acceleration.','More mass gives less acceleration for the same force.','F = ma summarizes the relationship.','Acceleration is a change in velocity.']],
-'u1-t6.html':['Collisions and Newton’s Third Law','Forces come in equal-size, opposite-direction pairs.',[['Collision',PH.car,'Each object pushes on the other during contact.'],['Action-reaction pair',forceSvg(),'The forces are equal in size and opposite in direction.'],['Everyday example',PH.motion,'Action-reaction forces act on different objects.']],['Forces come in pairs.','Paired forces are equal in size.','Paired forces point in opposite directions.','The two forces act on different objects.']],
-'u2.html':['Unit 2: Gravity and Position Energy','Gravity attracts masses and height can store energy.',[['Gravitational Potential Energy',PH.mountain,'Higher position means more stored gravitational energy.'],['Universal Gravity',PH.earth,'All masses attract each other.'],['PE to KE',PH.coaster,'As height decreases, speed can increase.']],['Gravity acts between masses.','More height means more gravitational potential energy.','Falling can transform PE into KE.','Distance affects gravitational force.']],
-'u2-t1.html':['Gravitational Potential Energy','Higher position means more stored gravitational energy.',[['High position',PH.mountain,'More height gives more gravitational potential energy.'],['Low position',PH.mountain,'Lower height means less stored gravitational energy.'],['Roller coaster example',PH.coaster,'The top of the hill has more PE than the bottom.']],['PE depends on mass and height.','More height means more PE.','Lifting transfers energy into the object-Earth system.','Stored PE can later become kinetic energy.']],
-'u2-t2.html':['Universal Law of Gravity','All objects with mass attract each other.',[['Earth and Moon',PH.earth,'Both bodies pull on each other.'],['Mass matters',PH.earth,'More mass means stronger gravitational attraction.'],['Everyday gravity',PH.motion,'Earth pulls objects toward the ground.']],['All masses attract.','Greater mass means stronger gravity.','Greater distance means weaker gravity.','Gravity acts without direct contact.']],
-'u2-t3.html':['Potential Energy to Kinetic Energy','Stored energy can change into energy of motion.',[['Top of a hill',PH.coaster,'Higher position means more gravitational PE.'],['Moving downhill',PH.coaster,'As height decreases, speed increases.'],['Falling object',PH.motion,'PE decreases while KE increases.']],['Potential energy is stored energy.','Kinetic energy is energy of motion.','PE can transform into KE.','Energy is conserved as it changes form.']],
-'u3.html':['Unit 3: Electricity and Magnetism','Electricity and magnetism are connected through fields.',[['Magnetic fields',PH.magnet,'Magnets create fields in surrounding space.'],['Electric current',PH.electric,'Moving charges create magnetic fields.'],['Electromagnets',PH.factory,'Coils carrying current can become strong magnets.']],['Magnets have two poles.','Electric current creates magnetic fields.','Fields can act at a distance.','Electromagnets can be switched on and off.']],
-'u3-t1.html':['Magnetism','Magnetic fields can attract or repel without contact.',[['Field around a bar magnet',PH.magnet,'Iron filings reveal the field pattern.'],['Attract and repel',PH.magnet,'Opposite poles attract; like poles repel.'],['Compass example',PH.earth,'A compass aligns with Earth’s magnetic field.']],['Magnets have north and south poles.','Opposite poles attract.','Like poles repel.','Magnetic fields fill the space around magnets.']],
-'u3-t2.html':['Electromagnetic Fields','Electric current can create a magnetic field.',[['Current in a wire',PH.electric,'Moving charge produces a magnetic field.'],['Coil and core',PH.factory,'Coiling wire and adding iron can strengthen the field.'],['Real-world electromagnet',PH.factory,'Electromagnets lift and release metal when current changes.']],['Current creates magnetic fields.','More coil turns can strengthen an electromagnet.','Iron cores can strengthen fields.','Electromagnets are useful because they can switch on and off.']],
-'u4.html':['Unit 4: Waves and Information','Waves carry energy and can carry information.',[['Wave properties',PH.ocean,'Amplitude, wavelength, and frequency describe waves.'],['Light waves',PH.prism,'Visible light is electromagnetic radiation.'],['Communication signals',PH.phone,'Phones and Wi‑Fi encode information onto waves.']],['Waves transfer energy, not matter.','Amplitude, wavelength, and frequency describe waves.','Light is an electromagnetic wave.','Signals can encode information.']],
-'u4-t1.html':['Intro to Wave Properties','Waves transfer energy and have measurable properties.',[['Ocean waves',PH.ocean,'Real waves carry energy across a surface.'],['Wave diagram',waveSvg(),'Amplitude, wavelength, crest, and trough can be measured.'],['Sound and vibration',PH.wave,'Sound is produced by vibrations.']],['Amplitude measures wave height.','Wavelength measures spacing.','Frequency is waves per second.','Waves transfer energy.']],
-'u4-t2.html':['Light Waves','Visible light contains different wavelengths and colors.',[['Prism spectrum',PH.prism,'White light can separate into visible colors.'],['Different wavelengths',waveSvg(),'Different colors correspond to different wavelengths.'],['Seeing objects',PH.phone,'Light reflected from objects can enter our eyes.']],['Light is an electromagnetic wave.','Visible colors have different wavelengths.','Prisms separate colors because wavelengths bend differently.','Light carries energy and lets us see.']],
-'u4-t3.html':['Waves and Information Technology','Waves carry information in modern communication systems.',[['Cell phones',PH.phone,'Radio waves carry encoded information.'],['Fiber and light',PH.prism,'Light pulses can carry data through optical fibers.'],['Digital signals',waveSvg(),'Distinct signal values help preserve information.']],['Electromagnetic waves can carry information.','Different wave bands serve different technologies.','Digital encoding can reduce errors.','Modern networks depend on wave-based communication.']],
-'u5.html':['Unit 5: Thermal Energy and Heat Flow','Thermal energy moves from warmer objects to cooler ones.',[['Heat transfer',PH.heat,'Energy flows from hotter material to cooler material.'],['Particle motion',particlesSvg(),'Higher temperature means faster average particle motion.'],['Phase changes',PH.ice,'Adding or removing energy can change state.']],['Heat flows hot to cold.','Temperature relates to average particle motion.','Thermal energy transfer can cause phase changes.','Transfer continues toward equilibrium.']],
-'u5-t1.html':['Energy Transfer and Temperature','Heat moves from higher temperature to lower temperature.',[['Hot and cool objects',PH.coffee,'Thermal energy flows from warm to cool.'],['Conduction',PH.heat,'Direct contact transfers thermal energy.'],['Thermal equilibrium',PH.ice,'Energy transfer continues until temperatures become closer.']],['Heat flows from warmer to cooler.','Temperature measures average particle kinetic energy.','Conduction transfers energy by contact.','Objects approach thermal equilibrium.']],
-'u5-t2.html':['Changes in Energy at the Molecular Level','Temperature is related to particle motion.',[['Hot vs. cool particles',particlesSvg(),'Warmer samples have faster average particle motion.'],['Heating matter',PH.heat,'Adding energy increases particle motion.'],['Cooling matter',PH.ice,'Removing energy slows average particle motion.']],['Matter is made of moving particles.','Higher temperature means faster average motion.','Lower temperature means slower average motion.','Temperature reflects average kinetic energy.']],
-'u5-t3.html':['Phase Changes and Energy Transfer','Adding or removing energy can change the state of matter.',[['Melting',PH.ice,'Adding energy can change solid water into liquid.'],['Boiling',PH.heat,'More added energy can change liquid into gas.'],['Condensation',PH.coffee,'Removing energy can change gas into liquid.']],['Matter can be solid, liquid, or gas.','Melting and boiling require energy input.','Freezing and condensation release energy.','Phase changes involve energy transfer.']],
-'u6.html':['Unit 6: Matter and Chemical Reactions','Atoms and molecules determine properties, and reactions rearrange matter.',[['Molecular composition',PH.molecules,'Substances are built from atoms in specific combinations.'],['Physical vs. chemical properties',PH.rust,'Reactivity describes how substances can form new substances.'],['Conservation of matter',PH.lab,'Atoms are rearranged, not created or destroyed.'],['Natural and synthetic materials',PH.cotton,'Origin does not by itself determine usefulness or safety.']],['All matter is made of atoms.','Molecular composition affects properties.','Chemical reactions rearrange atoms.','Matter is conserved in reactions.']],
-'u6-t1.html':['Molecular Composition','Different substances contain different atoms and arrangements.',[['Molecule model',moleculeSvg(),'A water molecule contains two hydrogen atoms and one oxygen atom.'],['Laboratory substances',PH.molecules,'Different molecular structures lead to different substances.'],['Chemical formulas',PH.lab,'Formulas summarize which atoms and how many are present.']],['Matter is made of atoms and molecules.','Molecules contain bonded atoms.','Different atom combinations create different substances.','Composition helps explain properties.']],
-'u6-t2.html':['Physical and Chemical Properties','Physical properties can be observed without making a new substance; chemical properties describe reactivity.',[['Physical properties',PH.lab,'Color, density, state, and melting point can be observed or measured.'],['Chemical properties',PH.rust,'Rusting and burning form new substances.'],['Physical vs. chemical change',PH.ice,'Melting changes state but not chemical identity.']],['Physical properties do not require forming a new substance.','Chemical properties describe how a substance reacts.','Physical changes preserve identity.','Chemical changes form new substances.']],
-'u6-t3.html':['Conservation of Matter','Chemical reactions rearrange atoms rather than creating or destroying them.',[['Closed-system reaction',PH.lab,'Total mass stays the same in a closed system.'],['Atoms rearrange',moleculeSvg(),'The same atoms can be connected in new ways.'],['Everyday reaction',PH.rust,'New substances form, but the atoms are still present.']],['Matter is not created or destroyed in chemical reactions.','Atoms are rearranged.','A closed system keeps the same total mass.','Conservation applies to all chemical reactions.']],
-'u6-t4.html':['Synthetic vs. Natural','Natural describes origin; synthetic describes how a material was made.',[['Natural material',PH.cotton,'Cotton comes from a plant.'],['Synthetic production',PH.factory,'Synthetic materials are made by people through controlled processes.'],['Compare properties',PH.lab,'Natural and synthetic materials should be compared using evidence.']],['Natural means occurring in nature.','Synthetic means made by people.','Both can have useful or harmful properties.','Compare materials by evidence, not assumptions.']]
-};
-function esc(s){return String(s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]})}
-function isSvg(s){return typeof s==='string' && s.indexOf('<svg')===0}
-function run(){var d=D[page]; if(!d) return; var main=document.querySelector('main.container'); if(!main) return; document.querySelectorAll('.science-visual').forEach(function(x){x.remove()}); var st=document.createElement('style');st.textContent='.science-rich{margin:28px 0 36px;background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);font-family:Poppins,system-ui,sans-serif}.science-rich-head{padding:20px 22px 10px}.science-rich-head h2{margin:0;font-size:clamp(1.5rem,3vw,2.45rem);color:var(--ink)}.science-rich-head p{margin:4px 0 0;color:var(--ink-soft)}.science-rich-grid{padding:14px 18px 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.science-rich-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm)}.science-rich-media{height:230px;background:#eef3f8;display:flex;align-items:center;justify-content:center;overflow:hidden}.science-rich-media img{width:100%;height:100%;object-fit:cover}.science-rich-media svg{width:100%;height:100%;display:block;font-family:Poppins,Arial,sans-serif}.science-rich-copy{padding:12px 14px 14px}.science-rich-copy h3{margin:0 0 5px;font-size:1rem;color:var(--ink)}.science-rich-copy p{margin:0;font-size:.86rem;line-height:1.5;color:var(--ink-soft)}.science-rich-take{margin:0 18px 18px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#e9fbf3,#f7fffb);border:1px solid #cfeedd}.science-rich-take strong{display:block;margin-bottom:8px;font-size:1.05rem}.science-rich-take ol{margin:0;padding-left:1.25rem;display:grid;gap:6px;font-size:.86rem;line-height:1.45}.science-rich figcaption{padding:12px 18px;border-top:1px solid var(--line);font-size:.82rem;color:var(--ink-soft)}@media(max-width:760px){.science-rich-grid{grid-template-columns:1fr}.science-rich-media{height:210px}.science-rich{border-radius:15px}}';document.head.appendChild(st);var f=document.createElement('figure');f.className='science-rich';var cards=d[2].map(function(p){var media=isSvg(p[1])?p[1]:'<img loading="lazy" src="'+esc(p[1])+'" alt="'+esc(p[0])+'">';return '<article class="science-rich-card"><div class="science-rich-media">'+media+'</div><div class="science-rich-copy"><h3>'+esc(p[0])+'</h3><p>'+esc(p[2])+'</p></div></article>'}).join('');f.innerHTML='<div class="science-rich-head"><h2>'+esc(d[0])+'</h2><p>'+esc(d[1])+'</p></div><div class="science-rich-grid">'+cards+'</div><aside class="science-rich-take"><strong>✓ Key Takeaways</strong><ol>'+d[3].map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol></aside><figcaption>Visual guide: '+esc(d[0])+'. Images are used to connect the chapter concepts to real-world examples.</figcaption>';var call=main.querySelector(':scope > .callout');if(call) call.insertAdjacentElement('afterend',f); else main.insertBefore(f,main.firstChild)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+  'use strict';
+
+  var page=(location.pathname.split('/').pop()||'');
+  var chapter=/^u[1-6]-t[1-6]\.html$/.test(page) ? page.replace('.html','') : null;
+
+  /* Do not inject any generic graphic on the homepage, glossary, or unit overview pages. */
+  if(!chapter) return;
+
+  var captions={
+    'u1-t1':'Frames of Reference: the same motion can be described differently from different reference points.',
+    'u1-t2':'Speed and Distance-Time Graphs: graph slope shows how quickly distance changes with time.',
+    'u1-t3':'Inertia and Net Forces: balanced and unbalanced forces explain when motion changes.',
+    'u1-t4':'Energy Transfer via Friction: friction can slow motion and convert motion energy into thermal energy.',
+    'u1-t5':'Mass and Acceleration: acceleration depends on both applied force and mass.',
+    'u1-t6':'Collisions and Newton’s Third Law: interaction forces come in equal-size, opposite-direction pairs.',
+    'u2-t1':'Gravitational Potential Energy: greater height and mass can mean more stored gravitational energy.',
+    'u2-t2':'Universal Law of Gravity: every mass attracts every other mass, with strength depending on mass and distance.',
+    'u2-t3':'Potential Energy to Kinetic Energy: as height decreases, gravitational potential energy can become kinetic energy.',
+    'u3-t1':'Magnetism: magnetic fields, poles, attraction, repulsion, and real-world magnetic effects.',
+    'u3-t2':'Electromagnetic Fields: electric current in a coil can create a controllable magnetic field.',
+    'u4-t1':'Wave Properties: amplitude, wavelength, frequency, and the transfer of energy by waves.',
+    'u4-t2':'Light Waves: visible light contains different wavelengths that can be separated into colors.',
+    'u4-t3':'Waves and Information Technology: communication systems encode and transmit information using waves.',
+    'u5-t1':'Energy Transfer and Temperature: thermal energy moves from warmer objects toward cooler objects.',
+    'u5-t2':'Energy at the Molecular Level: higher temperature corresponds to greater average particle motion.',
+    'u5-t3':'Phase Changes and Energy Transfer: adding or removing energy can change a substance’s state.',
+    'u6-t1':'Molecular Composition: different substances contain different combinations and arrangements of atoms.',
+    'u6-t2':'Physical and Chemical Properties: physical changes differ from chemical changes that form new substances.',
+    'u6-t3':'Conservation of Matter: chemical reactions rearrange atoms without creating or destroying matter.',
+    'u6-t4':'Synthetic vs. Natural: materials should be compared by properties and evidence, not by origin alone.'
+  };
+
+  function insert(){
+    var main=document.querySelector('main.container');
+    if(!main) return;
+
+    /* Remove visual blocks from earlier versions before adding the correct chapter image. */
+    main.querySelectorAll('.science-visual,.rich-visual,.chapter-infographic').forEach(function(el){el.remove();});
+
+    var fig=document.createElement('figure');
+    fig.className='chapter-infographic';
+    fig.style.margin='28px 0 34px';
+    fig.style.background='#fff';
+    fig.style.border='1px solid var(--line)';
+    fig.style.borderRadius='18px';
+    fig.style.overflow='hidden';
+    fig.style.boxShadow='var(--shadow)';
+
+    var img=document.createElement('img');
+    img.src='./assets/chapter-infographics/'+chapter+'.svg';
+    img.alt=captions[chapter]||'Chapter science infographic';
+    img.loading='eager';
+    img.decoding='async';
+    img.style.display='block';
+    img.style.width='100%';
+    img.style.height='auto';
+    img.style.background='#fff';
+
+    var cap=document.createElement('figcaption');
+    cap.textContent=captions[chapter]||'';
+    cap.style.padding='12px 16px 14px';
+    cap.style.fontFamily='Poppins,system-ui,sans-serif';
+    cap.style.fontSize='.9rem';
+    cap.style.lineHeight='1.55';
+    cap.style.color='var(--ink-soft)';
+    cap.style.borderTop='1px solid var(--line)';
+
+    fig.appendChild(img); fig.appendChild(cap);
+    var callout=main.querySelector(':scope > .callout');
+    if(callout) callout.insertAdjacentElement('afterend',fig);
+    else main.insertBefore(fig,main.firstChild);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',insert);
+  else insert();
 })();
