@@ -133,6 +133,21 @@ button{ font-family:inherit; }
 .callout .label{ font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-dark); margin-bottom:6px; }
 .callout p{ margin:0; font-size:1.08rem; font-weight:500; }
 
+/* ---- chapter infographic poster (sits under the Big Question) ---- */
+.chapter-figure{
+  margin:26px 0 30px; background:#fff; border:1px solid var(--line);
+  border-radius:var(--radius-sm); overflow:hidden; box-shadow:var(--shadow-sm);
+}
+.chapter-figure a{ display:block; line-height:0; }
+.chapter-figure img{ display:block; width:100%; height:auto; background:#fff; }
+.chapter-figure figcaption{
+  padding:9px 14px; border-top:1px solid var(--line); background:var(--paper-soft);
+  font-size:.8rem; font-weight:500; color:var(--ink-soft);
+}
+/* the poster carries a lot of small type, so give phones a way to read it */
+.chapter-figure .zoom-hint::before{ content:"Tap"; }
+@media (hover:hover) and (pointer:fine){ .chapter-figure .zoom-hint::before{ content:"Click"; } }
+
 /* ---------------- main layout ---------------- */
 main{ padding:36px 0 70px; }
 .prose{ max-width:74ch; }
