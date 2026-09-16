@@ -1,4 +1,4 @@
-/* Physical Science 8 — shared interactivity */
+/* Physical Science 8: shared interactivity */
 (function(){
   "use strict";
 
@@ -20,7 +20,7 @@
       var p = getProgress();
       p[id] = Object.assign(p[id]||{}, data);
       localStorage.setItem(STORE_KEY, JSON.stringify(p));
-    }catch(e){ /* storage unavailable — fail silently, per-viewer convenience only */ }
+    }catch(e){ /* storage unavailable; fail silently, per-viewer convenience only */ }
   }
   function markVisited(id){ if(id) setProgress(id, {visited:true}); }
 
