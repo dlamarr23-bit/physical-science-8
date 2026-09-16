@@ -63,6 +63,7 @@ button{ font-family:inherit; }
 }
 .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:1.05rem; color:var(--ink); white-space:nowrap;}
 .brand .dot{ width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px var(--accent-tint); flex:none; }
+.brand .mascot{ height:34px; width:auto; border-radius:8px; flex:none; display:block; }
 .brand small{ display:block; font-weight:400; font-size:.72rem; color:var(--ink-soft); }
 .menu-btn{
   border:1px solid var(--line); background:#fff; border-radius:999px;
