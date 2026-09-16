@@ -92,7 +92,8 @@
             cEl.style.pointerEvents = "none";
           });
           if(feedback){
-            feedback.textContent = (isCorrect ? "Correct! " : "Not quite. ") + q.explanation;
+            // innerHTML: explanation text may contain a real <sub> tag for a chemical formula.
+            feedback.innerHTML = (isCorrect ? "Correct! " : "Not quite. ") + q.explanation;
             feedback.classList.add("show", isCorrect ? "right" : "wrong");
           }
         });
@@ -118,6 +119,50 @@
         });
         scoreEl.textContent = "";
         scoreEl.classList.remove("good","bad");
+        checkBtn.style.display = "inline-block";
+        retryBtn.style.display = "none";
+      }
+
+      if(checkBtn) checkBtn.addEventListener("click", grade);
+      if(retryBtn) retryBtn.addEventListener("click", reset);
+    });
+  }
+
+  /* ---------- CAST-style practice item: single question, check + reveal explanation ---------- */
+  function initCastItems(){
+    document.querySelectorAll(".cast-item").forEach(function(el){
+      var dataEl = document.getElementById(el.getAttribute("data-source"));
+      if(!dataEl) return;
+      var data;
+      try { data = JSON.parse(dataEl.textContent); } catch(e){ return; }
+
+      var checkBtn = el.querySelector(".js-cast-check");
+      var retryBtn = el.querySelector(".js-cast-retry");
+      var feedback = el.querySelector(".qfeedback");
+      var choiceEls = el.querySelectorAll(".qchoice");
+
+      function grade(){
+        var chosen = el.querySelector('input[type="radio"]:checked');
+        if(!chosen) return;
+        var chosenIndex = parseInt(chosen.value, 10);
+        var isCorrect = chosenIndex === data.answerIndex;
+        choiceEls.forEach(function(cEl, idx){
+          cEl.classList.remove("correct", "incorrect");
+          if(idx === data.answerIndex) cEl.classList.add("correct");
+          else if(idx === chosenIndex) cEl.classList.add("incorrect");
+          cEl.style.pointerEvents = "none";
+        });
+        feedback.innerHTML = (isCorrect ? "Correct! " : "Not quite. ") + data.explanation;
+        feedback.classList.add("show", isCorrect ? "right" : "wrong");
+        checkBtn.style.display = "none";
+        retryBtn.style.display = "inline-block";
+      }
+
+      function reset(){
+        el.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
+        choiceEls.forEach(function(cEl){ cEl.classList.remove("correct", "incorrect"); cEl.style.pointerEvents = ""; });
+        feedback.classList.remove("show", "right", "wrong");
+        feedback.innerHTML = "";
         checkBtn.style.display = "inline-block";
         retryBtn.style.display = "none";
       }
@@ -166,7 +211,9 @@
       termDiv.textContent = el.textContent;
       var defDiv = document.createElement("p");
       defDiv.className = "pt-def";
-      defDiv.textContent = el.getAttribute("data-def") || "";
+      // innerHTML (not textContent): definitions may contain a real <sub> tag
+      // for chemical formulas (e.g. H<sub>2</sub>O) that needs to render as markup.
+      defDiv.innerHTML = el.getAttribute("data-def") || "";
       pop.appendChild(closeBtn);
       pop.appendChild(termDiv);
       pop.appendChild(defDiv);
@@ -224,6 +271,7 @@
     initVocab();
     initGlossaryTerms();
     initQuizzes();
+    initCastItems();
     initCharts();
     var bodyChapter = document.body.getAttribute("data-chapter-id");
     if(bodyChapter) markVisited(bodyChapter);
