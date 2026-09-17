@@ -129,6 +129,135 @@
   }
 
   /* ---------- CAST-style practice item: single question, check + reveal explanation ---------- */
+  /* ---------- design-the-experiment challenge ----------
+     Rendered from JSON rather than hand-written markup: every chapter carries
+     the same four-part structure (testable question, independent variable,
+     dependent variable, constants/control), so the page only supplies data. */
+  function initLabItems(){
+    document.querySelectorAll(".lab-item").forEach(function(el){
+      var dataEl = document.getElementById(el.getAttribute("data-source"));
+      if(!dataEl) return;
+      var data;
+      try { data = JSON.parse(dataEl.textContent); } catch(e){ return; }
+      if(!data.parts || !data.parts.length) return;
+
+      var id = el.getAttribute("data-source");
+      var badge = document.createElement("span");
+      badge.className = "lab-badge";
+      badge.textContent = "Design the Experiment";
+      el.appendChild(badge);
+
+      var scenario = document.createElement("p");
+      scenario.className = "lab-scenario";
+      scenario.innerHTML = data.scenario || "";
+      el.appendChild(scenario);
+
+      // the shared vocabulary, on every chapter, tappable for a definition
+      var kit = document.createElement("div");
+      kit.className = "lab-toolkit";
+      kit.innerHTML =
+        '<p class="lab-toolkit-title">Variables toolkit</p>' +
+        '<p>In a <span class="gloss-term" data-def="An experiment that changes one factor and observes its effect on another, while keeping every other factor the same.">controlled experiment</span> you change one thing on purpose. ' +
+        'The <span class="gloss-term" data-def="The one factor the experimenter deliberately changes. Also called the manipulated variable.">independent variable</span> (or manipulated variable) is what you change. ' +
+        'The <span class="gloss-term" data-def="The factor you measure, which changes in response to the independent variable. Also called the responding variable.">dependent variable</span> (or responding variable) is what you measure. ' +
+        'The <span class="gloss-term" data-def="Every factor deliberately kept the same in all trials, so the test stays fair.">constants</span> are everything you deliberately keep the same, and the ' +
+        '<span class="gloss-term" data-def="The trial where the independent variable is left unchanged, used as a baseline to compare the other trials against.">control</span> is the trial you leave unchanged to compare against.</p>';
+      el.appendChild(kit);
+
+      var parts = [];
+      data.parts.forEach(function(part, i){
+        var wrap = document.createElement("div");
+        wrap.className = "lab-q";
+        var q = document.createElement("p");
+        q.className = "qtext";
+        if(part.tag){
+          var tag = document.createElement("span");
+          tag.className = "qtag";
+          tag.textContent = part.tag;
+          q.appendChild(tag);
+        }
+        q.appendChild(document.createTextNode((i + 1) + ". " + part.prompt));
+        wrap.appendChild(q);
+
+        var choices = document.createElement("div");
+        choices.className = "quiz-choices";
+        part.choices.forEach(function(text, idx){
+          var label = document.createElement("label");
+          label.className = "qchoice";
+          var input = document.createElement("input");
+          input.type = "radio";
+          input.name = "lab" + i + "-" + id;
+          input.value = idx;
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(" " + text));
+          choices.appendChild(label);
+        });
+        wrap.appendChild(choices);
+
+        var fb = document.createElement("div");
+        fb.className = "qfeedback";
+        wrap.appendChild(fb);
+        el.appendChild(wrap);
+        parts.push({wrap: wrap, feedback: fb, data: part});
+      });
+
+      var actions = document.createElement("div");
+      actions.className = "quiz-actions";
+      var checkBtn = document.createElement("button");
+      checkBtn.className = "btn";
+      checkBtn.textContent = "Check My Answers";
+      var retryBtn = document.createElement("button");
+      retryBtn.className = "btn secondary";
+      retryBtn.textContent = "Try Again";
+      retryBtn.style.display = "none";
+      var scoreEl = document.createElement("span");
+      scoreEl.className = "lab-score";
+      actions.appendChild(checkBtn);
+      actions.appendChild(retryBtn);
+      actions.appendChild(scoreEl);
+      el.appendChild(actions);
+
+      checkBtn.addEventListener("click", function(){
+        var correctCount = 0;
+        parts.forEach(function(p, i){
+          var chosen = p.wrap.querySelector('input[name="lab' + i + '-' + id + '"]:checked');
+          var choiceEls = p.wrap.querySelectorAll(".qchoice");
+          var isCorrect = chosen && parseInt(chosen.value, 10) === p.data.answerIndex;
+          if(isCorrect) correctCount++;
+          choiceEls.forEach(function(cEl, idx){
+            cEl.classList.remove("correct", "incorrect");
+            if(idx === p.data.answerIndex) cEl.classList.add("correct");
+            else if(chosen && parseInt(chosen.value, 10) === idx) cEl.classList.add("incorrect");
+            cEl.style.pointerEvents = "none";
+          });
+          p.feedback.innerHTML = (isCorrect ? "Correct! " : "Not quite. ") + p.data.explanation;
+          p.feedback.classList.add("show", isCorrect ? "right" : "wrong");
+        });
+        var pct = Math.round((correctCount / parts.length) * 100);
+        scoreEl.textContent = "You scored " + correctCount + " / " + parts.length + " (" + pct + "%)";
+        scoreEl.classList.add(pct >= 60 ? "good" : "bad");
+        checkBtn.style.display = "none";
+        retryBtn.style.display = "inline-block";
+      });
+
+      retryBtn.addEventListener("click", function(){
+        parts.forEach(function(p){
+          p.wrap.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
+          p.wrap.querySelectorAll(".qchoice").forEach(function(cEl){
+            cEl.classList.remove("correct", "incorrect");
+            cEl.style.pointerEvents = "";
+          });
+          p.feedback.classList.remove("show", "right", "wrong");
+          p.feedback.innerHTML = "";
+        });
+        scoreEl.textContent = "";
+        scoreEl.classList.remove("good", "bad");
+        checkBtn.style.display = "inline-block";
+        retryBtn.style.display = "none";
+      });
+    });
+  }
+
   function initCastItems(){
     document.querySelectorAll(".cast-item").forEach(function(el){
       var dataEl = document.getElementById(el.getAttribute("data-source"));
@@ -345,6 +474,7 @@
     initDrawer();
     initVocab();
     initRailNav();
+    initLabItems();   // renders before the glossary pass, so its terms get wired up
     initGlossaryTerms();
     initQuizzes();
     initCastItems();
