@@ -172,6 +172,74 @@
     });
   }
 
+  /* ---------- margin rail: sticky section nav, highlighted as you scroll ---------- */
+  function initRailNav(){
+    var rail = document.getElementById("marginRail");
+    if(!rail) return;
+
+    // Everything in the rail lives in this sticky block so it travels with the
+    // reader: the vocabulary pop-out slots in above the nav when one is open.
+    var sticky = document.createElement("div");
+    sticky.className = "rail-sticky";
+    rail.appendChild(sticky);
+
+    var prose = document.querySelector(".chapter-body .prose");
+    if(!prose) return;
+    var heads = prose.querySelectorAll("h2");
+    if(heads.length < 2) return; // a single section isn't worth a nav
+
+    var nav = document.createElement("nav");
+    nav.className = "rail-nav";
+    nav.setAttribute("aria-label", "Sections in this chapter");
+    var title = document.createElement("p");
+    title.className = "rail-nav-title";
+    title.textContent = "In this chapter";
+    nav.appendChild(title);
+
+    var list = document.createElement("ol");
+    var links = [];
+    heads.forEach(function(h){
+      if(!h.id){
+        var base = (h.textContent || "section").toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "section";
+        // headings repeat across chapters, so keep the id unique on this page
+        var id = base, n = 2;
+        while(document.getElementById(id)){ id = base + "-" + n; n++; }
+        h.id = id;
+      }
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#" + h.id;
+      a.textContent = h.textContent;
+      li.appendChild(a);
+      list.appendChild(li);
+      links.push({a: a, h: h});
+    });
+    nav.appendChild(list);
+    sticky.appendChild(nav);
+
+    // scroll spy: the active section is the last heading to pass under the topbar
+    var ticking = false;
+    function spy(){
+      ticking = false;
+      var active = links[0];
+      links.forEach(function(item){
+        if(item.h.getBoundingClientRect().top <= 100) active = item;
+      });
+      links.forEach(function(item){
+        item.a.classList.toggle("active", item === active);
+        if(item === active) item.a.setAttribute("aria-current", "true");
+        else item.a.removeAttribute("aria-current");
+      });
+    }
+    function onScroll(){
+      if(!ticking){ ticking = true; window.requestAnimationFrame(spy); }
+    }
+    window.addEventListener("scroll", onScroll, {passive:true});
+    window.addEventListener("resize", onScroll);
+    spy();
+  }
+
   /* ---------- in-text glossary terms: click to pop out a definition ---------- */
   function initGlossaryTerms(){
     var terms = document.querySelectorAll(".gloss-term");
@@ -219,11 +287,18 @@
       pop.appendChild(defDiv);
 
       if(isDesktop()){
-        rail.appendChild(pop);
-        var railRect = rail.getBoundingClientRect();
-        var elRect = el.getBoundingClientRect();
-        var top = Math.max(0, (elRect.top - railRect.top) + rail.scrollTop);
-        pop.style.top = top + "px";
+        var sticky = rail.querySelector(".rail-sticky");
+        if(sticky){
+          // ride above the section nav inside the sticky block, so the definition
+          // stays beside the reader instead of scrolling away up the rail
+          sticky.insertBefore(pop, sticky.firstChild);
+        } else {
+          rail.appendChild(pop);
+          var railRect = rail.getBoundingClientRect();
+          var elRect = el.getBoundingClientRect();
+          var top = Math.max(0, (elRect.top - railRect.top) + rail.scrollTop);
+          pop.style.top = top + "px";
+        }
       } else {
         pop.classList.add("mobile");
         document.body.appendChild(pop);
@@ -269,6 +344,7 @@
     injectIcons();
     initDrawer();
     initVocab();
+    initRailNav();
     initGlossaryTerms();
     initQuizzes();
     initCastItems();

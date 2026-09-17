@@ -158,12 +158,47 @@ main{ padding:36px 0 70px; }
 .prose{ max-width:74ch; }
 .prose h2{ font-size:1.4rem; margin-top:2.2em; padding-top:.2em; border-top:1px solid var(--line); }
 .prose h2:first-child{ border-top:none; margin-top:0; }
-.prose p{ color:var(--ink-soft); font-size:1.02rem; }
+.prose p{ color:var(--ink-soft); font-size:1.09rem; }
+/* headings clear the sticky topbar when jumped to from the rail nav */
+.prose h2{ scroll-margin-top:80px; }
 
-/* chapter body: prose column + a margin rail reserved for vocabulary pop-outs */
-.chapter-body{ display:grid; grid-template-columns:minmax(0,74ch) minmax(220px,260px); gap:40px; align-items:start; position:relative; }
+/* chapter body: prose column + a margin rail holding the section nav and vocabulary pop-outs */
+/* columns stretch (no align-items:start) so the rail is as tall as the prose;
+   a sticky child can only travel inside its own parent's box */
+.chapter-body{ display:grid; grid-template-columns:minmax(0,74ch) minmax(220px,260px); gap:40px; position:relative; }
 .chapter-body .prose{ max-width:none; }
 .margin-rail{ position:relative; }
+
+/* the rail travels with the reader: pop-out on top, section nav beneath it */
+/* max-height keeps a pop-out plus a long nav from overflowing a short laptop screen */
+.rail-sticky{
+  position:sticky; top:80px; display:flex; flex-direction:column; gap:14px;
+  max-height:calc(100vh - 100px); overflow-y:auto;
+}
+.rail-sticky .term-popout{ position:static; }
+.rail-nav{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+  padding:14px 12px; box-shadow:var(--shadow-sm);
+}
+.rail-nav .rail-nav-title{
+  font-size:.7rem; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--ink-soft); font-weight:700; margin:0 0 10px 12px;
+}
+.rail-nav ol{ list-style:none; margin:0; padding:0; counter-reset:railsec; }
+.rail-nav li{ counter-increment:railsec; }
+.rail-nav a{
+  display:block; padding:7px 10px 7px 12px; border-left:2px solid var(--line);
+  color:var(--ink-soft); font-size:.82rem; line-height:1.4; text-decoration:none;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.rail-nav a::before{ content:counter(railsec) ". "; color:var(--ink-soft); opacity:.6; }
+.rail-nav a:hover{ color:var(--ink); background:var(--paper-soft); }
+.rail-nav a.active{
+  color:var(--accent-dark); border-left-color:var(--accent);
+  background:var(--accent-tint); font-weight:600;
+}
+.rail-nav a.active::before{ color:var(--accent-dark); opacity:.75; }
+
 @media (max-width:980px){
   .chapter-body{ display:block; }
   .margin-rail{ display:none; }
