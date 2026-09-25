@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>window.SELF_CHECK_BACKUP = true;   /* backup link: see BACKUP_APP in the page script */</script>
+<title>Self-Check (backup link)</title>
+<meta name="robots" content="noindex">
+<base target="_blank">
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#d9ead3; --yellow:#fff2cc; --red:#f4cccc; --strip:#c9daf8; --q:#d9d9d9; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f3f3f3; font-family:Poppins, Arial, sans-serif; color:#111; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
+  h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
+  .who { font-size: 13px; color:#555; margin-bottom: 8px; }
+  .intro { font-style: italic; color:#555; font-size: 14px; margin: 6px 0 10px; }
+  .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
+             color:#111; text-decoration:none; font-weight:600; font-size:13px; background:#fff; }
+  .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
+              padding: 10px 12px; margin: 14px 0; display:flex; flex-wrap:wrap; gap: 10px 16px; align-items:center; font-size:14px; font-weight:600; }
+  .bar { flex: 1 1 220px; height: 14px; display:flex; border:1px solid #111; border-radius: 7px; overflow:hidden; background:#fff; }
+  .bar span { height:100%; transition: width .3s; }
+  .chip { display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:12px; height:12px; border:1px solid #111; border-radius:3px; display:inline-block; }
+  .grade { margin-left:auto; font-size:16px; }
+  .strip { background: var(--strip); font-weight:700; font-size: 17px; padding: 10px 12px; margin: 26px 0 12px;
+           border-top: 2px solid #111; border-bottom: 2px solid #111; }
+  .item { margin: 0 0 18px; border: 1px solid #bbb; background:#fff; }
+  .qtext { background: var(--q); font-weight:700; font-size: 15px; padding: 10px 12px; line-height:1.45; }
+  .qimg { margin: 10px 0 2px; }
+  .qimg img { display:block; max-width:100%; max-height:420px; border:2px solid #111; border-radius:4px; background:#fff; cursor: zoom-in; }
+  .qimg figcaption { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:4px; }
+  .qlinks { margin-top: 8px; }
+  a.simbtn { display:inline-block; margin: 0 8px 8px 0; padding: 9px 16px; border:2px solid #1b4587; border-radius: 6px;
+             background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
+  a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
+  .seclinks { margin: -4px 0 14px; }
+  .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
+  textarea { display:block; width:100%; min-height: 84px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
+             transition: background .25s; }
+  textarea:focus { box-shadow: inset 0 0 0 2px #3c78d8; }
+  textarea.correct { background: var(--green); } textarea.partial { background: var(--yellow); } textarea.incorrect { background: var(--red); }
+  .fb { background:#000; color:#fff; font-style: italic; font-size: 14px; padding: 9px 12px; min-height: 38px; line-height:1.45; }
+  .row { display:flex; align-items:center; justify-content: space-between; gap: 8px; padding: 8px 12px; background:#fff; }
+  .meta { font-size: 12px; color:#666; }
+  button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
+           background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
+  button.secondary { background:#fff; color:#111; }
+  button:disabled { opacity:.5; cursor: default; }
+  .finish { text-align:center; margin: 30px 0; }
+  .finish button { font-size: 16px; padding: 12px 26px; }
+  .banner { background:#111; color:#fff; padding:10px 12px; border-radius:6px; font-size:14px; margin: 10px 0; }
+  .error { background:#cc0000; }
+  /* type-in boxes placed on a picture */
+  .boxfig { margin: 10px 0 2px; }
+  .boxwrap { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  .boxwrap img { display:block; max-width:100%; height:auto; border:2px solid #111; border-radius:4px; background:#fff; }
+  .boxwrap input.pbox { position:absolute; margin:0; padding:0 4px; border:2px solid #3c78d8; border-radius:4px; background:#fff;
+             font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:clamp(10px, 1.9vw, 15px); line-height:1.1;
+             text-align:center; color:#111; outline:none; transition: background .25s; }
+  .boxwrap input.pbox:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  input.pbox.correct { background: var(--green); border-color:#38761d; }
+  input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
+  .boxlist { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 10px; line-height:1.3; }
+  .boxlist label { font-size: 13px; font-weight:600; }
+  .boxlist input.pbox { display:block; width:100%; margin-top:3px; padding:7px 8px; border:2px solid #111; border-radius:4px;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; background:#fff; outline:none; }
+  .boxhint { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:6px; }
+  .boxarea { border-top:3px solid #111; }
+  .boxarea.correct { box-shadow: inset 6px 0 0 #38761d; } .boxarea.partial { box-shadow: inset 6px 0 0 #bf9000; } .boxarea.incorrect { box-shadow: inset 6px 0 0 #cc0000; }
+  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  /* sign in with an emailed code (browsers where another Google account is signed in first) */
+  .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
+  .signin h2 { font-size:18px; margin:0 0 6px; }
+  .signin p { font-size:14px; line-height:1.5; margin:6px 0 12px; }
+  .signin label { display:block; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .signin input { display:block; width:100%; max-width:360px; margin-top:4px; padding:8px 10px; border:2px solid #111; border-radius:6px;
+                  font-family:Poppins, Arial, sans-serif; font-size:16px; background:#fff; outline:none; }
+  .signin input:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  .signin input.si-code { max-width:200px; font-size:22px; letter-spacing:4px; }
+  .si-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+  .si-status { font-weight:600; min-height:1.5em; }
+  .si-status.bad { color:#cc0000; }
+  .si-alt { font-size:13px; color:#555; font-style:italic; border-top:1px solid #ddd; padding-top:10px; margin-bottom:0 !important; }
+  button.linkbtn { background:none; border:0; border-radius:0; padding:0; color:#1b4587; text-decoration:underline; font-weight:600; font-size:inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading">Loading your self-check…</div>
+  <div id="signin" hidden></div>
+  <div id="app" hidden>
+    <h1 id="title"></h1>
+    <div class="who" id="who"></div>
+    <div class="intro" id="intro"></div>
+    <div class="links" id="links"></div>
+    <div id="msg"></div>
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"><span id="bG" style="background:var(--green)"></span><span id="bY" style="background:var(--yellow)"></span><span id="bR" style="background:var(--red)"></span></div>
+      <span class="chip"><i class="dot" style="background:var(--green)"></i><b id="nG">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--yellow)"></i><b id="nY">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--red)"></i><b id="nR">0</b></span>
+      <span class="chip"><i class="dot"></i><b id="nB">0</b> left</span>
+      <span class="grade" id="grade"></span>
+    </div>
+    <div id="items"></div>
+    <div class="finish">
+      <button id="finishBtn">I'm finished</button>
+      <div class="meta" id="finishMeta" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* The page talks to the server through `api`. In Google Apps Script it uses
+   google.script.run; the preview file swaps in a mock.
+   The BACKUP LINK is a copy of this page on the class website (window.SELF_CHECK_BACKUP is set,
+   and ?app= is the web app's deployment ID). Google won't open the web app itself in a browser
+   where a personal account is signed in before the school one, so the copy talks to the script's
+   doPost with fetch instead. Those requests carry no Google sign-in, so there's nothing to mix up,
+   and students there sign in with an emailed code. */
+var BACKUP_APP = window.SELF_CHECK_BACKUP ? (new URLSearchParams(location.search).get("app") || "") : "";
+function backupApi(app) {
+  var url = "https://script.google.com/macros/s/" + encodeURIComponent(app) + "/exec";
+  function run(fn, args, ok, fail) {
+    fail = fail || showError;
+    fetch(url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },   // text/plain: no CORS preflight
+                 body: JSON.stringify({ fn: fn, args: (args || []).concat([getToken()]) }) })
+      .then(function (r) {
+        if (!r.ok) throw new Error("NETWORK: The server didn't answer (" + r.status + "). Wait a minute and try again.");
+        return r.json();
+      })
+      .then(function (out) {
+        if (out && out.ok) { if (ok) ok(out.result); }
+        else fail(new Error((out && out.error) || "Something went wrong. Reload the page."));
+      }, function (err) {
+        fail(/^NETWORK/.test(err && err.message) ? err : new Error("NETWORK: Couldn't reach the server. Check your internet connection."));
+      });
+  }
+  return {
+    run: run,
+    getState: function (ok, fail) { run("getStudentState", [], ok, fail); },
+    grade:    function (i, a, ok, fail) { run("gradeAnswer", [i, a], ok, fail); },
+    check:    function (i, a, ok, fail) { run("checkAnswer", [i, a], ok, fail); },
+    turnIn:   function (ok, fail) { run("turnIn", [], ok, fail); },
+    saveDraft: function (i, t, ok, fail) { run("saveDraft", [i, t], ok, fail); }
+  };
+}
+var api = window.MOCK_API || (window.SELF_CHECK_BACKUP ? backupApi(BACKUP_APP) : {
+  run: function (fn, args, ok, fail) {
+    var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail || showError);
+    r[fn].apply(r, (args || []).concat([getToken()]));   // every call carries this browser's sign-in, if it has one
+  },
+  getState: function (ok, fail) { this.run("getStudentState", [], ok, fail); },
+  grade:    function (i, a, ok, fail) { this.run("gradeAnswer", [i, a], ok, fail); },
+  check:    function (i, a, ok, fail) { this.run("checkAnswer", [i, a], ok, fail); },
+  turnIn:   function (ok, fail) { this.run("turnIn", [], ok, fail); },
+  saveDraft: function (i, t, ok, fail) { this.run("saveDraft", [i, t], ok, fail); }
+});
+
+var S = null;              // state from server
+var saved = [];            // last answer text the server has for each question
+var pending = {};          // question index -> true while a check is in flight
+var draftSaved = [];       // last text the server has for each box (checked OR autosaved)
+var draftTimer = {};       // question index -> autosave timer
+var saving = {};           // question index -> true while a background save is running
+var saveWant = {};         // question index -> newest checked text waiting to be saved
+var AUTOSAVE_MS = 8000;    // autosave this long after the student stops typing
+
+function simButton(l) {
+  var a = el("a", "simbtn", l.label || "Open link");
+  a.href = l.url; a.target = "_blank"; a.rel = "noopener";
+  return a;
+}
+
+function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
+function boxInputs(i) { return Array.prototype.slice.call(document.querySelectorAll('input.pbox[data-q="' + i + '"]')); }
+/** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
+function answerOf(i) {
+  if (!isBoxQ(i)) return document.getElementById("a" + i).value.trim();
+  var parts = boxInputs(i).map(function (b) { return b.value.replace(/\|/g, "/").trim(); });
+  return parts.some(function (p) { return p; }) ? parts.join(" | ") : "";
+}
+function blockPaste(field, i) {
+  if (!S.blockPaste) return;
+  var stop = function (e) { e.preventDefault(); setMeta(i, "Pasting is turned off. Type your answer in your own words.", "#cc0000"); };
+  field.addEventListener("paste", stop);
+  field.addEventListener("drop", stop);
+  field.addEventListener("beforeinput", function (e) { if (/insertFrom(Paste|Drop)/.test(e.inputType || "")) stop(e); });
+}
+
+/** Shrinks a picture box's text so longer answers still fit. */
+function fitBox(inp) {
+  if (!inp.parentNode || !inp.parentNode.classList.contains("boxwrap")) return;
+  inp.style.fontSize = "";
+  var size = parseFloat(getComputedStyle(inp).fontSize);
+  while (inp.scrollWidth > inp.clientWidth + 1 && size > 6) { size -= 0.5; inp.style.fontSize = size + "px"; }
+}
+
+/** "Question number style" setting: the first 1 in the pattern becomes the question's number
+    ("Q1" -> Q7, "Question 1" -> Question 7, "1)" -> 7)). No 1 in the pattern = number added at the end. */
+function qLabel(n) {
+  var p = String(S && S.numberStyle != null ? S.numberStyle : "1").trim() || "1";
+  var at = p.indexOf("1");
+  return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
+}
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function showError(err) {
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  var b = el("div", "banner error", (err && err.message) ? err.message : String(err));
+  m.appendChild(b);
+  document.getElementById("loading").textContent = (err && err.message) ? err.message : "Something went wrong. Reload the page.";
+}
+
+/* ---------- Signing in with an emailed code ----------
+   Google tells the server who you are only when your school account is the FIRST Google account
+   signed in to this browser. When it isn't (a family or personal account came first), the page
+   asks for your school email and emails you a 6-digit code. The sign-in token is kept in this
+   browser, so the code is only needed once per browser. */
+var TOKEN_KEY = "selfcheck-signin" + (BACKUP_APP ? ":" + BACKUP_APP : ""),   // the backup page serves every assignment: one sign-in each
+    memToken = "", signInEmail = "", signInOpen = false;
+function getToken() { try { return localStorage.getItem(TOKEN_KEY) || memToken; } catch (e) { return memToken; } }
+function setToken(t) {
+  memToken = t || "";
+  try { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); } catch (e) { /* storage blocked: kept for this visit only */ }
+}
+function isSignInError(err) { return /SIGNIN/.test(String((err && err.message) || err || "")); }
+function signInText(err) { return String((err && err.message) || err || "").replace(/^[\s\S]*?SIGNIN:\s*/, ""); }
+
+/** First load: draw the page, or the sign-in card if the server can't tell who this is. */
+function start(state) {
+  if (state && state.needSignIn) { setToken(""); showSignIn(state, false); return; }
+  S = state; render();
+}
+
+/** The sign-in card. midway = the page is already showing work (a sign-in ran out while working). */
+function showSignIn(info, midway) {
+  signInOpen = true;
+  var box = document.getElementById("signin");
+  box.innerHTML = ""; box.hidden = false;
+  document.getElementById("loading").hidden = true;
+  if (!midway && info.title) { document.title = info.title; box.appendChild(el("h1", null, info.title)); }
+  var card = el("div", "signin");
+  card.appendChild(el("h2", null, midway ? "Sign in again to keep saving" : "Sign in with your school email"));
+  card.appendChild(el("p", null, midway
+    ? "Your sign-in on this browser ran out. Your answers are still on the page. Sign in again, then press Check on any answer that didn't save."
+    : window.SELF_CHECK_BACKUP
+      ? "This is the backup link, so you sign in with a code instead of your Google account. " +
+        "We'll email a 6-digit code to your school address. It comes from your teacher's email."
+      : "Your browser is signed in to a different Google account first, so this page can't tell who you are. " +
+        "We'll email a 6-digit code to your school address instead. It comes from your teacher's email."));
+
+  var step1 = el("form"); step1.noValidate = true;
+  var l1 = el("label", null, "Your school email");
+  var em = el("input"); em.type = "text"; em.inputMode = "email"; em.autocomplete = "email"; em.spellcheck = false;
+  em.setAttribute("autocapitalize", "none"); em.placeholder = "yourname@" + (info.domain || "school.org"); em.value = signInEmail;
+  l1.appendChild(em); step1.appendChild(l1);
+  var sendBtn = el("button", null, "Email me a code"); sendBtn.type = "submit";
+  var b1 = el("div", "si-buttons"); b1.appendChild(sendBtn); step1.appendChild(b1);
+
+  var step2 = el("form"); step2.noValidate = true; step2.hidden = true;
+  var sentTo = el("p");
+  var l2 = el("label", null, "6-digit code");
+  var code = el("input", "si-code"); code.type = "text"; code.inputMode = "numeric"; code.autocomplete = "one-time-code"; code.maxLength = 7;
+  l2.appendChild(code);
+  var goBtn = el("button", null, "Sign in"); goBtn.type = "submit";
+  var againBtn = el("button", "secondary", "Send a new code"); againBtn.type = "button";
+  var otherBtn = el("button", "secondary", "Use a different email"); otherBtn.type = "button";
+  var b2 = el("div", "si-buttons"); b2.appendChild(goBtn); b2.appendChild(againBtn); b2.appendChild(otherBtn);
+  step2.appendChild(sentTo); step2.appendChild(l2); step2.appendChild(b2);
+
+  var status = el("p", "si-status"); status.setAttribute("aria-live", "polite");
+  card.appendChild(step1); card.appendChild(step2); card.appendChild(status);
+  if (!window.SELF_CHECK_BACKUP) card.appendChild(el("p", "si-alt", "Or open this page in a private window and sign in with your school Google account."));
+  box.appendChild(card);
+
+  function say(text, bad) { status.textContent = text || ""; status.className = "si-status" + (bad ? " bad" : ""); }
+  function busy(on) { [sendBtn, goBtn, againBtn, otherBtn].forEach(function (b) { b.disabled = on; }); }
+  function send(to) {
+    busy(true); say("Sending a code…");
+    api.run("sendSignInCode", [to], function (r) {
+      busy(false); signInEmail = r.email;
+      step1.hidden = true; step2.hidden = false;
+      sentTo.textContent = "We emailed a code to " + r.email + ". Open your school email, then type the code here. It works for " + r.minutes + " minutes.";
+      say(""); code.value = ""; code.focus();
+    }, function (err) { busy(false); say(signInText(err), true); });
+  }
+  step1.addEventListener("submit", function (e) { e.preventDefault(); if (em.value.trim()) send(em.value); else say("Type your school email first.", true); });
+  againBtn.addEventListener("click", function () { send(signInEmail); });
+  otherBtn.addEventListener("click", function () { step2.hidden = true; step1.hidden = false; say(""); em.value = signInEmail; em.focus(); });
+  step2.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (code.value.replace(/\D/g, "").length !== 6) { say("The code has 6 digits.", true); return; }
+    busy(true); say("Checking your code…");
+    api.run("verifySignInCode", [signInEmail, code.value], function (r) {
+      setToken(r.token);
+      signInOpen = false;
+      if (!midway) {
+        box.hidden = true; box.innerHTML = "";
+        document.getElementById("loading").hidden = false;
+        document.getElementById("loading").textContent = "Loading your self-check…";
+        withRetry(function (ok, fail) { api.getState(ok, fail); }, start, showError);
+      } else if (r.email === S.email) {
+        box.hidden = true; box.innerHTML = "";
+        var m = document.getElementById("msg"); m.innerHTML = "";
+        m.appendChild(el("div", "banner", "You're signed in again. Press Check on any answer that says it didn't save."));
+      } else {
+        // Someone else signed in on a page showing another student's work: don't mix the two.
+        S.locked = true;
+        document.querySelectorAll("textarea, input.pbox, .row button, #finishBtn").forEach(function (x) { x.disabled = true; });
+        box.innerHTML = "";
+        box.appendChild(el("div", "banner", "You signed in as " + r.email + ". Reload this page to see that student's work."));
+      }
+    }, function (err) { busy(false); say(signInText(err), true); code.select(); });
+  });
+  (step1.hidden ? code : em).focus();
+}
+
+/** A save found this browser signed out (the sign-in ran out or was removed): ask again, keep the answers. */
+function signedOutMidway() {
+  if (signInOpen || !S) return;
+  showSignIn({ domain: S.domain }, true);
+  document.getElementById("signin").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/** "Not you? Sign out" (only shown for code sign-ins). */
+function signOutHere() {
+  if (savesRunning()) { alert("Your answers are still saving. Try again in a few seconds."); return; }
+  if (!confirm("Sign out of this page on this browser?")) return;
+  api.run("signOut", [], function () {}, function () {});
+  setToken("");
+  S = null;
+  document.getElementById("app").hidden = true;
+  var box = document.getElementById("signin");
+  box.innerHTML = ""; box.hidden = false;
+  box.appendChild(el("div", "banner", "You're signed out on this browser. Reload the page to sign in again."));
+}
+
+function render() {
+  document.getElementById("loading").hidden = true;
+  document.getElementById("app").hidden = false;
+  document.title = S.title;
+  document.getElementById("title").textContent = S.title;
+  var who = document.getElementById("who");
+  who.textContent = "Signed in as " + S.name + ". Your work saves automatically.";
+  if (S.via === "code") {   // signed in with an emailed code: let a different student sign out on a shared computer
+    who.appendChild(document.createTextNode(" Not you? "));
+    var out = el("button", "linkbtn", "Sign out"); out.type = "button";
+    out.addEventListener("click", signOutHere);
+    who.appendChild(out);
+  }
+  document.getElementById("intro").textContent = S.intro;
+  var L = document.getElementById("links");
+  (S.links || []).forEach(function (l) { L.appendChild(simButton(l)); });
+  L.hidden = !(S.links && S.links.length);
+
+  var box = document.getElementById("items");
+  var sec = {}; S.sections.forEach(function (s) { sec[s.before] = s; });
+  S.questions.forEach(function (q, i) {
+    if (sec[i]) {
+      box.appendChild(el("div", "strip", sec[i].title));
+      if (sec[i].links && sec[i].links.length) {
+        var sl = el("div", "seclinks");
+        sec[i].links.forEach(function (l) { sl.appendChild(simButton(l)); });
+        box.appendChild(sl);
+      }
+    }
+    var item = el("div", "item");
+    var qt = el("div", "qtext");
+    qt.appendChild(el("span", "qnum", qLabel(i + 1)));
+    qt.appendChild(document.createTextNode(q.text));
+    if (q.img && !(q.boxes && q.boxes.length)) {
+      var fig = el("figure", "qimg");
+      var im = el("img"); im.src = q.img; im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
+      im.addEventListener("click", function () { window.open(q.img, "_blank"); });
+      fig.appendChild(im);
+      if (q.imgCaption) fig.appendChild(el("figcaption", null, q.imgCaption));
+      qt.appendChild(fig);
+    }
+    if (q.links && q.links.length) {
+      var ql = el("div", "qlinks");
+      q.links.forEach(function (l) { ql.appendChild(simButton(l)); });
+      qt.appendChild(ql);
+    }
+    var ta;
+    if (q.boxes && q.boxes.length) {
+      // Picture-box question: one small input per blank, placed on the picture.
+      ta = el("div", "boxarea"); ta.id = "a" + i;
+      var prev = String(S.answers[i] || "").split("|").map(function (p) { return p.trim(); });
+      var holder;
+      if (q.img) {
+        holder = el("figure", "boxfig qimg");
+        holder.style.margin = "10px 12px";
+        var wrap = el("div", "boxwrap");
+        var pim = el("img"); pim.src = q.img; pim.alt = q.imgCaption || ("Diagram for question " + (i + 1));
+        pim.addEventListener("load", function () { boxInputs(i).forEach(fitBox); });
+        wrap.appendChild(pim);
+        holder.appendChild(wrap);
+        if (q.imgCaption) holder.appendChild(el("figcaption", null, q.imgCaption));
+      } else {
+        holder = el("div", "boxlist"); holder.style.padding = "0 12px 10px";
+      }
+      q.boxes.forEach(function (b, k) {
+        var inp = el("input", "pbox"); inp.type = "text"; inp.maxLength = 80;
+        inp.setAttribute("data-q", i); inp.setAttribute("aria-label", b.label);
+        inp.value = prev[k] || ""; inp.disabled = S.locked; inp.autocomplete = "off";
+        if (q.img) {
+          inp.style.left = b.x + "%"; inp.style.top = b.y + "%"; inp.style.width = b.w + "%"; inp.style.height = b.h + "%";
+          inp.placeholder = "type here";
+          wrap.appendChild(inp);
+        } else {
+          var lab = el("label", null, b.label); lab.appendChild(inp); holder.appendChild(lab);
+        }
+      });
+      ta.appendChild(holder);
+    } else {
+      ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…";
+      ta.disabled = S.locked;
+    }
+    var fb = el("div", "fb"); fb.id = "f" + i;
+    var row = el("div", "row");
+    var meta = el("span", "meta"); meta.id = "m" + i;
+    var btn = el("button", "secondary", "Check"); btn.id = "b" + i; btn.disabled = S.locked;
+    row.appendChild(meta); row.appendChild(btn);
+    item.appendChild(qt); item.appendChild(ta); item.appendChild(fb); item.appendChild(row);
+    box.appendChild(item);
+
+    saved[i] = (S.checkedAnswers ? S.checkedAnswers[i] : S.answers[i]) || "";
+    draftSaved[i] = S.answers[i] || "";
+    if (S.unchecked && S.unchecked[i]) setMeta(i, "Saved as a draft: press Check for feedback", "#b45f06");
+    paint(i, S.results[i]);
+    btn.addEventListener("click", function () { check(i, true); });
+    var fields = isBoxQ(i) ? boxInputs(i) : [ta];
+    fields.forEach(function (f) {
+      blockPaste(f, i);
+      f.addEventListener("blur", function () {
+        // Picture boxes: check once the student leaves the whole diagram (Tab between boxes doesn't check yet).
+        setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+      });
+      if (isBoxQ(i)) f.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); check(i, true); } });
+      if (isBoxQ(i)) { setTimeout(function () { fitBox(f); }, 0); window.addEventListener("resize", function () { fitBox(f); }); }
+      f.addEventListener("input", function () {
+        if (isBoxQ(i)) { f.className = "pbox"; fitBox(f); }   // clear this box's color while it's being changed
+        setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+        clearTimeout(draftTimer[i]);
+        draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+      });
+    });
+  });
+
+  var fin = document.getElementById("finishBtn");
+  fin.addEventListener("click", finish);
+  updateFinish();
+  updateProgress();
+}
+
+function setMeta(i, text, color) {
+  var m = document.getElementById("m" + i);
+  m.textContent = text; m.style.color = color || "#666";
+}
+
+function autosave(i) {
+  var val = answerOf(i);
+  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
+  if (!api.saveDraft) return;
+  api.saveDraft(i, val, function (resp) {
+    if (resp && resp.saved) {
+      draftSaved[i] = val;
+      if (answerOf(i) === val && val !== saved[i]) {
+        setMeta(i, "Draft saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Press Check for feedback", "#b45f06");
+      }
+    } else if (!(resp && resp.locked)) {
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);   // server busy: try again shortly
+    }
+  }, function (err) {
+    if (isSignInError(err)) { signedOutMidway(); return; }
+    // Quietly try again later; Check still saves right away.
+    clearTimeout(draftTimer[i]);
+    draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+  });
+}
+
+function paint(i, res) {
+  var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
+  if (isBoxQ(i)) {
+    ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
+    boxInputs(i).forEach(function (b, k) {
+      var m = res && res.parts ? res.parts[k] : "";
+      b.className = "pbox" + (m && m !== "blank" ? " " + m : "");
+    });
+  } else {
+    ta.className = res && res.status !== "blank" ? res.status : "";
+  }
+  fb.textContent = res ? res.message : "";
+  S.results[i] = res;
+}
+
+/** Busy server or a blip: try again quietly a few times before telling the student. */
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) {
+  var m = String((err && err.message) || err || "");
+  return !/sign ?in|locked|turned this in|Unknown question|doesn't have any questions/i.test(m);
+}
+function withRetry(call, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  call(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      var wait = RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500);   // spread students out
+      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, wait);
+    } else fail(err);
+  });
+}
+
+/** Running grade from the colors on the page (same formula as the server). */
+function localGrade() {
+  if (!S.credit) return S.grade;
+  var earned = 0, n = S.questions.length;
+  S.results.forEach(function (r) { earned += S.credit[(r && r.status) || "blank"] || 0; });
+  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
+  return Math.round(pts / S.roundTo) * S.roundTo;
+}
+function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+
+/**
+ * Check = two steps.
+ *  1. FAST: ask the server to grade only (no waiting in line) and show the color + hint.
+ *  2. BACKGROUND: save to the spreadsheet, retrying quietly if the server is busy.
+ */
+function check(i, force) {
+  var val = answerOf(i);
+  if (S.locked || pending[i]) return;
+  if (!force && val === saved[i]) return;
+  pending[i] = true;
+  clearTimeout(draftTimer[i]);
+  var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
+  meta.style.color = "#666"; meta.textContent = "Checking…"; btn.disabled = true;
+  var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
+                            : function (ok, fail) { api.check(i, val, ok, fail); };
+  RETRY_FAST(gradeCall, function (resp) {
+    pending[i] = false; btn.disabled = false;
+    saved[i] = val;
+    paint(i, resp.result);
+    S.grade = localGrade();
+    updateProgress();
+    if (answerOf(i) !== val) { setMeta(i, "Not checked yet", "#b45f06"); }
+    else setMeta(i, "Checked, saving…", "#666");
+    queueSave(i, val);
+  }, function (err) {
+    pending[i] = false; btn.disabled = false;
+    setMeta(i, "Couldn't check yet, but your answer is still here. Wait a minute, then press Check again.", "#cc0000");
+    if (isSignInError(err)) signedOutMidway();
+    else if (err && err.message && /sign in|locked/i.test(err.message)) showError(err);
+  }, function () { setMeta(i, "Checking… (lots of students checking, hang on)", "#666"); });
+}
+/** Grading retries quickly (it doesn't wait in line, so a retry usually works at once). */
+function RETRY_FAST(call, ok, fail, onRetry, attempt) {
+  attempt = attempt || 0;
+  var delays = [600, 1500, 3000, 6000];
+  call(ok, function (err) {
+    if (attempt < delays.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { RETRY_FAST(call, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
+    } else fail(err);
+  });
+}
+
+/** Saves the newest checked answer for a question, one save at a time, in order. */
+function queueSave(i, val) {
+  saveWant[i] = val;
+  if (saving[i]) return;               // the running save will pick up the newest text when it finishes
+  saving[i] = true;
+  var v = saveWant[i];
+  withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
+    saving[i] = false;
+    draftSaved[i] = v;
+    if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
+    if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
+    updateProgress();
+    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
+    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    saving[i] = false;
+    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
+    if (isSignInError(err)) signedOutMidway();
+    else if (err && err.message && /sign in|locked/i.test(err.message)) showError(err);
+  }, 0, function () {
+    if (answerOf(i) === v) setMeta(i, "Checked, saving… (lots of students saving, hang on)", "#666");
+  });
+}
+function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
+
+function updateProgress() {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
+  S.results.forEach(function (r) { c[(r && r.status) || "blank"]++; });
+  var n = S.questions.length;
+  document.getElementById("nG").textContent = c.correct;
+  document.getElementById("nY").textContent = c.partial;
+  document.getElementById("nR").textContent = c.incorrect;
+  document.getElementById("nB").textContent = c.blank;
+  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
+  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
+  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
+  document.getElementById("grade").textContent = S.showGrade ? ("Grade: " + S.grade + " / " + S.maxPoints) : "";
+}
+
+function updateFinish() {
+  var meta = document.getElementById("finishMeta"), fin = document.getElementById("finishBtn");
+  if (S.turnedIn) {
+    meta.textContent = "Turned in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) +
+      (S.locked ? ". Your answers are locked." : ". You can still improve answers: your teacher sees your latest work.") +
+      " Don't forget to click Mark as done in Google Classroom.";
+    fin.textContent = S.locked ? "Turned in" : "Turn in again";
+    fin.disabled = S.locked;
+  } else {
+    meta.textContent = "Click when you've answered everything. Then click Mark as done in Google Classroom.";
+  }
+}
+
+function finish() {
+  var blanks = S.results.filter(function (r) { return !r || r.status === "blank"; }).length;
+  var unchecked = S.questions.filter(function (_, i) { return answerOf(i) !== saved[i]; }).length;
+  var warn = (unchecked ? unchecked + " answer(s) haven't been checked yet. Press Check on them first.\n\n" : "") +
+             (blanks ? "You still have " + blanks + " blank question(s).\n\n" : "") + "Turn in now?";
+  if (!confirm(warn)) return;
+  var fin = document.getElementById("finishBtn"); fin.disabled = true;
+  var waited = 0;
+  (function whenSaved() {
+    if (savesRunning() && waited < 90000) { waited += 500; fin.textContent = "Saving your answers…"; return setTimeout(whenSaved, 500); }
+    fin.textContent = "I'm finished";
+    doTurnIn(fin);
+  })();
+}
+function doTurnIn(fin) {
+  withRetry(function (ok, fail) { api.turnIn(ok, fail); }, function (resp) {
+    S.turnedIn = resp.turnedIn; S.grade = resp.grade;
+    if (resp.locked) {
+      S.locked = true;
+      document.querySelectorAll("textarea, input.pbox, .row button").forEach(function (x) { x.disabled = true; });
+    }
+    fin.disabled = S.locked;
+    updateFinish(); updateProgress();
+  }, function (err) { fin.disabled = false; if (isSignInError(err)) signedOutMidway(); else showError(err); });
+}
+
+window.addEventListener("beforeunload", function (e) {
+  if (!S) return;
+  // Only warn if something typed hasn't reached the server yet (autosave covers the rest).
+  var dirty = savesRunning() || S.questions.some(function (_, i) { return answerOf(i) !== draftSaved[i]; });
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+if (window.SELF_CHECK_BACKUP && !/^AKfycb[\w-]{20,}$/.test(BACKUP_APP)) {
+  showError(new Error("This backup link is missing part of its address. Open it again from Google Classroom."));
+} else withRetry(function (ok, fail) { api.getState(ok, fail); }, start, showError, 0,
+  function () { document.getElementById("loading").textContent = "Loading… (lots of students opening this, hang on)"; });
+</script>
+</body>
+</html>
