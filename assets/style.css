@@ -522,3 +522,15 @@ mark.find-hit.current{ background:#ffd23f; box-shadow:0 0 0 2px #ffd23f; }
 .find-next:hover{ background:var(--accent-dark); }
 .find-close{ background:var(--paper-soft); color:var(--ink); }
 @media print{ .find-bar{ display:none; } }
+
+/* ---------------- NGSS standard chips under a chapter title ---------------- */
+.standards{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 0; }
+.standards .std{
+  display:inline-block; font-size:.74rem; font-weight:700; letter-spacing:.02em; line-height:1.2;
+  color:var(--ink-soft); background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 12px;
+}
+.standards .std:hover, .standards .std:focus-visible{ border-color:var(--accent); color:var(--accent-dark); background:var(--accent-tint); text-decoration:none; }
+
+/* home page unit cards: chapter titles as a list */
+.unit-card ul.meta{ margin:0; padding-left:1.15em; list-style:disc; display:grid; gap:3px; line-height:1.4; }
+.unit-card ul.meta li::marker{ color:var(--card-accent,var(--accent)); }
