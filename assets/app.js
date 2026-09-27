@@ -369,6 +369,25 @@
     spy();
   }
 
+  // Vocabulary words are shown with each word capitalized ("Frame of Reference"), small
+  // words like "of" kept lowercase and acronyms like AM left alone, as in the glossary.
+  var MINOR_WORDS = {a:1, an:1, the:1, and:1, but:1, or:1, nor:1, "for":1, of:1, "in":1, on:1, at:1, to:1, by:1, "vs.":1, vs:1, per:1, via:1};
+  function titleCase(s){
+    var first = true;
+    return s.replace(/\S+/g, function(word){
+      var out = word.split(/([-\/])/).map(function(part, i){
+        var m = part.match(/^([^A-Za-z]*)([A-Za-z][\s\S]*)?$/);
+        if(!m || !m[2]) return part;
+        var core = m[2];
+        if(/^[A-Z0-9]{2,}/.test(core)) return part;
+        if(!(first && i === 0) && MINOR_WORDS[core.toLowerCase()]) return m[1] + core.toLowerCase();
+        return m[1] + core.charAt(0).toUpperCase() + core.slice(1);
+      }).join("");
+      first = false;
+      return out;
+    });
+  }
+
   /* ---------- in-text glossary terms: click to pop out a definition ---------- */
   function initGlossaryTerms(){
     var terms = document.querySelectorAll(".gloss-term");
@@ -405,7 +424,7 @@
       closeBtn.addEventListener("click", function(e){ e.stopPropagation(); closePopout(); });
       var termDiv = document.createElement("div");
       termDiv.className = "pt-term";
-      termDiv.textContent = el.textContent;
+      termDiv.textContent = titleCase(el.textContent.replace(/\s+/g, " ").trim());
       var defDiv = document.createElement("p");
       defDiv.className = "pt-def";
       // innerHTML (not textContent): definitions may contain a real <sub> tag
@@ -415,7 +434,7 @@
       pop.appendChild(termDiv);
       pop.appendChild(defDiv);
 
-      if(isDesktop()){
+      if(isDesktop() && el.closest(".chapter-body")){
         var sticky = rail.querySelector(".rail-sticky");
         if(sticky){
           // ride above the section nav inside the sticky block, so the definition
@@ -428,6 +447,18 @@
           var top = Math.max(0, (elRect.top - railRect.top) + rail.scrollTop);
           pop.style.top = top + "px";
         }
+      } else if(window.matchMedia("(min-width: 981px)").matches){
+        // below the reading (Design the Experiment, CAST...) the rail has scrolled out of
+        // sight, so the definition opens right under the word instead
+        pop.classList.add("floating");
+        document.body.appendChild(pop);
+        var r = el.getBoundingClientRect();
+        var w = Math.min(380, window.innerWidth - 24);
+        pop.style.width = w + "px";
+        pop.style.left = Math.max(12, Math.min(r.left, window.innerWidth - w - 12)) + window.scrollX + "px";
+        var below = r.bottom + 8, h = pop.offsetHeight;
+        var top = (below + h > window.innerHeight - 8 && r.top - h - 8 > 0) ? r.top - h - 8 : below;
+        pop.style.top = top + window.scrollY + "px";
       } else {
         pop.classList.add("mobile");
         document.body.appendChild(pop);
@@ -510,8 +541,7 @@
         var href = a.getAttribute("href");
         if(/^\.\/u\d+(-t\d+)?\.html$/.test(href) && !seen[href]){ seen[href] = true; list.push(href); }
       });
-      list.push("./glossary.html");
-      return list;
+      return list; // unit and chapter pages only; the glossary has its own search box
     }
 
     var SEP = "\u2029"; // marks where one block (paragraph, list item, card) ends and the next begins
