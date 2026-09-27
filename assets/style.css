@@ -534,3 +534,10 @@ mark.find-hit.current{ background:#ffd23f; box-shadow:0 0 0 2px #ffd23f; }
 /* home page unit cards: chapter titles as a list */
 .unit-card ul.meta{ margin:0; padding-left:1.15em; list-style:disc; display:grid; gap:3px; line-height:1.4; }
 .unit-card ul.meta li::marker{ color:var(--card-accent,var(--accent)); }
+
+/* unit pages: each chapter's standards under its question */
+.topic-list .tstd{ display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+.topic-list .tstd span{
+  font-size:.68rem; font-weight:700; letter-spacing:.02em; line-height:1.2; color:var(--ink-soft);
+  background:#fff; border:1px solid var(--line); border-radius:6px; padding:3px 8px;
+}
