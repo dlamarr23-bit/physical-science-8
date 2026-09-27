@@ -62,9 +62,18 @@
   </div>
 </div>
 <main class="container">
+  <nav class="jump-bar" aria-label="Jump to a section of this chapter">
+    <span class="jump-label">Jump to</span>
+    <a href="#real-world">Real-World Connections</a>
+    <a href="#scientist">Meet the Scientist</a>
+    <a href="#vocabulary">Vocabulary</a>
+    <a href="#explore">Explore More</a>
+    <a href="#review">Chapter Review</a>
+    <a href="#cast">CAST Practice</a>
+  </nav>
   <div class="callout">
     <div class="label">Big Question</div>
-    <p>Could you have predicted exactly how the crash would unfold just by looking at a graph of the car&#x27;s motion before impact?</p>
+    <p>What could a distance vs. time graph of the truck speeding toward the pole tell you about how fast it was going and when it stopped?</p>
   </div>
 
   <figure class="chapter-figure">
@@ -118,17 +127,17 @@
       <figcaption>The steeper the line, the greater the slope. And slope on a distance/time graph is speed.</figcaption>
     </div>
 
-  <h2>Real-World Connections</h2>
+  <h2 id="real-world">Real-World Connections</h2>
   <div class="examples-grid"><div class="example-card"><h4>GPS Watches on the Track</h4><p>Runners and cyclists wear GPS watches that record their position every second. Coaches download that data and plot it as a distance vs. time graph to see exactly where an athlete sped up, slowed down, or held a steady pace.</p></div><div class="example-card"><h4>Automated Highway Speed Cameras</h4><p>Some highways use two cameras a known distance apart; if a car passes both faster than the time limit allows, the system calculates its average speed automatically: the same distance-over-time math as reading a graph's slope.</p></div></div>
   <div class="connection-note"><span class="tag">How they tie together</span><span>Both tools turn a moving object's position over time into one number (speed) using the exact same relationship: speed equals distance divided by time.</span></div>
 
-  <h2>Meet the Scientist</h2>
+  <h2 id="scientist">Meet the Scientist</h2>
   <div class="scientist-card">
     <div class="savatar">SP</div>
     <div><h4>Sports Performance Analysts</h4><p>Sports scientists use graphs just like the ones in this chapter to help elite athletes improve. By studying a distance vs. time graph from a 400-meter race, an analyst can pinpoint the exact stretch of track where a sprinter lost speed and design a specific drill to fix it: turning a line on a graph into a training plan.</p></div>
   </div>
 
-  <h2>Key Vocabulary</h2>
+  <h2 id="vocabulary">Key Vocabulary</h2>
   <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too. Tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
   <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
         <div class="vface front">Speed<span class="hint">tap to flip</span></div>
@@ -162,7 +171,7 @@
         <div class="vface back">A scientific estimate about what will happen, based on patterns in data.</div>
       </div></div></div>
 
-  <h2>Explore More</h2>
+  <h2 id="explore">Explore More</h2>
   <div class="resource-grid">
     <div class="rcard">
       <div class="rtag">Read</div>
@@ -222,7 +231,7 @@
       </div></div>
   </div>
 
-  <h2>Chapter Review</h2>
+  <h2 id="review">Chapter Review</h2>
   <div class="quiz" data-chapter="u1-t2" data-source="quizdata-u1-t2">
     
       <div class="quiz-q" data-index="0">
@@ -268,11 +277,11 @@
   </div>
   <script type="application/json" id="quizdata-u1-t2">[{"question": "How is speed calculated?", "choices": ["Time divided by distance", "Distance divided by time", "Distance multiplied by time", "Distance minus time"], "answerIndex": 1, "explanation": "Speed is a measure of distance traveled divided by the time it took."}, {"question": "On a distance vs. time graph, what does a steeper line represent?", "choices": ["A slower speed", "A faster speed", "No motion at all", "A shorter distance"], "answerIndex": 1, "explanation": "A steeper slope on a distance vs. time graph means more distance is covered per unit of time, which means a faster speed."}, {"question": "What would a distance vs. time graph look like right after the truck crashes into the pole and stops?", "choices": ["The line would suddenly become flat", "The line would keep rising at the same steep angle", "The line would go straight down", "The graph would disappear"], "answerIndex": 0, "explanation": "Once the truck stops moving, its distance from the starting point no longer increases, so the line becomes horizontal (flat)."}, {"question": "A car travels 100 meters in 5 seconds at a constant speed. What is its speed?", "choices": ["5 meters per second", "20 meters per second", "100 meters per second", "500 meters per second"], "answerIndex": 1, "explanation": "Dividing 100 meters by 5 seconds gives a speed of 20 meters per second."}, {"question": "Why might engineers use tools like motion sensors and graphing software to study a crash?", "choices": ["To make the crash look more dramatic", "To collect real data and use graphs to predict motion and impact", "Because graphs are required by law", "To replace the need for seatbelts"], "answerIndex": 1, "explanation": "Motion data and graphs let engineers analyze speed and predict how a collision will unfold, which helps them design safer vehicles."}]</script>
 
-  <h2>Design the Experiment</h2>
+  <h2 id="experiment">Design the Experiment</h2>
   <div class="lab-item" data-source="labdata-u1-t2"></div>
   <script type="application/json" id="labdata-u1-t2">{"scenario": "A toy car rolls down a ramp and then across the floor. Your group wants to know whether releasing the car from a higher point on the ramp actually makes it move faster across the floor, or whether it just looks that way. You have a ramp marked at 20 cm, 40 cm, 60 cm, and 80 cm up from the bottom, a stopwatch, and two pieces of tape on the floor exactly 1.0 m apart, starting where the ramp meets the floor. The plan is to release the car (no pushing) from each marked height and time how long it takes to travel between the two tape marks, then calculate speed as distance divided by time.", "parts": [{"tag": "What are you solving?", "prompt": "Which question does this setup actually test?", "choices": ["Does the car's paint color affect how fast it rolls?", "Does releasing the car from a higher point on the ramp increase its speed across the floor?", "How steep does a ramp have to be before a car tips over?", "Is the stopwatch accurate to the nearest hundredth of a second?"], "answerIndex": 1, "explanation": "The question has to connect the one factor you change to the one you measure. You change the release height and you calculate the resulting speed, so the question must join those two. Paint color is never varied, tipping is never measured, and checking the stopwatch would be a completely different investigation."}, {"tag": "Manipulated variable", "prompt": "What is the independent (manipulated) variable?", "choices": ["The height on the ramp where the car is released", "The speed of the car between the tape marks", "The 1.0 m distance between the tape marks", "The mass of the toy car"], "answerIndex": 0, "explanation": "The independent variable is what you deliberately change from trial to trial, and the release height is the only thing moving through 20, 40, 60, and 80 cm. The speed is the result, and the 1.0 m spacing and the car's mass are both kept the same on purpose, making them constants."}, {"tag": "Responding variable", "prompt": "The group records time and then calculates speed. Which is the dependent (responding) variable?", "choices": ["The release height, because it is written in the first column of the data table", "The number of trials at each height", "The speed calculated from the measured time across the 1.0 m", "The length of the ramp"], "answerIndex": 2, "explanation": "The dependent variable is the measurement that responds to the change you made. Time is what the stopwatch captures and speed is what you calculate from it, and either way it is the car's motion responding to the release height. Being in the first column of a table does not make the height dependent; it is still the factor you chose and controlled."}, {"tag": "Constants and control", "prompt": "Partway through, a student starts giving the car a small push at the top for the higher releases. What does that do to the experiment?", "choices": ["Nothing, since the push is small and the car still rolls down the ramp", "It makes the results better, because the pushed trials produce nice clean data", "It adds a second variable, so a faster speed could come from the greater height or from the push, and the data can no longer tell you which", "It only matters if the student pushes with the left hand instead of the right"], "answerIndex": 2, "explanation": "Releasing without a push is one of the constants, and the moment it changes, two factors are moving at once. A faster run now has two possible causes and no way to separate them, which is exactly the problem a controlled experiment exists to prevent. Every car must start from rest so the release height is the only thing that differs between trials."}]}</script>
 
-  <h2>California Science Test (CAST) Practice</h2>
+  <h2 id="cast">California Science Test (CAST) Practice</h2>
   <div class="cast-item" data-source="castdata-u1-t2">
     <span class="cast-badge">CAST-Style Practice Item</span>
     <p class="cast-stimulus">Investigators reviewed the event data recorder from the truck involved in the crash. The table below shows the truck's total distance traveled, measured from a fixed starting point, during the four seconds leading up to the moment of impact.</p>

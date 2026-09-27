@@ -62,9 +62,18 @@
   </div>
 </div>
 <main class="container">
+  <nav class="jump-bar" aria-label="Jump to a section of this chapter">
+    <span class="jump-label">Jump to</span>
+    <a href="#real-world">Real-World Connections</a>
+    <a href="#scientist">Meet the Scientist</a>
+    <a href="#vocabulary">Vocabulary</a>
+    <a href="#explore">Explore More</a>
+    <a href="#review">Chapter Review</a>
+    <a href="#cast">CAST Practice</a>
+  </nav>
   <div class="callout">
     <div class="label">Big Question</div>
-    <p>A vinyl record and a streamed song can play the exact same music, so why does the digital version survive scratches, copies, and distance so much better than the analog one?</p>
+    <p>A vinyl record and a streamed song can play the same music, so why does the digital version survive scratches, copies, and distance so much better than the analog one?</p>
   </div>
 
   <figure class="chapter-figure">
@@ -122,17 +131,17 @@
 
   
 
-  <h2>Real-World Connections</h2>
+  <h2 id="real-world">Real-World Connections</h2>
   <div class="examples-grid"><div class="example-card"><h4>Streaming Video Through Fiber Optic Cables</h4><p>When you stream a video, the information travels as pulses of light through hair-thin glass fiber optic cables, sometimes for thousands of miles, as a digital signal that stays clear the entire way.</p></div><div class="example-card"><h4>Vinyl Records vs. Streaming Music</h4><p>A vinyl record stores sound as a continuously changing analog groove that can wear down and get scratchy over time, while a digital music file stores the same song as precise numbers that sound identical no matter how many times it's copied.</p></div></div>
   <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples highlight this chapter's key advantage of digital signals: they resist the noise, wear, and errors that naturally creep into analog signals over distance or time.</span></div>
 
-  <h2>Meet the Scientist</h2>
+  <h2 id="scientist">Meet the Scientist</h2>
   <div class="scientist-card">
     <div class="savatar">TE</div>
     <div><h4>Telecommunications Engineers</h4><p>Telecommunications engineers design the fiber-optic and wireless networks that carry digital information around the world. They constantly work to squeeze more data through cables and radio waves while keeping the signal as error-free as possible for billions of users.</p></div>
   </div>
 
-  <h2>Key Vocabulary</h2>
+  <h2 id="vocabulary">Key Vocabulary</h2>
   <p style="color:var(--ink-soft);margin-top:-8px;">Bold, underlined words in the reading above are clickable too. Tap one to see its definition pop out. Or click or tap a card below to reveal the definition.</p>
   <div class="vocab-grid"><div class="vcard"><div class="vcard-inner">
         <div class="vface front">Analog signal<span class="hint">tap to flip</span></div>
@@ -169,7 +178,7 @@
         <div class="vface back">Encoding a signal by varying the frequency of a carrier wave.</div>
       </div></div></div>
 
-  <h2>Explore More</h2>
+  <h2 id="explore">Explore More</h2>
   <div class="resource-grid">
     <div class="rcard">
       <div class="rtag">Read</div>
@@ -201,7 +210,7 @@
       </div></div>
   </div>
 
-  <h2>Chapter Review</h2>
+  <h2 id="review">Chapter Review</h2>
   <div class="quiz" data-chapter="u4-t3" data-source="quizdata-u4-t3">
     
       <div class="quiz-q" data-index="0">
@@ -247,11 +256,11 @@
   </div>
   <script type="application/json" id="quizdata-u4-t3">[{"question": "What is the key difference between an analog signal and a digital signal?", "choices": ["Analog signals travel faster than digital signals", "Analog signals are a smooth, continuous wave, while digital signals are made of discrete values like 1s and 0s", "Digital signals can only carry pictures, not sound", "Analog signals cannot carry any information at all"], "answerIndex": 1, "explanation": "Analog signals continuously vary to match the original wave, while digital signals encode information as discrete numerical values."}, {"question": "Why does a streamed digital song usually sound just as clear after traveling across the world as it did at the source?", "choices": ["Digital signals never encounter any noise", "Small errors from noise are easy to detect and correct since each bit is just a 1 or a 0", "Digital signals travel through a vacuum only", "Digital music does not actually travel through any wave"], "answerIndex": 1, "explanation": "Because digital data only requires distinguishing between two values, minor noise can usually be identified and corrected, unlike with continuous analog signals."}, {"question": "What allows light to travel for miles down a fiber optic cable without escaping the glass?", "choices": ["Total internal reflection off the inner walls of the cable", "The light converts into sound partway through", "The cable is filled with air to slow the light down", "Radio waves push the light forward"], "answerIndex": 0, "explanation": "Light bounces repeatedly off the inner walls of the fiber optic cable through total internal reflection, keeping the signal traveling forward."}, {"question": "When you speak into a cell phone, what is the correct order of wave conversions that happens?", "choices": ["Radio wave to mechanical wave to electrical signal", "Mechanical sound wave to digital electrical signal to electromagnetic radio wave", "Light wave to mechanical wave directly", "The sound wave never changes form at all"], "answerIndex": 1, "explanation": "A phone converts the mechanical sound wave of your voice into a digital electrical signal, then into an electromagnetic radio wave for transmission."}, {"question": "Why do old vinyl records develop crackles and pops that a digital music file does not?", "choices": ["Vinyl records use radio waves instead of sound", "Scratches and wear directly distort the continuous analog groove, and there's no way to separate that noise from the real signal", "Digital files are physically larger than vinyl grooves", "Vinyl records do not actually store any sound information"], "answerIndex": 1, "explanation": "Because an analog signal is one continuous wave, physical damage or noise blends directly into the signal with no easy way to correct it."}]</script>
 
-  <h2>Design the Experiment</h2>
+  <h2 id="experiment">Design the Experiment</h2>
   <div class="lab-item" data-source="labdata-u4-t3"></div>
   <script type="application/json" id="labdata-u4-t3">{"scenario": "A student claims a phone loses signal inside the school because of the thick walls. Your group decides to test which materials actually block a radio signal. You put a small Bluetooth speaker playing a steady tone inside a cardboard box, then connect a phone to it and walk away until the audio cuts out, recording that distance with a tape measure. You repeat the whole procedure with the speaker wrapped in one layer of each material: paper, plastic wrap, aluminum foil, and cotton cloth. The speaker volume, the phone, the hallway, and the walking path stay the same every time.", "parts": [{"tag": "What are you solving?", "prompt": "Which question does this setup actually test?", "choices": ["Which wrapping material most reduces the distance at which a Bluetooth signal still works?", "Which material is the cheapest to buy in bulk?", "How loud can the speaker play before it distorts?", "Does the phone's battery drain faster in a hallway?"], "answerIndex": 0, "explanation": "The question has to link the factor you change to the factor you measure. You change the wrapping material and you measure the distance at which the audio drops out, which stands in for how much the material blocks the signal. Cost, volume limits, and battery drain are never measured here."}, {"tag": "Manipulated variable", "prompt": "What is the independent (manipulated) variable?", "choices": ["The distance at which the audio cuts out", "The material wrapped around the speaker", "The volume setting on the speaker", "The hallway the test is run in"], "answerIndex": 1, "explanation": "The independent variable is the one factor you deliberately change, and only the wrapping material changes between runs. The cutout distance is the response. The volume, the phone, and the hallway are all held the same on purpose, which makes them constants."}, {"tag": "Responding variable", "prompt": "What is the dependent (responding) variable?", "choices": ["The number of materials tested", "The thickness of the cardboard box", "The distance from the speaker at which the audio cuts out", "The frequency of the tone being played"], "answerIndex": 2, "explanation": "The dependent variable is the measurement that responds to your change. You do not choose the cutout distance; the signal decides it, and a material that blocks more should shorten it. The tone frequency and box are held constant so the material is the only thing that differs."}, {"tag": "Constants and control", "prompt": "Why does the group test the speaker in the plain cardboard box before wrapping it in anything, and what does the aluminum foil result tell you?", "choices": ["The plain box is just practice; the foil result shows that metal is heavier than paper", "The plain box is the control, the baseline distance with no wrapping material added, and a much shorter distance with foil shows that metal blocks radio waves far more than the other materials do", "The plain box is the independent variable; the foil result shows the phone is broken", "There is no control, and the foil result tells you nothing without a second phone"], "answerIndex": 1, "explanation": "The unwrapped run is the control: the trial where the independent variable is left alone, giving the baseline distance every wrapped trial gets compared against. Without it you would have four numbers and nothing to judge them by. Foil dramatically shortening the range while paper and cloth barely change it is real evidence that the metal, not the wrapping itself, is what blocks the waves."}]}</script>
 
-  <h2>California Science Test (CAST) Practice</h2>
+  <h2 id="cast">California Science Test (CAST) Practice</h2>
   <div class="cast-item" data-source="castdata-u4-t3">
     <span class="cast-badge">CAST-Style Practice Item</span>
     <p class="cast-stimulus">A telecommunications company tested how clearly an analog radio signal and a digital radio signal could be received at increasing distances from the same transmitter. The results, measured as a percentage signal clarity, are shown in the table below.</p>

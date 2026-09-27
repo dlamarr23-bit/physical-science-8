@@ -469,8 +469,220 @@
     });
   }
 
+  /* ---------- back-to-top button, shown once the reader is well down the page ---------- */
+  function initToTop(){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "to-top";
+    btn.setAttribute("aria-label", "Back to top of page");
+    btn.innerHTML = '<span aria-hidden="true">&uarr;</span> Top';
+    btn.addEventListener("click", function(){
+      window.scrollTo({top: 0, behavior: "smooth"});
+      // keyboard users land at the page title instead of on a button that hides itself
+      var h1 = document.querySelector("h1");
+      if(h1){ h1.setAttribute("tabindex", "-1"); h1.focus({preventScroll: true}); }
+    });
+    document.body.appendChild(btn);
+    var ticking = false;
+    function update(){ ticking = false; btn.classList.toggle("show", window.scrollY > 600); }
+    window.addEventListener("scroll", function(){
+      if(!ticking){ ticking = true; window.requestAnimationFrame(update); }
+    }, {passive: true});
+    update();
+  }
+
+  /* ---------- home page search: every page that uses a word ---------- */
+  // The pages are fetched and read the first time someone searches, so the results
+  // always match what is on the site now; there is no index file to keep up to date.
+  function initSiteSearch(){
+    var form = document.getElementById("siteSearch");
+    if(!form) return;
+    var input = document.getElementById("siteSearchInput");
+    var out = document.getElementById("siteSearchResults");
+    var pages = null, loading = null, timer = null;
+    var INLINE = {A:1, B:1, STRONG:1, EM:1, I:1, SUP:1, SUB:1, MARK:1, SMALL:1, CODE:1, ABBR:1};
+
+    function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]; }); }
+
+    function pageList(){
+      var seen = {}, list = [];
+      document.querySelectorAll("#drawer a[href]").forEach(function(a){
+        var href = a.getAttribute("href");
+        if(/^\.\/u\d+(-t\d+)?\.html$/.test(href) && !seen[href]){ seen[href] = true; list.push(href); }
+      });
+      list.push("./glossary.html");
+      return list;
+    }
+
+    var SEP = "\u2029"; // marks where one block (paragraph, list item, card) ends and the next begins
+
+    // Reads a page's banner and main content into plain text, one section per h2.
+    // The title and the "Unit 1, Chapter 3" label are kept apart so they don't count
+    // as mentions on every page that shares a unit name.
+    function readPage(href, order, html){
+      var doc = new DOMParser().parseFromString(html, "text/html");
+      doc.querySelectorAll("script, style, template, .jump-bar, .chapter-nav, .zoom-hint, .hint").forEach(function(el){ el.remove(); });
+      var h1 = doc.querySelector("h1"), eyebrow = doc.querySelector(".eyebrow");
+      var sections = [], cur = {head: "", text: ""};
+      [doc.querySelector(".hero"), doc.querySelector("main")].forEach(function(root){
+        if(!root) return;
+        var walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+        var node;
+        while((node = walker.nextNode())){
+          if(node.nodeType === 1){
+            if(node.tagName === "H2"){
+              sections.push(cur);
+              cur = {head: node.textContent.replace(/\s+/g, " ").trim(), text: ""};
+            }
+            // a span is part of the sentence unless it is laid out as its own line or label
+            var inline = INLINE[node.tagName] || (node.tagName === "SPAN" && (!node.className || node.className === "gloss-term"));
+            if(!inline) cur.text += SEP;
+          } else if(!node.parentNode.closest("h1, .eyebrow")){
+            cur.text += node.nodeValue;
+          }
+        }
+      });
+      sections.push(cur);
+      sections.forEach(function(s){
+        s.text = s.text.replace(/\s+/g, function(ws){ return ws.indexOf(SEP) === -1 ? " " : SEP; })
+          .replace(/^\s+|\s+$/g, "");
+        s.lower = s.text.toLowerCase();
+        s.show = s.text.replace(/\u2029/g, " ");
+      });
+      return {
+        href: href, order: order, sections: sections.filter(function(s){ return s.text; }),
+        title: h1 ? h1.textContent.replace(/\s+/g, " ").trim() : href,
+        where: eyebrow ? eyebrow.textContent.replace(/\s+/g, " ").trim() : ""
+      };
+    }
+
+    function load(){
+      if(!loading){
+        var list = pageList();
+        loading = Promise.all(list.map(function(href, i){
+          return fetch(href).then(function(r){ return r.ok ? r.text() : ""; })
+            .then(function(html){ return html ? readPage(href, i, html) : null; })
+            .catch(function(){ return null; });
+        })).then(function(all){ pages = all.filter(Boolean); return pages; });
+      }
+      return loading;
+    }
+
+    function snippet(s, i, len){
+      var t = s.show, start = Math.max(0, i - 70), end = Math.min(t.length, i + len + 90);
+      if(start > 0){ var a = t.lastIndexOf(" ", start); start = a === -1 ? 0 : a + 1; }
+      if(end < t.length){ var b = t.indexOf(" ", end); end = b === -1 ? t.length : b; }
+      return (start > 0 ? "&hellip; " : "") + esc(t.slice(start, i)) +
+        "<mark>" + esc(t.slice(i, i + len)) + "</mark>" +
+        esc(t.slice(i + len, end)) + (end < t.length ? " &hellip;" : "");
+    }
+
+    function run(){
+      var q = input.value.replace(/\s+/g, " ").trim();
+      if(q.length < 2){ out.innerHTML = q ? '<p class="sr-summary">Type at least two letters.</p>' : ""; return; }
+      if(!pages){ out.innerHTML = '<p class="sr-summary">Searching every page&hellip;</p>'; }
+      load().then(function(){
+        if(input.value.replace(/\s+/g, " ").trim() !== q) return; // the reader kept typing
+        var needle = q.toLowerCase(), hits = [];
+        pages.forEach(function(p){
+          var count = p.title.toLowerCase().indexOf(needle) === -1 ? 0 : 1, first = null;
+          p.sections.forEach(function(s){
+            for(var i = s.lower.indexOf(needle); i !== -1; i = s.lower.indexOf(needle, i + needle.length)){
+              count++;
+              if(!first) first = {s: s, i: i};
+            }
+          });
+          if(count) hits.push({p: p, count: count, at: first});
+        });
+        hits.sort(function(a, b){ return b.count - a.count || a.p.order - b.p.order; });
+        if(!hits.length){
+          out.innerHTML = '<p class="sr-summary">No pages use &ldquo;' + esc(q) + '&rdquo;. Check the spelling, or try a shorter word.</p>';
+          return;
+        }
+        var html = '<p class="sr-summary">' + hits.length + (hits.length === 1 ? " page uses" : " pages use") +
+          " &ldquo;" + esc(q) + "&rdquo;. Most mentions first.</p><ul class=\"sr-list\">";
+        hits.forEach(function(h){
+          // ?find= makes the page highlight the word and scroll to it (see initFindOnPage)
+          html += '<li><a class="sr-item" href="' + esc(h.p.href + "?find=" + encodeURIComponent(q)) + '">' +
+            (h.p.where ? '<span class="sr-where">' + esc(h.p.where) + "</span>" : "") +
+            '<span class="sr-title">' + esc(h.p.title) + "</span>" +
+            '<span class="sr-count">' + h.count + (h.count === 1 ? " mention" : " mentions") + "</span>" +
+            (h.at ? '<span class="sr-snip">' + snippet(h.at.s, h.at.i, needle.length) + "</span>" : "") + "</a></li>";
+        });
+        out.innerHTML = html + "</ul>";
+      });
+    }
+
+    input.addEventListener("focus", load, {once: true});
+    input.addEventListener("input", function(){ clearTimeout(timer); timer = setTimeout(run, 250); });
+    form.addEventListener("submit", function(e){ e.preventDefault(); clearTimeout(timer); run(); });
+  }
+
+  /* ---------- arriving from a search: highlight the word and scroll to it ---------- */
+  function initFindOnPage(){
+    var q = "";
+    try{ q = (new URLSearchParams(window.location.search).get("find") || "").replace(/\s+/g, " ").trim(); }catch(e){ return; }
+    var main = document.querySelector("main");
+    if(q.length < 2 || !main) return;
+    var needle = q.toLowerCase(), marks = [];
+    var walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        return n.parentNode.closest("script, style, textarea, .jump-bar, .find-bar") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(node){
+      var text = node.nodeValue, lower = text.toLowerCase(), i = lower.indexOf(needle);
+      if(i === -1) return;
+      var frag = document.createDocumentFragment(), last = 0;
+      for(; i !== -1; i = lower.indexOf(needle, i + needle.length)){
+        frag.appendChild(document.createTextNode(text.slice(last, i)));
+        var m = document.createElement("mark");
+        m.className = "find-hit";
+        m.textContent = text.slice(i, i + needle.length);
+        frag.appendChild(m);
+        marks.push(m);
+        last = i + needle.length;
+      }
+      frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+    if(!marks.length) return;
+
+    var bar = document.createElement("div");
+    bar.className = "find-bar";
+    bar.setAttribute("role", "status");
+    bar.innerHTML = '<span class="find-count"></span>' +
+      '<button type="button" class="find-next">Next &darr;</button>' +
+      '<button type="button" class="find-close" aria-label="Clear the highlights">&times;</button>';
+    document.body.appendChild(bar);
+    var countEl = bar.querySelector(".find-count"), at = -1;
+
+    // marks inside a hidden flip-card face or closed panel can't be scrolled to; skip them
+    function shown(m){ return m.getClientRects().length > 0 && m.offsetParent !== null; }
+    function go(step){
+      var tries = marks.length;
+      do { at = (at + step + marks.length) % marks.length; tries--; } while(tries > 0 && !shown(marks[at]));
+      marks.forEach(function(m, k){ m.classList.toggle("current", k === at); });
+      marks[at].scrollIntoView({block: "center", behavior: "smooth"});
+      countEl.innerHTML = (at + 1) + " of " + marks.length + " &ldquo;" + q.replace(/[&<>"]/g, "") + "&rdquo;";
+    }
+    bar.querySelector(".find-next").addEventListener("click", function(){ go(1); });
+    bar.querySelector(".find-close").addEventListener("click", function(){
+      marks.forEach(function(m){ m.replaceWith(document.createTextNode(m.textContent)); });
+      main.normalize();
+      bar.remove();
+      if(window.history.replaceState) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    });
+    // wait a beat so images above the word have their size before we scroll
+    window.setTimeout(function(){ go(1); }, 150);
+  }
+
   document.addEventListener("DOMContentLoaded", function(){
     injectIcons();
+    initToTop();
+    initSiteSearch();
     initDrawer();
     initVocab();
     initRailNav();
@@ -482,5 +694,6 @@
     var bodyChapter = document.body.getAttribute("data-chapter-id");
     if(bodyChapter) markVisited(bodyChapter);
     paintNavChecks();
+    initFindOnPage(); // last, once every section has been rendered
   });
 })();
