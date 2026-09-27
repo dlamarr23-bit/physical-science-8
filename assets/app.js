@@ -152,6 +152,25 @@
       scenario.innerHTML = data.scenario || "";
       el.appendChild(scenario);
 
+      // a picture of the setup, when the lab has one; click to open it full size
+      if(data.image && data.image.src){
+        var fig = document.createElement("figure");
+        fig.className = "lab-figure";
+        var link = document.createElement("a");
+        link.href = data.image.src;
+        link.target = "_blank";
+        link.rel = "noopener";
+        var pic = document.createElement("img");
+        pic.src = data.image.src;
+        pic.alt = data.image.alt || "";
+        if(data.image.width){ pic.width = data.image.width; pic.height = data.image.height; }
+        pic.loading = "lazy";
+        pic.decoding = "async";
+        link.appendChild(pic);
+        fig.appendChild(link);
+        el.appendChild(fig);
+      }
+
       // the shared vocabulary, on every chapter, tappable for a definition
       var kit = document.createElement("div");
       kit.className = "lab-toolkit";

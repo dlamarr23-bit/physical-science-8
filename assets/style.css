@@ -556,3 +556,8 @@ mark.find-hit.current{ background:#ffd23f; box-shadow:0 0 0 2px #ffd23f; }
 
 /* definitions opened below the reading (Design the Experiment, CAST) float under the word */
 .term-popout.floating{ right:auto; z-index:45; }
+
+/* Design the Experiment: the picture of the setup, under the scenario */
+.lab-figure{ margin:0 0 16px; }
+.lab-figure a{ display:block; line-height:0; border-radius:10px; overflow:hidden; border:1px solid #d9ece3; background:#fff; cursor:zoom-in; }
+.lab-figure img{ display:block; width:100%; height:auto; }
