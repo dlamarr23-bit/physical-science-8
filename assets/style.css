@@ -338,7 +338,7 @@ figure.section-figure{ margin:22px 0 30px; }
 }
 .connection-note .tag{ flex:none; font-weight:800; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-dark); }
 .scientist-card{
-  display:flex; gap:28px; align-items:center; background:#fff; border:1px solid var(--line);
+  display:flex; gap:28px; align-items:flex-start; background:#fff; border:1px solid var(--line);
   border-radius:var(--radius); padding:24px 28px; margin:18px 0 8px; box-shadow:var(--shadow-sm);
 }
 /* the career picture sits on the left; the text starts to its right */
@@ -354,7 +354,25 @@ figure.section-figure{ margin:22px 0 30px; }
 }
 .scientist-card h4{ margin:0 0 8px; font-size:1.2rem; }
 .scientist-card p{ margin:0; color:var(--ink-soft); font-size:1rem; line-height:1.65; }
+/* pay and the science classes to expect, under the career description */
+.scientist-card .sfacts{
+  margin:16px 0 0; padding-top:14px; border-top:1px solid var(--line);
+  display:grid; grid-template-columns:minmax(0,230px) minmax(0,1fr); gap:14px 28px;
+}
+.sfacts dt{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-dark); margin:0 0 6px; }
+.sfacts dd{ margin:0; }
+.sfacts .ssalary{ display:block; font-size:1.3rem; font-weight:800; color:var(--ink); line-height:1.25; }
+.sfacts .snote{ display:block; font-size:.76rem; color:var(--ink-soft); line-height:1.45; margin-top:6px; }
+.sfacts .snote a{ color:inherit; text-decoration:underline; }
+.sfacts .slevel{ display:block; font-size:.8rem; font-weight:700; color:var(--ink); margin:0 0 5px; }
+.sfacts .scourses{ list-style:none; margin:0 0 10px; padding:0; display:flex; flex-wrap:wrap; gap:6px; }
+.sfacts .scourses:last-child{ margin-bottom:0; }
+.sfacts .scourses li{
+  font-size:.8rem; font-weight:600; line-height:1.3; color:var(--accent-dark);
+  background:var(--accent-tint); border-radius:999px; padding:4px 11px;
+}
 @media (max-width:860px){ .scientist-card .sphoto{ width:240px; } }
+@media (max-width:980px){ .scientist-card .sfacts{ grid-template-columns:1fr; } }
 @media (max-width:640px){
   .scientist-card{ flex-direction:column; align-items:stretch; gap:16px; padding:18px; }
   .scientist-card .sphoto{ width:100%; }
