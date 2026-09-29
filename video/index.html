@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>window.VIDEO_CHECK_FRONT_DOOR = true;   /* the front door: see FRONT in the page script */</script>
+<title>Video Check</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<base target="_blank">
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#d9ead3; --yellow:#fff2cc; --red:#f4cccc; --strip:#c9daf8; --q:#d9d9d9; --blue:#1b4587;
+          --gd:#38761d; --yd:#bf9000; --rd:#cc0000; --focus:#3c78d8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f3f3f3; font-family:Poppins, Arial, sans-serif; color:#111; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 16px 16px 120px; }
+  body.teacher .wrap { max-width: 1500px; }
+  h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
+  .who { font-size: 13px; color:#555; margin-bottom: 8px; }
+  .intro { font-style: italic; color:#555; font-size: 14px; margin: 6px 0 12px; }
+  .strip { background: var(--strip); font-weight:700; font-size: 17px; padding: 10px 12px; margin: 18px 0 12px;
+           border-top: 2px solid #111; border-bottom: 2px solid #111; }
+  .banner { background:#111; color:#fff; padding:10px 12px; border-radius:6px; font-size:14px; margin: 10px 0; }
+  .banner.error { background:#cc0000; }
+  .banner.blue { background: var(--blue); }
+  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
+           background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
+  button.secondary { background:#fff; color:#111; }
+  button.blue { background: var(--blue); border-color: var(--blue); }
+  button:disabled { opacity:.5; cursor: default; }
+  button:focus-visible, .choice:focus-visible, .mk:focus-visible, .qchip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  /* ---------- video ---------- */
+  .stage { position:relative; width:100%; aspect-ratio: 16 / 9; background:#000; border:2px solid #111; border-radius:8px; overflow:hidden; }
+  .stage iframe, .stage video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
+  .stage .vmsg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; padding:20px; font-weight:600; }
+  .overlay { position:absolute; inset:0; z-index:3; background: rgba(0,0,0,.6); overflow:auto; display:flex; justify-content:center; padding: 14px; }
+  .ocard { width:100%; max-width: 760px; margin: auto 0; background:#fff; border:2px solid #111; border-radius:8px; overflow:hidden; }
+  .obtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; padding: 10px 12px; border-top:1px solid #bbb; background:#fafafa; }
+  .obtns .spacer { flex:1; }
+  @media (max-width: 640px) { .stage.qopen { aspect-ratio: auto; min-height: 560px; } }
+  .skipnote { font-size:12px; color:#555; margin-top:6px; }
+
+  /* timeline of questions under the video */
+  .tl { position:relative; height: 28px; margin: 12px 9px 2px; }
+  .tl .track { position:absolute; left:0; right:0; top:11px; height:6px; background:#c8c8c8; border-radius:3px; }
+  .tl .seen { position:absolute; left:0; top:11px; height:6px; background:#8fa9d6; border-radius:3px; width:0; }
+  .tl .now { position:absolute; top:6px; width:3px; height:16px; margin-left:-1px; background:#111; border-radius:2px; left:0; }
+  .mk { position:absolute; top:4px; width:20px; height:20px; margin-left:-10px; padding:0; border-radius:50%; border:2px solid #111;
+        background:#fff; color:#111; font-size:10px; line-height:1; display:grid; place-items:center; }
+  .mk.note { border-radius:4px; width:15px; height:15px; margin-left:-7px; top:6px; font-size:9px; }
+  .times { display:flex; justify-content:space-between; font-size:12px; color:#555; margin: 0 2px; }
+
+  .qchips { display:flex; flex-wrap:wrap; gap:6px; margin: 12px 0 4px; }
+  .qchip { border:2px solid #111; border-radius:6px; background:#fff; color:#111; padding:4px 10px; font-size:13px; }
+  .qchip small { font-weight:400; }
+  .correct-bg { background: var(--green) !important; } .partial-bg { background: var(--yellow) !important; } .incorrect-bg { background: var(--red) !important; }
+  .locked { opacity:.45; }
+
+  /* progress (same as Self-Check) */
+  .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
+              padding: 10px 12px; margin: 14px 0; display:flex; flex-wrap:wrap; gap: 10px 16px; align-items:center; font-size:14px; font-weight:600; }
+  .bar { flex: 1 1 220px; height: 14px; display:flex; border:1px solid #111; border-radius: 7px; overflow:hidden; background:#fff; }
+  .bar span { height:100%; transition: width .3s; }
+  .chip { display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:12px; height:12px; border:1px solid #111; border-radius:3px; display:inline-block; }
+  .grade { margin-left:auto; font-size:16px; }
+
+  /* question card (same look as Self-Check) */
+  .item { border: 1px solid #bbb; background:#fff; }
+  .qtext { background: var(--q); font-weight:700; font-size: 15px; padding: 10px 12px; line-height:1.45; }
+  .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
+  .qnum.note { background: var(--blue); }
+  .qat { font-weight:400; font-size:12px; color:#333; margin-left:6px; }
+  .multi { font-weight:400; font-style:italic; font-size:13px; margin-top:4px; }
+  .qimg { margin: 10px 0 2px; }
+  .qimg img { display:block; max-width:100%; max-height:320px; border:2px solid #111; border-radius:4px; background:#fff; }
+  .qimg figcaption { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:4px; }
+  textarea { display:block; width:100%; min-height: 96px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
+             transition: background .25s; }
+  textarea:focus { box-shadow: inset 0 0 0 2px var(--focus); }
+  textarea.correct { background: var(--green); } textarea.partial { background: var(--yellow); } textarea.incorrect { background: var(--red); }
+  .choices { display:grid; gap:8px; padding: 12px; border-top:3px solid #111; }
+  .choice { position:relative; display:flex; gap:10px; align-items:center; width:100%; text-align:left; background:#fff; color:#111;
+            border:2px solid #111; border-radius:6px; padding: 9px 12px; font-weight:600; font-size:15px; overflow:hidden; }
+  .choice .let { flex:none; width:28px; height:28px; border-radius:50%; border:2px solid #111; display:grid; place-items:center; font-weight:700; font-size:14px; background:#fff; position:relative; }
+  .choice .ctext { position:relative; flex:1; }
+  .choice.sel { border-color: var(--focus); box-shadow: inset 0 0 0 1px var(--focus); }
+  .choice.sel .let { background: var(--focus); border-color: var(--focus); color:#fff; }
+  .choice.sel.correct { background: var(--green); border-color: var(--gd); box-shadow:none; } .choice.sel.correct .let { background: var(--gd); border-color: var(--gd); }
+  .choice.sel.partial { background: var(--yellow); border-color: var(--yd); box-shadow:none; } .choice.sel.partial .let { background: var(--yd); border-color: var(--yd); }
+  .choice.sel.incorrect { background: var(--red); border-color: var(--rd); box-shadow:none; } .choice.sel.incorrect .let { background: var(--rd); border-color: var(--rd); }
+  .fb { background:#000; color:#fff; font-style: italic; font-size: 14px; padding: 9px 12px; min-height: 38px; line-height:1.45; }
+  .row { display:flex; align-items:center; justify-content: space-between; gap: 8px; padding: 8px 12px; background:#fff; }
+  .meta { font-size: 12px; color:#666; }
+  .finish { text-align:center; margin: 26px 0; }
+  .finish button { font-size: 16px; padding: 12px 26px; }
+  .card-note { padding: 12px; font-size:14px; }
+
+  /* summary at the end of the video */
+  .sum { padding: 16px; }
+  .sum h2 { margin: 0 0 6px; font-size: 20px; }
+  .sum p { margin: 6px 0; font-size: 14px; }
+
+  /* live lesson: students */
+  .livebox { background:#fff; border:2px solid #111; border-radius:8px; padding: 22px 18px; text-align:center; margin: 12px 0; }
+  .livebox h2 { margin: 0 0 6px; font-size: 22px; }
+  .pulse { display:inline-block; width:12px; height:12px; border-radius:50%; background:#cc0000; margin-right:8px; vertical-align:middle; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0% { opacity:1 } 50% { opacity:.25 } 100% { opacity:1 } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation:none; } }
+  .waitnote { font-size: 13px; color:#555; margin-top: 12px; }
+
+  /* live lesson: teacher screen */
+  .tbar { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; background:#111; color:#fff; border-radius:8px; padding:10px 14px; margin: 8px 0 12px; font-weight:600; }
+  .tbar .live { color:#fff; font-weight:700; }
+  .tbar .grow { flex:1; }
+  .tbar button { background:#fff; color:#111; border-color:#fff; }
+  .tbar button.danger { background:#cc0000; border-color:#cc0000; color:#fff; }
+  table.periods { width:100%; border-collapse: collapse; background:#fff; border:2px solid #111; }
+  table.periods th, table.periods td { padding: 10px 12px; border-bottom:1px solid #ccc; text-align:left; font-size:14px; vertical-align: middle; }
+  table.periods th { background: var(--strip); }
+  table.periods td.btns { text-align:right; white-space:nowrap; }
+  table.periods td.btns button { margin-left:6px; }
+  .tag { display:inline-block; font-size:12px; font-weight:700; padding: 2px 8px; border-radius: 10px; border:1px solid #111; }
+  .tag.open { background: var(--green); } .tag.wait { background: var(--yellow); } .tag.live { background:#cc0000; color:#fff; border-color:#cc0000; }
+  .linkbox { font-size:13px; background:#fff; border:1px dashed #888; padding:8px 10px; border-radius:6px; word-break: break-all; margin-top:10px; }
+  body.teacher .ocard { max-width: 1100px; }
+  body.teacher .ocard .qtext { font-size: clamp(18px, 2.3vw, 30px); padding: 14px 18px; }
+  body.teacher .ocard .qnum { font-size: clamp(14px, 1.6vw, 20px); }
+  body.teacher .ocard .choice { font-size: clamp(16px, 2vw, 26px); padding: 10px 16px; cursor: default; }
+  body.teacher .ocard .choice .let { width: 1.6em; height: 1.6em; }
+  .choice .tbarfill { position:absolute; left:0; top:0; bottom:0; width:0; background: rgba(27,69,135,.18); transition: width .4s; }
+  .choice .tcount { position:relative; font-size: .8em; font-weight:700; white-space:nowrap; }
+  .choice.right { border-color: var(--gd); background: var(--green); }
+  .choice.right .let { background: var(--gd); border-color: var(--gd); color:#fff; }
+  .tstats { display:flex; flex-wrap:wrap; gap: 8px 24px; align-items:center; padding: 12px 18px; border-top:1px solid #bbb; font-size: clamp(15px, 1.7vw, 22px); font-weight:700; }
+  .tstats .big { font-size: 1.6em; }
+  .tcolors { display:flex; gap: 12px; font-size:.8em; }
+  .missing { padding: 8px 18px 12px; font-size: 14px; }
+  .answers { padding: 4px 18px 14px; display:grid; gap:8px; max-height: 40vh; overflow:auto; }
+  .answers div { border:1px solid #bbb; border-left-width: 8px; padding: 8px 10px; font-size: clamp(14px, 1.4vw, 18px); background:#fff; }
+  .answers .correct { border-left-color: var(--gd); } .answers .partial { border-left-color: var(--yd); } .answers .incorrect { border-left-color: var(--rd); }
+
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 50; background:#111; color:#fff; padding: 10px 16px;
+           border-radius: 8px; font-size: 14px; font-weight:600; max-width: min(92vw, 560px); text-align:center; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+
+  /* sign in with an emailed code (browsers where another Google account is signed in first; same as Self-Check) */
+  .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
+  .signin h2 { font-size:18px; margin:0 0 6px; }
+  .signin p { font-size:14px; line-height:1.5; margin:6px 0 12px; }
+  .signin label { display:block; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .signin input { display:block; width:100%; max-width:360px; margin-top:4px; padding:8px 10px; border:2px solid #111; border-radius:6px;
+                  font-family:Poppins, Arial, sans-serif; font-size:16px; background:#fff; outline:none; }
+  .signin input:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  .signin input.si-code { max-width:200px; font-size:22px; letter-spacing:4px; }
+  .si-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+  .si-status { font-weight:600; min-height:1.5em; }
+  .si-status.bad { color:#cc0000; }
+  .si-alt { font-size:13px; color:#555; font-style:italic; border-top:1px solid #ddd; padding-top:10px; margin-bottom:0 !important; }
+  button.linkbtn { background:none; border:0; border-radius:0; padding:0; color:#1b4587; text-decoration:underline; font-weight:600; font-size:inherit; }
+  /* the front door (this page on the class website): Sign in with Google, then the emailed code */
+  button.si-google { display:inline-flex; align-items:center; gap:10px; background:#fff; color:#111; border:2px solid #111; font-size:15px; padding:9px 18px; }
+  button.si-google svg { width:20px; height:20px; flex:none; }
+  .si-or { font-size:13px; font-weight:600; color:#555; border-top:1px solid #ddd; padding-top:12px; margin-top:16px !important; }
+  .probewait { margin-top:14px; font-weight:400; font-size:14px; }
+  /* in-page OK/Cancel box (same as Self-Check): the browser's own pop-up box adds "An embedded page at ... says" */
+  .modal { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal[hidden] { display:none; }
+  .modal-card { background:#fff; border:2px solid #111; border-radius:8px; max-width:440px; width:100%; padding:20px; }
+  .modal-card p { margin:0 0 18px; font-size:16px; font-weight:600; line-height:1.45; white-space:pre-line; }
+  .modal-btns { display:flex; justify-content:flex-end; gap:10px; }
+  /* every question, open to fix, after the video has been watched once */
+  .fixlist .item { margin: 0 0 18px; }
+  .fixlist .slot.flash .item { box-shadow: 0 0 0 4px var(--focus); transition: box-shadow .2s; }
+  .slotnote { font-size:13px; color:#555; font-style:italic; padding: 10px 12px; border:1px dashed #999; margin: 0 0 18px; background:#fff; }
+  .notjoined { background:#fff; color:#111; border:2px solid #111; border-radius:8px; padding:10px 14px; margin: -4px 0 12px; font-size:15px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading">Loading the video…</div>
+  <div id="app" hidden></div>
+</div>
+<div id="toast" class="toast" hidden></div>
+<div class="modal" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmText">
+  <div class="modal-card">
+    <p id="confirmText"></p>
+    <div class="modal-btns"><button class="secondary" id="confirmNo" type="button">Cancel</button><button id="confirmYes" type="button">Submit</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================== BASICS ============================== */
+var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+var S = null;              // student state from the server
+var T = null;              // teacher state (live lesson screen)
+var cur = [];              // what's in each answer right now (MC: "0,2" = A and C)
+var saved = [];            // last answer the server checked for each question
+var draftSaved = [];       // last text the server has (checked OR autosaved)
+var pending = {}, draftTimer = {}, saving = {}, saveWant = {};
+var AUTOSAVE_MS = 8000;
+
+/** Student calls that carry this browser's sign-in token, and how many arguments come before it.
+    Missing arguments are filled with null so the token always lands in the same place. */
+var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 3, checkAnswer: 3, saveDraft: 2, saveProgress: 2, turnIn: 0, livePoll: 0, signOut: 0, revealQuestion: 3, getVideoChunk: 1 };
+
+/* ---------- The FRONT DOOR: this same page on the class website, as the link students get ----------
+   (window.VIDEO_CHECK_FRONT_DOOR is set there, and ?app= is the web app's deployment ID.) Google won't open the web
+   app itself in a browser where another Google account is signed in before the school one, whatever the setting.
+   So the front door first loads it out of sight (probeGoogle). If Google says who the student is, they go on to the
+   plain link, exactly as before. If not, this page runs the video right here, talking to the script's doPost with
+   fetch (no Google sign-in rides along, so nothing can mix up), and the student signs in with Google or a code. */
+var FRONT = !!window.VIDEO_CHECK_FRONT_DOOR;
+var GOOGLE_BACK = FRONT ? takeGoogleReturn() : null;   // just back from Google's sign-in page
+var FRONT_APP = FRONT ? (new URLSearchParams(location.search).get("app") || (GOOGLE_BACK && GOOGLE_BACK.app) || "") : "";
+var FRONT_URL = /^AKfycb[\w-]{20,}$/.test(FRONT_APP) ? "https://script.google.com/macros/s/" + FRONT_APP + "/exec" : "";
+function frontRun(fn, args, ok, fail) {
+  fetch(FRONT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },   // text/plain: no CORS preflight
+                     body: JSON.stringify({ fn: fn, args: args, token: getToken() }) })   // the server puts the token in place
+    .then(function (r) {
+      if (!r.ok) throw new Error("NETWORK: The video's server didn't answer (" + r.status + "). Wait a minute and try again.");
+      return r.text();
+    })
+    .then(function (text) {
+      var out = null;
+      try { out = JSON.parse(text); } catch (e) { out = null; }
+      if (!out) {
+        if (/doPost/.test(text)) throw new Error("This video isn't ready for this link yet. Please tell your teacher: the video's sheet needs the newest Video Check version.");
+        throw new Error("NETWORK: The video's server sent something unexpected. Wait a minute and try again.");
+      }
+      return out;
+    })
+    .then(function (out) {
+      if (out.ok) { if (ok) ok(out.result); }
+      else fail(new Error(out.error || "Something went wrong. Reload the page."));
+    }, function (err) {
+      var m = String((err && err.message) || "");
+      fail(/^NETWORK|isn't ready/.test(m) ? err : new Error("NETWORK: Couldn't reach the video's server. Check your internet connection."));
+    });
+}
+/** Leaves this page: replace = the Back button skips the front door (so it can't send the student straight back). */
+function goTo(url, replace) {
+  if (window.__frontDoorGo) return window.__frontDoorGo(url, replace);   // local tests only
+  if (replace) location.replace(url); else location.assign(url);
+}
+
+var api = {
+  run: function (fn, args, ok, fail) {
+    if (FRONT) return frontRun(fn, (args || []).slice(), ok, fail || showError);
+    var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail || showError);
+    var a = (args || []).slice();
+    if (TOKEN_ARGS.hasOwnProperty(fn)) { while (a.length < TOKEN_ARGS[fn]) a.push(null); a.push(getToken()); }
+    r[fn].apply(r, a);
+  }
+};
+function call(fn, args) { return function (ok, fail) { api.run(fn, args || [], ok, fail); }; }
+
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function btn(label, cls, onClick) { var b = el("button", cls || "", label); b.type = "button"; if (onClick) b.addEventListener("click", onClick); return b; }
+function fmt(sec) {
+  sec = Math.max(0, Math.floor(Number(sec) || 0));
+  var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s;
+}
+function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function Q(i) { return (S || T).questions[i]; }
+function answerOf(i) { return String(cur[i] == null ? "" : cur[i]).trim(); }
+/** "Question number style" setting: "Q1" -> Q7, "1." -> 7. (Same as Self-Check.) */
+function qLabel(n) {
+  var p = String((S || T) && (S || T).numberStyle != null ? (S || T).numberStyle : "1").trim() || "1";
+  var at = p.indexOf("1");
+  return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
+}
+var toastTimer = null;
+function toast(msg, ms) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, ms || 3500);
+}
+function showError(err) {
+  var msg = (err && err.message) ? err.message : String(err);
+  msg = msg.replace(/^(NOT OPEN|NOT YET|BUSY|LIVE|NETWORK): /, "");
+  var app = document.getElementById("app");
+  document.getElementById("loading").textContent = msg;
+  if (!app.hidden) { var b = el("div", "banner error", msg); app.insertBefore(b, app.firstChild); window.scrollTo(0, 0); }
+}
+/** In-page OK/Cancel box. This page never uses the browser's own pop-up boxes (they add "An embedded page at ... says"). */
+function askConfirm(text, onYes, yesLabel) {
+  var box = document.getElementById("confirmBox"), yes = document.getElementById("confirmYes"), no = document.getElementById("confirmNo");
+  document.getElementById("confirmText").textContent = text;
+  yes.textContent = yesLabel || "Submit";
+  box.hidden = false; yes.focus();
+  function close(go) {
+    box.hidden = true; yes.onclick = no.onclick = box.onclick = null; document.removeEventListener("keydown", key);
+    if (go) onYes();
+  }
+  function key(e) { if (e.key === "Escape") close(false); }
+  yes.onclick = function () { close(true); };
+  no.onclick = function () { close(false); };
+  box.onclick = function (e) { if (e.target === box) close(false); };
+  document.addEventListener("keydown", key);
+}
+function clearApp() {
+  document.getElementById("loading").hidden = true;
+  var app = document.getElementById("app");
+  app.hidden = false; app.innerHTML = "";
+  return app;
+}
+function header(app, title, sub) {
+  document.title = title;
+  app.appendChild(el("h1", null, title));
+  if (sub) {
+    var who = el("div", "who", sub);
+    if (S && S.via === "code") {   // signed in with an emailed code: let a different student sign out on a shared computer
+      who.appendChild(document.createTextNode(" Not you? "));
+      who.appendChild(btn("Sign out", "linkbtn", signOutHere));
+    }
+    app.appendChild(who);
+  }
+}
+
+/* ---------- Signing in with an emailed code (same as Self-Check) ----------
+   Google tells the server who you are only when your school account is the FIRST Google account
+   signed in to this browser. When it isn't (a family or personal account came first), the page
+   asks for your school email and emails you a 6-digit code. The sign-in token is kept in this
+   browser, so the code is only needed once per browser. */
+var TOKEN_KEY = "videocheck-signin" + (FRONT ? ":" + FRONT_APP : ""),   // the front door serves every video: one sign-in each
+    memToken = "", signInEmail = "", signInOpen = false, signInNote = "";
+function getToken() { try { return localStorage.getItem(TOKEN_KEY) || memToken; } catch (e) { return memToken; } }
+function setToken(t) {
+  memToken = t || "";
+  try { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); } catch (e) { /* storage blocked: kept for this visit only */ }
+}
+function isSignInError(err) { return /SIGNIN/.test(String((err && err.message) || err || "")); }
+function signInText(err) { return String((err && err.message) || err || "").replace(/^[\s\S]*?SIGNIN:\s*/, "").replace(/^(BUSY|NETWORK): /, ""); }
+/* A code that's on its way is remembered on this device for a few minutes, so a student who leaves to read their
+   email (on a phone this often reloads the page) comes back to the box for the code, not to "Email me a code". */
+var PENDING_KEY = "videocheck-code-sent" + (FRONT ? ":" + FRONT_APP : "");
+function pendingCode(set) {
+  try {
+    if (set === null) { localStorage.removeItem(PENDING_KEY); return null; }
+    if (set) { localStorage.setItem(PENDING_KEY, JSON.stringify(set)); return set; }
+    var p = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
+    return p && p.email && Date.now() - p.at < p.minutes * 60000 ? p : null;
+  } catch (e) { return null; }
+}
+
+/** The sign-in card. midway = the page is already showing work (a sign-in ran out while working). */
+function showSignIn(info, midway) {
+  signInOpen = true;
+  var app, card = el("div", "signin");
+  if (!midway) { stopTimers(); app = clearApp(); header(app, info.title || document.title); }
+  // Sign in with Google leaves the page for a moment, so it's only offered before any work is on the page.
+  var google = FRONT && !midway && info.googleClient ? info.googleClient : "";
+  card.appendChild(el("h2", null, midway ? "Sign in again to keep saving" : FRONT ? "Sign in with your school account" : "Sign in with your school email"));
+  card.appendChild(el("p", null, midway
+    ? "Your sign-in on this browser ran out. Your answers are still on the page. Sign in again, then press Check on any answer that didn't save."
+    : FRONT
+      ? "To open the video on this device, sign in with your school account." +
+        (google ? "" : " We'll email a 6-digit code to your school address. It comes from your teacher's email.")
+      : "This browser isn't signed in to your school Google account first, so this page can't tell who you are. " +
+        "We'll email a 6-digit code to your school address instead. It comes from your teacher's email."));
+  if (google) {
+    var gBtn = btn("", "si-google", function () { startGoogleSignIn(google, say); });
+    gBtn.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.2 5.6c4.2-3.9 7.1-9.6 7.1-17.1z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.3-8.7 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>';
+    gBtn.appendChild(document.createTextNode("Sign in with Google"));
+    card.appendChild(gBtn);
+    card.appendChild(el("p", null, "Pick your school account" + (info.domain ? " (it ends in @" + info.domain + ")" : "") + ". If it isn't in the list, choose Use another account."));
+    card.appendChild(el("p", "si-or", "Or get a 6-digit code at your school email (it comes from your teacher's email):"));
+  }
+
+  var step1 = el("form"); step1.noValidate = true;
+  var l1 = el("label", null, "Your school email");
+  var em = el("input"); em.type = "text"; em.inputMode = "email"; em.autocomplete = "email"; em.spellcheck = false;
+  em.setAttribute("autocapitalize", "none"); em.placeholder = "yourname@" + (info.domain || "school.org"); em.value = signInEmail;
+  l1.appendChild(em); step1.appendChild(l1);
+  var sendBtn = el("button", null, "Email me a code"); sendBtn.type = "submit";
+  var haveBtn = btn("I already have a code", "secondary");
+  var b1 = el("div", "si-buttons"); b1.appendChild(sendBtn); b1.appendChild(haveBtn); step1.appendChild(b1);
+
+  var step2 = el("form"); step2.noValidate = true; step2.hidden = true;
+  var sentTo = el("p");
+  var l2 = el("label", null, "6-digit code");
+  var code = el("input", "si-code"); code.type = "text"; code.inputMode = "numeric"; code.autocomplete = "one-time-code"; code.maxLength = 7;
+  l2.appendChild(code);
+  var goBtn = el("button", null, "Sign in"); goBtn.type = "submit";
+  var againBtn = btn("Send a new code", "secondary"), otherBtn = btn("Use a different email", "secondary");
+  var b2 = el("div", "si-buttons"); b2.appendChild(goBtn); b2.appendChild(againBtn); b2.appendChild(otherBtn);
+  step2.appendChild(sentTo); step2.appendChild(l2); step2.appendChild(b2);
+
+  var status = el("p", "si-status"); status.setAttribute("aria-live", "polite");
+  card.appendChild(step1); card.appendChild(step2); card.appendChild(status);
+  if (!FRONT) card.appendChild(el("p", "si-alt", "Or open a private window, sign in to your school account at accounts.google.com, then open this link again."));
+  if (midway) { app = document.getElementById("app"); app.insertBefore(card, app.firstChild); window.scrollTo(0, 0); }
+  else app.appendChild(card);
+
+  function say(text, bad) { status.textContent = text || ""; status.className = "si-status" + (bad ? " bad" : ""); }
+  function busy(on) { [sendBtn, haveBtn, goBtn, againBtn, otherBtn].forEach(function (b) { b.disabled = on; }); }
+  function showStep2(email, minutes) {
+    signInEmail = email;
+    step1.hidden = true; step2.hidden = false;
+    sentTo.textContent = "We emailed a code to " + email + ". Open your school email, then type the code here. It works for " + minutes + " minutes.";
+    code.value = ""; code.focus();
+  }
+  function send(to) {
+    busy(true); say("Sending a code…");
+    // Safe to repeat if the answer gets lost: asking again within 45 s gets "sent" back, with no second email.
+    withRetry(call("sendSignInCode", [to]), function (r) {
+      busy(false);
+      pendingCode({ email: r.email, at: Date.now(), minutes: r.minutes });
+      showStep2(r.email, r.minutes); say("");
+    }, function (err) { busy(false); say(signInText(err), true); });
+  }
+  step1.addEventListener("submit", function (e) { e.preventDefault(); if (em.value.trim()) send(em.value); else say("Type your school email first.", true); });
+  haveBtn.addEventListener("click", function () {
+    var p = pendingCode(), typed = em.value.trim();
+    if (!typed && !p) { say("Type your school email first, then press I already have a code.", true); return; }
+    var e = typed || p.email;
+    if (e.indexOf("@") === -1 && info.domain) e += "@" + info.domain;
+    showStep2(e.toLowerCase(), info.minutes || 10); say("");
+  });
+  againBtn.addEventListener("click", function () { send(signInEmail); });
+  otherBtn.addEventListener("click", function () { step2.hidden = true; step1.hidden = false; say(""); em.value = signInEmail; em.focus(); });
+  step2.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (code.value.replace(/\D/g, "").length !== 6) { say("The code has 6 digits.", true); return; }
+    busy(true); say("Checking your code…");
+    // Safe to repeat: the same right code again within 2 minutes gets the same sign-in back.
+    withRetry(call("verifySignInCode", [signInEmail, code.value]), function (r) {
+      setToken(r.token);
+      pendingCode(null);
+      signInOpen = false;
+      if (!midway) {
+        document.getElementById("app").hidden = true;
+        var ld = document.getElementById("loading"); ld.hidden = false; ld.textContent = "Loading the video…";
+        studentBoot();
+      } else if (S && r.email === S.email) {
+        card.remove();
+        toast("You're signed in again. Press Check on any answer that didn't save.", 6000);
+      } else {
+        // Someone else signed in on a page showing another student's work: don't mix the two.
+        stopTimers();
+        if (S) S.locked = true;
+        document.querySelectorAll("textarea, .choice, .row button, #finishBtn").forEach(function (x) { x.disabled = true; });
+        card.innerHTML = "";
+        card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work."));
+      }
+    }, function (err) { busy(false); say(signInText(err), true); code.select(); });
+  });
+  var pend = midway ? null : pendingCode();
+  if (pend) showStep2(pend.email, pend.minutes);   // back from reading the email: straight to the box for the code
+  if (signInNote && !midway) { say(signInNote, true); signInNote = ""; }
+  (step1.hidden ? code : em).focus();
+}
+
+/* ---------- Sign in with Google (front door only) ----------
+   Google's own sign-in page, so the student can pick their school account even when another account is signed
+   in first. It sends the browser back here with an ID token after the # (never to any server), and the
+   script checks that token with Google before signing this browser in. The nonce ties the answer to this tab. */
+var NONCE_KEY = "videocheck-google-nonce";
+function startGoogleSignIn(client, say) {
+  var a = new Uint8Array(16), nonce;
+  crypto.getRandomValues(a);
+  nonce = Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+  try { sessionStorage.setItem(NONCE_KEY, nonce); } catch (e) { nonce = ""; }
+  if (!nonce) { say("This browser blocks the step Google sign-in needs. Get a code by email instead.", true); return; }
+  // Google only returns to the exact address registered with the client ID: .../video/ (never .../video/index.html)
+  var q = new URLSearchParams({ client_id: client, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ""), response_type: "id_token",
+                                scope: "openid email", nonce: nonce, state: FRONT_APP, prompt: "select_account", hd: "*" });
+  goTo("https://accounts.google.com/o/oauth2/v2/auth?" + q.toString());
+}
+/** Back from Google's sign-in page? Its answer is after the # in the address. Returns {app, idToken, error} and
+    takes the answer out of the address bar and the history, or returns null. */
+function takeGoogleReturn() {
+  var h = location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
+  if (!h || !(h.get("id_token") || h.get("error"))) return null;
+  var out = { app: String(h.get("state") || ""), idToken: h.get("id_token") || "", error: h.get("error") || "" };
+  var app = new URLSearchParams(location.search).get("app") || out.app;
+  try { history.replaceState(null, "", location.pathname + (/^AKfycb[\w-]{20,}$/.test(app) ? "?app=" + app : "")); } catch (e) {}
+  return out;
+}
+function tokenClaims(t) {
+  try {
+    var p = String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (p.length % 4) p += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(p))));
+  } catch (e) { return null; }
+}
+function finishGoogleSignIn(back) {
+  var want = null;
+  try { want = sessionStorage.getItem(NONCE_KEY); sessionStorage.removeItem(NONCE_KEY); } catch (e) { want = null; }
+  var claims = back.idToken ? tokenClaims(back.idToken) : null;
+  if (back.error) {
+    signInNote = back.error === "access_denied" ? "Google sign-in was canceled. Try again, or get a code by email."
+               : "Google sign-in didn't work here (" + back.error + "). Get a code by email instead.";
+  } else if (!claims || !want || claims.nonce !== want) {
+    signInNote = "That Google sign-in didn't start on this page. Press Sign in with Google again.";
+  }
+  if (signInNote) return studentBoot();
+  document.getElementById("loading").textContent = "Signing you in…";
+  withRetry(call("signInWithGoogle", [back.idToken]), function (r) { setToken(r.token); studentBoot(); },
+            function (err) { signInNote = signInText(err); studentBoot(); });
+}
+
+/* ---------- The front door's out-of-sight check ----------
+   Loads the web app itself in a hidden frame. Its tiny probe page (doGet with ?probe=1) tells this page whether
+   Google said who is signed in. Google's error page says nothing, so no answer in time means "sign in here". */
+var IS_CROS = /\bCrOS\b/.test(navigator.userAgent);
+// Chromebooks wait longer for the answer: at school it's almost always "yes", and a slow start on Google's side
+// shouldn't send a whole class to the sign-in card.
+var PROBE_MAX_MS = 15000, PROBE_AFTER_LOAD_MS = IS_CROS ? 8000 : 4000, PROBE_SKIP_MS = 5000;
+function probeGoogle(done) {
+  var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
+  function end(known) {
+    if (over) return;
+    over = true;
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    window.removeEventListener("message", onMsg);
+    f.remove();
+    var sk = document.getElementById("probeSkip"); if (sk) sk.remove();
+    done(known);
+  }
+  function onMsg(e) {
+    if (!e.data || typeof e.data !== "object" || !("videoCheckProbe" in e.data)) return;
+    if (!/^https:\/\/[\w-]+\.googleusercontent\.com$/.test(e.origin) && e.origin !== location.origin) return;
+    end(e.data.videoCheckProbe === 1 ? 1 : 0);
+  }
+  window.addEventListener("message", onMsg);
+  f.title = "Checking your school sign-in";
+  f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:absolute;left:-9999px;top:0;width:10px;height:10px;border:0";
+  f.addEventListener("load", function () { clearTimeout(t2); t2 = setTimeout(function () { end(null); }, PROBE_AFTER_LOAD_MS); });
+  f.src = window.VIDEO_CHECK_PROBE_URL ? window.VIDEO_CHECK_PROBE_URL(FRONT_APP, location.origin)   // local tests only
+        : FRONT_URL + "?probe=1&from=" + encodeURIComponent(location.origin);
+  document.body.appendChild(f);
+  t1 = setTimeout(function () { end(null); }, PROBE_MAX_MS);
+  t3 = setTimeout(function () {   // taking a while (a slow start on Google's side): let the student skip ahead to signing in
+    var ld = document.getElementById("loading"), b = btn("Sign in on this page instead", "secondary", function () { end(null); });
+    var box = el("div", "probewait", "Still checking your school sign-in… ");
+    box.id = "probeSkip"; box.appendChild(b); ld.appendChild(box);
+  }, PROBE_SKIP_MS);
+}
+
+/** The front door's start: straight to the video if this device signed in here before, else the check above.
+    Google knows the student (school Chromebooks): go on to the plain link. A Chromebook where the check came
+    back empty-handed (the district may block the check's cookies) goes on too: it has only the school account. */
+var WENT_KEY = "videocheck-went:" + FRONT_APP;
+function frontDoorBoot() {
+  document.title = "Video Check";
+  if (!FRONT_URL) { showError(new Error("This link is missing part of its address. Open it again from Google Classroom.")); return; }
+  if (GOOGLE_BACK) return finishGoogleSignIn(GOOGLE_BACK);
+  if (getToken() || new URLSearchParams(location.search).get("signin") === "1") return studentBoot();   // ?signin=1: skip the check
+  document.getElementById("loading").textContent = "Opening the video…";
+  probeGoogle(function (known) {
+    if (known === 1) return goTo(FRONT_URL, true);
+    if (known === 0 && IS_CROS) {
+      // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
+      // But if this device was just sent on the same way and is back, the video may not have opened: let the student choose.
+      var last = 0;
+      try { last = Number(localStorage.getItem(WENT_KEY)) || 0; } catch (e) {}
+      if (Date.now() - last > 600000) {
+        try { localStorage.setItem(WENT_KEY, String(Date.now())); } catch (e) {}
+        return goTo(FRONT_URL, true);
+      }
+      try { localStorage.removeItem(WENT_KEY); } catch (e) {}
+      var app = clearApp();
+      header(app, "Video Check");
+      var box = el("div", "signin");
+      box.appendChild(el("h2", null, "Open the video"));
+      box.appendChild(el("p", null, "If the video didn't open a minute ago (Google said \"Sorry, unable to open the file\"), sign in here instead."));
+      var row = el("div", "si-buttons");
+      row.appendChild(btn("Open the video", "", function () {
+        try { localStorage.setItem(WENT_KEY, String(Date.now())); } catch (e) {}
+        goTo(FRONT_URL, true);
+      }));
+      row.appendChild(btn("Sign in here instead", "secondary", function () { studentBoot(); }));
+      box.appendChild(row);
+      app.appendChild(box);
+      return;
+    }
+    studentBoot();
+  });
+}
+
+/** A save or poll found this browser signed out (the sign-in ran out or was removed). */
+function signedOutMidway() {
+  if (signInOpen || !S) return;
+  if (S.mode === "wait" || !S.questions) {   // nothing typed on this page: just start over at the sign-in card
+    var info = { title: S.title, domain: S.domain, googleClient: S.googleClient };
+    setToken(""); S = null;
+    showSignIn(info, false);
+    return;
+  }
+  showSignIn({ domain: S.domain }, true);
+}
+
+/** "Not you? Sign out" (only shown for code sign-ins). */
+function signOutHere() {
+  if (savesRunning()) { toast("Your answers are still saving. Try again in a few seconds."); return; }
+  askConfirm("Sign out of this page on this browser?", doSignOut, "Sign out");
+}
+function doSignOut() {
+  api.run("signOut", [], function () {}, function () {});
+  setToken("");
+  stopTimers();
+  var title = S ? S.title : document.title;
+  S = null;
+  var app = clearApp();
+  header(app, title);
+  app.appendChild(el("div", "banner", "You're signed out on this browser. Reload the page to sign in again."));
+}
+
+/* Busy server or a blip: try again quietly a few times before telling the student. */
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) {
+  var m = String((err && err.message) || err || "");
+  return !/sign ?in|locked|turned this in|Unknown question|doesn't have any questions|NOT OPEN|NOT YET|Only the teacher|isn't linked|isn't running|isn't ready/i.test(m);
+}
+function withRetry(c, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  c(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { withRetry(c, ok, fail, attempt + 1, onRetry); }, RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500));
+    } else fail(err);
+  });
+}
+/* Grading doesn't wait in line on the server, so a retry usually works at once. */
+function RETRY_FAST(c, ok, fail, onRetry, attempt) {
+  attempt = attempt || 0;
+  var delays = [600, 1500, 3000, 6000];
+  c(ok, function (err) {
+    if (attempt < delays.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { RETRY_FAST(c, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
+    } else fail(err);
+  });
+}
+
+/* ============================== VIDEO PLAYER ============================== */
+/* One small interface for YouTube and for a plain video file:
+   play() pause() seek(t) time() duration() state() -> "playing" | "paused" | "ended" | "buffering" | "cued" | "unstarted" */
+var ytWaiters = null;
+function loadYT(cb) {
+  if (window.YT && window.YT.Player) { cb(); return; }
+  if (!ytWaiters) {
+    ytWaiters = [];
+    var prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (prev) prev();
+      var w = ytWaiters; ytWaiters = "done";
+      w.forEach(function (f) { f(); });
+    };
+    var s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api"; s.async = true;
+    s.onerror = function () { showError("Couldn't load YouTube. Check the internet connection. (YouTube may be blocked on this network.)"); };
+    document.head.appendChild(s);
+  }
+  if (ytWaiters === "done") cb(); else ytWaiters.push(cb);
+}
+function ytError(code) {
+  if (code === 101 || code === 150) return "The owner of this YouTube video doesn't allow it to play on other sites. (Teacher: pick a different video, or upload your own to YouTube as Unlisted.)";
+  if (code === 100) return "This YouTube video was removed or made private.";
+  if (code === 2) return "The YouTube link isn't valid. (Teacher: check the Video link in the Settings tab.)";
+  if (code === 153) return "YouTube blocked the player (error 153). Reload the page; if it keeps happening, tell your teacher.";
+  return "The video can't play right now (YouTube error " + code + "). Reload the page to try again.";
+}
+function makePlayer(host, v, opt) {
+  var noop = function () {};
+  var P = { ready: false, st: "unstarted", play: noop, pause: noop, seek: noop, destroy: noop,
+            time: function () { return 0; }, duration: function () { return 0; }, rate: function () { return 1; } };
+  P.state = function () { return P.st; };
+  function setState(s) { P.st = s; if (opt.onState) opt.onState(s); }
+  if (v.kind === "youtube") {
+    var names = { "-1": "unstarted", "0": "ended", "1": "playing", "2": "paused", "3": "buffering", "5": "cued" };
+    loadYT(function () {
+      var f = document.createElement("iframe");
+      var params = { enablejsapi: 1, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, fs: 0, controls: 1, origin: location.origin };
+      if (opt.start > 0) params.start = Math.floor(opt.start);
+      if (v.end > 0) params.end = Math.ceil(v.end);
+      f.src = "https://www.youtube.com/embed/" + encodeURIComponent(v.id) + "?" +
+        Object.keys(params).map(function (k) { return k + "=" + encodeURIComponent(params[k]); }).join("&");
+      f.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+      f.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");   // YouTube refuses to play without a referrer
+      f.setAttribute("title", "Video");
+      host.appendChild(f);
+      var yp = new YT.Player(f, { events: {
+        onReady: function () { P.ready = true; if (opt.onReady) opt.onReady(); },
+        onStateChange: function (e) { setState(names[String(e.data)] || "unstarted"); },
+        onError: function (e) { if (opt.onError) opt.onError(ytError(e.data)); }
+      } });
+      P.play = function () { try { yp.playVideo(); } catch (e) {} };
+      P.pause = function () { try { yp.pauseVideo(); } catch (e) {} };
+      P.seek = function (t) { try { yp.seekTo(Math.max(0, t), true); } catch (e) {} };
+      P.time = function () { try { return yp.getCurrentTime() || 0; } catch (e) { return 0; } };
+      P.duration = function () { try { return yp.getDuration() || 0; } catch (e) { return 0; } };
+      P.rate = function () { try { return yp.getPlaybackRate() || 1; } catch (e) { return 1; } };
+      P.destroy = function () { try { yp.destroy(); } catch (e) {} };
+    });
+  } else if (v.kind === "drive") {
+    drivePlayer(host, v, opt, P, playFile);
+  } else if (v.kind === "file") {
+    playFile(v.url, false);
+  } else {
+    host.appendChild(el("div", "vmsg", v.error || "There's no video yet."));
+  }
+  function playFile(src, isBlob, onFail) {
+    var vd = document.createElement("video");
+    vd.src = src; vd.controls = true; vd.playsInline = true; vd.preload = "metadata";
+    vd.disablePictureInPicture = true; vd.setAttribute("controlsList", "nodownload");
+    vd.addEventListener("loadedmetadata", function () {
+      if (opt.start > 0) vd.currentTime = opt.start;
+      P.ready = true; if (opt.onReady) opt.onReady();
+    });
+    vd.addEventListener("play", function () { setState("playing"); });
+    vd.addEventListener("waiting", function () { if (!vd.paused) setState("buffering"); });
+    vd.addEventListener("playing", function () { setState("playing"); });
+    vd.addEventListener("pause", function () { if (!vd.ended) setState("paused"); });
+    vd.addEventListener("ended", function () { setState("ended"); });
+    vd.addEventListener("error", function () { if (onFail) return onFail(); if (opt.onError) opt.onError("This video file can't be played. (Teacher: check the Video link in the Settings tab.)"); });
+    host.appendChild(vd);
+    P.play = function () { var p = vd.play(); if (p && p.catch) p.catch(function () {}); };
+    P.pause = function () { vd.pause(); };
+    P.seek = function (t) { vd.currentTime = Math.max(0, t); };
+    P.time = function () { return vd.currentTime || 0; };
+    P.duration = function () { return isFinite(vd.duration) ? vd.duration : 0; };
+    P.rate = function () { return vd.playbackRate || 1; };
+    var before = P.destroy;
+    P.destroy = function () { if (before && before !== noop) before(); vd.pause(); vd.removeAttribute("src"); vd.load(); if (isBlob) URL.revokeObjectURL(src); };
+    return vd;
+  }
+  return P;
+}
+/* ============================== DRIVE VIDEOS ==============================
+   The server sends a Drive video in ~3 MB pieces. Each piece is kept on this device (so reopening starts
+   right away), and the video starts playing as soon as the first pieces arrive: a small free library
+   (mp4box.js) turns the pieces into something the browser's player can stream. If that can't work on
+   this device, the whole video is loaded first and then played, as before. */
+var MP4BOX_URL = "https://cdn.jsdelivr.net/npm/mp4box@0.5.3/dist/mp4box.all.min.js";
+var scriptWaits = {};
+function loadScriptOnce(url, ok, fail) {
+  var s = scriptWaits[url];
+  if (s === "ok") return ok();
+  if (s === "fail") return fail();
+  if (s) { s.push([ok, fail]); return; }
+  var list = scriptWaits[url] = [[ok, fail]], done = false, tag = document.createElement("script");
+  function finish(good) {
+    if (done) return; done = true;
+    scriptWaits[url] = good ? "ok" : "fail";
+    list.forEach(function (p) { (good ? p[0] : p[1])(); });
+  }
+  tag.src = url; tag.async = true;
+  tag.onload = function () { finish(!!window.MP4Box); };
+  tag.onerror = function () { finish(false); };
+  setTimeout(function () { finish(!!window.MP4Box); }, 10000);
+  document.head.appendChild(tag);
+}
+
+/** Pieces of one Drive video: from memory, then this device's saved copy, then the server (saved as they arrive). */
+function VideoStore(v) {
+  var self = this, CH = v.chunkBytes, prefix = v.id + ":" + (v.rev || 0) + ":" + v.size + ":" + CH + ":";
+  var mem = {}, memOrder = [], inflight = {}, dbP = null;
+  self.dead = false; self.noSave = false;
+  function want(n) { return Math.min(CH, v.size - n * CH); }
+  function db() {
+    if (dbP) return dbP;
+    dbP = new Promise(function (res) {
+      try {
+        var rq = indexedDB.open("videoCheckCache", 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore("chunks"); };
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = function () { res(null); };
+        rq.onblocked = function () { res(null); };
+      } catch (e) { res(null); }
+    }).then(function (d) {
+      if (d) try {   // only this video is kept on the device
+        var st = d.transaction("chunks", "readwrite").objectStore("chunks"), cur = st.openCursor();
+        cur.onsuccess = function () { var c = cur.result; if (!c) return; if (String(c.key).indexOf(prefix) !== 0) c["delete"](); c["continue"](); };
+      } catch (e) {}
+      return d;
+    });
+    return dbP;
+  }
+  function idbGet(n) {
+    return db().then(function (d) {
+      if (!d) return null;
+      return new Promise(function (res) {
+        try {
+          var r = d.transaction("chunks").objectStore("chunks").get(prefix + n);
+          r.onsuccess = function () { var b = r.result; res(b && b.byteLength === want(n) ? b : null); };
+          r.onerror = function () { res(null); };
+        } catch (e) { res(null); }
+      });
+    });
+  }
+  function idbPut(n, buf) {
+    db().then(function (d) {
+      if (!d || self.noSave) return;
+      try {
+        var tx = d.transaction("chunks", "readwrite");
+        tx.objectStore("chunks").put(buf, prefix + n);
+        tx.onabort = function () { self.noSave = true; };   // device storage full: keep streaming, stop saving
+      } catch (e) { self.noSave = true; }
+    });
+  }
+  self.isSaved = function (n) {
+    return db().then(function (d) {
+      if (!d) return false;
+      return new Promise(function (res) {
+        try { var r = d.transaction("chunks").objectStore("chunks").count(prefix + n); r.onsuccess = function () { res(r.result > 0); }; r.onerror = function () { res(false); }; }
+        catch (e) { res(false); }
+      });
+    });
+  };
+  self.get = function (n) {
+    if (mem[n]) return Promise.resolve(mem[n]);
+    if (inflight[n]) return inflight[n];
+    inflight[n] = idbGet(n).then(function (buf) {
+      if (buf) return buf;
+      return new Promise(function (res, rej) {
+        if (self.dead) return rej(new Error("stopped"));
+        withRetry(call("getVideoChunk", [n]), function (r) {
+          var b = b64ToBytes(r.data).buffer;
+          if (b.byteLength !== want(n)) return rej(new Error("Wrong size"));
+          idbPut(n, b); res(b);
+        }, rej);
+      });
+    }).then(function (buf) {
+      delete inflight[n];
+      mem[n] = buf; memOrder.push(n);
+      while (memOrder.length > 6) delete mem[memOrder.shift()];
+      return buf;
+    }, function (e) { delete inflight[n]; throw e; });
+    return inflight[n];
+  };
+  /** Saves every piece on this device in the background, one at a time, so the next visit starts at once. */
+  self.saveAll = function () {
+    var n = 0;
+    (function next() {
+      if (self.dead || self.noSave || n >= v.chunks) return;
+      var i = n++;
+      self.isSaved(i).then(function (have) {
+        if (have) return next();
+        self.get(i).then(function () { setTimeout(next, 300); }, function () { setTimeout(next, 5000); n = Math.min(n, i); });
+      });
+    })();
+  };
+}
+
+function drivePlayer(host, v, opt, P, playFile) {
+  var store = new VideoStore(v), msg = el("div", "vmsg", "Loading the video…"), stopped = false, current = null;
+  msg.style.zIndex = 2; msg.style.pointerEvents = "none";
+  host.appendChild(msg);
+  P.destroy = function () { stopped = true; store.dead = true; if (current) current(); };
+  function say(t) { msg.textContent = t; if (!msg.parentNode) host.appendChild(msg); }
+  function quiet() { if (msg.parentNode) msg.parentNode.removeChild(msg); }
+  function broken() {
+    say("The video couldn't load. Reload the page to try again.");
+    if (opt.onError) opt.onError("The video couldn't load from Google Drive. Reload the page to try again. (Teacher: run Video Check > Check the Questions tab for problems.)");
+  }
+  var canStream = !!(window.MediaSource && MediaSource.isTypeSupported && v.chunkBytes) && !/webm/i.test(v.mime || "");
+  if (canStream) loadScriptOnce(MP4BOX_URL, stream, whole); else whole();
+
+  /* Backup: load every piece, then play (the way it worked before streaming). */
+  function whole() {
+    if (stopped) return;
+    var parts = new Array(v.chunks), got = 0, nextN = 0, failed = false, mb = Math.round(v.size / 1048576);
+    say("Loading the video… 0%");
+    var worker = function () {
+      if (stopped || failed || nextN >= v.chunks) return;
+      var n = nextN++;
+      store.get(n).then(function (buf) {
+        if (stopped) return;
+        parts[n] = buf; got++;
+        say("Loading the video… " + Math.round(100 * got / v.chunks) + "%" + (mb >= 20 ? " (" + Math.round(mb * got / v.chunks) + " of " + mb + " MB)" : ""));
+        if (got === v.chunks) {
+          quiet();
+          var vd = playFile(URL.createObjectURL(new Blob(parts, { type: v.mime || "video/mp4" })), true);
+          parts = null;
+          current = function () { try { vd.pause(); } catch (e) {} };
+        } else worker();
+      }, function () { if (!failed && !stopped) { failed = true; broken(); } });
+    };
+    worker(); worker(); worker();
+  }
+
+  /* Streaming: starts after the first few MB and keeps loading while it plays. */
+  function stream() {
+    if (stopped) return;
+    var CH = v.chunkBytes, ms = new MediaSource(), mp4 = MP4Box.createFile(), vd = null, sbs = [];
+    var pos = 0, gen = 0, feeding = false, ready = false, done = false, ended = false;
+    var AHEAD = 45;   // seconds of video to keep loaded ahead of where it's playing
+    function giveUp() {
+      if (done || stopped) return;
+      done = true;
+      try { if (vd) { vd.pause(); vd.removeAttribute("src"); vd.load(); if (vd.parentNode) vd.parentNode.removeChild(vd); } } catch (e) {}
+      P.ready = false;
+      whole();
+    }
+    current = function () { done = true; };
+    mp4.onError = giveUp;
+    mp4.onReady = function (info) {
+      if (done) return;
+      try {
+        var tracks = [];
+        if (info.videoTracks && info.videoTracks[0]) tracks.push({ t: info.videoTracks[0], kind: "video", n: 60 });
+        if (info.audioTracks && info.audioTracks[0]) tracks.push({ t: info.audioTracks[0], kind: "audio", n: 60 });
+        if (!tracks.length) return giveUp();
+        var mimes = tracks.map(function (x) { return x.kind + '/mp4; codecs="' + x.t.codec + '"'; });
+        if (mimes.some(function (m) { return !MediaSource.isTypeSupported(m); })) return giveUp();
+        if (info.duration && info.timescale) ms.duration = info.duration / info.timescale;
+        tracks.forEach(function (x, k) {
+          var sb = ms.addSourceBuffer(mimes[k]);
+          sb.q = []; sb.addEventListener("updateend", function () { pump(sb); });
+          sb.addEventListener("error", giveUp);
+          mp4.setSegmentOptions(x.t.id, sb, { nbSamples: x.n });
+          sbs.push(sb);
+        });
+        mp4.initializeSegmentation().forEach(function (s) { s.user.q.push(s.buffer); pump(s.user); });
+        mp4.start();
+        ready = true;
+        var s = mp4.seek(opt.start > 0 ? opt.start : 0, true);   // skip straight to where the video starts
+        pos = s.offset; gen++;
+      } catch (e) { giveUp(); }
+    };
+    mp4.onSegment = function (id, sb, buf, sampleNum) {
+      if (done) return;
+      sb.q.push(buf); pump(sb);
+      try { mp4.releaseUsedSamples(id, sampleNum); } catch (e) {}
+    };
+    function pump(sb) {
+      if (done || sb.updating || ms.readyState === "closed") return;
+      try {
+        var b = sb.buffered, t = vd ? vd.currentTime : 0;
+        if (b.length && t - b.start(0) > 120) { sb.remove(b.start(0), t - 60); return; }   // let go of video long past
+      } catch (e) {}
+      if (!sb.q.length) return finish();
+      try { sb.appendBuffer(sb.q[0]); sb.q.shift(); }
+      catch (e) {
+        if (e && e.name === "QuotaExceededError" && vd) {
+          try { sb.remove(0, Math.max(0.5, vd.currentTime - 10)); } catch (e2) {}
+          setTimeout(function () { pump(sb); }, 500);
+        } else giveUp();
+      }
+    }
+    function finish() {
+      if (!ended || ms.readyState !== "open") return;
+      if (sbs.some(function (sb) { return sb.updating || sb.q.length; })) return;
+      try { ms.endOfStream(); } catch (e) {}
+    }
+    function ahead() {
+      if (!vd) return 0;
+      var t = vd.currentTime, b = vd.buffered;
+      for (var i = 0; i < b.length; i++) if (b.start(i) <= t + 0.5 && b.end(i) >= t) return b.end(i) - t;
+      return 0;
+    }
+    function feed() {
+      if (feeding || done) return;
+      feeding = true;
+      var g = gen;
+      (function step() {
+        if (done) { feeding = false; return; }
+        if (g !== gen) { g = gen; ended = false; }
+        if (pos >= v.size) {
+          feeding = false;
+          if (!ended) { ended = true; try { mp4.flush(); } catch (e) {} sbs.forEach(function (sb) { pump(sb); }); }
+          return;
+        }
+        if (P.ready && ahead() > AHEAD) { setTimeout(step, 700); return; }
+        var n = Math.floor(pos / CH), myGen = g;
+        store.get(n).then(function (buf) {
+          if (done) return;
+          if (myGen !== gen) return step();   // the student jumped somewhere else meanwhile
+          var off = pos - n * CH, piece = buf.slice(off);
+          piece.fileStart = pos;
+          var reach = pos + piece.byteLength, nxt = mp4.appendBuffer(piece);
+          if (myGen === gen) pos = (typeof nxt === "number" && nxt > pos) ? nxt : reach;
+          setTimeout(step, 0);
+        }, function () { feeding = false; if (!done && !stopped) { done = true; broken(); } });
+      })();
+    }
+    ms.addEventListener("sourceopen", function () { feed(); });
+    vd = playFile(URL.createObjectURL(ms), true, giveUp);
+    vd.addEventListener("seeking", function () {
+      if (!ready || done) return;
+      try {
+        var s = mp4.seek(vd.currentTime, true);
+        sbs.forEach(function (sb) { sb.q = []; });
+        pos = s.offset; gen++; ended = false;
+        feed();
+      } catch (e) { giveUp(); }
+    });
+    vd.addEventListener("timeupdate", function () { if (!feeding && !done && pos < v.size && ahead() < AHEAD / 2) feed(); });
+    vd.addEventListener("loadedmetadata", function () { quiet(); store.saveAll(); });
+    setTimeout(function () { if (!P.ready && !done && !stopped) giveUp(); }, 25000);   // never started: use the backup
+  }
+}
+
+function b64ToBytes(s) {
+  var bin = atob(s), out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/* Timing shared by the student and teacher screens. */
+var P = null, VS = 0, VE = 0;
+function endT() { return VE || (P && P.duration()) || 0; }
+/** When the video stops for question i. null = after the video ends. */
+function qt(i) {
+  var t = Q(i).t;
+  if (t == null) return null;
+  if (t <= VS) return VS + 0.3;
+  var E = endT();
+  if (E && t >= E - 0.3) return null;
+  return t;
+}
+function timedOrder() {
+  var list = [];
+  (S || T).questions.forEach(function (q, i) { if (qt(i) != null) list.push(i); });
+  return list.sort(function (a, b) { return qt(a) - qt(b); });
+}
+function endOrder() {
+  var list = [];
+  (S || T).questions.forEach(function (q, i) { if (qt(i) == null) list.push(i); });
+  return list;
+}
+function figure(q, i) {
+  var fig = el("figure", "qimg");
+  var im = el("img"); im.src = q.img; im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
+  fig.appendChild(im);
+  if (q.imgCaption) fig.appendChild(el("figcaption", null, q.imgCaption));
+  return fig;
+}
+function stageOverlay(stage, content) {
+  closeOverlayEl(stage);
+  var ov = el("div", "overlay"); ov.id = "overlay";
+  var card = el("div", "ocard");
+  card.appendChild(content);
+  ov.appendChild(card);
+  stage.appendChild(ov);
+  stage.classList.add("qopen");
+  ov.scrollTop = 0;
+  return card;
+}
+function closeOverlayEl(stage) {
+  var ov = document.getElementById("overlay");
+  if (ov) ov.parentNode.removeChild(ov);
+  if (stage) stage.classList.remove("qopen");
+}
+
+/* ============================== QUESTION CARD (students) ============================== */
+function blockPaste(field, i) {
+  if (!S.blockPaste) return;
+  var stop = function (e) { e.preventDefault(); setMeta(i, "Pasting is turned off. Type your answer in your own words.", "#cc0000"); };
+  field.addEventListener("paste", stop);
+  field.addEventListener("drop", stop);
+  field.addEventListener("beforeinput", function (e) { if (/insertFrom(Paste|Drop)/.test(e.inputType || "")) stop(e); });
+}
+
+function buildCard(i, host) {
+  var q = Q(i), locked = S.locked;
+  var card = el("div", "item");
+  var qtx = el("div", "qtext");
+  qtx.appendChild(el("span", "qnum" + (q.type === "note" ? " note" : ""), q.type === "note" ? "Note" : qLabel(q.num)));
+  qtx.appendChild(document.createTextNode(q.text));
+  if (q.type === "mc" && q.multi) qtx.appendChild(el("div", "multi", chooseText(q)));
+  if (q.img) qtx.appendChild(figure(q, i));
+  card.appendChild(qtx);
+  if (q.type === "mc") {
+    var ch = el("div", "choices"); ch.id = "a" + i;
+    ch.setAttribute("role", "group"); ch.setAttribute("aria-label", "Answer choices");
+    q.choices.forEach(function (c, k) {
+      var b = btn("", "choice", function () { pick(i, k); });
+      b.setAttribute("data-k", String(k)); b.disabled = locked;
+      b.appendChild(el("span", "let", LETTERS.charAt(k)));
+      b.appendChild(el("span", "ctext", c));
+      ch.appendChild(b);
+    });
+    card.appendChild(ch);
+  } else if (q.type === "open") {
+    var ta = el("textarea"); ta.id = "a" + i; ta.value = cur[i] || ""; ta.disabled = locked;
+    ta.placeholder = "Type your answer here…"; ta.setAttribute("aria-label", "Your answer");
+    blockPaste(ta, i);
+    ta.addEventListener("input", function () {
+      cur[i] = ta.value;
+      ta.className = "";
+      setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+    });
+    ta.addEventListener("blur", function () { check(i, false); });
+    card.appendChild(ta);
+  }
+  if (q.type !== "note") {
+    var fb = el("div", "fb"); fb.id = "f" + i; fb.setAttribute("aria-live", "polite");
+    var row = el("div", "row");
+    var meta = el("span", "meta"); meta.id = "m" + i;
+    var b2 = btn("Check", "secondary", function () { check(i, true); }); b2.id = "b" + i; b2.disabled = locked;
+    row.appendChild(meta); row.appendChild(b2);
+    card.appendChild(fb); card.appendChild(row);
+  }
+  host.appendChild(card);
+  paintCard(i);
+  if (S.unchecked && S.unchecked[i] && answerOf(i) !== saved[i]) setMeta(i, "Saved as a draft. Press Check for feedback.", "#b45f06");
+  return card;
+}
+
+/** Multiple-response questions always say how many answers are right. */
+function chooseText(q) { return q.nRight > 1 ? "Choose " + q.nRight + " answers." : "Choose all that apply."; }
+
+function pick(i, k) {
+  if (S.locked) return;
+  var q = Q(i), set = answerOf(i) ? answerOf(i).split(",").map(Number) : [];
+  if (q.multi) { var at = set.indexOf(k); if (at === -1) set.push(k); else set.splice(at, 1); }
+  else set = [k];
+  set.sort(function (a, b) { return a - b; });
+  cur[i] = set.join(",");
+  paintCard(i);
+  setMeta(i, cur[i] && cur[i] !== saved[i] ? "Press Check" : "", "#b45f06");
+}
+
+function paintCard(i) {
+  var q = Q(i), res = (S.results && S.results[i]) || { status: "blank", message: "" };
+  var box = document.getElementById("a" + i), checkedNow = answerOf(i) === saved[i];
+  if (box && q.type === "mc") {
+    var picks = answerOf(i) ? answerOf(i).split(",") : [];
+    Array.prototype.forEach.call(box.children, function (b) {
+      var on = picks.indexOf(b.getAttribute("data-k")) !== -1;
+      b.className = "choice" + (on ? " sel" : "") + (on && checkedNow && res.status !== "blank" ? " " + res.status : "");
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  } else if (box && q.type === "open") {
+    box.className = checkedNow && res.status !== "blank" ? res.status : "";
+  }
+  var fb = document.getElementById("f" + i);
+  if (fb) fb.textContent = res.message || "";
+}
+
+function setMeta(i, text, color) {
+  var m = document.getElementById("m" + i);
+  if (!m) return;
+  m.textContent = text; m.style.color = color || "#666";
+}
+function setBtnBusy(i, busy) { var b = document.getElementById("b" + i); if (b) b.disabled = busy || S.locked; }
+
+function setResult(i, res) {
+  S.results[i] = res;
+  paintCard(i);
+  if (window.onResultHook) onResultHook(i);
+  updateProgress();
+}
+
+/** How far the student has watched, sent with each answer (self-paced only). */
+function watchedPos() { return S && S.mode === "self" ? Math.round(maxW * 10) / 10 : null; }
+
+/**
+ * Check = two steps (same as Self-Check).
+ *  1. FAST: the server grades only (no waiting in line) and the page shows the color + hint.
+ *  2. BACKGROUND: save, retrying quietly if the server is busy.
+ */
+function check(i, force) {
+  var val = answerOf(i);
+  if (S.locked || pending[i] || Q(i).type === "note") return;
+  if (!val) { if (force) setMeta(i, Q(i).type === "mc" ? "Pick an answer first." : "Type your answer first.", "#cc0000"); return; }
+  if (!force && val === saved[i]) return;
+  pending[i] = true;
+  clearTimeout(draftTimer[i]);
+  setMeta(i, "Checking…", "#666"); setBtnBusy(i, true);
+  var prior = (S.tries && S.tries[i]) || 0;
+  RETRY_FAST(call("gradeAnswer", [i, val, prior]), function (resp) {
+    pending[i] = false; setBtnBusy(i, false);
+    var wasNew = val !== saved[i];
+    saved[i] = val;
+    if (Q(i).type === "mc" && wasNew && resp.result.status === "incorrect") S.tries[i] = prior + 1;
+    setResult(i, resp.result);
+    if (answerOf(i) !== val) setMeta(i, "Not checked yet", "#b45f06");
+    else setMeta(i, "Checked. Saving…", "#666");
+    queueSave(i, val);
+  }, function (err) {
+    pending[i] = false; setBtnBusy(i, false);
+    setMeta(i, "Couldn't check yet, but your answer is still here. Wait a minute, then press Check again.", "#cc0000");
+    if (isSignInError(err)) signedOutMidway();
+    else if (err && err.message && /sign in|locked|NOT OPEN/i.test(err.message)) showError(err);
+  }, function () { setMeta(i, "Checking… (lots of students are checking, so hang on)", "#666"); });
+}
+
+/** Saves the newest checked answer for a question, one save at a time, in order. */
+function queueSave(i, val) {
+  saveWant[i] = val;
+  if (saving[i]) return;
+  saving[i] = true;
+  var v = saveWant[i];
+  withRetry(call("checkAnswer", [i, v, watchedPos()]), function (resp) {
+    saving[i] = false;
+    draftSaved[i] = v;
+    if (resp && typeof resp.tries === "number") S.tries[i] = resp.tries;
+    if (resp && resp.result && v === saved[i]) setResult(i, resp.result);   // the server's copy (same grader, real try count)
+    if (resp && typeof resp.grade === "number" && !savesRunning()) S.grade = resp.grade;
+    updateProgress();
+    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
+    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    saving[i] = false;
+    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
+    if (isSignInError(err)) signedOutMidway();
+    else if (err && err.message && /sign in|locked|NOT OPEN/i.test(err.message)) showError(err);
+  }, 0, function () {
+    if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students are saving, so hang on)", "#666");
+  });
+}
+function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
+
+function autosave(i) {
+  var val = answerOf(i);
+  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
+  api.run("saveDraft", [i, val], function (resp) {
+    if (resp && resp.saved) {
+      draftSaved[i] = val;
+      if (answerOf(i) === val && val !== saved[i]) setMeta(i, "Draft saved " + stamp() + ". Press Check for feedback.", "#b45f06");
+    } else if (!(resp && resp.locked)) {
+      clearTimeout(draftTimer[i]); draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+    }
+  }, function (err) {
+    if (isSignInError(err)) { signedOutMidway(); return; }
+    clearTimeout(draftTimer[i]); draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+  });
+}
+
+/* Running grade from the colors on the page (same formula as the server). Notes don't count. */
+function localGrade() {
+  if (!S.credit) return S.grade;
+  var earned = 0, n = 0;
+  S.questions.forEach(function (q, i) { if (q.type === "note") return; n++; earned += S.credit[(S.results[i] && S.results[i].status) || "blank"] || 0; });
+  if (!n) return 0;
+  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
+  return Math.round(pts / S.roundTo) * S.roundTo;
+}
+function countColors() {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0, n: 0 };
+  S.questions.forEach(function (q, i) { if (q.type === "note") return; c.n++; c[(S.results[i] && S.results[i].status) || "blank"]++; });
+  return c;
+}
+function progressBar() {
+  var box = el("div", "progress"); box.id = "progress";
+  box.innerHTML = '<div class="bar"><span id="bG" style="background:var(--green)"></span><span id="bY" style="background:var(--yellow)"></span><span id="bR" style="background:var(--red)"></span></div>' +
+    '<span class="chip"><i class="dot" style="background:var(--green)"></i><b id="nG">0</b></span>' +
+    '<span class="chip"><i class="dot" style="background:var(--yellow)"></i><b id="nY">0</b></span>' +
+    '<span class="chip"><i class="dot" style="background:var(--red)"></i><b id="nR">0</b></span>' +
+    '<span class="chip"><i class="dot"></i><b id="nB">0</b> left</span>' +
+    '<span class="grade" id="grade"></span>';
+  return box;
+}
+function updateProgress() {
+  if (!document.getElementById("progress")) return;
+  var c = countColors(), n = c.n || 1;
+  S.grade = localGrade();
+  document.getElementById("nG").textContent = c.correct;
+  document.getElementById("nY").textContent = c.partial;
+  document.getElementById("nR").textContent = c.incorrect;
+  document.getElementById("nB").textContent = c.blank;
+  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
+  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
+  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
+  document.getElementById("grade").textContent = S.showGrade ? ("Grade: " + S.grade + " / " + S.maxPoints) : "";
+}
+
+function finishBlock() {
+  var box = el("div", "finish");
+  var fin = btn("I'm finished", "", finish); fin.id = "finishBtn";
+  var meta = el("div", "meta"); meta.id = "finishMeta"; meta.style.marginTop = "8px";
+  box.appendChild(fin); box.appendChild(meta);
+  return box;
+}
+function updateFinish() {
+  var meta = document.getElementById("finishMeta"), fin = document.getElementById("finishBtn");
+  if (!meta) return;
+  if (S.turnedIn) {
+    meta.textContent = "Turned in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) +
+      (S.locked ? ". Your answers are locked." : ". You can still fix answers until the due date. Your teacher sees your latest work.") +
+      " Don't forget to click Mark as done in Google Classroom.";
+    fin.textContent = S.locked ? "Turned in" : "Turn in again";
+    fin.disabled = S.locked;
+  } else {
+    meta.textContent = "Click when you've answered everything. Then click Mark as done in Google Classroom.";
+  }
+}
+var FINISH_MESSAGE = "This will submit your assignment. Click Mark as done in Google Classroom.";
+function finish() {
+  var c = countColors();
+  askConfirm(FINISH_MESSAGE + (c.blank ? "\n\nYou still have " + c.blank + " unanswered question" + (c.blank === 1 ? "" : "s") + "." : ""), doFinish);
+}
+function doFinish() {
+  var fin = document.getElementById("finishBtn"); if (fin) fin.disabled = true;
+  // Anything typed but not checked yet gets checked and saved first, so no work is lost.
+  S.questions.forEach(function (q, i) { if (q.type !== "note" && answerOf(i) && answerOf(i) !== saved[i]) check(i, true); });
+  var waited = 0;
+  (function whenSaved() {
+    var busy = savesRunning() || Object.keys(pending).some(function (k) { return pending[k]; });
+    if (busy && waited < 90000) { waited += 500; if (fin) fin.textContent = "Saving your answers…"; return setTimeout(whenSaved, 500); }
+    if (fin) fin.textContent = "I'm finished";
+    withRetry(call("turnIn"), function (resp) {
+      S.turnedIn = resp.turnedIn;
+      if (resp.locked) {
+        S.locked = true;
+        document.querySelectorAll("textarea, .choice, .row button").forEach(function (x) { x.disabled = true; });
+      }
+      if (fin) fin.disabled = S.locked;
+      updateFinish(); updateProgress();
+      toast("Turned in! Now click Mark as done in Google Classroom.", 5000);
+    }, function (err) { if (fin) fin.disabled = false; if (isSignInError(err)) signedOutMidway(); else showError(err); });
+  })();
+}
+
+window.addEventListener("beforeunload", function (e) {
+  if (!S || !S.questions) return;
+  var dirty = savesRunning() || S.questions.some(function (q, i) { return q.type === "open" && answerOf(i) !== (draftSaved[i] || "") && answerOf(i) !== (saved[i] || ""); });
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ============================== STUDENT: START ============================== */
+function studentBoot() {
+  withRetry(call("getStudentState"), function (state) {
+    if (state && state.needSignIn) { setToken(""); S = null; showSignIn(state, false); return; }
+    S = state;
+    stopTimers();
+    cardEl = {}; fixList = false;
+    if (S.mode === "wait") return renderWait();
+    cur = []; saved = []; draftSaved = [];
+    S.questions.forEach(function (q, i) {
+      cur[i] = S.answers[i] || "";
+      saved[i] = (S.checkedAnswers ? S.checkedAnswers[i] : S.answers[i]) || "";
+      draftSaved[i] = S.answers[i] || "";
+    });
+    S.tries = S.tries || [];
+    if (S.mode === "live") renderStudentLive(); else renderSelf();
+  }, function (err) {
+    // The front door can't reach the sheet at all: most often the deployment isn't set to "Anyone" yet.
+    if (FRONT && /^NETWORK/.test(String(err && err.message))) err = new Error(err.message + " If it still won't open, please tell your teacher.");
+    showError(err);
+  }, 0, function () { document.getElementById("loading").textContent = "Loading… (lots of students are opening this, so hang on)"; });
+}
+var timers = [];
+function stopTimers() {
+  timers.forEach(function (t) { clearInterval(t); clearTimeout(t); });
+  timers = [];
+  if (P) { P.destroy(); P = null; }
+  window.onResultHook = null;
+}
+
+/* ---------- waiting for the live lesson ---------- */
+function renderWait() {
+  var app = clearApp();
+  header(app, S.title, "Signed in as " + S.name);
+  var box = el("div", "livebox");
+  box.appendChild(el("h2", null, "Not open yet"));
+  box.appendChild(el("p", null, S.message));
+  box.appendChild(el("div", "waitnote", "This page checks by itself. When your teacher starts the live lesson, it opens right here."));
+  app.appendChild(box);
+  (function poll() {
+    timers.push(setTimeout(function () {
+      api.run("livePoll", [], function (r) {
+        if (r && (r.on || r.open)) studentBoot(); else poll();
+      }, function (err) { if (isSignInError(err)) signedOutMidway(); else poll(); });
+    }, 5000 + Math.floor(Math.random() * 2500)));
+  })();
+}
+
+/* ---------- live lesson (student) ---------- */
+function renderStudentLive() {
+  var app = clearApp();
+  header(app, S.title, "Signed in as " + S.name + ". Your work saves automatically.");
+  app.appendChild(progressBar());
+  var host = el("div"); host.id = "livehost";
+  app.appendChild(host);
+  var chips = el("div", "qchips"); chips.id = "livechips";
+  app.appendChild(chips);
+  window.onResultHook = function () { drawLiveChips(); };
+  showLiveQ();
+  updateProgress();
+  (function poll(ms) {
+    timers.push(setTimeout(function () {
+      var sent = Date.now();
+      api.run("livePoll", [], function (r) {
+        noteLiveClock(r, sent);
+        if (!r || !r.on) {
+          // The teacher ended the live lesson: open the video on this device right away.
+          var q = S.live.q;
+          if (q >= 0 && Q(q).type === "open" && answerOf(q) && answerOf(q) !== saved[q]) check(q, false);
+          cameFromLive = true;
+          setTimeout(studentBoot, savesRunning() ? 2500 : 600);
+          return;
+        }
+        var changed = r.q !== S.live.q;
+        S.live.opened = r.opened || [];
+        if (r.question && r.q >= 0) S.questions[r.q] = r.question;   // the question the teacher just opened (never sooner)
+        if (changed) {
+          var old = S.live.q;
+          if (old >= 0 && Q(old).type === "open" && answerOf(old) && answerOf(old) !== saved[old]) check(old, false);   // teacher moved on: keep what was typed
+          S.live.q = r.q;
+          showLiveQ();
+        } else drawLiveChips();
+        poll(livePollDelay(r));
+      }, function (err) { if (isSignInError(err)) signedOutMidway(); poll(); });   // keeps polling: it works again once they sign back in
+    }, ms != null ? ms : 2200 + Math.floor(Math.random() * 1200)));
+  })();
+}
+/* The server's clock minus this device's, from the quickest check so far (the quickest gives the truest reading). */
+var liveClock = { off: 0, rtt: 0 };
+function noteLiveClock(r, sent) {
+  if (!r || !r.now) return;
+  var rtt = Date.now() - sent;
+  if (liveClock.rtt && rtt > liveClock.rtt * 1.25) return;
+  liveClock.off = r.now - (sent + rtt / 2);
+  liveClock.rtt = liveClock.rtt ? Math.min(liveClock.rtt, rtt) : rtt;
+}
+/* Usually every few seconds. When the live screen has said when the video will stop (r.next), the next check is
+   timed to reach the server just after that moment, spread over about half a second so the class doesn't all arrive
+   at once (Google limits how many checks can run at the same time). */
+function livePollDelay(r) {
+  var normal = 2200 + Math.floor(Math.random() * 1200);
+  if (!r || !r.next || r.q >= 0) return normal;
+  var send = r.next - liveClock.off - liveClock.rtt / 2 + 60 + Math.floor(Math.random() * 600);
+  return Math.max(150, Math.min(normal, send - Date.now()));
+}
+var liveShown = -1;
+function showLiveQ(forced) {
+  var host = document.getElementById("livehost");
+  if (!host) return;
+  var q = forced != null ? forced : S.live.q;
+  liveShown = q;
+  host.innerHTML = "";
+  if (q < 0) {
+    var box = el("div", "livebox");
+    var h = el("h2"); h.appendChild(el("span", "pulse")); h.appendChild(document.createTextNode("Live lesson: watch the board"));
+    box.appendChild(h);
+    box.appendChild(el("p", null, "When the video stops for a question, it pops up right here."));
+    host.appendChild(box);
+  } else if (Q(q).hidden) {
+    host.appendChild(el("div", "livebox", "Loading the question…"));
+    api.run("revealQuestion", [q, 0, 0], function (data) { if (data) { S.questions[q] = data; if (liveShown === q) showLiveQ(forced); } }, function () {});
+  } else {
+    var tag = el("div", "strip", forced != null ? "Fixing an earlier question" : "Answer on your device, then press Check");
+    host.appendChild(tag);
+    buildCard(q, host);
+    var note = el("div", "waitnote", Q(q).type === "note" ? "Your teacher will keep the video going." : "Your teacher continues the video when the class is ready. You can fix answers any time.");
+    note.style.textAlign = "center";
+    host.appendChild(note);
+    if (forced != null) {
+      var back = btn("Back to the live question", "secondary", function () { showLiveQ(); });
+      back.style.display = "block"; back.style.margin = "10px auto";
+      host.appendChild(back);
+    }
+  }
+  drawLiveChips();
+}
+function drawLiveChips() {
+  var box = document.getElementById("livechips");
+  if (!box) return;
+  box.innerHTML = "";
+  var opened = (S.live.opened || []).filter(function (i) { return Q(i).type !== "note"; });
+  if (!opened.length) return;
+  box.appendChild(el("span", "meta", "Questions so far:"));
+  opened.sort(function (a, b) { return a - b; }).forEach(function (i) {
+    var s = (S.results[i] && S.results[i].status) || "blank";
+    var c = btn(qLabel(Q(i).num), "qchip" + (s !== "blank" ? " " + s + "-bg" : ""), function () {
+      if (i === S.live.q) showLiveQ(); else showLiveQ(i);
+    });
+    box.appendChild(c);
+  });
+}
+
+/* ============================== STUDENT: WATCH ON YOUR OWN ============================== */
+var maxW = 0, lastT = null, armed = {}, openQ = -1, openFrom = "", endDone = false, noteSeen = {};
+var progSaved = 0, progAt = 0, progBusy = false, endQueue = [], skipToastAt = 0, reachedEnd = false;
+var cameFromLive = false;   // this page just switched over from a live lesson that ended
+var cardEl = {};            // question index -> its one card, moved between the list under the video and the video
+var fixList = false;        // the list under the video has at least one question in it
+var revealing = {};         // question index -> true while its text is being fetched
+var listSyncAt = 0;
+
+/** Puts question i's card into host (moving it if it's somewhere else). One card per question, so ids stay unique. */
+function attachCard(i, host) {
+  if (Q(i).hidden) return null;   // not reached yet: the page doesn't even have the question
+  if (!cardEl[i]) { var holder = el("div"); cardEl[i] = buildCard(i, holder); }
+  host.appendChild(cardEl[i]);
+  paintCard(i);
+  if (S.unchecked && S.unchecked[i] && answerOf(i) !== saved[i]) setMeta(i, "Saved as a draft. Press Check for feedback.", "#b45f06");
+  return cardEl[i];
+}
+/** After the video's overlay closes, the card goes back to its place in the fix list. */
+function returnCard(i) {
+  var slot = document.getElementById("slot" + i);
+  if (slot) { slot.innerHTML = ""; slot.className = "slot"; attachCard(i, slot); }
+  else if (cardEl[i] && cardEl[i].parentNode) cardEl[i].parentNode.removeChild(cardEl[i]);
+}
+function closeQuestionOverlay() {
+  var prev = openQ;
+  openQ = -1;
+  closeOverlayEl(document.getElementById("stage"));
+  if (prev >= 0) returnCard(prev);
+}
+/** Gets question i's text from the server. The server refuses until this student's video has reached it. */
+function fetchQuestion(i, pos, done) {
+  if (!Q(i).hidden) { if (done) done(true); return; }
+  if (revealing[i]) return;
+  revealing[i] = true;
+  api.run("revealQuestion", [i, Math.round(pos * 10) / 10, Math.round(endT())], function (q) {
+    revealing[i] = false;
+    if (q) S.questions[i] = q;
+    syncList(true);
+    if (done) done(!!q);
+  }, function (err) {
+    revealing[i] = false;
+    if (isSignInError(err)) signedOutMidway();
+    if (done) done(false, err);
+  });
+}
+
+/**
+ * The list under the video. A question shows up here once it has come up in the video, and then it
+ * stays, so it can be fixed any time without rewatching. Questions the video hasn't reached never appear.
+ */
+function syncList(now) {
+  var box = document.getElementById("fixlist");
+  if (!box || (!now && Date.now() - listSyncAt < 800)) return;
+  listSyncAt = Date.now();
+  var head = document.getElementById("fixhead"), note = document.getElementById("fixnote");
+  var changed = false;
+  S.questions.forEach(function (q, i) {
+    if (q.type === "note" || !reachable(i)) return;
+    if (q.hidden) { fetchQuestion(i, Math.max(maxW, qt(i) == null ? endT() : qt(i))); return; }
+    if (document.getElementById("slot" + i)) return;
+    changed = true;
+    if (!head) {
+      head = el("div", "strip"); head.id = "fixhead"; box.appendChild(head);
+      note = el("div", "intro"); note.id = "fixnote"; box.appendChild(note);
+    }
+    var slot = el("div", "slot"); slot.id = "slot" + i;
+    var next = null;   // keep the list in question order
+    for (var j = i + 1; j < S.questions.length && !next; j++) next = document.getElementById("slot" + j);
+    box.insertBefore(slot, next);
+    if (openQ === i) slot.appendChild(el("div", "slotnote", qLabel(q.num) + " is open on the video above."));
+    else attachCard(i, slot);
+    fixList = true;
+  });
+  if (head) {
+    box.hidden = false;
+    head.textContent = reachedEnd ? "FIX ANY ANSWER" : "QUESTIONS SO FAR";
+    note.textContent = reachedEnd
+      ? "You've watched the whole video, so every question is here. Change an answer and press Check. You don't have to rewatch anything, but you can replay any part above."
+      : "Each question shows up here after it comes up in the video. Fix any of them here without rewatching.";
+  }
+  var reachNow = S.questions.filter(function (q, i) { return reachable(i); }).length;
+  if (changed || now || reachNow !== syncList.last) { syncList.last = reachNow; drawChips(); }
+}
+function renderFixList() { syncList(true); }
+
+function renderSelf() {
+  var app = clearApp();
+  header(app, S.title, "Signed in as " + S.name + ". Your work saves automatically.");
+  if (S.teacher) app.appendChild(el("div", "banner blue", "Teacher preview: this is the student view. Your answers save like a student's, and skipping is always allowed for you. Like students, you only see each question once the video reaches it."));
+  var v = S.video || { kind: "none" };
+  VS = v.start || 0; VE = v.end || 0;
+  maxW = Math.max(S.watched || 0, VS);
+  reachedEnd = !!(S.dur && maxW >= (VE || S.dur) - 1.5);
+  if (cameFromLive) {
+    cameFromLive = false;
+    app.appendChild(el("div", "banner blue", "The live lesson is over, and the video is open for you now. " +
+      (reachedEnd ? "The class watched all of it together, so every question is open below to fix." : "Rewatch any part and fix any answer until the due date.")));
+  }
+  app.appendChild(el("div", "intro", S.intro));
+  if (v.error) app.appendChild(el("div", "banner error", v.error));
+
+  var stage = el("div", "stage"); stage.id = "stage";
+  app.appendChild(stage);
+  var tl = el("div", "tl"); tl.id = "tl";
+  tl.innerHTML = '<div class="track"></div><div class="seen" id="tlSeen"></div><div class="now" id="tlNow"></div>';
+  app.appendChild(tl);
+  var times = el("div", "times"); times.innerHTML = '<span id="tNow">0:00</span><span id="tEnd"></span>';
+  app.appendChild(times);
+  if (S.preventSkip && !reachedEnd) app.appendChild(el("div", "skipnote", "Skipping ahead is off until you've watched the video once. You can rewind any time, and every question you've reached stays open below so you can fix it without rewatching."));
+  var chips = el("div", "qchips"); chips.id = "chips";
+  app.appendChild(chips);
+  app.appendChild(progressBar());
+  var fl = el("div", "fixlist"); fl.id = "fixlist"; fl.hidden = true;
+  app.appendChild(fl);
+  app.appendChild(finishBlock());
+
+  // Where to start: the first question they reached but never answered, else where they left off.
+  var start = maxW;
+  var firstBlank = timedOrderRaw().filter(function (i) { return Q(i).type !== "note" && S.results[i].status === "blank" && Q(i).t <= maxW + 0.5; })[0];
+  if (firstBlank != null) start = Math.max(VS, Q(firstBlank).t - 2);
+  var E0 = VE || S.dur || 0;
+  if (E0 && start > E0 - 4) start = VS;
+  if (start < VS + 4) start = VS;
+  lastT = null; armed = {};
+  timedOrderRaw().forEach(function (i) { armed[i] = Q(i).t >= start - 0.2; });
+  if (start > VS + 4) toast("Picked up where you left off (" + fmt(start) + "). You can rewind any time.", 4500);
+  syncList(true);
+
+  P = makePlayer(stage, v, {
+    start: start,
+    onReady: function () { drawTimeline(); drawChips(); },
+    onError: function (msg) { showError(msg); }
+  });
+  window.onResultHook = function () { drawChips(); drawMarkers(); updateOverlayButtons(); };
+  timers.push(setInterval(tickSelf, 200));
+  document.addEventListener("visibilitychange", pauseWhenHidden);
+  drawChips(); updateProgress(); updateFinish();
+}
+/** Questions with a pause time, before the player knows the video length. */
+function timedOrderRaw() {
+  var list = [];
+  S.questions.forEach(function (q, i) { if (q.t != null) list.push(i); });
+  return list.sort(function (a, b) { return Q(a).t - Q(b).t; });
+}
+function pauseWhenHidden() {
+  if (document.hidden && P && S && S.mode === "self" && !S.teacher && P.state() === "playing") {
+    P.pause();
+    toast("The video paused because you left this tab.", 4000);
+  }
+}
+
+/** Should the video stop at question i on this pass? Only when there's still something to do. */
+function needsStop(i) {
+  var q = Q(i);
+  if (q.type === "note") return !noteSeen[i];
+  var s = (S.results[i] && S.results[i].status) || "blank";
+  return s === "blank" || s === "incorrect" || (s === "partial" && q.type === "open");
+}
+/** Has the video reached question i yet? Only then can it be opened (the teacher's preview follows the same rule). */
+function reachable(i) {
+  if ((S.results[i] && S.results[i].status !== "blank") || answerOf(i)) return true;
+  var t = qt(i);
+  return t == null ? reachedEnd : t <= maxW + 1;
+}
+
+function tickSelf() {
+  if (!P || !P.ready) return;
+  var t = P.time(), st = P.state(), playing = st === "playing" || st === "buffering", E = endT();
+  if (openQ !== -1 && playing) { P.pause(); return; }
+  if (S.preventSkip && t > maxW + 1.5) {
+    P.seek(maxW); lastT = maxW;
+    if (Date.now() - skipToastAt > 4000) { skipToastAt = Date.now(); toast("No skipping ahead: watch the new part first. You can rewind any time."); }
+    return;
+  }
+  if (t < VS - 0.5) { P.seek(VS); lastT = VS; return; }
+  var cont = lastT != null && t >= lastT - 0.05 && t - lastT < 2.5;
+  if (playing && cont && t > maxW) maxW = t;
+  var order = timedOrder();
+  order.forEach(function (i) {
+    var at = qt(i);
+    if (t < at - 0.4) armed[i] = true;
+    else if (!cont && lastT != null && t > at + 0.4) armed[i] = false;   // jumped past it (skipping is allowed)
+  });
+  // Fetch the next question a few seconds early so it pops up without a wait (the server allows this only just before its time).
+  order.forEach(function (i) {
+    var at = qt(i);
+    if (Q(i).hidden && playing && t >= at - 8 && t <= at + 2) fetchQuestion(i, t);
+  });
+  if (playing && cont && openQ === -1) {
+    for (var n = 0; n < order.length; n++) {
+      var i = order[n], at = qt(i);
+      if (armed[i] && t >= at - 0.15 && lastT < at + 0.3) {
+        armed[i] = false;
+        if (needsStop(i)) { P.pause(); openQuestion(i, "video"); break; }
+      }
+    }
+  }
+  var atEnd = st === "ended" || (E > 0 && t >= E - 0.25);
+  if (atEnd && !endDone && openQ === -1) {
+    endDone = true;
+    if (st !== "ended") P.pause();
+    if (E && maxW < E) maxW = E;
+    reachedEnd = true;
+    saveProgressNow();
+    syncList(true);
+    onVideoEnd();
+  }
+  if (E && t < E - 1.5) endDone = false;
+  lastT = t;
+  drawTimeline(t);
+  syncList();   // a question the video just passed (without stopping) joins the list under the video
+  if (maxW - progSaved >= 5 && (Date.now() - progAt > 45000 || !playing)) saveProgressNow();
+}
+function saveProgressNow() {
+  if (progBusy || maxW <= progSaved + 0.5) return;
+  progBusy = true;
+  var pos = Math.round(maxW * 10) / 10;
+  api.run("saveProgress", [pos, endT()], function (r) {
+    progBusy = false; progAt = Date.now();
+    if (r && r.saved) progSaved = pos;
+  }, function (err) { progBusy = false; progAt = Date.now(); if (isSignInError(err)) signedOutMidway(); });
+}
+
+var drawnE = 0;
+function drawTimeline(t) {
+  var E = endT();
+  if (!E) return;
+  if (t == null) t = P ? P.time() : 0;
+  var span = Math.max(1, E - VS), pct = function (x) { return Math.max(0, Math.min(100, 100 * (x - VS) / span)); };
+  document.getElementById("tlSeen").style.width = pct(maxW) + "%";
+  document.getElementById("tlNow").style.left = pct(t) + "%";
+  document.getElementById("tNow").textContent = fmt(t);
+  document.getElementById("tEnd").textContent = fmt(E);
+  if (drawnE !== E) { drawnE = E; drawMarkers(); drawChips(); }
+}
+function markerClass(i) {
+  var q = Q(i), s = (S.results[i] && S.results[i].status) || "blank";
+  return (q.type === "note" ? " note" : "") + (s !== "blank" ? " " + s + "-bg" : "") + (reachable(i) ? "" : " locked");
+}
+function drawMarkers() {
+  var tl = document.getElementById("tl"), E = endT();
+  if (!tl || !E) return;
+  Array.prototype.slice.call(tl.querySelectorAll(".mk")).forEach(function (m) { tl.removeChild(m); });
+  var span = Math.max(1, E - VS);
+  S.questions.forEach(function (q, i) {
+    var at = qt(i), x = at == null ? 100 : Math.max(0, Math.min(100, 100 * (at - VS) / span));
+    var open = reachable(i), label = q.type === "note" ? "i" : String(q.num);
+    // A question the video hasn't reached is only a grey dot: it shows where a question is, but can't be opened.
+    var m = open ? btn(label, "mk" + markerClass(i), function () { openFromNav(i); }) : el("span", "mk" + markerClass(i), label);
+    m.style.left = x + "%";
+    m.title = (q.type === "note" ? "Note" : "Question " + q.num) + (open ? (at == null ? " (after the video)" : " at " + fmt(at)) : " comes up " + (at == null ? "after the video" : "at " + fmt(at)));
+    m.setAttribute("aria-label", m.title);
+    tl.appendChild(m);
+  });
+}
+function drawChips() {
+  var box = document.getElementById("chips");
+  if (!box) return;
+  box.innerHTML = "";
+  var any = false;
+  S.questions.forEach(function (q, i) {
+    if (q.type === "note" || !reachable(i)) return;   // only questions the video has reached
+    if (!any) { box.appendChild(el("span", "meta", "Questions:")); any = true; }
+    var at = qt(i);
+    var c = btn("", "qchip" + markerClass(i), function () { openFromNav(i); });
+    c.appendChild(document.createTextNode(qLabel(q.num) + " "));
+    c.appendChild(el("small", null, at == null ? "end" : fmt(at)));
+    c.setAttribute("aria-label", "Question " + q.num + (at == null ? " after the video" : " at " + fmt(at)) + ", " + ({ correct: "green", partial: "yellow", incorrect: "red", blank: "not answered" })[(S.results[i] && S.results[i].status) || "blank"]);
+    box.appendChild(c);
+  });
+  drawMarkers();
+}
+function openFromNav(i) {
+  if (!reachable(i)) {
+    var at = qt(i);
+    toast(at == null ? "This question comes after the video ends." : "You'll get to this question at " + fmt(at) + " in the video.");
+    return;
+  }
+  var slot = document.getElementById("slot" + i);
+  if (slot && openQ !== i) {   // watched once already: go straight to the question in the list, no video needed
+    if (openQ === -2) closeQuestionOverlay();
+    slot.scrollIntoView({ behavior: "smooth", block: "center" });
+    slot.className = "slot flash";
+    setTimeout(function () { slot.className = "slot"; }, 1600);
+    var f = slot.querySelector("textarea, .choice");
+    if (f && !S.locked) setTimeout(function () { try { f.focus({ preventScroll: true }); } catch (e) {} }, 350);
+    return;
+  }
+  if (P && P.state() === "playing") P.pause();
+  openQuestion(i, "nav");
+}
+
+/** Shows question i over the video. from = "video" (the video stopped here), "nav" (clicked), or "end". */
+function openQuestion(i, from) {
+  closeQuestionOverlay();
+  openQ = i; openFrom = from;
+  var q = Q(i);
+  if (q.hidden) {   // the video just reached it: get the question from the server, then show it
+    var wait = el("div", "sum");
+    wait.appendChild(el("h2", null, "Loading " + (q.type === "note" ? "a note" : "question " + q.num) + "…"));
+    stageOverlay(document.getElementById("stage"), wait);
+    var tries = 0;
+    (function get() {
+      fetchQuestion(i, qt(i) == null ? Math.max(maxW, endT()) : Math.max(maxW, qt(i)), function (ok) {
+        if (openQ !== i) return;
+        if (ok) { openQuestion(i, from); return; }
+        if (++tries < 4) { setTimeout(get, 1500 * tries); return; }
+        wait.innerHTML = "";
+        wait.appendChild(el("h2", null, "Couldn't load this question."));
+        wait.appendChild(el("p", null, "Check your internet connection, then reload the page. Your answers are saved."));
+      });
+    })();
+    return;
+  }
+  if (q.type === "note") noteSeen[i] = true;
+  var wrap = el("div");
+  attachCard(i, wrap);
+  var slot = document.getElementById("slot" + i);
+  if (slot) { slot.innerHTML = ""; slot.appendChild(el("div", "slotnote", qLabel(q.num) + " is open on the video above.")); }
+  var bar = el("div", "obtns"); bar.id = "obtns";
+  if (qt(i) != null) bar.appendChild(btn("⟲ Rewatch this part", "secondary", function () { rewatch(i); }));
+  bar.appendChild(el("span", "spacer"));
+  var go = btn(from === "nav" ? "Back to the video" : "Continue ▶", "blue", function () { leaveQuestion(); });
+  go.id = "goBtn";
+  bar.appendChild(go);
+  wrap.appendChild(bar);
+  stageOverlay(document.getElementById("stage"), wrap);
+  updateOverlayButtons();
+  var first = wrap.querySelector("textarea, .choice");
+  if (first && !S.locked) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 50);
+  if (from === "video") saveProgressNow();
+}
+function canLeave(i) {
+  if (S.teacher || !S.preventSkip || S.locked || Q(i).type === "note") return true;
+  return (S.results[i] && S.results[i].status !== "blank") || !!answerOf(i);
+}
+function updateOverlayButtons() {
+  var go = document.getElementById("goBtn");
+  if (!go || openQ < 0) return;
+  go.disabled = !canLeave(openQ);
+  go.title = go.disabled ? "Answer the question first" : "";
+}
+function leaveQuestion() {
+  var i = openQ;
+  if (i < 0) return;
+  if (!canLeave(i)) { toast("Answer the question to keep going."); return; }
+  if (Q(i).type === "open" && answerOf(i) && answerOf(i) !== saved[i]) check(i, false);
+  var from = openFrom;
+  closeQuestionOverlay();
+  drawChips();
+  if (from === "video") { lastT = P.time(); P.play(); }
+  else if (from === "end") nextEndStep();
+}
+function rewatch(i) {
+  var at = qt(i), order = timedOrder(), prev = VS;
+  order.forEach(function (j) { if (qt(j) < at - 0.5) prev = Math.max(prev, qt(j)); });
+  var from = Math.max(VS, prev, at - 60);
+  if (Q(i).type === "open" && answerOf(i) && answerOf(i) !== saved[i]) check(i, false);
+  closeQuestionOverlay();
+  armed[i] = true;
+  P.seek(from); lastT = from;
+  P.play();
+  toast("Rewatching from " + fmt(from) + ". The video stops here again if the question isn't green yet.", 4000);
+}
+
+function onVideoEnd() {
+  endQueue = endOrder().filter(needsStop);
+  // With skipping allowed, questions that were jumped over are asked at the end too.
+  timedOrder().forEach(function (i) { if (Q(i).type !== "note" && S.results[i].status === "blank" && endQueue.indexOf(i) === -1) endQueue.push(i); });
+  nextEndStep();
+}
+function nextEndStep() {
+  if (endQueue.length) { openQuestion(endQueue.shift(), "end"); return; }
+  showSummary();
+}
+function showSummary() {
+  var c = countColors();
+  var wrap = el("div", "sum");
+  wrap.appendChild(el("h2", null, "You reached the end of the video!"));
+  wrap.appendChild(el("p", null, c.correct + " green, " + c.partial + " yellow, " + c.incorrect + " red" + (c.blank ? ", " + c.blank + " not answered" : "") + "."));
+  var fix = [];
+  S.questions.forEach(function (q, i) { if (q.type !== "note" && S.results[i].status !== "correct" && !(q.type === "mc" && S.results[i].status === "partial")) fix.push(i); });
+  if (fix.length) {
+    wrap.appendChild(el("p", null, "You can still fix these until the due date. Click one to open it:"));
+    var row = el("div", "qchips");
+    fix.forEach(function (i) {
+      var s = S.results[i].status;
+      row.appendChild(btn(qLabel(Q(i).num), "qchip" + (s !== "blank" ? " " + s + "-bg" : ""), function () {
+        closeQuestionOverlay(); openFromNav(i);
+      }));
+    });
+    wrap.appendChild(row);
+    if (fixList) wrap.appendChild(el("p", null, "Every question is also listed under the video now, so you can fix any of them without rewatching."));
+  } else wrap.appendChild(el("p", null, "Everything that can be fixed is done. Nice work!"));
+  if (S.showGrade) wrap.appendChild(el("p", null, "Grade so far: " + localGrade() + " / " + S.maxPoints));
+  var bar = el("div", "obtns");
+  bar.appendChild(btn("Watch again from the start", "secondary", function () {
+    closeQuestionOverlay();
+    endDone = false; P.seek(VS); lastT = VS; P.play();
+  }));
+  bar.appendChild(el("span", "spacer"));
+  bar.appendChild(btn("Close", "secondary", function () { closeQuestionOverlay(); }));
+  if (!S.locked) bar.appendChild(btn(S.turnedIn ? "Turn in again" : "I'm finished", "blue", function () {
+    closeQuestionOverlay(); finish();
+  }));
+  var box = el("div"); box.appendChild(wrap); box.appendChild(bar);
+  closeQuestionOverlay();
+  openQ = -2;   // keeps the video paused while the summary is up
+  stageOverlay(document.getElementById("stage"), box);
+}
+
+/* ============================== TEACHER: LIVE LESSON SCREEN ============================== */
+var TL = { preview: false, open: -1, results: false, showMissing: false, showAnswers: false, status: null, endQueue: [], reach: 0 };
+
+function teacherBoot() {
+  document.body.classList.add("teacher");
+  document.getElementById("loading").textContent = "Loading the live lesson screen…";
+  withRetry(call("getTeacherState"), function (t) {
+    T = t;
+    if (T.live) renderTeacherLive(false); else renderTeacherHome();
+  }, showError);
+}
+function periodLabel(p) { return "Period " + p.period; }
+
+function renderTeacherHome(msg) {
+  stopTimers();
+  TL.open = -1;
+  var app = clearApp();
+  header(app, T.title, "Live lesson screen. Only you can open this page.");
+  if (msg) app.appendChild(el("div", "banner blue", msg));
+  if (T.video.error) app.appendChild(el("div", "banner error", T.video.error));
+  var nq = T.questions.filter(function (q) { return q.type !== "note"; }).length;
+  app.appendChild(el("div", "intro", nq + " questions. Put this screen on the projector, pick the period, and press Start. " +
+    "The video stops at each question on your screen, and it pops up on every student's device in that period."));
+  app.appendChild(el("div", "strip", "PERIODS"));
+  if (!T.periods.length) {
+    app.appendChild(el("div", "banner", "No classes are linked yet. In the spreadsheet, run Video Check > 1. Link Google Classroom classes. You can still preview below."));
+  } else {
+    var tb = el("table", "periods");
+    tb.innerHTML = "<thead><tr><th>Period</th><th>Class</th><th>Students</th><th>Watching on their own</th><th></th></tr></thead>";
+    var body = el("tbody");
+    T.periods.forEach(function (p) {
+      var tr = el("tr");
+      tr.appendChild(el("td", null, p.period));
+      tr.appendChild(el("td", null, p.name));
+      tr.appendChild(el("td", null, String(p.students)));
+      var st = el("td");
+      if (!T.waitForLive) st.appendChild(el("span", "tag open", "Open (no waiting)"));
+      else if (p.open) st.appendChild(el("span", "tag open", "Open since " + new Date(p.open).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" })));
+      else st.appendChild(el("span", "tag wait", "Waits for the live lesson"));
+      tr.appendChild(st);
+      var bt = el("td", "btns");
+      bt.appendChild(btn("Start live lesson", "blue", function () { startLive(p.period); }));
+      if (T.waitForLive) {
+        bt.appendChild(btn(p.open ? "Make them wait" : "Open without live", "secondary", function () {
+          withRetry(call("setPeriodOpen", [p.period, !p.open]), function (periods) { T.periods = periods; renderTeacherHome(); }, showError);
+        }));
+      }
+      tr.appendChild(bt);
+      body.appendChild(tr);
+    });
+    tb.appendChild(body);
+    app.appendChild(tb);
+  }
+  var pv = btn("Preview the video with its questions (students don't see this)", "secondary", function () { renderTeacherLive(true); });
+  pv.style.marginTop = "14px";
+  app.appendChild(pv);
+  if (T.studentLink) {
+    var lb = el("div", "linkbox");
+    lb.appendChild(el("b", null, "Student link: ")); lb.appendChild(document.createTextNode(T.studentLink));
+    app.appendChild(lb);
+  }
+}
+function startLive(period) {
+  withRetry(call("liveStart", [period]), function (live) { T.live = live; renderTeacherLive(false); }, showError);
+}
+
+function renderTeacherLive(preview) {
+  stopTimers();
+  // reach = the furthest point the projector's video has been. Students who joined get all of it counted as watched.
+  TL = { preview: preview, open: -1, results: false, showMissing: false, showAnswers: false, status: null, endQueue: [],
+         reach: (!preview && T.live && T.live.reach) || 0, showNotJoined: false,
+         next: { q: -1, at: 0, sent: 0 }, oneWay: 250 };   // next = what the server was told about the coming stop (armNext)
+  var app = clearApp();
+  document.title = T.title;
+  var bar = el("div", "tbar");
+  var lab = el("span", "live");
+  if (preview) lab.textContent = "PREVIEW: students don't see this";
+  else { lab.appendChild(el("span", "pulse")); lab.appendChild(document.createTextNode("LIVE · Period " + T.live.period)); }
+  bar.appendChild(lab);
+  var joined = el("span", null, preview ? "" : "Joined: …"); joined.id = "tJoined";
+  bar.appendChild(joined);
+  if (!preview) bar.appendChild(btn("Who hasn't joined", "", function (e) {
+    TL.showNotJoined = !TL.showNotJoined;
+    e.target.textContent = TL.showNotJoined ? "Hide names" : "Who hasn't joined";
+    paintNotJoined();
+    pollTeacherNow();
+  }));
+  bar.appendChild(el("span", "grow"));
+  if (document.fullscreenEnabled) bar.appendChild(btn("Full screen", "", function () {
+    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(function () {});
+  }));
+  bar.appendChild(btn(preview ? "Exit preview" : "End live lesson", preview ? "" : "danger", preview ? function () { renderTeacherHome(); } : endLive));
+  app.appendChild(bar);
+  var nj = el("div", "notjoined"); nj.id = "tNotJoined"; nj.hidden = true;
+  app.appendChild(nj);
+  app.appendChild(el("h1", null, T.title));
+  var v = T.video;
+  if (v.error) app.appendChild(el("div", "banner error", v.error));
+  VS = v.start || 0; VE = v.end || 0;
+  var stage = el("div", "stage"); stage.id = "stage";
+  app.appendChild(stage);
+  var tl = el("div", "tl"); tl.id = "tl";
+  tl.innerHTML = '<div class="track"></div><div class="seen" id="tlSeen"></div><div class="now" id="tlNow"></div>';
+  app.appendChild(tl);
+  var times = el("div", "times"); times.innerHTML = '<span id="tNow">0:00</span><span id="tEnd"></span>';
+  app.appendChild(times);
+  app.appendChild(el("div", "skipnote", "Tip: the video stops by itself at each question. Enter, Page Down, or a presentation clicker also presses Continue. Click a numbered dot to jump to a question."));
+  lastT = null; armed = {};
+  T.questions.forEach(function (q, i) { armed[i] = true; });
+  P = makePlayer(stage, v, { start: VS, onReady: function () { drawTeacherMarkers(); }, onError: function (m) { showError(m); } });
+  timers.push(setInterval(tickTeacher, 200));
+  if (!preview) {
+    pollTeacher();
+    if (T.live.q >= 0) setTimeout(function () { openTeacherQ(T.live.q, false); }, 300);   // page reloaded during a question
+  }
+}
+function tickTeacher() {
+  if (!P || !P.ready) return;
+  var t = P.time(), st = P.state(), playing = st === "playing" || st === "buffering", E = endT();
+  if (TL.open !== -1 && playing) { P.pause(); return; }
+  var cont = lastT != null && t >= lastT - 0.05 && t - lastT < 2.5;
+  if (t > TL.reach) TL.reach = t;   // played, skipped or fast-forwarded: all of it counts as watched for students who joined
+  var order = timedOrder();
+  order.forEach(function (i) { var at = qt(i); if (t < at - 0.4) armed[i] = true; else if (!cont && lastT != null && t > at + 0.4) armed[i] = false; });
+  if (playing && cont && TL.open === -1) {
+    for (var n = 0; n < order.length; n++) {
+      var i = order[n], at = qt(i);
+      if (armed[i] && t >= at - 0.15 && lastT < at + 0.3) { armed[i] = false; P.pause(); openTeacherQ(i, true); break; }
+    }
+  }
+  armNext(t, st === "playing" && cont && TL.open === -1);
+  var atEnd = st === "ended" || (E > 0 && t >= E - 0.25);
+  if (atEnd && !endDone && TL.open === -1) {
+    endDone = true;
+    if (st !== "ended") P.pause();
+    TL.reach = Math.max(TL.reach, E);
+    TL.endQueue = endOrder();
+    teacherEndStep();
+  }
+  if (E && t < E - 1.5) endDone = false;
+  lastT = t;
+  if (E) {
+    var span = Math.max(1, E - VS), pct = Math.max(0, Math.min(100, 100 * (t - VS) / span));
+    document.getElementById("tlSeen").style.width = pct + "%";
+    document.getElementById("tlNow").style.left = pct + "%";
+    document.getElementById("tNow").textContent = fmt(t);
+    document.getElementById("tEnd").textContent = fmt(E);
+    if (drawnE !== E) { drawnE = E; drawTeacherMarkers(); }
+  }
+}
+/* A few seconds before the video reaches a question, tell the server when it will stop there. Students' pages then
+   get the question the moment the projector stops, instead of waiting for this screen to say so and for their
+   next check. Pausing, buffering or jumping cancels it. */
+var ARM_AHEAD = 8;   // seconds
+function armNext(t, running) {
+  if (TL.preview || !T.live) return;
+  if (TL.open !== -1) { TL.next.q = -1; return; }   // opening a question clears the schedule on the server
+  var want = -1, ms = 0, order = running ? timedOrder() : [];
+  for (var n = 0; n < order.length; n++) {
+    var i = order[n], at = qt(i);
+    if (!armed[i] || at < t - 0.05) continue;
+    if (at - t <= ARM_AHEAD) { want = i; ms = (at - t) * 1000 / (P.rate() || 1); }
+    break;
+  }
+  var now = Date.now();
+  if (want === -1) {
+    if (TL.next.q !== -1) { TL.next = { q: -1, at: 0, sent: now }; sendNext(-1, 0); }
+    return;
+  }
+  if (want === TL.next.q && Math.abs(now + ms - TL.next.at) < 400) return;   // the server already has the right moment
+  if (now - TL.next.sent < 800) return;   // at most about one update a second
+  TL.next = { q: want, at: now + ms, sent: now };
+  sendNext(want, ms);
+}
+function sendNext(q, ms) {
+  var sent = Date.now();
+  // The server counts from when the call reaches it, so take off the trip there (half the quickest round trip so far).
+  api.run("liveNext", [q, Math.max(0, Math.round(ms - TL.oneWay))], function (live) {
+    TL.oneWay = Math.max(60, Math.min(TL.oneWay, (Date.now() - sent) / 2));
+    // Cancelled just too late: the question had already opened on students' devices, so open it here too.
+    if (q === -1 && live && live.q >= 0 && TL.open === -1 && T.questions[live.q]) {
+      var i = live.q, at = qt(i);
+      if (at != null) { P.seek(at); lastT = at; }
+      P.pause(); armed[i] = false;
+      openTeacherQ(i, true);
+    }
+  }, function () {
+    if (q >= 0) { if (TL.next.q === q) TL.next.q = -1; return; }   // tried again on a later tick
+    setTimeout(function () { if (TL.next.q === -1 && TL.open === -1) sendNext(-1, 0); }, 500);   // a cancel must get through
+  });
+}
+function drawTeacherMarkers() {
+  var tl = document.getElementById("tl"), E = endT();
+  if (!tl || !E) return;
+  Array.prototype.slice.call(tl.querySelectorAll(".mk")).forEach(function (m) { tl.removeChild(m); });
+  var span = Math.max(1, E - VS);
+  T.questions.forEach(function (q, i) {
+    var at = qt(i), x = at == null ? 100 : Math.max(0, Math.min(100, 100 * (at - VS) / span));
+    var m = btn(q.type === "note" ? "i" : String(q.num), "mk" + (q.type === "note" ? " note" : "") + ((T.live && T.live.opened || []).indexOf(i) !== -1 ? " correct-bg" : ""), function () {
+      if (at != null) { P.seek(at); lastT = at; }
+      P.pause(); armed[i] = false;
+      openTeacherQ(i, true);
+    });
+    m.style.left = x + "%";
+    m.title = (q.type === "note" ? "Note" : "Question " + q.num) + (at == null ? " (after the video)" : " at " + fmt(at));
+    tl.appendChild(m);
+  });
+}
+function teacherEndStep() {
+  if (TL.endQueue.length) { openTeacherQ(TL.endQueue.shift(), true); return; }
+  var wrap = el("div", "sum");
+  wrap.appendChild(el("h2", null, "End of the video"));
+  wrap.appendChild(el("p", null, TL.preview ? "That's every question." :
+    "When you end the live lesson, Period " + T.live.period + " can watch on their own, rewatch any part, and fix answers until the due date."));
+  var b = el("div", "obtns");
+  b.appendChild(btn("Back to the video", "secondary", function () { TL.open = -1; closeOverlayEl(document.getElementById("stage")); }));
+  b.appendChild(el("span", "spacer"));
+  b.appendChild(btn(TL.preview ? "Exit preview" : "End live lesson", "blue", TL.preview ? function () { renderTeacherHome(); } : endLive));
+  var box = el("div"); box.appendChild(wrap); box.appendChild(b);
+  TL.open = -2;
+  stageOverlay(document.getElementById("stage"), box);
+}
+
+function openTeacherQ(i, tellStudents) {
+  TL.open = i; TL.results = false; TL.showMissing = false; TL.showAnswers = false; TL.status = null;
+  var q = T.questions[i];
+  var wrap = el("div");
+  var card = el("div", "item");
+  var qtx = el("div", "qtext");
+  qtx.appendChild(el("span", "qnum" + (q.type === "note" ? " note" : ""), q.type === "note" ? "Note" : qLabel(q.num)));
+  qtx.appendChild(document.createTextNode(q.text));
+  if (q.type === "mc" && q.multi) qtx.appendChild(el("div", "multi", chooseText(q)));
+  if (q.img) qtx.appendChild(figure(q, i));
+  card.appendChild(qtx);
+  if (q.type === "mc") {
+    var ch = el("div", "choices"); ch.id = "tch";
+    q.choices.forEach(function (c, k) {
+      var b = el("div", "choice"); b.setAttribute("data-k", String(k));
+      b.appendChild(el("span", "tbarfill"));
+      b.appendChild(el("span", "let", LETTERS.charAt(k)));
+      b.appendChild(el("span", "ctext", c));
+      b.appendChild(el("span", "tcount", ""));
+      ch.appendChild(b);
+    });
+    card.appendChild(ch);
+  }
+  wrap.appendChild(card);
+  if (q.type !== "note" && !TL.preview) {
+    var stats = el("div", "tstats"); stats.id = "tstats";
+    stats.innerHTML = '<span><span class="big" id="tAns">0</span> / <span id="tTot">…</span> answered</span><span class="tcolors" id="tCol"></span>';
+    wrap.appendChild(stats);
+    var miss = el("div", "missing"); miss.id = "tMiss"; miss.hidden = true; wrap.appendChild(miss);
+    var ans = el("div", "answers"); ans.id = "tAnswers"; ans.hidden = true; wrap.appendChild(ans);
+  }
+  var bar = el("div", "obtns");
+  if (q.type !== "note") {
+    bar.appendChild(btn(q.type === "mc" ? "Show results" : "Show colors", "secondary", function (e) {
+      TL.results = !TL.results; e.target.textContent = TL.results ? "Hide results" : (q.type === "mc" ? "Show results" : "Show colors"); paintTeacherQ();
+    }));
+    if (!TL.preview) {
+      bar.appendChild(btn("Who hasn't answered", "secondary", function (e) {
+        TL.showMissing = !TL.showMissing; e.target.textContent = TL.showMissing ? "Hide names" : "Who hasn't answered"; paintTeacherQ();
+      }));
+      if (q.type === "open") bar.appendChild(btn("Show answers (no names)", "secondary", function (e) {
+        TL.showAnswers = !TL.showAnswers; e.target.textContent = TL.showAnswers ? "Hide answers" : "Show answers (no names)";
+        pollTeacherNow(); paintTeacherQ();
+      }));
+    }
+  }
+  bar.appendChild(el("span", "spacer"));
+  bar.appendChild(btn("Continue ▶", "blue", teacherContinue));
+  wrap.appendChild(bar);
+  stageOverlay(document.getElementById("stage"), wrap);
+  paintTeacherQ();
+  if (tellStudents && !TL.preview) {
+    withRetry(call("liveOpen", [i, Math.round(TL.reach)]), function (live) { T.live = live; drawTeacherMarkers(); pollTeacherNow(); }, showError);
+  }
+}
+function paintTeacherQ() {
+  var i = TL.open;
+  if (i < 0) return;
+  var q = T.questions[i], s = TL.status;
+  var ch = document.getElementById("tch");
+  if (ch) {
+    var total = s && s.answered ? s.answered : 0;
+    Array.prototype.forEach.call(ch.children, function (b) {
+      var k = Number(b.getAttribute("data-k")), n = s && s.dist ? s.dist[k] || 0 : 0;
+      var right = q.correct.indexOf(k) !== -1;
+      b.className = "choice" + (TL.results && right ? " right" : "");
+      b.querySelector(".tbarfill").style.width = TL.results && total ? (100 * n / total) + "%" : "0";
+      b.querySelector(".tcount").textContent = TL.results && !TL.preview ? n + (n === 1 ? " student" : " students") : "";
+    });
+  }
+  if (!s || TL.preview) return;
+  var a = document.getElementById("tAns"), tt = document.getElementById("tTot"), col = document.getElementById("tCol");
+  if (a) a.textContent = s.answered;
+  if (tt) tt.textContent = s.total;
+  if (col) {
+    col.innerHTML = "";
+    if (TL.results) [["correct", "green"], ["partial", "yellow"], ["incorrect", "red"]].forEach(function (p) {
+      var c = el("span", "chip"); var d = el("i", "dot"); d.style.background = "var(--" + (p[0] === "correct" ? "green" : p[0] === "partial" ? "yellow" : "red") + ")";
+      c.appendChild(d); c.appendChild(document.createTextNode(s.colors[p[0]] + " " + p[1])); col.appendChild(c);
+    });
+  }
+  var m = document.getElementById("tMiss");
+  if (m) { m.hidden = !TL.showMissing; m.textContent = s.missing.length ? "Not answered yet: " + s.missing.join(", ") : "Everyone has answered."; }
+  var an = document.getElementById("tAnswers");
+  if (an) {
+    an.hidden = !TL.showAnswers;
+    an.innerHTML = "";
+    if (TL.showAnswers) (s.answers || []).forEach(function (x) { an.appendChild(el("div", TL.results ? x.s : "", x.a)); });
+  }
+}
+function teacherContinue() {
+  var from = TL.open;
+  if (from === -1) return;
+  TL.open = -1;
+  closeOverlayEl(document.getElementById("stage"));
+  if (!TL.preview) {
+    var reach = Math.round(TL.reach);
+    api.run("liveClose", [reach], function (live) { if (live) T.live = live; }, function () { api.run("liveClose", [reach], function () {}, function () {}); });
+  }
+  if (endDone) { teacherEndStep(); return; }
+  lastT = P.time();
+  P.play();
+}
+function endLive() {
+  var p = T.live.period;
+  askConfirm("End the live lesson for Period " + p + "?\n\nThe video opens on every Period " + p + " device right away. Students who joined get credit for everything the class watched together, and can fix answers until the due date.", function () {
+    withRetry(call("liveEnd", [true, Math.round(TL.reach), Math.round(endT())]), function (periods) {
+      T.live = null; T.periods = periods;
+      renderTeacherHome("Live lesson ended. The video is now open for Period " + p + " to rewatch and fix answers.");
+    }, showError);
+  }, "End live lesson");
+}
+function paintNotJoined() {
+  var box = document.getElementById("tNotJoined"), s = TL.lastStatus;
+  if (!box) return;
+  box.hidden = !TL.showNotJoined;
+  if (!TL.showNotJoined) return;
+  box.textContent = !s ? "Checking who's here…" :
+    s.notJoined && s.notJoined.length ? "Not joined yet (" + s.notJoined.length + "): " + s.notJoined.join(", ") : "Everyone in Period " + T.live.period + " has joined.";
+}
+var tPollTimer = null;
+function pollTeacher() {
+  clearTimeout(tPollTimer);
+  tPollTimer = setTimeout(function () {
+    if (!T.live || TL.preview) return;
+    api.run("liveStatus", [TL.showAnswers], function (s) { gotStatus(s); pollTeacher(); }, function () { pollTeacher(); });
+  }, TL.open >= 0 ? 2000 : 5000);
+  timers.push(tPollTimer);
+}
+function pollTeacherNow() {
+  if (!T.live || TL.preview) return;
+  api.run("liveStatus", [TL.showAnswers], gotStatus, function () {});
+}
+function gotStatus(s) {
+  if (!s || !s.on) return;
+  var j = document.getElementById("tJoined");
+  if (j) j.textContent = "Joined: " + s.joined + " / " + s.total;
+  TL.lastStatus = s;
+  paintNotJoined();
+  if (TL.open >= 0 && s.live && s.live.q === TL.open) { TL.status = s; paintTeacherQ(); }
+}
+document.addEventListener("keydown", function (e) {
+  if (!T || !P || /TEXTAREA|INPUT/.test((e.target && e.target.tagName) || "")) return;
+  if (!document.getElementById("confirmBox").hidden) return;   // the End live lesson box is open
+  var k = e.key;
+  if (TL.open !== -1 && TL.open !== -2 && (k === "Enter" || k === "PageDown" || k === "ArrowRight")) { e.preventDefault(); teacherContinue(); }
+  else if (TL.open === -1 && (k === "PageDown" || k === " ")) { e.preventDefault(); if (P.state() === "playing") P.pause(); else { lastT = P.time(); P.play(); } }
+});
+
+/* ============================== START ============================== */
+(function boot() {
+  if (FRONT) return frontDoorBoot();   // the live lesson screen never opens from the class website
+  function start(params) { if (params && params.mode === "live") teacherBoot(); else studentBoot(); }
+  try {
+    if (window.google && google.script && google.script.url) google.script.url.getLocation(function (loc) { start((loc && loc.parameter) || {}); });
+    else start({});
+  } catch (e) { start({}); }
+})();
+</script>
+</body>
+</html>
