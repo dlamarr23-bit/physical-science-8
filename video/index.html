@@ -709,6 +709,9 @@ function makePlayer(host, v, opt) {
   }
   function playFile(src, isBlob, onFail) {
     var vd = document.createElement("video");
+    // A streamed or saved Drive video can't go to AirPlay anyway, and Apple's ManagedMediaSource (iPhones, and Chrome
+    // or Edge on an iPad) only starts when this is set BEFORE the video gets its source.
+    if (isBlob) try { vd.disableRemotePlayback = true; } catch (e) {}
     vd.src = src; vd.controls = true; vd.playsInline = true; vd.preload = "metadata";
     vd.disablePictureInPicture = true; vd.setAttribute("controlsList", "nodownload");
     vd.addEventListener("loadedmetadata", function () {
@@ -740,6 +743,7 @@ function makePlayer(host, v, opt) {
    (mp4box.js) turns the pieces into something the browser's player can stream. If that can't work on
    this device, the whole video is loaded first and then played, as before. */
 var MP4BOX_URL = "https://cdn.jsdelivr.net/npm/mp4box@0.5.3/dist/mp4box.all.min.js";
+var MP4BOX_URL2 = "https://unpkg.com/mp4box@0.5.3/dist/mp4box.all.min.js";   // the same file, if the first site is slow or blocked
 var scriptWaits = {};
 function loadScriptOnce(url, ok, fail) {
   var s = scriptWaits[url];
@@ -755,7 +759,7 @@ function loadScriptOnce(url, ok, fail) {
   tag.src = url; tag.async = true;
   tag.onload = function () { finish(!!window.MP4Box); };
   tag.onerror = function () { finish(false); };
-  setTimeout(function () { finish(!!window.MP4Box); }, 10000);
+  setTimeout(function () { finish(!!window.MP4Box); }, 30000);   // a slow school network can take a while
   document.head.appendChild(tag);
 }
 
@@ -776,9 +780,15 @@ function VideoStore(v) {
         rq.onblocked = function () { res(null); };
       } catch (e) { res(null); }
     }).then(function (d) {
-      if (d) try {   // only this video is kept on the device
-        var st = d.transaction("chunks", "readwrite").objectStore("chunks"), cur = st.openCursor();
-        cur.onsuccess = function () { var c = cur.result; if (!c) return; if (String(c.key).indexOf(prefix) !== 0) c["delete"](); c["continue"](); };
+      if (!d) { self.noSave = true; return d; }   // no saving on this device (private window): don't fetch pieces just to save them
+      try {   // only this video is kept on the device (reads keys only, not the saved video itself)
+        var st = d.transaction("chunks", "readwrite").objectStore("chunks"), keysOnly = !!st.openKeyCursor;
+        var cur = keysOnly ? st.openKeyCursor() : st.openCursor();
+        cur.onsuccess = function () {
+          var c = cur.result; if (!c) return;
+          if (String(c.key).indexOf(prefix) !== 0) { if (keysOnly) st["delete"](c.primaryKey); else c["delete"](); }
+          c["continue"]();
+        };
       } catch (e) {}
       return d;
     });
@@ -822,11 +832,19 @@ function VideoStore(v) {
       if (buf) return buf;
       return new Promise(function (res, rej) {
         if (self.dead) return rej(new Error("stopped"));
-        withRetry(call("getVideoChunk", [n]), function (r) {
-          var b = b64ToBytes(r.data).buffer;
-          if (b.byteLength !== want(n)) return rej(new Error("Wrong size"));
-          idbPut(n, b); res(b);
-        }, rej);
+        // A piece that fails is usually a random hiccup on Google's side, not a busy server: try again quickly first.
+        var waits = [400, 1200, 2500, 4000, 6000, 9000, 12000], k = 0;
+        (function attempt() {
+          api.run("getVideoChunk", [n], function (r) {
+            var b = b64ToBytes(r.data).buffer;
+            if (b.byteLength !== want(n)) return rej(new Error("Wrong size"));
+            idbPut(n, b); res(b);
+          }, function (err) {
+            if (self.dead) return rej(new Error("stopped"));
+            if (k < waits.length && isRetryable(err)) setTimeout(attempt, waits[k++] + Math.floor(Math.random() * 800));
+            else rej(err);
+          });
+        })();
       });
     }).then(function (buf) {
       delete inflight[n];
@@ -844,7 +862,8 @@ function VideoStore(v) {
       var i = n++;
       self.isSaved(i).then(function (have) {
         if (have) return next();
-        self.get(i).then(function () { setTimeout(next, 300); }, function () { setTimeout(next, 5000); n = Math.min(n, i); });
+        // Unhurried: this only fills in parts that were skipped, and a whole class shares the server.
+        self.get(i).then(function () { setTimeout(next, FRONT ? 3000 : 1000); }, function () { setTimeout(next, 5000); n = Math.min(n, i); });
       });
     })();
   };
@@ -861,21 +880,27 @@ function drivePlayer(host, v, opt, P, playFile) {
     say("The video couldn't load. Reload the page to try again.");
     if (opt.onError) opt.onError("The video couldn't load from Google Drive. Reload the page to try again. (Teacher: run Video Check > Check the Questions tab for problems.)");
   }
-  var canStream = !!(window.MediaSource && MediaSource.isTypeSupported && v.chunkBytes) && !/webm/i.test(v.mime || "");
-  if (canStream) loadScriptOnce(MP4BOX_URL, stream, whole); else whole();
+  // Streaming needs the browser's Media Source feature. Every computer, Chromebook, Android device and iPad browser
+  // has MediaSource. iPhones have only Apple's ManagedMediaSource (iOS 17.1 and later), which works the same way here.
+  var MSE = window.MediaSource || window.ManagedMediaSource || null;
+  var canStream = !!(MSE && MSE.isTypeSupported && v.chunkBytes) && !/webm/i.test(v.mime || "");
+  if (canStream) loadScriptOnce(MP4BOX_URL, stream, function () { loadScriptOnce(MP4BOX_URL2, stream, function () { whole("script"); }); });
+  else whole("no stream");
 
-  /* Backup: load every piece, then play (the way it worked before streaming). */
-  function whole() {
+  /* Backup: load every piece, then play (the way it worked before streaming). Only for devices that can't stream.
+     why = the reason, shown small in the message so a teacher's report says which one it was. */
+  function whole(why) {
     if (stopped) return;
     var parts = new Array(v.chunks), got = 0, nextN = 0, failed = false, mb = Math.round(v.size / 1048576);
-    say("Loading the video… 0%");
+    var note = why ? "  (" + why + ")" : "";
+    say("Loading the video… 0%" + note);
     var worker = function () {
       if (stopped || failed || nextN >= v.chunks) return;
       var n = nextN++;
       store.get(n).then(function (buf) {
         if (stopped) return;
         parts[n] = buf; got++;
-        say("Loading the video… " + Math.round(100 * got / v.chunks) + "%" + (mb >= 20 ? " (" + Math.round(mb * got / v.chunks) + " of " + mb + " MB)" : ""));
+        say("Loading the video… " + Math.round(100 * got / v.chunks) + "%" + (mb >= 20 ? " (" + Math.round(mb * got / v.chunks) + " of " + mb + " MB)" : "") + note);
         if (got === v.chunks) {
           quiet();
           var vd = playFile(URL.createObjectURL(new Blob(parts, { type: v.mime || "video/mp4" })), true);
@@ -884,47 +909,53 @@ function drivePlayer(host, v, opt, P, playFile) {
         } else worker();
       }, function () { if (!failed && !stopped) { failed = true; broken(); } });
     };
-    worker(); worker(); worker();
+    worker(); worker();
+    if (!FRONT) worker();   // the front door's requests are slower to answer and share one server: two at a time
   }
 
   /* Streaming: starts after the first few MB and keeps loading while it plays. */
   function stream() {
     if (stopped) return;
-    var CH = v.chunkBytes, ms = new MediaSource(), mp4 = MP4Box.createFile(), vd = null, sbs = [];
-    var pos = 0, gen = 0, feeding = false, ready = false, done = false, ended = false;
-    var AHEAD = 45;   // seconds of video to keep loaded ahead of where it's playing
-    function giveUp() {
+    var CH = v.chunkBytes, ms = new MSE(), mp4 = MP4Box.createFile(), vd = null, sbs = [];
+    var pos = 0, gen = 0, feeding = false, ready = false, done = false, ended = false, opened = false, appended = false, fails = 0;
+    var AHEAD = 90;   // seconds of video to keep loaded ahead of where it's playing (about 4 pieces of a typical video)
+    function giveUp(why) {
       if (done || stopped) return;
       done = true;
       try { if (vd) { vd.pause(); vd.removeAttribute("src"); vd.load(); if (vd.parentNode) vd.parentNode.removeChild(vd); } } catch (e) {}
       P.ready = false;
-      whole();
+      whole(typeof why === "string" ? why : "error");
     }
     current = function () { done = true; };
-    mp4.onError = giveUp;
+    mp4.onError = function () { giveUp("error"); };
     mp4.onReady = function (info) {
       if (done) return;
       try {
         var tracks = [];
         if (info.videoTracks && info.videoTracks[0]) tracks.push({ t: info.videoTracks[0], kind: "video", n: 60 });
         if (info.audioTracks && info.audioTracks[0]) tracks.push({ t: info.audioTracks[0], kind: "audio", n: 60 });
-        if (!tracks.length) return giveUp();
+        if (!tracks.length) return giveUp("no tracks");
         var mimes = tracks.map(function (x) { return x.kind + '/mp4; codecs="' + x.t.codec + '"'; });
-        if (mimes.some(function (m) { return !MediaSource.isTypeSupported(m); })) return giveUp();
+        if (mimes.some(function (m) { return !MSE.isTypeSupported(m); })) return giveUp("codec");
         if (info.duration && info.timescale) ms.duration = info.duration / info.timescale;
         tracks.forEach(function (x, k) {
           var sb = ms.addSourceBuffer(mimes[k]);
           sb.q = []; sb.addEventListener("updateend", function () { pump(sb); });
-          sb.addEventListener("error", giveUp);
+          sb.addEventListener("error", function () { giveUp("error"); });
+          // An iPhone may throw away video it loaded ahead (ManagedMediaSource): load the part that's coming up again.
+          if ("onbufferedchange" in sb) sb.addEventListener("bufferedchange", function (e) {
+            var r = e.removedRanges, t = vd ? vd.currentTime : 0;
+            for (var i = 0; r && i < r.length; i++) if (r.end(i) > t && r.start(i) < t + AHEAD) { resync(true); break; }
+          });
           mp4.setSegmentOptions(x.t.id, sb, { nbSamples: x.n });
           sbs.push(sb);
         });
         mp4.initializeSegmentation().forEach(function (s) { s.user.q.push(s.buffer); pump(s.user); });
+        // Jump first, THEN start (starting first would hand the browser the opening seconds twice).
+        if (opt.start > 0) { var s = mp4.seek(opt.start, true); pos = s.offset; gen++; }
         mp4.start();
         ready = true;
-        var s = mp4.seek(opt.start > 0 ? opt.start : 0, true);   // skip straight to where the video starts
-        pos = s.offset; gen++;
-      } catch (e) { giveUp(); }
+      } catch (e) { giveUp("error"); }
     };
     mp4.onSegment = function (id, sb, buf, sampleNum) {
       if (done) return;
@@ -938,12 +969,12 @@ function drivePlayer(host, v, opt, P, playFile) {
         if (b.length && t - b.start(0) > 120) { sb.remove(b.start(0), t - 60); return; }   // let go of video long past
       } catch (e) {}
       if (!sb.q.length) return finish();
-      try { sb.appendBuffer(sb.q[0]); sb.q.shift(); }
+      try { sb.appendBuffer(sb.q[0]); sb.q.shift(); if (!appended) appended = Date.now(); }
       catch (e) {
         if (e && e.name === "QuotaExceededError" && vd) {
           try { sb.remove(0, Math.max(0.5, vd.currentTime - 10)); } catch (e2) {}
           setTimeout(function () { pump(sb); }, 500);
-        } else giveUp();
+        } else giveUp("error");
       }
     }
     function finish() {
@@ -966,36 +997,87 @@ function drivePlayer(host, v, opt, P, playFile) {
         if (g !== gen) { g = gen; ended = false; }
         if (pos >= v.size) {
           feeding = false;
-          if (!ended) { ended = true; try { mp4.flush(); } catch (e) {} sbs.forEach(function (sb) { pump(sb); }); }
+          if (!ended) {
+            ended = true;
+            try { mp4.flush(); } catch (e) {}
+            sbs.forEach(function (sb) { pump(sb); });
+            store.saveAll();   // everything played was saved as it came in: now fill in any parts that were skipped
+          }
           return;
         }
+        // An iPhone's ManagedMediaSource says when it wants more: with a little loaded, wait for its startstreaming.
+        if (P.ready && ms.streaming === false && ahead() > 10) { feeding = false; return; }
         if (P.ready && ahead() > AHEAD) { setTimeout(step, 700); return; }
         var n = Math.floor(pos / CH), myGen = g;
         store.get(n).then(function (buf) {
           if (done) return;
+          if (fails) { fails = 0; if (P.ready) quiet(); }
           if (myGen !== gen) return step();   // the student jumped somewhere else meanwhile
           var off = pos - n * CH, piece = buf.slice(off);
           piece.fileStart = pos;
           var reach = pos + piece.byteLength, nxt = mp4.appendBuffer(piece);
           if (myGen === gen) pos = (typeof nxt === "number" && nxt > pos) ? nxt : reach;
+          // Ask for the next piece now, so it's here (or on its way) by the time it's needed.
+          if ((n + 1) * CH < v.size && !(ms.streaming === false)) store.get(n + 1)["catch"](function () {});
           setTimeout(step, 0);
-        }, function () { feeding = false; if (!done && !stopped) { done = true; broken(); } });
+        }, function () {
+          // A piece still failing after its quick retries: keep playing what's loaded and try again in a bit.
+          feeding = false;
+          if (done || stopped) return;
+          if (++fails > 8) { done = true; broken(); return; }
+          say("Reconnecting to the video…");
+          setTimeout(feed, 5000);
+        });
       })();
     }
-    ms.addEventListener("sourceopen", function () { feed(); });
-    vd = playFile(URL.createObjectURL(ms), true, giveUp);
-    vd.addEventListener("seeking", function () {
+    ms.addEventListener("sourceopen", function () { opened = true; feed(); });
+    vd = playFile(URL.createObjectURL(ms), true, function () { giveUp("error"); });
+    function inBuffer(t) {
+      var b = vd.buffered;
+      for (var i = 0; i < b.length; i++) if (b.start(i) <= t + 0.2 && b.end(i) > t + 1) return true;
+      return false;
+    }
+    /** Load from where the video is now (after a jump, or when the browser dropped video it had loaded ahead).
+        A jump into a part that's already loaded needs nothing new, unless force. */
+    function resync(force) {
       if (!ready || done) return;
+      if (force !== true && inBuffer(vd.currentTime)) return;
       try {
         var s = mp4.seek(vd.currentTime, true);
         sbs.forEach(function (sb) { sb.q = []; });
         pos = s.offset; gen++; ended = false;
         feed();
-      } catch (e) { giveUp(); }
-    });
+      } catch (e) { giveUp("error"); }
+    }
+    /** A hair before the first loaded moment (a video can start at 0.02 s): step over the gap instead of waiting forever. */
+    function nudge() {
+      var b = vd.buffered;
+      if (b.length && vd.currentTime < b.start(0) && b.start(0) - vd.currentTime < 1) vd.currentTime = b.start(0) + 0.01;
+    }
+    vd.addEventListener("seeking", resync);
+    // Stuck with nothing loaded where it's playing: an iPhone may have thrown away video it had loaded ahead, so load it again.
+    vd.addEventListener("waiting", function () { nudge(); if (ready && !done && ahead() < 0.5 && !feeding) resync(true); });
+    if (ms.addEventListener) ms.addEventListener("startstreaming", function () { if (ready && !done && !feeding && pos < v.size) feed(); });
     vd.addEventListener("timeupdate", function () { if (!feeding && !done && pos < v.size && ahead() < AHEAD / 2) feed(); });
-    vd.addEventListener("loadedmetadata", function () { quiet(); store.saveAll(); });
-    setTimeout(function () { if (!P.ready && !done && !stopped) giveUp(); }, 25000);   // never started: use the backup
+    vd.addEventListener("loadedmetadata", function () { quiet(); nudge(); });
+    // Only a device whose browser can't stream this video goes to the backup (every piece first, then play). A slow
+    // first piece just means waiting: the backup would need every piece before playing anything.
+    var t0 = Date.now(), tapAsked = false;
+    (function watch() {
+      setTimeout(function () {
+        if (P.ready || done || stopped) return;
+        var waited = Date.now() - t0;
+        if (appended && Date.now() - appended > 8000) return giveUp("player");   // had the start and still showed nothing
+        if (!opened && waited >= 25000) {
+          // The browser hasn't even started the video. Some iPads and iPhones wait for a tap before loading any video.
+          if (vd.networkState === 0 && !tapAsked) { tapAsked = true; say("Tap the video to start it."); }
+          else if (vd.networkState !== 0) return giveUp("player");
+        } else if (opened && !appended && waited >= 12000) {
+          say("Still loading the start of the video. Google's server is slow right now, so this can take a minute.");
+        }
+        watch();
+      }, 3000);
+    })();
   }
 }
 
