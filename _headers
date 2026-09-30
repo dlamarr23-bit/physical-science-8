@@ -4,6 +4,12 @@
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
   Referrer-Policy: strict-origin-when-cross-origin
+# The assignment pages may be kept for a minute, so the copy the Class Pass page prefetches while a student signs in
+# is the one that opens (with max-age=0 the browser downloads it again). The Class Pass page itself is never kept.
+/pass/check/*
+  Cache-Control: public, max-age=60
+/pass/video/*
+  Cache-Control: public, max-age=60
 /video/*
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
