@@ -294,11 +294,28 @@ function cpRun(fn, args, ok, fail) {
       if (f) f(x);
     };
   }
-  if (CP_SITE) return cpFetch(fn, (args || []).slice(), done(ok, "answered"), done(fail, "failed"));
+  if (CP_SITE) return cpFetchHedged(fn, (args || []).slice(), done(ok, "answered"), done(fail, "failed"));
   var a = (args || []).slice(), n = CP_HOST.tokenArgs || {};
   if (n.hasOwnProperty(fn)) { while (a.length < n[fn]) a.push(null); a.push(cpToken()); }
   var r = google.script.run.withSuccessHandler(done(ok, "answered")).withFailureHandler(done(fail, "failed"));
   r[fn].apply(r, a);
+}
+/* Now and then one answer from the sheet takes far longer than the rest (seen on 2026-09-30: classPass 26.8 s while the
+   same sheet answered the probe, sent at the same moment, in 1.9 s, and every call before and after in 1 to 4 s).
+   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS is sent once more alongside, and whichever answers
+   first wins. Saves are never sent twice this way (they have their own retries). */
+var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 6000;
+function cpFetchHedged(fn, args, ok, fail) {
+  var sent = 1, failed = 0, over = false, timer = 0;
+  function win(x) { if (over) return; over = true; clearTimeout(timer); ok(x); }
+  function lose(e) { failed++; if (over || failed < sent) return; over = true; clearTimeout(timer); fail(e); }   // only when every try failed
+  cpFetch(fn, args, win, lose);
+  if (CP_HEDGE[fn]) timer = setTimeout(function () {
+    if (over) return;
+    sent++;
+    cpLog(fn + " is slow: asking once more alongside");
+    cpFetch(fn, args, win, lose);
+  }, CP_HEDGE_MS);
 }
 function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
 /** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
@@ -530,7 +547,7 @@ function cpFinishGoogle(back, kind, done) {
   if (!claims || !want.n || claims.nonce !== want.n || (want.a && want.a !== CP_APP)) return done("That Google sign-in didn't start on this page. Press Sign in with Google again.", null, want);
   cpStep(2, "Signing you in…");
   cpRetry(cpCall("signInWithGoogle", [back.idToken]), function (r) {
-    cpSetToken(r.token, r.email, kind);
+    cpSetToken(r.token, r.email, cpPageFor(r.kind) ? r.kind : kind);
     cpRemember(r.email, true);
     done("", r, want);
   }, function (err) { done(cpSignInText(err), null, want); });
@@ -629,11 +646,11 @@ function cpPassBoot() {
   document.title = "Class Pass";
   var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
   if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
-  var info = null, waiting = [], failed = null, pre = null;
+  var info = null, waiting = [], failed = null, pre = null, left = false;
   function withInfo(f) { if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
   function getInfo() {
     cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
-           function (err) { failed = err; waiting.splice(0); cpFail(err); });
+           function (err) { failed = err; waiting.splice(0); if (!left) cpFail(err); });   // (already on the way to the assignment: no matter)
   }
   function page(kind) { return cpPageFor(kind) ? new URL(cpPageFor(kind) + "/?app=" + encodeURIComponent(CP_APP), location.href).href : ""; }
   function preload() {   // just signed in: ask for the assignment now (once, no retries), for its page
@@ -648,15 +665,18 @@ function cpPassBoot() {
     // A sheet from 2026.09.30 on sends the assignment with its Google sign-in (r.state): no second trip to the sheet.
     if (!tab && !pre && r && r.state && typeof r.state === "object" && !r.state.needSignIn) pre = { over: true, state: r.state, then: [] };
     preload();
-    withInfo(function (i) {
-      var r = cpPass();
-      if (r && r.k !== i.kind) cpSetToken(r.t, r.e, i.kind);
+    function onward(kind) {
+      var rec = cpPass();
+      if (rec && rec.k !== kind) cpSetToken(rec.t, rec.e, kind);
       if (tab) return cpSignedInTab();
-      var url = page(i.kind);
+      var url = page(kind);
       if (!url) return cpFail("This assignment can't open with Class Pass yet. Please tell your teacher.");
-      function go() { if (pre && pre.state) cpKeepState(pre.state); cpGo(url, true); }
+      function go() { left = true; if (pre && pre.state) cpKeepState(pre.state); cpGo(url, true); }
       if (pre && !pre.over) pre.then.push(go); else go();
-    });
+    }
+    // It also says what it is (r.kind), so this doesn't wait for classPass (one slow answer held students here).
+    if (r && cpPageFor(r.kind)) return onward(r.kind);
+    withInfo(function (i) { onward(i.kind); });
   }
   function card(note) {
     withInfo(function (i) { cpCard(CP_HOST.clear(i.title), i, { tab: tab, note: note, done: open }); });
