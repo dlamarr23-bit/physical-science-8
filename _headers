@@ -1,0 +1,9 @@
+# Cloudflare Pages headers for Class Pass (copied to the root of the physical-science-8 repo as _headers).
+# No other website may show the Class Pass pages inside a frame (clickjacking the sign-in or Sign out).
+/pass/*
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Referrer-Policy: strict-origin-when-cross-origin
+/video/*
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'

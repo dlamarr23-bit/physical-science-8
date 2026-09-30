@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.CLASS_PASS_PAGE = "pass";   /* the Class Pass page: see CLASS PASS in the page script */</script>
+<meta charset="utf-8">
+<title>Class Pass</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- The link students get for every Video Check and Self-Check: physical-science-8.pages.dev/pass/?app=<deployment ID>.
+     Built by class-pass/make-pass.ps1 from class-pass/pass.html, classpass.css and classpass.js. -->
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f3f3f3; font-family:Poppins, Arial, sans-serif; color:#111; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 80px; }
+  h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
+  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
+           background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
+  button.secondary { background:#fff; color:#111; }
+  button:disabled { opacity:.5; cursor: default; }
+  button:focus-visible, a:focus-visible { outline: 3px solid #3c78d8; outline-offset: 2px; }
+  /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
+  .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
+  .signin h2 { font-size:18px; margin:0 0 6px; }
+  .signin p { font-size:14px; line-height:1.5; margin:6px 0 12px; }
+  .signin label { display:block; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .signin input { display:block; width:100%; max-width:360px; margin-top:4px; padding:8px 10px; border:2px solid #111; border-radius:6px;
+                  font-family:Poppins, Arial, sans-serif; font-size:16px; background:#fff; outline:none; }
+  .signin input:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  .signin input.si-code { max-width:200px; font-size:22px; letter-spacing:4px; }
+  .si-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+  .si-status { font-weight:600; min-height:1.5em; }
+  .si-status.bad { color:#cc0000; }
+  .si-alt { font-size:13px; color:#555; font-style:italic; border-top:1px solid #ddd; padding-top:10px; margin-bottom:0 !important; }
+  .si-or { font-size:13px; font-weight:600; color:#555; border-top:1px solid #ddd; padding-top:12px; margin-top:16px !important; }
+  button.linkbtn { background:none; border:0; border-radius:0; padding:0; color:#1b4587; text-decoration:underline; font-weight:600; font-size:inherit; }
+  button.si-google, a.si-pass { display:inline-flex; align-items:center; gap:10px; background:#fff; color:#111; border:2px solid #111; border-radius:6px;
+                                font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:15px; padding:9px 18px; text-decoration:none; cursor:pointer; }
+  button.si-google svg { width:20px; height:20px; flex:none; }
+  a.si-pass { background:#1b4587; border-color:#1b4587; color:#fff; }
+  .cp-brand { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff; background:#1b4587;
+              border-radius:4px; padding:2px 8px; margin:8px 0 2px; }
+  .probewait { margin-top:14px; font-weight:400; font-size:14px; }
+  /* @@CLASSPASS-CSS-END */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading">Opening your assignment…</div>
+  <div id="app" hidden></div>
+</div>
+<script>
+/* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
+   Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
+   Google account is signed in before the school one (Google won't even open the web app there), or one with
+   no Google account at all. The student signs in with Google (on the Class Pass page, where they can pick
+   their school account) or, only if the teacher allows it in the Settings tab, with a 6-digit code emailed to
+   their school address. Either one keeps that browser signed in to that assignment for 14 days.
+
+   THE SAME BLOCK is in Video Check's and Self-Check's Index.html and in the Class Pass page on the class
+   website. Change it only in class-pass/classpass.js, then run class-pass/make-pass.ps1, which copies it into
+   every page (the tests fail if a copy is different).
+
+   Where it runs (window.CLASS_PASS_PAGE, set by the page):
+     (not set) "exec": the web app's own page, script.google.com/.../exec. Google usually says who it is.
+     "pass": the Class Pass page, /pass/?app=<deployment ID>, the link students get. It checks out of sight
+             whether Google will open the web app itself (school Chromebooks go straight there) and signs
+             everyone else in, then opens the assignment's page under /pass/.
+     "app":  an assignment's page on the class website (/pass/video/, /pass/check/). It talks to the sheet
+             with fetch (see doPost in Code.gs), so no Google sign-in rides along and nothing can mix up.
+
+   ONE SIGN-IN FOR EVERY ASSIGNMENT: each sheet keeps its own sign-ins, so a pass from one sheet means nothing
+   to another. Instead, the device remembers which school account signed in with Google (classpass-me), and
+   the next assignment asks Google for that account quietly (prompt=none): no box, just a quick trip through
+   Google. That sheet checks Google's answer itself. An emailed code is only ever good for its own sheet.
+
+   The host page sets CP_HOST before anything here runs:
+     { tokenKey: where the /exec page keeps its sign-in, tokenArgs: { fn: arguments before the token },
+       clear(title): empty the page and return the element to put a sign-in card in } */
+var CP_WHERE = window.CLASS_PASS_PAGE || "exec";
+var CP_SITE = CP_WHERE !== "exec";   // on the class website: every call to the sheet goes through fetch
+var CP_DAYS = 14;
+var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check" };   // what the sheet says it is: its page under /pass/
+var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
+var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
+var CP_EXEC = /^AKfycb[\w-]{20,}$/.test(CP_APP) ? "https://script.google.com/macros/s/" + CP_APP + "/exec" : "";
+
+function cpEl(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function cpBtn(label, cls, onClick) { var b = cpEl("button", cls || "", label); b.type = "button"; if (onClick) b.addEventListener("click", onClick); return b; }
+function cpIsSignInError(err) { return /SIGNIN/.test(String((err && err.message) || err || "")); }
+function cpSignInText(err) { return String((err && err.message) || err || "").replace(/^[\s\S]*?SIGNIN:\s*/, "").replace(/^(BUSY|NETWORK): /, ""); }
+/** Leaves this page. replace = the Back button skips it (so it can't send the student straight back). */
+function cpGo(url, replace) {
+  if (window.__classPassGo) return window.__classPassGo(url, replace);   // local tests only
+  if (replace) location.replace(url); else location.assign(url);
+}
+/** The Class Pass page for this assignment, from an assignment's page on the class website. */
+function cpPassUrl(extra) { return new URL("../?app=" + encodeURIComponent(CP_APP) + (extra || ""), location.href).href; }
+function cpStatus(text) { var ld = document.getElementById("loading"); if (ld) { ld.hidden = false; ld.textContent = text; } }
+/* On the class website, whatever a sheet sends is untrusted: a ?app= link can name ANY web app, and a script that ran on
+   this site could read every Class Pass sign-in on the device. So its text only ever goes in as text, and its links
+   and pictures only as web addresses (never javascript: or data:). */
+/** A link (a simulation button, say): http(s) only, or "". */
+function cpLinkUrl(u) { u = String(u == null ? "" : u).trim(); return /^https?:\/\/[^\s"'<>\\]+$/i.test(u) ? u : ""; }
+/** A picture to show or open: https, or a picture this page made from the sheet's answer (blob:, image types only). */
+function cpImgUrl(u) { u = String(u == null ? "" : u).trim(); return /^https:\/\/[^\s"'<>\\]+$/i.test(u) || /^blob:/.test(u) ? u : ""; }
+/** The page under /pass/ for what a sheet says it is, or "". */
+function cpPageFor(kind) { return Object.prototype.hasOwnProperty.call(CP_KINDS, String(kind)) ? CP_KINDS[kind] : ""; }
+
+/* ---------- what this device keeps (localStorage; memory only if the browser blocks it) ---------- */
+var cpMem = {};
+function cpGet(k) {
+  var v = null;
+  try { v = localStorage.getItem(k); } catch (e) { v = null; }
+  return v != null ? v : (cpMem.hasOwnProperty(k) ? cpMem[k] : null);
+}
+function cpPut(k, v) {
+  if (v == null) delete cpMem[k]; else cpMem[k] = String(v);
+  try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) { /* kept for this visit only */ }
+}
+function cpJSON(k) { try { return JSON.parse(cpGet(k) || "null"); } catch (e) { return null; } }
+
+/** On the class website: this assignment's sign-in, { t: token, e: email, k: what the sheet is, x: when it runs out }, or null. */
+function cpPass() {
+  var k = "classpass:" + CP_APP, r = cpJSON(k);
+  if (!r) {   // signed in on the old Video Check front door (/video/) before Class Pass: keep that sign-in
+    var old = cpGet("videocheck-signin:" + CP_APP);
+    if (old && /^[0-9a-f]{64}$/.test(old)) {
+      r = { t: old, e: "", k: "video-check", x: Date.now() + CP_DAYS * 86400000 };
+      cpPut(k, JSON.stringify(r));
+      cpPut("videocheck-signin:" + CP_APP, null);
+    }
+  }
+  return r && typeof r.t === "string" && r.t && !(r.x && r.x < Date.now()) ? r : null;
+}
+/** This browser's sign-in token for this assignment, or "". */
+function cpToken() {
+  if (!CP_SITE) return cpGet(CP_HOST.tokenKey) || "";
+  var r = cpPass();
+  return r ? r.t : "";
+}
+function cpSetToken(t, email, kind) {
+  if (!CP_SITE) { cpPut(CP_HOST.tokenKey, t || null); return; }
+  var k = "classpass:" + CP_APP, old = cpJSON(k) || {};
+  if (!t) { cpPut(k, null); return; }
+  cpPut(k, JSON.stringify({ t: t, e: email || old.e || "", k: kind || old.k || "", x: Date.now() + CP_DAYS * 86400000 }));
+}
+/** The school account last signed in with Class Pass on this device (for 14 days): { e: email, g: with Google, at } or null. */
+function cpMe() { var m = cpJSON("classpass-me"); return m && m.e && Date.now() - m.at < CP_DAYS * 86400000 ? m : null; }
+function cpRemember(email, google) { if (CP_SITE && /^[^@\s"<>]+@[^@\s"<>]+\.[a-z]{2,}$/i.test(String(email || ""))) cpPut("classpass-me", JSON.stringify({ e: String(email).toLowerCase(), g: !!google, at: Date.now() })); }
+/** "Not you? Sign out": ends this assignment's sign-in on the sheet, and forgets every Class Pass sign-in on this device.
+    done() runs once the sheet has answered (or after 4 s), so leaving the page can't cut the request off. */
+function cpSignOut(done) {
+  var over = false;
+  function end() { if (over) return; over = true; if (done) done(); }
+  cpRun("signOut", [], end, end);   // sends the token now, before it's forgotten below
+  setTimeout(end, 4000);
+  if (!CP_SITE) { cpSetToken(""); cpPut(cpCodeKey(), null); return; }
+  var keys = [];
+  try { for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i)); } catch (e) {}
+  keys.concat(Object.keys(cpMem)).forEach(function (k) {
+    if (/^(classpass[:\-]|videocheck-signin|videocheck-code-sent)/.test(String(k))) cpPut(k, null);
+  });
+}
+
+/* ---------- talking to the sheet ---------- */
+/** From the class website: {fn, args, token} as text/plain (so the browser sends no CORS check first) to doPost. */
+function cpFetch(fn, args, ok, fail) {
+  fetch(CP_EXEC, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                   body: JSON.stringify({ fn: fn, args: args, token: cpToken() }) })   // the server puts the token in place
+    .then(function (r) {
+      if (!r.ok) throw new Error("NETWORK: The assignment's sheet didn't answer (" + r.status + "). Wait a minute and try again.");
+      return r.text();
+    })
+    .then(function (text) {
+      var out = null;
+      try { out = JSON.parse(text); } catch (e) { out = null; }
+      if (!out) {
+        if (/doPost/.test(text)) throw new Error("This assignment isn't ready for Class Pass yet. Please tell your teacher: its sheet needs the newest version.");
+        throw new Error("NETWORK: The assignment's sheet sent something unexpected. Wait a minute and try again.");
+      }
+      return out;
+    })
+    .then(function (out) {
+      if (out.ok) { if (ok) ok(out.result); }
+      else fail(new Error(out.error || "Something went wrong. Reload the page."));
+    }, function (err) {
+      var m = String((err && err.message) || "");
+      fail(/^NETWORK|isn't ready/.test(m) ? err : new Error("NETWORK: Couldn't reach the assignment's sheet. Check your internet connection."));
+    });
+}
+/** Every call to the sheet. On the /exec page the token goes in as the last argument (missing ones are null). */
+function cpRun(fn, args, ok, fail) {
+  fail = fail || function () {};
+  if (CP_SITE) return cpFetch(fn, (args || []).slice(), ok, fail);
+  var a = (args || []).slice(), n = CP_HOST.tokenArgs || {};
+  if (n.hasOwnProperty(fn)) { while (a.length < n[fn]) a.push(null); a.push(cpToken()); }
+  var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
+  r[fn].apply(r, a);
+}
+function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
+/** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
+var CP_RETRY = [1500, 3500, 7000, 12000];
+function cpRetry(c, ok, fail, attempt) {
+  attempt = attempt || 0;
+  c(ok, function (err) {
+    var m = String((err && err.message) || err || "");
+    if (attempt < CP_RETRY.length && !/SIGNIN|Unknown request|isn't ready|NOT OPEN|NOT YET|Unknown picture/.test(m)) {
+      setTimeout(function () { cpRetry(c, ok, fail, attempt + 1); }, CP_RETRY[attempt] + Math.floor(Math.random() * 1500));
+    } else fail(err);
+  });
+}
+
+/* ---------- the sign-in card ---------- */
+/* A code on its way is remembered on this device for its lifetime, so a student who leaves to read their email
+   (on a phone this often reloads the page) comes back to the box for the code, not to "Email me a code". */
+function cpCodeKey() { return CP_SITE ? "classpass-code:" + CP_APP : CP_HOST.tokenKey + ":code"; }
+function cpPending(set) {
+  if (set === null) { cpPut(cpCodeKey(), null); return null; }
+  if (set) { cpPut(cpCodeKey(), JSON.stringify(set)); return set; }
+  var p = cpJSON(cpCodeKey());
+  return p && p.email && Date.now() - p.at < p.minutes * 60000 ? p : null;
+}
+var cpCardOpen = false, cpEmail = "";
+var CP_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.2 5.6c4.2-3.9 7.1-9.6 7.1-17.1z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.3-8.7 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>';
+
+/**
+ * The Class Pass card, put into box. info comes from the sheet: { title, domain, googleClient, code, minutes, passLink, kind }.
+ * opt: { midway: the page already shows work (a sign-in ran out while working), note: a message to show, done(r): signed in, r = { token, email } }.
+ * Sign in with Google is on the Class Pass page, and (in a new tab) on an assignment's page midway. The /exec page links to Class Pass.
+ */
+function cpCard(box, info, opt) {
+  opt = opt || {};
+  cpCardOpen = true;
+  var midway = !!opt.midway, codeOk = info.code !== false;   // sheets older than Class Pass always allow the code
+  var google = info.googleClient && (CP_WHERE === "pass" || (CP_WHERE === "app" && midway)) ? info.googleClient : "";
+  var passLink = CP_WHERE === "exec" && /^https:\/\//.test(info.passLink || "") ? info.passLink : "";
+  var card = cpEl("div", "signin"); card.id = "cpCard";
+  card.appendChild(cpEl("h2", null, midway ? "Sign in again to keep saving" : "Sign in with Class Pass"));
+  card.appendChild(cpEl("p", null, midway
+    ? "Your sign-in on this device ran out. Your answers are still on this page. Sign in again, then press Check on any answer that didn't save."
+    : CP_WHERE === "exec"
+      ? "This browser isn't signed in to your school Google account first, so this page can't tell who you are."
+      : "Class Pass signs you in with your school account" + (info.title ? " to open " + info.title : "") + ". You'll stay signed in on this device for " + CP_DAYS + " days."));
+  var status = cpEl("p", "si-status"); status.setAttribute("aria-live", "polite");
+  function say(text, bad) { status.textContent = text || ""; status.className = "si-status" + (bad ? " bad" : ""); }
+
+  if (google) {
+    var gBtn = cpBtn("", "si-google", function () {
+      if (CP_WHERE === "pass") return cpGoogle(google, { tab: !!opt.tab }, say);
+      // midway on an assignment's page: sign in on a new tab, so nothing typed here is lost
+      cpTabSignIn(say, function (r) { if (opt.done) opt.done(r, card); });
+    });
+    gBtn.innerHTML = CP_G;
+    gBtn.appendChild(document.createTextNode("Sign in with Google"));
+    card.appendChild(gBtn);
+    card.appendChild(cpEl("p", null, "Pick your school account" + (info.domain ? " (it ends in @" + info.domain + ")" : "") + ". If it isn't in the list, choose Use another account."));
+  }
+  if (passLink && !midway) {
+    var pa = cpEl("a", "si-pass", "Open with Class Pass");
+    pa.href = passLink; pa.target = "_top"; pa.rel = "noopener";
+    card.appendChild(pa);
+    card.appendChild(cpEl("p", null, "Class Pass lets you sign in with your school Google account on any device."));
+  }
+
+  var step1 = null, step2 = null, em = null, code = null, sendBtn, haveBtn, goBtn, againBtn, otherBtn, sentTo;
+  if (codeOk) {
+    if (google || (passLink && !midway)) card.appendChild(cpEl("p", "si-or", "Or get a 6-digit code at your school email (it comes from your teacher's email):"));
+    else card.appendChild(cpEl("p", null, "We'll email a 6-digit code to your school address. It comes from your teacher's email."));
+    step1 = cpEl("form"); step1.noValidate = true;
+    var l1 = cpEl("label", null, "Your school email");
+    em = cpEl("input"); em.type = "text"; em.inputMode = "email"; em.autocomplete = "email"; em.spellcheck = false;
+    em.setAttribute("autocapitalize", "none"); em.placeholder = "yourname@" + (info.domain || "school.org"); em.value = cpEmail;
+    l1.appendChild(em); step1.appendChild(l1);
+    sendBtn = cpEl("button", null, "Email me a code"); sendBtn.type = "submit";
+    haveBtn = cpBtn("I already have a code", "secondary");
+    var b1 = cpEl("div", "si-buttons"); b1.appendChild(sendBtn); b1.appendChild(haveBtn); step1.appendChild(b1);
+    step2 = cpEl("form"); step2.noValidate = true; step2.hidden = true;
+    sentTo = cpEl("p");
+    var l2 = cpEl("label", null, "6-digit code");
+    code = cpEl("input", "si-code"); code.type = "text"; code.inputMode = "numeric"; code.autocomplete = "one-time-code"; code.maxLength = 7;
+    l2.appendChild(code);
+    goBtn = cpEl("button", null, "Sign in"); goBtn.type = "submit";
+    againBtn = cpBtn("Send a new code", "secondary"); otherBtn = cpBtn("Use a different email", "secondary");
+    var b2 = cpEl("div", "si-buttons"); b2.appendChild(goBtn); b2.appendChild(againBtn); b2.appendChild(otherBtn);
+    step2.appendChild(sentTo); step2.appendChild(l2); step2.appendChild(b2);
+    card.appendChild(step1); card.appendChild(step2);
+  } else if (!google && !passLink) {
+    card.appendChild(cpEl("p", null, "Signing in on this page isn't turned on for this assignment. Open it from the link in Google Classroom, or ask your teacher."));
+  }
+  if (passLink && midway) {
+    var pm = cpEl("p", "si-alt");
+    pm.appendChild(document.createTextNode("Or open this assignment with "));
+    var pl = cpEl("a", null, "Class Pass"); pl.href = passLink; pl.target = "_blank"; pl.rel = "noopener";
+    pm.appendChild(pl); pm.appendChild(document.createTextNode(" in a new tab (answers that didn't save here need to be typed there again)."));
+    card.appendChild(pm);
+  }
+  card.appendChild(status);
+  if (CP_WHERE === "exec") card.appendChild(cpEl("p", "si-alt", "Or open a private window, sign in to your school account at accounts.google.com, then open this link again."));
+  box.appendChild(card);
+  if (!codeOk) { if (opt.note) say(opt.note, true); return card; }
+
+  function busy(on) { [sendBtn, haveBtn, goBtn, againBtn, otherBtn].forEach(function (b) { b.disabled = on; }); }
+  function showStep2(email, minutes) {
+    cpEmail = email;
+    step1.hidden = true; step2.hidden = false;
+    sentTo.textContent = "We emailed a code to " + email + ". Open your school email, then type the code here. It works for " + minutes + " minutes.";
+    code.value = ""; code.focus();
+  }
+  function send(to) {
+    busy(true); say("Sending a code…");
+    // Safe to repeat if the answer gets lost: asking again within 45 s gets "sent" back, with no second email.
+    cpRetry(cpCall("sendSignInCode", [to]), function (r) {
+      busy(false);
+      cpPending({ email: r.email, at: Date.now(), minutes: r.minutes });
+      showStep2(r.email, r.minutes); say("");
+    }, function (err) { busy(false); say(cpSignInText(err), true); });
+  }
+  step1.addEventListener("submit", function (e) { e.preventDefault(); if (em.value.trim()) send(em.value); else say("Type your school email first.", true); });
+  haveBtn.addEventListener("click", function () {
+    var p = cpPending(), typed = em.value.trim();
+    if (!typed && !p) { say("Type your school email first, then press I already have a code.", true); return; }
+    var e = typed || p.email;
+    if (e.indexOf("@") === -1 && info.domain) e += "@" + info.domain;
+    showStep2(e.toLowerCase(), info.minutes || 10); say("");
+  });
+  againBtn.addEventListener("click", function () { send(cpEmail); });
+  otherBtn.addEventListener("click", function () { step2.hidden = true; step1.hidden = false; say(""); em.value = cpEmail; em.focus(); });
+  step2.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (code.value.replace(/\D/g, "").length !== 6) { say("The code has 6 digits.", true); return; }
+    busy(true); say("Checking your code…");
+    // Safe to repeat: the same right code again within 2 minutes gets the same sign-in back.
+    cpRetry(cpCall("verifySignInCode", [cpEmail, code.value]), function (r) {
+      cpSetToken(r.token, r.email, info.kind);
+      cpRemember(r.email, false);
+      cpPending(null);
+      cpCardOpen = false;
+      if (opt.done) opt.done(r, card);
+    }, function (err) { busy(false); say(cpSignInText(err), true); code.select(); });
+  });
+  var pend = midway ? null : cpPending();
+  if (pend) showStep2(pend.email, pend.minutes);   // back from reading the email: straight to the box for the code
+  if (opt.note) say(opt.note, true);
+  if (!google) (step1.hidden ? code : em).focus();
+  return card;
+}
+
+/** Midway on an assignment's page: sign in with Google on a new tab. When it's done there, this tab carries on. */
+function cpTabSignIn(say, done) {
+  var before = cpToken(), w = null, timer = 0;
+  try { w = window.open(cpPassUrl("&signin=1&tab=1"), "_blank"); } catch (e) { w = null; }
+  if (!w) { say("Your browser blocked the new tab. Allow pop-ups for this page, or reload the page to sign in (answers that didn't save need to be typed again).", true); return; }
+  say("Finish signing in on the new tab. This page carries on by itself when you're done.");
+  function check() {
+    var r = cpPass();
+    if (!r || r.t === before) return;
+    clearInterval(timer); window.removeEventListener("storage", check);
+    cpCardOpen = false;
+    if (done) done({ token: r.t, email: r.e });
+  }
+  timer = setInterval(check, 1500);
+  window.addEventListener("storage", check);
+}
+
+/* ---------- Sign in with Google (the Class Pass page only) ----------
+   Google's own sign-in page, so the student can pick their school account even when another account is signed in
+   first. It sends the browser back here with an ID token after the # (never to any server), and the sheet checks
+   that token with Google before signing this browser in. The nonce ties the answer to this tab. */
+function cpGoogle(client, opt, say) {
+  opt = opt || {};
+  var nonce = "";
+  try {
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    // The nonce ends with the deployment this sign-in is for. Google puts it inside the signed ID token, and each sheet
+    // refuses a token made for a different deployment, so a link to some other web app can't collect a student's
+    // Google sign-in and use it at a real assignment.
+    nonce = Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("") + "." + CP_APP;
+    sessionStorage.setItem("classpass-google", JSON.stringify({ n: nonce, s: !!opt.silent, t: !!opt.tab, a: CP_APP }));
+  } catch (e) { nonce = ""; }
+  if (!nonce) { if (say) say("This browser blocks a step Google sign-in needs (a private window can do that). Try a regular window.", true); return false; }
+  // Google only returns to the exact address registered with the client ID: .../pass/ (never .../pass/index.html)
+  var p = { client_id: client, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ""), response_type: "id_token",
+            scope: "openid email", nonce: nonce, state: CP_APP, hd: "*" };
+  if (opt.silent) { p.prompt = "none"; p.login_hint = opt.hint; }   // no box: Google answers at once, or says it needs the student
+  else p.prompt = "select_account";
+  cpGo("https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams(p).toString());
+  return true;
+}
+/** Back from Google's sign-in page? Its answer is after the # in the address. Returns { app, idToken, error } and takes
+    the answer out of the address bar and the history, or returns null. */
+function cpTakeGoogleReturn() {
+  var h = location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
+  if (!h || !(h.get("id_token") || h.get("error"))) return null;
+  var out = { app: String(h.get("state") || ""), idToken: h.get("id_token") || "", error: h.get("error") || "" };
+  var app = new URLSearchParams(location.search).get("app") || out.app;
+  try { history.replaceState(null, "", location.pathname + (/^AKfycb[\w-]{20,}$/.test(app) ? "?app=" + app : "")); } catch (e) {}
+  return out;
+}
+function cpClaims(t) {
+  try {
+    var p = String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (p.length % 4) p += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(p))));
+  } catch (e) { return null; }
+}
+/** done(note, r, how): r = { token, email } when signed in; note = what to tell the student otherwise ("" = nothing:
+    the quiet try just needs the student to pick). how = { s: quiet try, t: sign in for another tab }. */
+function cpFinishGoogle(back, kind, done) {
+  var want = null;
+  try { want = JSON.parse(sessionStorage.getItem("classpass-google") || "null"); sessionStorage.removeItem("classpass-google"); } catch (e) { want = null; }
+  if (!want) {   // started on the old Video Check front door (/video/) just before it moved here
+    try { var old = sessionStorage.getItem("videocheck-google-nonce"); if (old) want = { n: old }; sessionStorage.removeItem("videocheck-google-nonce"); } catch (e) {}
+  }
+  want = want || {};
+  if (back.error) {
+    if (want.s) return done("", null, want);
+    return done(back.error === "access_denied" ? "Google sign-in was canceled. Press Sign in with Google to try again."
+              : "Google sign-in didn't work here (" + back.error + "). Try again, or ask your teacher.", null, want);
+  }
+  var claims = back.idToken ? cpClaims(back.idToken) : null;
+  if (!claims || !want.n || claims.nonce !== want.n || (want.a && want.a !== CP_APP)) return done("That Google sign-in didn't start on this page. Press Sign in with Google again.", null, want);
+  cpStatus("Signing you in…");
+  cpRetry(cpCall("signInWithGoogle", [back.idToken]), function (r) {
+    cpSetToken(r.token, r.email, kind);
+    cpRemember(r.email, true);
+    done("", r, want);
+  }, function (err) { done(cpSignInText(err), null, want); });
+}
+/** The quiet Google try happens at most once a minute in a tab, so a sheet that keeps refusing can't cause a loop. */
+function cpMayTryQuietly() {
+  try {
+    var last = Number(sessionStorage.getItem("classpass-quiet:" + CP_APP)) || 0;
+    if (Date.now() - last < 60000) return false;
+    sessionStorage.setItem("classpass-quiet:" + CP_APP, String(Date.now()));
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- the out-of-sight check (the Class Pass page) ----------
+   Loads the web app itself in a hidden frame. Its tiny probe page (doGet with ?probe=1) tells this page whether
+   Google said who is signed in. Google's error page says nothing, so no answer in time means "sign in here". */
+var CP_CROS = /\bCrOS\b/.test(navigator.userAgent);
+// Chromebooks wait longer for the answer: at school it's almost always "yes", and a slow start on Google's side
+// shouldn't send a whole class to the sign-in card.
+var CP_PROBE_MAX_MS = 15000, CP_PROBE_AFTER_LOAD_MS = CP_CROS ? 8000 : 4000, CP_PROBE_SKIP_MS = 5000;
+function cpProbe(done) {
+  var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
+  function end(known) {
+    if (over) return;
+    over = true;
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    window.removeEventListener("message", onMsg);
+    f.remove();
+    var sk = document.getElementById("probeSkip"); if (sk) sk.remove();
+    done(known);
+  }
+  function onMsg(e) {
+    // (The probe's message is named videoCheckProbe for every app: sheets from before Class Pass send that name.)
+    if (!e.data || typeof e.data !== "object" || !("videoCheckProbe" in e.data)) return;
+    if (!/^https:\/\/[\w-]+\.googleusercontent\.com$/.test(e.origin) && e.origin !== location.origin) return;
+    if (!fromProbe(e.source)) return;   // only the hidden frame's own page (Google puts it a frame or two inside)
+    end(e.data.videoCheckProbe === 1 ? 1 : 0);
+  }
+  function fromProbe(w) {
+    try {
+      for (var i = 0; w && i < 8; i++) { if (w === f.contentWindow) return true; if (w === w.parent) return false; w = w.parent; }
+    } catch (err) {}
+    return false;
+  }
+  window.addEventListener("message", onMsg);
+  f.title = "Checking your school sign-in";
+  f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:absolute;left:-9999px;top:0;width:10px;height:10px;border:0";
+  f.addEventListener("load", function () { clearTimeout(t2); t2 = setTimeout(function () { end(null); }, CP_PROBE_AFTER_LOAD_MS); });
+  f.src = window.CLASS_PASS_PROBE_URL ? window.CLASS_PASS_PROBE_URL(CP_APP, location.origin)   // local tests only
+        : CP_EXEC + "?probe=1&from=" + encodeURIComponent(location.origin);
+  document.body.appendChild(f);
+  t1 = setTimeout(function () { end(null); }, CP_PROBE_MAX_MS);
+  t3 = setTimeout(function () {   // taking a while (a slow start on Google's side): let the student skip ahead to signing in
+    var ld = document.getElementById("loading"), b = cpBtn("Sign in with Class Pass instead", "secondary", function () { end(null); });
+    var box = cpEl("div", "probewait", "Still checking your school sign-in… ");
+    box.id = "probeSkip"; box.appendChild(b); if (ld) ld.appendChild(box);
+  }, CP_PROBE_SKIP_MS);
+}
+
+/** What the sheet says about itself: { kind, title, domain, googleClient, code, minutes }. A Video Check sheet from
+    before Class Pass (2026.09.29 or older) doesn't know this question, so its sign-in card's details are used. */
+function cpInfo(ok, fail) {
+  cpRetry(cpCall("classPass"), function (i) { ok(i); }, function (err) {
+    if (!/Unknown request/.test(String((err && err.message) || err))) return fail(err);
+    cpRetry(cpCall("getStudentState"), function (s) {
+      ok({ kind: "video-check", title: s.title || "", domain: s.domain || "", googleClient: s.googleClient || "", code: true, minutes: s.minutes || 10 });
+    }, fail);
+  });
+}
+function cpFail(err) {
+  var m = String((err && err.message) || err || "Something went wrong. Reload the page.").replace(/^(BUSY|NETWORK): /, "");
+  if (/^NETWORK/.test(String((err && err.message) || ""))) m += " If it keeps happening, please tell your teacher.";
+  cpStatus(m);
+  var app = document.getElementById("app"); if (app) app.hidden = true;
+}
+
+/**
+ * The Class Pass page (/pass/?app=<deployment ID>), start to finish:
+ *   1. Just back from Google: finish that sign-in.
+ *   2. Already signed in to this assignment on this device: open it.
+ *   3. This device signed in with Class Pass before (or ?signin=1): skip the check; ask Google quietly for the
+ *      account it used, or show the card.
+ *   4. Otherwise the out-of-sight check: Google knows the student (school Chromebooks): the plain /exec link.
+ *      Not: the card.
+ * Meanwhile it asks the sheet what it is (Video Check or Self-Check), which picks the page that opens.
+ * ?tab=1: opened by an assignment's page to sign in again. It signs in, then sends the student back to that tab.
+ */
+function cpPassBoot() {
+  document.title = "Class Pass";
+  var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  cpStatus("Opening your assignment…");
+  var info = null, waiting = [], failed = null;
+  function withInfo(f) { if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
+  function getInfo() {
+    cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
+           function (err) { failed = err; waiting.splice(0); cpFail(err); });
+  }
+  function open() {   // signed in: the assignment's own page under /pass/, or back to the tab that asked
+    withInfo(function (i) {
+      var r = cpPass();
+      if (r && r.k !== i.kind) cpSetToken(r.t, r.e, i.kind);
+      if (tab) return cpSignedInTab();
+      var page = cpPageFor(i.kind);
+      if (!page) return cpFail("This assignment can't open with Class Pass yet. Please tell your teacher.");
+      cpGo(new URL(page + "/?app=" + encodeURIComponent(CP_APP), location.href).href, true);
+    });
+  }
+  function card(note) {
+    withInfo(function (i) { cpCard(CP_HOST.clear(i.title), i, { tab: tab, note: note, done: open }); });
+  }
+  function signIn(note) {   // a quiet Google try for the account this device used before, else the card
+    withInfo(function (i) {
+      var me = cpMe();
+      if (!note && me && me.g && i.googleClient && cpMayTryQuietly()) {
+        cpStatus("Signing you in…");
+        if (cpGoogle(i.googleClient, { silent: true, hint: me.e, tab: tab })) return;
+      }
+      card(note);
+    });
+  }
+  if (CP_BACK) {
+    getInfo();
+    return cpFinishGoogle(CP_BACK, "", function (note, r, how) {
+      if (how && how.t) tab = true;
+      if (r) open(); else card(note);
+    });
+  }
+  var rec = tab ? null : cpPass();   // ?tab=1: the sign-in here just ran out, so it doesn't count
+  if (rec) {
+    if (cpPageFor(rec.k)) return cpGo(new URL(cpPageFor(rec.k) + "/?app=" + encodeURIComponent(CP_APP), location.href).href, true);
+    getInfo(); return open();
+  }
+  getInfo();
+  if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
+  cpProbe(function (known) {
+    if (known === 1) return cpGo(CP_EXEC, true);
+    if (known === 0 && CP_CROS) {
+      // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
+      // But if this device was just sent on the same way and is back, the assignment may not have opened: let the student choose.
+      var wk = "classpass-went:" + CP_APP, last = Number(cpGet(wk)) || 0;
+      if (Date.now() - last > 600000) { cpPut(wk, String(Date.now())); return cpGo(CP_EXEC, true); }
+      cpPut(wk, null);
+      var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+      c.appendChild(cpEl("h2", null, "Open the assignment"));
+      c.appendChild(cpEl("p", null, "If it didn't open a minute ago (Google said \"Sorry, unable to open the file\"), sign in with Class Pass instead."));
+      var row = cpEl("div", "si-buttons");
+      row.appendChild(cpBtn("Open the assignment", "", function () { cpPut(wk, String(Date.now())); cpGo(CP_EXEC, true); }));
+      row.appendChild(cpBtn("Sign in with Class Pass", "secondary", function () { signIn(""); }));
+      c.appendChild(row); box.appendChild(c);
+      return;
+    }
+    signIn("");
+  });
+}
+/** ?tab=1 is done: the assignment's own tab carries on by itself (it watches for the new sign-in). */
+function cpSignedInTab() {
+  var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+  c.appendChild(cpEl("h2", null, "You're signed in"));
+  c.appendChild(cpEl("p", null, "Go back to your assignment's tab. Your answers are still there, and it keeps saving now."));
+  var row = cpEl("div", "si-buttons");
+  row.appendChild(cpBtn("Close this tab", "", function () { try { window.close(); } catch (e) {} }));
+  c.appendChild(row); box.appendChild(c);
+}
+
+/** An assignment's page on the class website: signed in to it on this device? Then start(). If not, the Class Pass page. */
+function cpAppBoot(start) {
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  if (!cpToken()) return cpGo(cpPassUrl(""), true);
+  start();
+}
+/** The sheet says this device isn't signed in (or its sign-in ran out) and nothing is on the page yet. true = handled
+    here (off to the Class Pass page); false = the host shows the card (the /exec page). */
+function cpNeedSignIn() {
+  cpSetToken("");
+  if (CP_WHERE !== "app") return false;
+  cpGo(cpPassUrl("&signin=1"), true);
+  return true;
+}
+
+/* ---------- pictures ----------
+   On the class website a Google Drive picture comes through the sheet (getPicture): Drive only shows a picture shared
+   with the district to a browser whose FIRST Google account is a school one. Two at a time, each once. */
+var cpPics = {}, cpPicQ = [], cpPicBusy = 0;
+function cpPicture(img, src, idx) {
+  if (!CP_SITE || !/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (cpPics[idx]) { img.src = cpPics[idx]; return; }
+  cpPicQ.push({ img: img, src: src, idx: idx });
+  cpPicNext();
+}
+function cpPicNext() {
+  while (cpPicBusy < 2 && cpPicQ.length) (function (job) {
+    if (cpPics[job.idx]) { job.img.src = cpPics[job.idx]; return; }
+    cpPicBusy++;
+    cpRetry(cpCall("getPicture", [job.idx]), function (r) {
+      cpPicBusy--;
+      if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") {   // never a page or a script
+        job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return;
+      }
+      try {
+        var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        cpPics[job.idx] = URL.createObjectURL(new Blob([bytes], { type: r.mime }));   // a blob: address also opens in a new tab
+      } catch (e) { job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return; }
+      job.img.src = cpPics[job.idx];
+      cpPicNext();
+    }, function (err) {
+      cpPicBusy--;
+      if (/Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
+      else job.img.alt = "The picture didn't load. Reload the page to try again.";
+      cpPicNext();
+    });
+  })(cpPicQ.shift());
+}
+/* ============================== (@@CLASSPASS-END) ============================== */
+
+var CP_HOST = {
+  tokenKey: "",
+  tokenArgs: {},
+  /** Empties the page for a sign-in card (title = the assignment's, when known). */
+  clear: function (title) {
+    document.getElementById("loading").hidden = true;
+    var app = document.getElementById("app");
+    app.hidden = false; app.innerHTML = "";
+    document.title = title ? title + " (Class Pass)" : "Class Pass";
+    app.appendChild(cpEl("div", "cp-brand", "Class Pass"));
+    if (title) app.appendChild(cpEl("h1", null, title));
+    return app;
+  }
+};
+cpPassBoot();
+</script>
+</body>
+</html>
