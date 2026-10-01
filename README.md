@@ -1,121 +1,95 @@
-# Physical Science 8 — Online Textbook
+# ⚡ Surge Showdown
 
-A self-contained, static website: 6 units, 21 chapters, interactive chapter-review
-quizzes, flip-card vocabulary, embedded videos, linked simulations and articles,
-and a full glossary. Built with plain HTML/CSS/JS (Poppins font, Chart.js for
-graphs) — no build step, no server, no database required.
+A team battle quiz game for up to 10 teams. Each student answers questions on their own Chromebook to earn energy, then spends that energy to upgrade, attack other teams, heal, or shield their own team. As the timer runs down, every power-up gets **exponentially stronger** (the "Surge"). Teams that are knocked out can keep attacking. When the game ends, the **top 3 teams go on a podium**.
 
-## Deploying to Cloudflare Pages
+- **Students:** go to your site's main address, then type the 6-digit code and their name.
+- **Teacher:** go to `/surge/host` on your site.
 
-**Option A — Drag and drop (easiest, no account setup beyond Cloudflare login):**
+The game also runs inside the physical-science-8 Pages site. See `ADD-TO-YOUR-SITE.md` in the add-on zip.
 
-1. Log in to the Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Upload assets**.
-2. Give the project a name (e.g. `physical-science-8`).
-3. Drag this entire folder's *contents* (`index.html`, `glossary.html`, every
-   `u#*.html` file, and the `assets` folder) into the upload area — not the
-   folder itself, its contents.
-4. Click **Deploy site**. Cloudflare will give you a `*.pages.dev` URL in
-   under a minute.
-5. To use your own domain, go to the project's **Custom domains** tab and
-   follow the prompts.
+---
 
-**Option B — Wrangler CLI (good if you'll update it often):**
+## Put it online (GitHub → Cloudflare), about 10 minutes
 
-```bash
-npm install -g wrangler
-cd this-folder
-wrangler pages deploy . --project-name=physical-science-8
+You only do this once. After that, every change you push to GitHub redeploys the site automatically.
+
+### 1. Upload to GitHub
+1. Go to https://github.com/new and create a repository named **surge-showdown**. Public or private both work.
+2. On the new repo page, click **"uploading an existing file"**.
+3. Unzip `surge-showdown.zip` on your computer. Drag **everything inside the folder** into the upload box: the `public` and `src` folders, plus `package.json`, `wrangler.jsonc`, `README.md`, and `.gitignore`.
+   > Tip: if `.gitignore` is hidden on your computer, you can skip it.
+4. Click **Commit changes**.
+
+### 2. Connect it to Cloudflare
+1. Log in at https://dash.cloudflare.com and open **Workers & Pages**.
+2. Click **Create** → **Workers** tab → **Import a repository**. This is not the "Pages" tab, because the game needs a Worker for its live multiplayer server.
+3. Connect your GitHub account if asked, then pick **surge-showdown**.
+4. Leave the defaults as they are (deploy command `npx wrangler deploy`) and click **Deploy**.
+5. In a minute or so you'll get a URL like `https://surge-showdown.<your-name>.workers.dev`.
+
+That's it. Everything runs on Cloudflare's **free plan**. The live game rooms use "Durable Objects", which the free plan includes.
+
+> **School network:** if Chromebooks can't open `*.workers.dev`, ask IT to allow it. You can also add a custom domain in Cloudflare: open your Worker → **Settings → Domains & Routes**.
+
+### Making changes later
+Edit a file on GitHub (pencil icon) and commit. Cloudflare redeploys automatically.
+
+---
+
+## How to run a game
+
+1. Open `/surge/host`. Pick the game length, number of teams (2–10), theme, and battle settings.
+2. Paste your questions, one per line:
+   ```
+   Question | Correct answer | Wrong | Wrong | Wrong
+   Who proposed continental drift? | Alfred Wegener
+   ```
+   - You can paste straight from **Google Sheets** (columns: question, correct, wrong, wrong, wrong) or import a **Gimkit CSV export**.
+   - A line with only a correct answer becomes a **type-the-answer** question. Typed answers aren't case-sensitive.
+   - Click **💾 Save set** to keep a set in this browser for next time.
+3. Click **Create game**, project the screen, and students join with the code.
+4. In the lobby you can move students between teams, shuffle the teams, or remove a student. Then click **Start**.
+5. During the game: **Pause/Resume**, **+1 min / −1 min**, **End game** at any time, plus move or remove players.
+6. At the end, the podium shows the top 3 teams along with awards: MVP, most damage, most correct, longest streak, and top healer. Click **Rematch** to play again with the same students and code.
+
+If your host tab closes or refreshes, just reopen `/surge/host` and it will reconnect to your game. Students who refresh or lose Wi-Fi also rejoin automatically.
+
+## Game rules
+
+| Power-up | Cost | Effect at start (×1 strength) |
+|---|---|---|
+| ⚔️ Strike | 40 ⚡ | 30 damage to one team |
+| 🌀 Siphon | 90 ⚡ | 25 damage to one team + heals yours 25 |
+| ☄️ Barrage | 150 ⚡ | 18 damage to *every* other standing team |
+| 💚 Mend | 60 ⚡ | Heal your team 45 |
+| 🛡️ Shield | 70 ⚡ | +50 shield, which absorbs damage first (max 50% of health) |
+
+**Surge:** every effect above is multiplied by the surge, which climbs from ×1 to your max (default ×5) on an exponential curve. Costs stay the same, so the last minutes get chaotic.
+
+**Upgrades:** Energy per Question (10 → 20 → 35 → 60 → 100 → 160) and Streak Bonus (extra energy for each answer in a row).
+
+**Fallen teams** can't heal or shield, but they can still attack. You can turn this off.
+
+**Team score** = each member's points (correct answers + damage dealt) + a knockout bonus for each final blow + a survival bonus for teams still standing at the end. If every team falls, the last team to fall gets the survival bonus.
+
+All of these numbers can be changed in the host setup screen.
+
+## Files
+```
+src/worker.js        Game server (Cloudflare Worker + Durable Object)
+public/surge/index.html    Student page
+public/surge/play.js
+public/surge/host.html     Teacher page
+public/surge/host.js
+public/surge/common.js     Themes, question parser, shared helpers
+public/surge/sample-questions.js   Built-in 8th grade science sample set
+public/surge/style.css
+wrangler.jsonc       Cloudflare config
 ```
 
-Run the same command again any time you edit the site to publish an update.
-
-**Option C — Connect a Git repository (best if you'll keep editing this):**
-See "Putting this on GitHub" below, then in Cloudflare Pages choose
-**Connect to Git** instead of **Upload assets**, pick the repo, leave the
-build command blank, and set the output directory to `/` (the project
-root) since this is a plain static site with no build step. After that,
-every time you push a change to GitHub, Cloudflare redeploys automatically
-within a minute or two — no manual re-upload, ever.
-
-## Putting this on GitHub
-
-You don't need to know git commands for this — GitHub's website can do it
-for you.
-
-**1. Create a free GitHub account** at github.com if you don't have one.
-
-**2. Create a new repository:**
-   - Click the **+** in the top-right corner → **New repository**.
-   - Name it something like `physical-science-8`.
-   - Leave it **Public** or **Private** (either works with Cloudflare Pages)
-     and do **not** check "Add a README" (this project already has one).
-   - Click **Create repository**.
-
-**3. Upload the files:**
-   - Unzip this download on your computer first.
-   - On the new repository's page, click **uploading an existing file**.
-   - Drag in everything *inside* the unzipped folder — `index.html`,
-     `glossary.html`, every `u#*.html` file, the `assets` folder, and
-     `README.md` — not the folder itself.
-   - Scroll down and click **Commit changes**.
-
-**4. Connect it to Cloudflare Pages** (see Option C above) so it deploys
-   automatically from now on.
-
-**5. Making future edits:** open any file on GitHub (click it, then the
-   pencil ✏️ icon), make your change, and click **Commit changes** at the
-   bottom. Cloudflare will pick up that commit and redeploy the live site
-   within a minute or two — no separate deploy step needed.
-
-**If you're comfortable with a terminal instead**, this is the equivalent
-git-command version of steps 2–3:
-
-```bash
-cd path/to/unzipped-folder
-git init
-git add .
-git commit -m "Initial commit of Physical Science 8 textbook"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/physical-science-8.git
-git push -u origin main
+## Test on your own computer (optional)
 ```
-
-(Create the empty repository on GitHub first, exactly as in step 2 above,
-copy its URL for the `git remote add` line, then run these from inside the
-unzipped folder.) After that, any future edit is just:
-
-```bash
-git add .
-git commit -m "describe what you changed"
-git push
+npm install
+npx wrangler dev
 ```
-
-## Editing content later
-
-- Page text lives directly in each chapter's `.html` file — open it in any
-  text editor and edit the paragraph text, vocabulary terms, or quiz
-  questions/answers directly (each quiz's data is a small JSON block near
-  the bottom of the file, inside a `<script type="application/json">` tag).
-- Shared look-and-feel lives in `assets/style.css`.
-- Shared behavior (quiz grading, the mobile menu, vocabulary flip cards)
-  lives in `assets/app.js`.
-- Chapter icons live in `assets/icons.js`.
-- If you'd rather regenerate the whole site from structured data instead of
-  hand-editing HTML, ask Claude for the original `unit1.json`–`unit6.json`
-  content files and the `build.py` generator script that produced this site.
-
-## What's inside
-
-- `index.html` — home page / unit overview
-- `u1.html` … `u6.html` — one landing page per unit
-- `u1-t1.html` … `u6-t4.html` — the 21 chapter pages
-- `glossary.html` — every vocabulary term from every chapter, searchable
-- `assets/` — shared stylesheet, scripts, icon library, and favicon
-
-Every chapter page includes: a "big question" hook, several sections of
-kid-friendly explanation (with a data graph in select chapters), a
-click-to-flip vocabulary set, an embedded YouTube video, a linked PhET (or
-similar) simulation, a linked article, and a 5-question self-grading review
-with instant feedback. Student quiz scores and "visited" checkmarks are
-saved locally in each student's own browser (`localStorage`) — nothing is
-sent to a server, and no login is required.
+Then open http://localhost:8787/surge/host in one window and http://localhost:8787/surge/ in others.
