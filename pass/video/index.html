@@ -260,7 +260,9 @@ var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 3, checkAnswer: 3, saveDraft
 var CP_WHERE = window.CLASS_PASS_PAGE || "exec";
 var CP_SITE = CP_WHERE !== "exec";   // on the class website: every call to the sheet goes through fetch
 var CP_DAYS = 14;
-var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check" };   // what the sheet says it is: its page under /pass/
+var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // what the sheet says it is: its page under /pass/
+                 "net-force-escape-room": "net-force-escape" };            // (a one-off page: self-check/custom/, built by make-pass.ps1)
+var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
 var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
 var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
 var CP_EXEC = /^AKfycb[\w-]{20,}$/.test(CP_APP) ? "https://script.google.com/macros/s/" + CP_APP + "/exec" : "";
@@ -904,9 +906,9 @@ function cpSignedInTab() {
 function cpPrefetch() {
   if (CP_WHERE !== "pass" || !CP_EXEC || cpPrefetch.done) return;
   cpPrefetch.done = true;
-  Object.keys(CP_KINDS).forEach(function (k) {
+  CP_PREFETCH.forEach(function (page) {
     var l = document.createElement("link");
-    l.rel = "prefetch"; l.href = new URL(CP_KINDS[k] + "/?app=" + encodeURIComponent(CP_APP), location.href).href;
+    l.rel = "prefetch"; l.href = new URL(page + "/?app=" + encodeURIComponent(CP_APP), location.href).href;
     document.head.appendChild(l);
   });
 }
