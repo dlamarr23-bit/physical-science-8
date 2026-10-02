@@ -172,10 +172,85 @@
   .cp-again button { background:#1b4587; border-color:#1b4587; color:#fff; }
   .cp-detail { font-size:12px; font-weight:400; color:#777; margin-top:10px; }
   /* @@CLASSPASS-CSS-END */
+  /* ---------- light / dark mode (the moon/sun button at the top; remembered on this device) ---------- */
+  .topbar { display:flex; justify-content:flex-end; margin:0 0 -6px; }
+  button.themebtn { display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border:1.5px solid #bbb; border-radius:999px;
+                    padding:5px 12px; font-size:13px; font-weight:600; }
+  button.themebtn svg { width:16px; height:16px; }
+  .meta.tone-warn { color:#b45f06; } .meta.tone-ok { color:#38761d; } .meta.tone-bad { color:#cc0000; } .meta.tone-muted { color:#666; }
+  .pagever { text-align:center; font-size:11px; color:#999; margin-top:-14px; }
+  html[data-theme="dark"] { color-scheme: dark; --green:#1f4d2e; --yellow:#5a4a12; --red:#5c2626; --strip:#1f3a66; --q:#2a2f38; }
+  html[data-theme="dark"] body { background:#14171c; color:#e8eaed; }
+  html[data-theme="dark"] .who, html[data-theme="dark"] .intro { color:#b6bcc6; }
+  html[data-theme="dark"] .links a { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .progress { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .bar { background:#14171c; border-color:#5f6670; }
+  html[data-theme="dark"] .dot { border-color:#8a9099; }
+  html[data-theme="dark"] .strip { border-color:#8fb3ff; color:#eef3ff; }
+  html[data-theme="dark"] .item { background:#1d2128; border-color:#3a4049; }
+  html[data-theme="dark"] .qtext { color:#f1f3f5; }
+  html[data-theme="dark"] .qnum { background:#e8eaed; color:#14171c; }
+  html[data-theme="dark"] .qimg figcaption, html[data-theme="dark"] .boxhint { color:#b6bcc6; }
+  html[data-theme="dark"] textarea { background:#14171c; color:#f1f3f5; border-color:#5f6670; }
+  html[data-theme="dark"] textarea.correct { background:var(--green); } html[data-theme="dark"] textarea.partial { background:var(--yellow); }
+  html[data-theme="dark"] textarea.incorrect { background:var(--red); }
+  html[data-theme="dark"] textarea::placeholder { color:#8a9099; }
+  html[data-theme="dark"] .fb { background:#000; color:#f1f3f5; border-top:1px solid #2a2f38; }
+  html[data-theme="dark"] .row { background:#1d2128; }
+  html[data-theme="dark"] .meta.tone-warn { color:#f5b971; } html[data-theme="dark"] .meta.tone-ok { color:#8fd19e; }
+  html[data-theme="dark"] .meta.tone-bad { color:#ff8a80; } html[data-theme="dark"] .meta, html[data-theme="dark"] .meta.tone-muted { color:#a7adb7; }
+  html[data-theme="dark"] button { background:#e8eaed; color:#14171c; border-color:#e8eaed; }
+  html[data-theme="dark"] button.secondary { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] button.themebtn { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .banner { background:#2a2f38; color:#f1f3f5; }
+  html[data-theme="dark"] .banner.error { background:#8e1c1c; }
+  html[data-theme="dark"] .boxlist input.pbox, html[data-theme="dark"] .boxwrap input.pbox { background:#14171c; color:#f1f3f5; border-color:#8fb3ff; }
+  html[data-theme="dark"] input.pbox.correct { background:var(--green); border-color:#8fd19e; }
+  html[data-theme="dark"] input.pbox.incorrect { background:var(--red); border-color:#ff8a80; }
+  html[data-theme="dark"] .boxarea { border-color:#5f6670; }
+  html[data-theme="dark"] .modal-card { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .closed .modal-head { border-color:#5f6670; color:#eef3ff; }
+  html[data-theme="dark"] .closed .modal-head svg { stroke:#eef3ff; }
+  html[data-theme="dark"] .closed .modal-body p.small { color:#a7adb7; }
+  html[data-theme="dark"] .closedbar { background:#000; }
+  html[data-theme="dark"] .item.viewonly textarea, html[data-theme="dark"] .item.viewonly input.pbox { color:#f1f3f5; }
+  html[data-theme="dark"] .drawpad, html[data-theme="dark"] .dropzone { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .drawpad.correct, html[data-theme="dark"] .dropzone.correct { background:var(--green); }
+  html[data-theme="dark"] button.padbtn { background:#14171c; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] button.padbtn.on { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] button.padcolor { border-color:#8a9099; }
+  html[data-theme="dark"] button.padcolor.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
+  html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
+  html[data-theme="dark"] .dropzone .dzbox { background:rgba(0,0,0,.2); border-color:#8a9099; }
+  html[data-theme="dark"] .dropzone .dzbox span { color:#b6bcc6; }
+  html[data-theme="dark"] .dropzone.over { background:#203050; }
+  html[data-theme="dark"] .dropzone button.dzpick, html[data-theme="dark"] .cp-again button, html[data-theme="dark"] a.si-pass { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] a.simbtn { background:#3b6fd6; border-color:#3b6fd6; }
+  html[data-theme="dark"] .remind { color:#fff3cd; border-color:#c9a227; }
+  html[data-theme="dark"] .signin { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .signin input { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] .si-alt, html[data-theme="dark"] .si-or, html[data-theme="dark"] .cp-slow, html[data-theme="dark"] .cp-detail { color:#a7adb7; border-color:#3a4049; }
+  html[data-theme="dark"] .si-status.bad { color:#ff8a80; }
+  html[data-theme="dark"] button.linkbtn { background:none; border:0; color:#8fb3ff; }
+  html[data-theme="dark"] button.si-google { background:#fff; color:#111; border-color:#fff; }
+  html[data-theme="dark"] .cp-step, html[data-theme="dark"] #loading { color:#e8eaed; }
+  html[data-theme="dark"] .cp-bar { background:#2a2f38; }
+  html[data-theme="dark"] .cp-bar span { background:#6f9bff; }
+  html[data-theme="dark"] .pagever { color:#6b717b; }
 </style>
 </head>
 <body>
+<script>
+/* Light / dark mode: the student's choice on this device, else the device's own setting. Set before anything draws. */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem("selfcheck-theme"); } catch (e) { t = null; }
+  if (t !== "dark" && t !== "light") { try { t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { t = "light"; } }
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
 <div class="wrap">
+  <div class="topbar"><button type="button" class="themebtn" id="themeBtn"></button></div>
   <div id="loading">Loading your self-check…</div>
   <div id="signin" hidden></div>
   <div id="app" hidden>
@@ -198,6 +273,7 @@
       <button id="finishBtn">I'm finished</button>
       <div class="meta" id="finishMeta" style="margin-top:8px"></div>
     </div>
+    <div class="pagever" id="pageVer"></div>
   </div>
 </div>
 <div class="modal" id="closedBox" hidden role="dialog" aria-modal="true" aria-labelledby="closedTitle">
@@ -1209,6 +1285,8 @@ function render() {
     });
   });
 
+  var pv = document.getElementById("pageVer");
+  if (pv) pv.textContent = "Page " + PAGE_VERSION + (S.version ? " · Sheet " + S.version : " · Sheet older than 2026.10.01e");
   var fin = document.getElementById("finishBtn");
   fin.addEventListener("click", finish);
   updateFinish();
@@ -1349,6 +1427,30 @@ function updateReminders() {
     r.hidden = hasUpload(up) || !r.getAttribute("data-shown");
   });
 }
+
+/* ---------- light / dark mode ---------- */
+var PAGE_VERSION = "2026.10.01e";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
+                    light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
+function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+function showThemeButton() {
+  var b = document.getElementById("themeBtn"), next = currentTheme() === "dark" ? "light" : "dark";
+  if (!b) return;
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + THEME_ICONS[next] + "</svg>";
+  b.appendChild(document.createTextNode(next === "dark" ? "Dark mode" : "Light mode"));
+  b.setAttribute("aria-label", "Switch to " + next + " mode");
+}
+(function () {
+  var b = document.getElementById("themeBtn");
+  if (!b) return;
+  showThemeButton();
+  b.addEventListener("click", function () {
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("selfcheck-theme", next); } catch (e) {}
+    showThemeButton();
+  });
+})();
 
 /* ---------- drawing pad questions (Answer type "draw" in the Questions tab) ----------
    Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors, a size slider, undo,
@@ -1670,7 +1772,9 @@ function closedMidway(err) {
 
 function setMeta(i, text, color) {
   var m = document.getElementById("m" + i);
-  m.textContent = text; m.style.color = color || "#666";
+  m.textContent = text;
+  var tone = { "#b45f06": "warn", "#38761d": "ok", "#cc0000": "bad" }[String(color || "").toLowerCase()] || "muted";
+  m.className = "meta tone-" + tone;   // colors for light and dark mode are in the CSS
 }
 
 function autosave(i) {
@@ -1754,7 +1858,7 @@ function check(i, force) {
   pending[i] = true;
   clearTimeout(draftTimer[i]);
   var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
-  meta.style.color = "#666"; meta.textContent = "Checking…"; btn.disabled = true;
+  setMeta(i, "Checking…"); btn.disabled = true;
   var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
                             : function (ok, fail) { api.check(i, val, ok, fail); };
   RETRY_FAST(gradeCall, function (resp) {
