@@ -1,32 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<script>window.CLASS_PASS_PAGE = "pass";   /* the Class Pass page: see CLASS PASS in the page script */</script>
-<meta charset="utf-8">
-<title>Class Pass</title>
+<script>window.CLASS_PASS_PAGE = "app";   /* on the class website, under Class Pass: see CLASS PASS in the page script */</script>
+<title>Self-Check</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<!-- the sheet answers through these two (fetch without cookies, hence crossorigin) -->
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<base target="_blank">
+<meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Poppins loads without holding up the page or its script (media="print" until it arrives; Arial until then) -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<!-- The link students get for every Video Check and Self-Check: physical-science-8.pages.dev/pass/?app=<deployment ID>.
-     Built by class-pass/make-pass.ps1 from class-pass/pass.html, classpass.css and classpass.js. -->
 <style>
+  :root { --green:#d9ead3; --yellow:#fff2cc; --red:#f4cccc; --strip:#c9daf8; --q:#d9d9d9; }
   * { box-sizing: border-box; }
   body { margin:0; background:#f3f3f3; font-family:Poppins, Arial, sans-serif; color:#111; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 80px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
   h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
-  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  .who { font-size: 13px; color:#555; margin-bottom: 8px; }
+  .intro { font-style: italic; color:#555; font-size: 14px; margin: 6px 0 10px; }
+  .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
+             color:#111; text-decoration:none; font-weight:600; font-size:13px; background:#fff; }
+  .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
+              padding: 10px 12px; margin: 14px 0; display:flex; flex-wrap:wrap; gap: 10px 16px; align-items:center; font-size:14px; font-weight:600; }
+  .bar { flex: 1 1 220px; height: 14px; display:flex; border:1px solid #111; border-radius: 7px; overflow:hidden; background:#fff; }
+  .bar span { height:100%; transition: width .3s; }
+  .chip { display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:12px; height:12px; border:1px solid #111; border-radius:3px; display:inline-block; }
+  .grade { margin-left:auto; font-size:16px; }
+  .strip { background: var(--strip); font-weight:700; font-size: 17px; padding: 10px 12px; margin: 26px 0 12px;
+           border-top: 2px solid #111; border-bottom: 2px solid #111; }
+  .item { margin: 0 0 18px; border: 1px solid #bbb; background:#fff; }
+  .qtext { background: var(--q); font-weight:700; font-size: 15px; padding: 10px 12px; line-height:1.45; }
+  .qimg { margin: 10px 0 2px; }
+  .qimg img { display:block; max-width:100%; max-height:420px; border:2px solid #111; border-radius:4px; background:#fff; cursor: zoom-in; }
+  .qimg figcaption { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:4px; }
+  .qlinks { margin-top: 8px; }
+  a.simbtn { display:inline-block; margin: 0 8px 8px 0; padding: 9px 16px; border:2px solid #1b4587; border-radius: 6px;
+             background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
+  a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
+  .seclinks { margin: -4px 0 14px; }
+  .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
+  textarea { display:block; width:100%; min-height: 84px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
+             transition: background .25s; }
+  textarea:focus { box-shadow: inset 0 0 0 2px #3c78d8; }
+  textarea.correct { background: var(--green); } textarea.partial { background: var(--yellow); } textarea.incorrect { background: var(--red); }
+  .fb { background:#000; color:#fff; font-style: italic; font-size: 14px; padding: 9px 12px; min-height: 38px; line-height:1.45; }
+  .row { display:flex; align-items:center; justify-content: space-between; gap: 8px; padding: 8px 12px; background:#fff; }
+  .meta { font-size: 12px; color:#666; }
   button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
            background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
   button.secondary { background:#fff; color:#111; }
   button:disabled { opacity:.5; cursor: default; }
-  button:focus-visible, a:focus-visible { outline: 3px solid #3c78d8; outline-offset: 2px; }
+  .finish { text-align:center; margin: 30px 0; }
+  .finish button { font-size: 16px; padding: 12px 26px; }
+  .banner { background:#111; color:#fff; padding:10px 12px; border-radius:6px; font-size:14px; margin: 10px 0; }
+  .error { background:#cc0000; }
+  /* type-in boxes placed on a picture */
+  .boxfig { margin: 10px 0 2px; }
+  .boxwrap { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  .boxwrap img { display:block; max-width:100%; height:auto; border:2px solid #111; border-radius:4px; background:#fff; }
+  .boxwrap input.pbox { position:absolute; margin:0; padding:0 4px; border:2px solid #3c78d8; border-radius:4px; background:#fff;
+             font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:clamp(10px, 1.9vw, 15px); line-height:1.1;
+             text-align:center; color:#111; outline:none; transition: background .25s; }
+  .boxwrap input.pbox:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  input.pbox.correct { background: var(--green); border-color:#38761d; }
+  input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
+  .boxlist { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 10px; line-height:1.3; }
+  .boxlist label { font-size: 13px; font-weight:600; }
+  .boxlist input.pbox { display:block; width:100%; margin-top:3px; padding:7px 8px; border:2px solid #111; border-radius:4px;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; background:#fff; outline:none; }
+  .boxhint { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:6px; }
+  .boxarea { border-top:3px solid #111; }
+  .boxarea.correct { box-shadow: inset 6px 0 0 #38761d; } .boxarea.partial { box-shadow: inset 6px 0 0 #bf9000; } .boxarea.incorrect { box-shadow: inset 6px 0 0 #cc0000; }
+  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  /* "I'm finished" pop-up (built into the page so it doesn't show the browser's "An embedded page says..." box) */
+  .modal { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal[hidden] { display:none; }
+  .modal-card { background:#fff; border:2px solid #111; border-radius:8px; max-width:420px; width:100%; padding:20px; }
+  .modal-card p { margin:0 0 18px; font-size:16px; font-weight:600; line-height:1.45; }
+  .modal-btns { display:flex; justify-content:flex-end; gap:10px; }
+  /* End of the quarter: "This assignment is closed" pop-up and the CLOSED bar (view only) */
+  .closedbar { background:#111; color:#fff; border-radius:6px; padding:10px 12px; font-size:14px; font-weight:600; margin:10px 0;
+               display:flex; gap:10px; align-items:center; }
+  .closedbar[hidden] { display:none; }
+  .closedbar .tag { background:#cc0000; border-radius:4px; padding:1px 8px; font-size:12px; letter-spacing:.06em; flex:none; }
+  .modal-card.closed { max-width:440px; padding:0; overflow:hidden; }
+  .closed .modal-head { background:var(--strip); border-bottom:2px solid #111; padding:12px 20px; font-weight:700; font-size:18px;
+                        display:flex; align-items:center; gap:10px; }
+  .closed .modal-head svg { width:26px; height:26px; flex:none; }
+  .closed .modal-body { padding:18px 20px 20px; }
+  .closed .modal-body p { margin:0 0 12px; font-size:15px; font-weight:400; line-height:1.5; }
+  .closed .modal-body p.lead { font-weight:600; font-size:16px; }
+  .closed .modal-body p.small { font-size:13px; color:#555; font-style:italic; }
+  .item.viewonly textarea, .item.viewonly input.pbox { color:#111; opacity:.8; cursor:default; }
+  /* drawing pad questions (Answer type "draw") */
+  .drawpad { border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px 12px; background:#fff; transition: background .25s; }
+  .drawpad.correct { background: var(--green); }
+  .padbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-bottom:8px; }
+  .padgroup { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+  button.padbtn { width:38px; height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:#fff; color:#111;
+                  border:1.5px solid #bbb; border-radius:8px; }
+  button.padbtn svg { width:20px; height:20px; }
+  button.padbtn.on { background:#1b4587; border-color:#1b4587; color:#fff; }
+  button.padbtn:disabled { opacity:.35; }
+  .padsizewrap { font-size:12px; font-weight:600; gap:6px; }
+  .padsize { width:110px; accent-color:#1b4587; }
+  .padcolors { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px; }
+  button.padcolor { width:26px; height:26px; padding:0; border-radius:50%; border:1.5px solid #999; }
+  button.padcolor.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
+  .padpick { width:34px; height:26px; padding:0; border:1.5px solid #999; border-radius:4px; background:#fff; cursor:pointer; }
+  .padwrap { position:relative; line-height:0; }
+  canvas.padcanvas { display:block; width:100%; height:auto; aspect-ratio: 1000 / 650; border:2px solid #111; border-radius:6px; background:#fff;
+                     touch-action:none; cursor:crosshair; }
+  .drawpad.viewonly canvas.padcanvas { cursor:default; }
+  input.padtext { position:absolute; z-index:2; margin:0; min-width:180px; padding:2px 6px; border:2px dashed #1b4587; border-radius:4px; background:rgba(255,255,255,.9);
+                  font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:16px; line-height:1.3; outline:none; }
+  /* picture upload questions (Answer type "upload") */
+  .dropzone { border-top:3px solid #111; border-bottom:3px solid #111; padding:12px; background:#fff; outline:none; transition: background .25s; }
+  .dropzone:focus { box-shadow: inset 0 0 0 3px #3c78d8; }
+  .dropzone.over { background:#e8f0fe; box-shadow: inset 0 0 0 3px #1b4587; }
+  .dropzone.correct { background: var(--green); }
+  .dropzone .dzbox { border:2px dashed #555; border-radius:8px; padding:18px 12px; text-align:center; cursor:pointer; background:rgba(255,255,255,.6); }
+  .dropzone .dzbox b { display:block; font-size:16px; margin-bottom:4px; }
+  .dropzone .dzbox span { display:block; font-size:13px; color:#444; margin-bottom:10px; }
+  .dropzone .dzprev { display:block; max-width:100%; max-height:360px; margin:0 auto 10px; border:2px solid #111; border-radius:4px; background:#fff; }
+  .dropzone .dzprev[hidden] { display:none; }
+  .dropzone button.dzpick { background:#1b4587; border-color:#1b4587; }
+  .dropzone.viewonly .dzbox { cursor:default; }
+  .remind { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; background:var(--yellow); border-top:2px solid #bf9000;
+            padding:9px 12px; font-size:14px; font-weight:600; }
+  .remind[hidden] { display:none; }
+  .remind button { font-size:13px; padding:4px 12px; }
   /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
   .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
   .signin h2 { font-size:18px; margin:0 0 6px; }
@@ -67,10 +176,58 @@
 </head>
 <body>
 <div class="wrap">
-  <div id="loading">Opening your assignment…</div>
-  <div id="app" hidden></div>
+  <div id="loading">Loading your self-check…</div>
+  <div id="signin" hidden></div>
+  <div id="app" hidden>
+    <h1 id="title"></h1>
+    <div class="who" id="who"></div>
+    <div class="intro" id="intro"></div>
+    <div class="closedbar" id="closedBar" hidden><span class="tag">CLOSED</span><span id="closedBarText"></span></div>
+    <div class="links" id="links"></div>
+    <div id="msg"></div>
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"><span id="bG" style="background:var(--green)"></span><span id="bY" style="background:var(--yellow)"></span><span id="bR" style="background:var(--red)"></span></div>
+      <span class="chip"><i class="dot" style="background:var(--green)"></i><b id="nG">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--yellow)"></i><b id="nY">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--red)"></i><b id="nR">0</b></span>
+      <span class="chip"><i class="dot"></i><b id="nB">0</b> left</span>
+      <span class="grade" id="grade"></span>
+    </div>
+    <div id="items"></div>
+    <div class="finish">
+      <button id="finishBtn">I'm finished</button>
+      <div class="meta" id="finishMeta" style="margin-top:8px"></div>
+    </div>
+  </div>
 </div>
+<div class="modal" id="closedBox" hidden role="dialog" aria-modal="true" aria-labelledby="closedTitle">
+  <div class="modal-card closed">
+    <div class="modal-head" id="closedTitle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      This assignment is closed
+    </div>
+    <div class="modal-body">
+      <p class="lead" id="closedLead"></p>
+      <p>You can still look at your answers and feedback, but you can't change them or earn more credit.</p>
+      <p>Spend your time on this quarter's assignments instead.</p>
+      <p class="small">Think this is a mistake? Talk to your teacher.</p>
+      <div class="modal-btns"><button id="closedOk">View my work</button></div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmText">
+  <div class="modal-card">
+    <p id="confirmText"></p>
+    <div class="modal-btns"><button class="secondary" id="confirmNo">Cancel</button><button id="confirmYes">Submit</button></div>
+  </div>
+</div>
+
 <script>
+/** Student calls that carry this browser's sign-in token, and how many arguments come before it.
+    Missing arguments are filled with null so the token always lands in the same place. */
+var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1,
+                   uploadPicture: 3, getMyUpload: 1 };
+
 /* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
    Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
    Google account is signed in before the school one (Google won't even open the web app there), or one with
@@ -836,21 +993,979 @@ function cpPicNext() {
 }
 /* ============================== (@@CLASSPASS-END) ============================== */
 
+/* ---------- Class Pass hooks (see CLASS PASS above) ----------
+   On the class website (Class Pass), this page runs as /pass/check/ and talks to the sheet with fetch. */
 var CP_HOST = {
-  tokenKey: "",
-  tokenArgs: {},
-  /** Empties the page for a sign-in card (title = the assignment's, when known). */
+  tokenKey: "selfcheck-signin",   // the /exec page's own sign-in (the class website keeps one per assignment: classpass:<id>)
+  tokenArgs: TOKEN_ARGS,
+  /** Empties the page for a sign-in card: the assignment itself stays hidden until someone is signed in. */
   clear: function (title) {
     document.getElementById("loading").hidden = true;
-    var app = document.getElementById("app");
-    app.hidden = false; app.innerHTML = "";
-    document.title = title ? title + " (Class Pass)" : "Class Pass";
-    app.appendChild(cpEl("div", "cp-brand", "Class Pass"));
-    if (title) app.appendChild(cpEl("h1", null, title));
-    return app;
+    document.getElementById("app").hidden = true;
+    var box = document.getElementById("signin");
+    box.hidden = false; box.innerHTML = "";
+    if (title) { document.title = title; box.appendChild(el("h1", null, title)); }
+    return box;
   }
 };
-cpPassBoot();
+
+/* The page talks to the server through `api`: google.script.run on the /exec page, fetch on the class website
+   (both through cpRun, which adds this browser's sign-in). The preview file swaps in a mock. */
+var api = window.MOCK_API || {
+  run: function (fn, args, ok, fail) { cpRun(fn, args, ok, fail || showError); },
+  getState: function (ok, fail) { this.run("getStudentState", [], ok, fail); },
+  grade:    function (i, a, ok, fail) { this.run("gradeAnswer", [i, a], ok, fail); },
+  check:    function (i, a, ok, fail) { this.run("checkAnswer", [i, a], ok, fail); },
+  turnIn:   function (ok, fail) { this.run("turnIn", [], ok, fail); },
+  saveDraft: function (i, t, ok, fail) { this.run("saveDraft", [i, t], ok, fail); },
+  upload:   function (i, data, mime, ok, fail) { this.run("uploadPicture", [i, data, mime], ok, fail); },
+  myUpload: function (i, ok, fail) { this.run("getMyUpload", [i], ok, fail); }
+};
+
+var S = null;              // state from server
+var saved = [];            // last answer text the server has for each question
+var pending = {};          // question index -> true while a check is in flight
+var draftSaved = [];       // last text the server has for each box (checked OR autosaved)
+var draftTimer = {};       // question index -> autosave timer
+var saving = {};           // question index -> true while a background save is running
+var saveWant = {};         // question index -> newest checked text waiting to be saved
+var AUTOSAVE_MS = 8000;    // autosave this long after the student stops typing
+
+function simButton(l) {
+  var a = el("a", "simbtn", l.label || "Open link"), u = cpLinkUrl(l.url);   // web addresses only (see cpLinkUrl)
+  if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener"; }
+  return a;
+}
+
+function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
+function isUploadQ(i) { return !!S.questions[i].upload; }
+function boxInputs(i) { return Array.prototype.slice.call(document.querySelectorAll('input.pbox[data-q="' + i + '"]')); }
+/** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
+function answerOf(i) {
+  if (isUploadQ(i)) return saved[i] || "";   // a picture's saved link (uploads don't type)
+  if (!isBoxQ(i)) return document.getElementById("a" + i).value.trim();
+  var parts = boxInputs(i).map(function (b) { return b.value.replace(/\|/g, "/").trim(); });
+  return parts.some(function (p) { return p; }) ? parts.join(" | ") : "";
+}
+function blockPaste(field, i) {
+  if (!S.blockPaste) return;
+  var stop = function (e) { e.preventDefault(); setMeta(i, "Pasting is turned off. Type your answer in your own words.", "#cc0000"); };
+  field.addEventListener("paste", stop);
+  field.addEventListener("drop", stop);
+  field.addEventListener("beforeinput", function (e) { if (/insertFrom(Paste|Drop)/.test(e.inputType || "")) stop(e); });
+}
+
+/** Shrinks a picture box's text so longer answers still fit. */
+function fitBox(inp) {
+  if (!inp.parentNode || !inp.parentNode.classList.contains("boxwrap")) return;
+  inp.style.fontSize = "";
+  var size = parseFloat(getComputedStyle(inp).fontSize);
+  while (inp.scrollWidth > inp.clientWidth + 1 && size > 6) { size -= 0.5; inp.style.fontSize = size + "px"; }
+}
+
+/** "Question number style" setting: the first 1 in the pattern becomes the question's number
+    ("Q1" -> Q7, "Question 1" -> Question 7, "1)" -> 7)). No 1 in the pattern = number added at the end. */
+function qLabel(n) {
+  var p = String(S && S.numberStyle != null ? S.numberStyle : "1").trim() || "1";
+  var at = p.indexOf("1");
+  return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
+}
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function showError(err) {
+  var text = String((err && err.message) ? err.message : err).replace(/^(BUSY|NETWORK|SIGNIN): /, "");
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner error", text));
+  document.getElementById("loading").textContent = text || "Something went wrong. Reload the page.";
+}
+function note(text) {   // a short black message at the top of the page
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner", text));
+  window.scrollTo(0, 0);
+}
+
+function render() {
+  document.getElementById("loading").hidden = true;
+  document.getElementById("signin").hidden = true;
+  document.getElementById("app").hidden = false;
+  document.title = S.title;
+  document.getElementById("title").textContent = S.title;
+  var who = document.getElementById("who");
+  who.textContent = "Signed in as " + S.name + ". Your work saves automatically.";
+  if (S.via === "code") {   // signed in with Class Pass: let a different student sign out on a shared device
+    who.appendChild(document.createTextNode(" Not you? "));
+    var so = el("button", "linkbtn", "Sign out"); so.type = "button"; so.addEventListener("click", signOutHere);
+    who.appendChild(so);
+  }
+  document.getElementById("intro").textContent = S.intro;
+  var L = document.getElementById("links");
+  (S.links || []).forEach(function (l) { L.appendChild(simButton(l)); });
+  L.hidden = !(S.links && S.links.length);
+
+  var box = document.getElementById("items");
+  var sec = {}; S.sections.forEach(function (s) { sec[s.before] = s; });
+  S.questions.forEach(function (q, i) {
+    if (sec[i]) {
+      box.appendChild(el("div", "strip", sec[i].title));
+      if (sec[i].links && sec[i].links.length) {
+        var sl = el("div", "seclinks");
+        sec[i].links.forEach(function (l) { sl.appendChild(simButton(l)); });
+        box.appendChild(sl);
+      }
+    }
+    var item = el("div", "item");
+    var qt = el("div", "qtext");
+    qt.appendChild(el("span", "qnum", qLabel(i + 1)));
+    qt.appendChild(document.createTextNode(q.text));
+    if (q.img && !(q.boxes && q.boxes.length)) {
+      var fig = el("figure", "qimg");
+      var im = el("img"); im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
+      cpPicture(im, q.img, i);
+      im.addEventListener("click", function () { var u = cpImgUrl(im.src); if (u) window.open(u, "_blank", "noopener"); });
+      fig.appendChild(im);
+      if (q.imgCaption) fig.appendChild(el("figcaption", null, q.imgCaption));
+      qt.appendChild(fig);
+    }
+    if (q.links && q.links.length) {
+      var ql = el("div", "qlinks");
+      q.links.forEach(function (l) { ql.appendChild(simButton(l)); });
+      qt.appendChild(ql);
+    }
+    var ta;
+    if (q.draw) {
+      ta = drawBox(i);
+    } else if (q.upload) {
+      ta = uploadBox(i);
+    } else if (q.boxes && q.boxes.length) {
+      // Picture-box question: one small input per blank, placed on the picture.
+      ta = el("div", "boxarea"); ta.id = "a" + i;
+      var prev = String(S.answers[i] || "").split("|").map(function (p) { return p.trim(); });
+      var holder;
+      if (q.img) {
+        holder = el("figure", "boxfig qimg");
+        holder.style.margin = "10px 12px";
+        var wrap = el("div", "boxwrap");
+        var pim = el("img"); pim.alt = q.imgCaption || ("Diagram for question " + (i + 1));
+        pim.addEventListener("load", function () { boxInputs(i).forEach(fitBox); });
+        cpPicture(pim, q.img, i);
+        wrap.appendChild(pim);
+        holder.appendChild(wrap);
+        if (q.imgCaption) holder.appendChild(el("figcaption", null, q.imgCaption));
+      } else {
+        holder = el("div", "boxlist"); holder.style.padding = "0 12px 10px";
+      }
+      q.boxes.forEach(function (b, k) {
+        var inp = el("input", "pbox"); inp.type = "text"; inp.maxLength = 80;
+        inp.setAttribute("data-q", i); inp.setAttribute("aria-label", b.label);
+        inp.value = prev[k] || ""; inp.disabled = S.locked; inp.autocomplete = "off";
+        if (q.img) {
+          inp.style.left = b.x + "%"; inp.style.top = b.y + "%"; inp.style.width = b.w + "%"; inp.style.height = b.h + "%";
+          inp.placeholder = "type here";
+          wrap.appendChild(inp);
+        } else {
+          var lab = el("label", null, b.label); lab.appendChild(inp); holder.appendChild(lab);
+        }
+      });
+      ta.appendChild(holder);
+    } else {
+      ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…";
+      ta.disabled = S.locked;
+    }
+    var fb = el("div", "fb"); fb.id = "f" + i;
+    var row = el("div", "row");
+    var meta = el("span", "meta"); meta.id = "m" + i;
+    var btn = el("button", "secondary", "Check"); btn.id = "b" + i; btn.disabled = S.locked;
+    row.appendChild(meta); row.appendChild(btn);
+    if (q.upload) btn.hidden = true;   // the upload box saves by itself
+    item.appendChild(qt);
+    if (i > 0 && S.questions[i - 1].upload && !q.upload) item.appendChild(reminderFor(i - 1, item));
+    item.appendChild(ta); item.appendChild(fb); item.appendChild(row);
+    box.appendChild(item);
+
+    saved[i] = (S.checkedAnswers ? S.checkedAnswers[i] : S.answers[i]) || "";
+    draftSaved[i] = S.answers[i] || "";
+    if (S.unchecked && S.unchecked[i]) setMeta(i, "Saved as a draft. Press Check for feedback.", "#b45f06");
+    paint(i, S.results[i]);
+    if (q.draw) { if (saved[i]) loadDrawing(i); return; }
+    if (q.upload) { if (saved[i]) showMyUpload(i); return; }
+    btn.addEventListener("click", function () { check(i, true); });
+    var fields = isBoxQ(i) ? boxInputs(i) : [ta];
+    fields.forEach(function (f) {
+      blockPaste(f, i);
+      f.addEventListener("blur", function () {
+        // Picture boxes: check once the student leaves the whole diagram (Tab between boxes doesn't check yet).
+        setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+      });
+      if (isBoxQ(i)) f.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); check(i, true); } });
+      if (isBoxQ(i)) { setTimeout(function () { fitBox(f); }, 0); window.addEventListener("resize", function () { fitBox(f); }); }
+      f.addEventListener("input", function () {
+        if (isBoxQ(i)) { f.className = "pbox"; fitBox(f); }   // clear this box's color while it's being changed
+        setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+        clearTimeout(draftTimer[i]);
+        draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+      });
+    });
+  });
+
+  var fin = document.getElementById("finishBtn");
+  fin.addEventListener("click", finish);
+  updateFinish();
+  updateProgress();
+  setUpClose();
+}
+
+/* ---------- picture upload questions (Answer type "upload" in the Questions tab) ----------
+   Drag a picture onto the box, click the box and paste (Ctrl+V, e.g. a screenshot or a Keep drawing copied with
+   Copy image), or press Choose a picture. The picture is shrunk here (longest side UPLOAD_MAX_PX, JPEG) and sent to
+   the sheet, which saves it in your Drive. Not graded. */
+var UPLOAD_MAX_PX = 1600, uploading = {};
+function uploadBox(i) {
+  var zone = el("div", "dropzone"); zone.id = "a" + i; zone.tabIndex = 0;
+  zone.setAttribute("role", "group"); zone.setAttribute("aria-label", "Picture for question " + (i + 1));
+  var prev = el("img", "dzprev"); prev.id = "p" + i; prev.alt = "Your picture for question " + (i + 1); prev.hidden = true;
+  var dz = el("div", "dzbox");
+  dz.appendChild(el("b", null, "Add your picture here"));
+  dz.appendChild(el("span", null, "Drag a picture onto this box, or click this box and press Ctrl+V to paste it. A photo or a screenshot works."));
+  var pick = el("button", "dzpick", "Choose a picture"); pick.type = "button"; pick.id = "u" + i; pick.disabled = S.locked;
+  var file = el("input"); file.type = "file"; file.accept = "image/*"; file.hidden = true;
+  dz.appendChild(pick); dz.appendChild(file);
+  zone.appendChild(prev); zone.appendChild(dz);
+  pick.addEventListener("click", function (e) { e.stopPropagation(); if (!S.locked) file.click(); });
+  file.addEventListener("change", function () { if (file.files && file.files[0]) sendPicture(i, file.files[0]); file.value = ""; });
+  dz.addEventListener("click", function () { zone.focus(); if (!S.locked) setMeta(i, "Now press Ctrl+V to paste your picture, or drag one here.", "#666"); });
+  ["dragenter", "dragover"].forEach(function (t) { zone.addEventListener(t, function (e) { e.preventDefault(); if (!S.locked) zone.classList.add("over"); }); });
+  ["dragleave", "dragend"].forEach(function (t) { zone.addEventListener(t, function () { zone.classList.remove("over"); }); });
+  zone.addEventListener("drop", function (e) {
+    e.preventDefault(); zone.classList.remove("over");
+    if (S.locked) return;
+    var f = pictureFrom(e.dataTransfer);
+    if (f) sendPicture(i, f); else setMeta(i, "That wasn't a picture. Drag in a picture file, or use Choose a picture.", "#cc0000");
+  });
+  zone.addEventListener("paste", function (e) {
+    e.preventDefault();
+    if (S.locked) return;
+    var f = pictureFrom(e.clipboardData);
+    if (f) sendPicture(i, f);
+    else setMeta(i, "There's no picture to paste. Copy a picture first (a screenshot, or right-click a picture > Copy image), then press Ctrl+V here.", "#cc0000");
+  });
+  return zone;
+}
+/** The first picture in a drop or a paste, or null. */
+function pictureFrom(dt) {
+  if (!dt) return null;
+  var k, list = dt.files || [];
+  for (k = 0; k < list.length; k++) if (/^image\//.test(list[k].type)) return list[k];
+  var items = dt.items || [];
+  for (k = 0; k < items.length; k++) if (items[k].kind === "file" && /^image\//.test(items[k].type)) { var f = items[k].getAsFile(); if (f) return f; }
+  return null;
+}
+/** A picture file -> { data (base64 JPEG), mime, url (for the preview) }, longest side UPLOAD_MAX_PX. */
+function shrinkPicture(file, done, fail) {
+  var src = URL.createObjectURL(file), img = new Image();
+  img.onload = function () {
+    try {
+      var w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, UPLOAD_MAX_PX / Math.max(w, h, 1));
+      var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+      var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);   // see-through PNGs get a white background
+      g.drawImage(img, 0, 0, c.width, c.height);
+      var url = c.toDataURL("image/jpeg", 0.85);
+      URL.revokeObjectURL(src);
+      done({ data: url.split(",")[1], mime: "image/jpeg", url: url });
+    } catch (e) { URL.revokeObjectURL(src); fail(); }
+  };
+  img.onerror = function () { URL.revokeObjectURL(src); fail(); };
+  img.src = src;
+}
+function sendPicture(i, file) {
+  if (S.locked || uploading[i]) return;
+  if (!/^image\//.test(file.type || "")) { setMeta(i, "That file isn't a picture. Use a photo or a screenshot (JPG or PNG).", "#cc0000"); return; }
+  setMeta(i, "Getting your picture ready…", "#666");
+  shrinkPicture(file, function (pic) {
+    var prev = document.getElementById("p" + i), oldSrc = prev.src, hadOld = !prev.hidden;
+    prev.src = pic.url; prev.hidden = false;
+    uploading[i] = true; saving["u" + i] = true;   // I'm finished and leaving the page wait for it
+    var pick = document.getElementById("u" + i); pick.disabled = true;
+    setMeta(i, "Uploading your picture…", "#666");
+    withRetry(function (ok, fail) { api.upload(i, pic.data, pic.mime, ok, fail); }, function (resp) {
+      uploading[i] = false; saving["u" + i] = false; pick.disabled = S.locked;
+      saved[i] = draftSaved[i] = resp.url || "uploaded";
+      paint(i, resp.result);
+      if (typeof resp.grade === "number") S.grade = resp.grade;
+      pick.textContent = "Choose a different picture"; markHasPicture(i);
+      updateProgress(); updateReminders();
+      setMeta(i, "Picture saved " + stamp() + ". To change it, add a different one.", "#38761d");
+    }, function (err) {
+      uploading[i] = false; saving["u" + i] = false; pick.disabled = S.locked;
+      if (hadOld) prev.src = oldSrc; else prev.hidden = true;
+      if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, then add your picture again.", "#cc0000"); return; }
+      if (closedMidway(err)) { setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
+      setMeta(i, String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") ||
+                 "Your picture didn't upload. Wait a minute and try again.", "#cc0000");
+    }, 0, function () { setMeta(i, "Uploading your picture… (lots of students saving, so hang on)", "#666"); });
+  }, function () {
+    setMeta(i, "This picture can't be opened here. Take a screenshot of it, or save it as a JPG or PNG, then try again.", "#cc0000");
+  });
+}
+/** After a reload: show the picture the student already added (it's only in your Drive, so it comes through the sheet). */
+function showMyUpload(i) {
+  var pick = document.getElementById("u" + i); pick.textContent = "Choose a different picture"; markHasPicture(i);
+  if (!api.myUpload) return;
+  setMeta(i, "Loading your picture…", "#666");
+  api.myUpload(i, function (r) {
+    var prev = document.getElementById("p" + i);
+    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { setMeta(i, "Your picture is saved.", "#38761d"); return; }
+    try {
+      var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+      for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+      prev.src = URL.createObjectURL(new Blob([bytes], { type: r.mime })); prev.hidden = false;
+      setMeta(i, "Your picture is saved. To change it, add a different one.", "#38761d");
+    } catch (e) { setMeta(i, "Your picture is saved.", "#38761d"); }
+  }, function () { setMeta(i, "Your picture is saved. (It couldn't be shown right now.)", "#38761d"); });
+}
+function hasUpload(i) { return !!saved[i] || !!(pads[i] && pads[i].ink); }
+function markHasPicture(i) { var b = document.querySelector("#a" + i + " .dzbox b"); if (b) b.textContent = "Picture added. Want to use a different one?"; }
+function missingUploads() { var out = []; S.questions.forEach(function (q, i) { if (q.upload && !hasUpload(i)) out.push(i); }); return out; }
+function goToUpload(i) {
+  var z = document.getElementById("a" + i);
+  if (!z) return;
+  z.scrollIntoView({ behavior: "smooth", block: "center" });
+  setTimeout(function () { try { z.focus({ preventScroll: true }); } catch (e) {} }, 400);
+}
+/** The question right after an upload question reminds the student (once they click into it) if the picture is missing. */
+function reminderFor(up, item) {
+  var r = el("div", "remind"); r.hidden = true; r.setAttribute("data-up", up); r.setAttribute("role", "status");
+  r.appendChild(el("span", null, "Reminder: you haven't " + (S.questions[up].draw ? "made your drawing" : "added your picture") + " for question " + (up + 1) + " yet."));
+  var go = el("button", "secondary", "Go to question " + (up + 1)); go.type = "button";
+  go.addEventListener("click", function () { goToUpload(up); });
+  r.appendChild(go);
+  item.addEventListener("focusin", function () { if (!S.locked && !hasUpload(up)) { r.hidden = false; r.setAttribute("data-shown", "1"); } });
+  return r;
+}
+function updateReminders() {
+  document.querySelectorAll(".remind").forEach(function (r) {
+    var up = Number(r.getAttribute("data-up"));
+    r.hidden = hasUpload(up) || !r.getAttribute("data-shown");
+  });
+}
+
+/* ---------- drawing pad questions (Answer type "draw" in the Questions tab) ----------
+   Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors, a size slider, undo,
+   redo and clear. The drawing saves itself (as a PNG, through the same uploadPicture call as a picture upload)
+   PAD_SAVE_MS after the student stops drawing, and comes back on the pad when the page is opened again. */
+var PAD_W = 1000, PAD_H = 650, PAD_UNDO = 15, PAD_SAVE_MS = 2500, pads = {};
+var PAD_COLORS = ["#1f2430", "#ffffff", "#8a8f98", "#e03131", "#f76707", "#fcc419", "#94d82d", "#2f9e44", "#15aabf",
+                  "#1c7ed6", "#4263eb", "#7048e8", "#ae3ec9", "#f06595", "#8b5a2b", "#e0b07a", "#ffd8a8", "#a5d8ff"];
+var PAD_TOOLS = [
+  ["pen", "Pen", '<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>'],
+  ["marker", "Highlighter", '<path d="M9 15l-3 5h5l2-3"/><path d="M9 15l7-11 4 3-7 11z"/>'],
+  ["spray", "Spray", '<rect x="8" y="9" width="7" height="12" rx="1.5"/><path d="M10 9V6h3v3"/><circle cx="18" cy="4" r=".6"/><circle cx="20" cy="7" r=".6"/><circle cx="17" cy="7.5" r=".6"/>'],
+  ["eraser", "Eraser", '<path d="M8 20h12"/><path d="M4 15l9-9 6 6-7 7H8z"/><path d="M9 10l6 6"/>'],
+  ["fill", "Fill", '<path d="M4 12l7-7 8 8-7 7z"/><path d="M20 15c0 1.5 1 2.5 1 3.5a1.5 1.5 0 0 1-3 0c0-1 1-2 2-3.5z"/>'],
+  ["line", "Line", '<path d="M5 19L19 5"/>'],
+  ["arrow", "Arrow (forces)", '<path d="M4 20L20 4"/><path d="M11 4h9v9"/>'],
+  ["rect", "Rectangle", '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
+  ["oval", "Oval", '<ellipse cx="12" cy="12" rx="8" ry="6"/>'],
+  ["text", "Label (type words)", '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>']
+];
+function padIcon(svg) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + svg + '</svg>'; }
+function padBtn(title, svg, onClick) {
+  var b = el("button", "padbtn"); b.type = "button"; b.title = title; b.setAttribute("aria-label", title);
+  b.innerHTML = padIcon(svg);
+  b.addEventListener("click", onClick);
+  return b;
+}
+function drawBox(i) {
+  var zone = el("div", "drawpad"); zone.id = "a" + i;
+  var P = pads[i] = { tool: "pen", color: PAD_COLORS[0], size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0 };
+  var bar = el("div", "padbar"), tools = el("div", "padgroup");
+  PAD_TOOLS.forEach(function (t) {
+    var b = padBtn(t[1], t[2], function () { P.tool = t[0]; tools.querySelectorAll(".padbtn").forEach(function (x) { x.classList.toggle("on", x === b); }); commitText(i); });
+    b.setAttribute("data-tool", t[0]); if (t[0] === "pen") b.classList.add("on");
+    tools.appendChild(b);
+  });
+  var size = el("input", "padsize"); size.type = "range"; size.min = 2; size.max = 40; size.value = P.size; size.setAttribute("aria-label", "Size");
+  size.addEventListener("input", function () { P.size = Number(size.value); });
+  var sizeWrap = el("label", "padgroup padsizewrap"); sizeWrap.appendChild(el("span", "padsizelab", "Size")); sizeWrap.appendChild(size);
+  var acts = el("div", "padgroup");
+  P.undoBtn = padBtn("Undo", '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', function () { padUndo(i); });
+  P.redoBtn = padBtn("Redo", '<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', function () { padRedo(i); });
+  var clr = padBtn("Clear the whole drawing", '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>', function () {
+    if (S.locked || !P.ink) return;
+    askConfirm("Clear your whole drawing? (Undo brings it back.)", function () { padClear(i); }, "Clear", "Cancel");
+  });
+  acts.appendChild(P.undoBtn); acts.appendChild(P.redoBtn); acts.appendChild(clr);
+  bar.appendChild(tools); bar.appendChild(sizeWrap); bar.appendChild(acts);
+  var colors = el("div", "padcolors");
+  PAD_COLORS.forEach(function (c, k) {
+    var b = el("button", "padcolor" + (k === 0 ? " on" : "")); b.type = "button"; b.style.background = c; b.title = "Color " + (k + 1); b.setAttribute("aria-label", "Color " + c);
+    b.addEventListener("click", function () { P.color = c; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.toggle("on", x === b); }); });
+    colors.appendChild(b);
+  });
+  var pick = el("input", "padpick"); pick.type = "color"; pick.value = "#1f2430"; pick.title = "Pick any color"; pick.setAttribute("aria-label", "Pick any color");
+  pick.addEventListener("input", function () { P.color = pick.value; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.remove("on"); }); });
+  colors.appendChild(pick);
+  var wrap = el("div", "padwrap"), cv = el("canvas", "padcanvas"); cv.width = PAD_W; cv.height = PAD_H;
+  cv.setAttribute("aria-label", "Drawing area for question " + (i + 1)); cv.setAttribute("role", "img");
+  wrap.appendChild(cv);
+  zone.appendChild(bar); zone.appendChild(colors); zone.appendChild(wrap);
+  P.cv = cv; P.cx = cv.getContext("2d", { willReadFrequently: true }); P.wrap = wrap;
+  P.cx.fillStyle = "#fff"; P.cx.fillRect(0, 0, PAD_W, PAD_H);
+  padButtons(i);
+  function pt(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * PAD_W / r.width, y: (e.clientY - r.top) * PAD_H / r.height }; }
+  cv.addEventListener("pointerdown", function (e) {
+    if (S.locked || e.button > 0) return;
+    e.preventDefault();
+    if (P.tool === "text") return;   // labels start on click (below), after the pointer is let go
+    var p = pt(e);
+    commitText(i);
+    padPush(i);
+    if (P.tool === "fill") { padFill(P, p); padChanged(i); return; }
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    P.down = true; P.start = P.last = p; P.points = [p];
+    P.shot = P.cx.getImageData(0, 0, PAD_W, PAD_H);
+    if (P.tool === "spray") { padSpray(P, p); P.spray = setInterval(function () { padSpray(P, P.last); }, 30); }
+    else padStroke(P, p);
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!P.down) return;
+    var p = pt(e); P.last = p;
+    if (P.tool === "spray") return;
+    P.points.push(p); padStroke(P, p);
+  });
+  function up() {
+    if (!P.down) return;
+    P.down = false; clearInterval(P.spray); P.shot = null;
+    padChanged(i);
+  }
+  cv.addEventListener("click", function (e) {
+    if (S.locked || P.tool !== "text") return;
+    var had = !!P.text;
+    commitText(i);
+    if (!had) startText(i, pt(e));   // a click while a label is open just finishes that label
+  });
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up); cv.addEventListener("lostpointercapture", up);
+  return zone;
+}
+/** Draws the current stroke or shape from the picture taken when it started, so shapes stretch and the highlighter stays even. */
+function padStroke(P, p) {
+  var g = P.cx, t = P.tool, s = P.start;
+  g.putImageData(P.shot, 0, 0);
+  g.save();
+  g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = P.size;
+  g.strokeStyle = g.fillStyle = t === "eraser" ? "#ffffff" : P.color;
+  if (t === "marker") { g.globalAlpha = 0.35; g.lineWidth = P.size * 3; g.lineCap = "butt"; }
+  if (t === "eraser") g.lineWidth = P.size * 3;
+  if (t === "pen" || t === "marker" || t === "eraser") {
+    var pts = P.points;
+    g.beginPath(); g.moveTo(pts[0].x, pts[0].y);
+    if (pts.length === 1) g.lineTo(pts[0].x + 0.01, pts[0].y);
+    for (var k = 1; k < pts.length; k++) g.lineTo(pts[k].x, pts[k].y);
+    g.stroke();
+  } else if (t === "line" || t === "arrow") {
+    g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(p.x, p.y); g.stroke();
+    if (t === "arrow") {
+      var a = Math.atan2(p.y - s.y, p.x - s.x), h = Math.max(14, P.size * 3.2);
+      g.beginPath(); g.moveTo(p.x, p.y);
+      g.lineTo(p.x - h * Math.cos(a - 0.45), p.y - h * Math.sin(a - 0.45));
+      g.lineTo(p.x - h * Math.cos(a + 0.45), p.y - h * Math.sin(a + 0.45));
+      g.closePath(); g.fill();
+    }
+  } else if (t === "rect") {
+    g.strokeRect(Math.min(s.x, p.x), Math.min(s.y, p.y), Math.abs(p.x - s.x), Math.abs(p.y - s.y));
+  } else if (t === "oval") {
+    g.beginPath();
+    g.ellipse((s.x + p.x) / 2, (s.y + p.y) / 2, Math.abs(p.x - s.x) / 2 + 0.5, Math.abs(p.y - s.y) / 2 + 0.5, 0, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.restore();
+}
+function padSpray(P, p) {
+  var g = P.cx, r = P.size * 2.5;
+  P.shot = null;   // spray adds dots; nothing to redraw
+  g.fillStyle = P.color;
+  for (var k = 0; k < 18; k++) {
+    var a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * r;
+    g.fillRect(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 1.6, 1.6);
+  }
+}
+/** Paint bucket: fills the touching area of about the same color. */
+function padFill(P, p) {
+  var x0 = Math.floor(p.x), y0 = Math.floor(p.y);
+  if (x0 < 0 || y0 < 0 || x0 >= PAD_W || y0 >= PAD_H) return;
+  var img = P.cx.getImageData(0, 0, PAD_W, PAD_H), d = img.data, at = (y0 * PAD_W + x0) * 4;
+  var r0 = d[at], g0 = d[at + 1], b0 = d[at + 2];
+  var c = P.color.replace("#", ""), fr = parseInt(c.substr(0, 2), 16), fg = parseInt(c.substr(2, 2), 16), fb = parseInt(c.substr(4, 2), 16);
+  if (Math.abs(fr - r0) + Math.abs(fg - g0) + Math.abs(fb - b0) < 8) return;
+  var tol = 90, seen = new Uint8Array(PAD_W * PAD_H), stack = [x0, y0];
+  function same(k) { return Math.abs(d[k] - r0) + Math.abs(d[k + 1] - g0) + Math.abs(d[k + 2] - b0) <= tol; }
+  while (stack.length) {
+    var y = stack.pop(), x = stack.pop(), n = y * PAD_W + x;
+    while (x > 0 && !seen[n - 1] && same((n - 1) * 4)) { x--; n--; }
+    var upOpen = false, downOpen = false;
+    while (x < PAD_W && !seen[n] && same(n * 4)) {
+      seen[n] = 1; d[n * 4] = fr; d[n * 4 + 1] = fg; d[n * 4 + 2] = fb; d[n * 4 + 3] = 255;
+      if (y > 0) { var u = n - PAD_W; if (!seen[u] && same(u * 4)) { if (!upOpen) { stack.push(x, y - 1); upOpen = true; } } else upOpen = false; }
+      if (y < PAD_H - 1) { var w = n + PAD_W; if (!seen[w] && same(w * 4)) { if (!downOpen) { stack.push(x, y + 1); downOpen = true; } } else downOpen = false; }
+      x++; n++;
+    }
+  }
+  P.cx.putImageData(img, 0, 0);
+}
+/* Labels: click the pad with the Label tool, type, then press Enter (or click somewhere else). */
+function startText(i, p) {
+  var P = pads[i], box = el("input", "padtext"); box.type = "text"; box.maxLength = 60; box.placeholder = "Type a label, then Enter";
+  var fs = Math.round(14 + P.size * 1.4);
+  box.style.left = (100 * p.x / PAD_W) + "%"; box.style.top = (100 * p.y / PAD_H) + "%";
+  box.style.color = P.color === "#ffffff" ? "#1f2430" : P.color;
+  P.text = { box: box, p: p, fs: fs, color: P.color };
+  P.wrap.appendChild(box);
+  var made = Date.now();
+  box.focus();
+  box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); commitText(i); } if (e.key === "Escape") { box.value = ""; commitText(i); } });
+  box.addEventListener("blur", function () {
+    if (Date.now() - made < 400) { setTimeout(function () { if (P.text && P.text.box === box) box.focus(); }, 0); return; }   // the click that opened it
+    setTimeout(function () { if (P.text && P.text.box === box) commitText(i); }, 0);
+  });
+}
+function commitText(i) {
+  var P = pads[i];
+  if (!P || !P.text) return;
+  var t = P.text, words = t.box.value.trim();
+  P.text = null; t.box.remove();
+  if (!words) return;
+  padPush(i);
+  var g = P.cx;
+  g.save(); g.fillStyle = t.color; g.textBaseline = "top";
+  g.font = "600 " + t.fs + "px Poppins, Arial, sans-serif";
+  g.fillText(words, t.p.x, t.p.y - t.fs * 0.15);
+  g.restore();
+  padChanged(i);
+}
+function padPush(i) {
+  var P = pads[i];
+  P.undo.push({ img: P.cx.getImageData(0, 0, PAD_W, PAD_H), ink: P.ink });
+  if (P.undo.length > PAD_UNDO) P.undo.shift();
+  P.redo = [];
+  padButtons(i);
+}
+function padUndo(i) {
+  var P = pads[i];
+  if (S.locked || !P.undo.length) return;
+  commitText(i);
+  P.redo.push({ img: P.cx.getImageData(0, 0, PAD_W, PAD_H), ink: P.ink });
+  var h = P.undo.pop(); P.cx.putImageData(h.img, 0, 0); P.ink = h.ink;
+  padChanged(i, true);
+}
+function padRedo(i) {
+  var P = pads[i];
+  if (S.locked || !P.redo.length) return;
+  P.undo.push({ img: P.cx.getImageData(0, 0, PAD_W, PAD_H), ink: P.ink });
+  var h = P.redo.pop(); P.cx.putImageData(h.img, 0, 0); P.ink = h.ink;
+  padChanged(i, true);
+}
+function padClear(i) {
+  var P = pads[i];
+  padPush(i);
+  P.cx.fillStyle = "#fff"; P.cx.fillRect(0, 0, PAD_W, PAD_H);
+  P.ink = false;
+  padChanged(i, true);
+}
+function padButtons(i) { var P = pads[i]; if (!P.undoBtn) return; P.undoBtn.disabled = S.locked || !P.undo.length; P.redoBtn.disabled = S.locked || !P.redo.length; }
+/** Something changed on the pad: save it a moment after the student stops. */
+function padChanged(i, keepInk) {
+  var P = pads[i];
+  if (!keepInk) P.ink = true;
+  P.dirty = true;
+  padButtons(i);
+  clearTimeout(P.timer);
+  if (!P.ink) { setMeta(i, saved[i] ? "Your pad is empty. Your last saved drawing stays until you draw something new." : "", "#b45f06"); P.dirty = false; return; }
+  setMeta(i, "Not saved yet…", "#b45f06");
+  P.timer = setTimeout(function () { saveDrawing(i); }, PAD_SAVE_MS);
+  updateReminders();
+}
+function saveDrawing(i) {
+  var P = pads[i];
+  clearTimeout(P.timer);
+  if (S.locked || !P.ink || !P.dirty) return;
+  if (uploading[i]) { P.timer = setTimeout(function () { saveDrawing(i); }, 1000); return; }
+  var url = P.cv.toDataURL("image/png"), mime = "image/png";
+  if (url.length > 2500000) { url = P.cv.toDataURL("image/jpeg", 0.9); mime = "image/jpeg"; }
+  P.dirty = false;
+  uploading[i] = true; saving["u" + i] = true;
+  setMeta(i, "Saving your drawing…", "#666");
+  withRetry(function (ok, fail) { api.upload(i, url.split(",")[1], mime, ok, fail); }, function (resp) {
+    uploading[i] = false; saving["u" + i] = false;
+    saved[i] = draftSaved[i] = resp.url || "drawn";
+    paint(i, resp.result);
+    if (typeof resp.grade === "number") S.grade = resp.grade;
+    updateProgress(); updateReminders();
+    if (!P.dirty) setMeta(i, "Drawing saved " + stamp() + ".", "#38761d");
+  }, function (err) {
+    uploading[i] = false; saving["u" + i] = false; P.dirty = true;
+    if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, and your drawing saves by itself.", "#cc0000"); return; }
+    if (closedMidway(err)) { setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
+    setMeta(i, (String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") || "Your drawing didn't save.") + " It tries again when you draw more.", "#cc0000");
+  }, 0, function () { setMeta(i, "Saving your drawing… (lots of students saving, so hang on)", "#666"); });
+}
+/** After a reload: put the saved drawing back on the pad so the student can keep working on it. */
+function loadDrawing(i) {
+  if (!api.myUpload) return;
+  setMeta(i, "Loading your drawing…", "#666");
+  api.myUpload(i, function (r) {
+    var P = pads[i];
+    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { setMeta(i, "Your drawing is saved.", "#38761d"); return; }
+    var img = new Image();
+    img.onload = function () {
+      if (P.ink) return;   // the student already started drawing again
+      P.cx.drawImage(img, 0, 0, PAD_W, PAD_H); P.ink = true;
+      setMeta(i, "Your drawing is saved. Keep drawing to change it.", "#38761d");
+    };
+    img.onerror = function () { setMeta(i, "Your drawing is saved.", "#38761d"); };
+    img.src = "data:" + r.mime + ";base64," + r.data;
+  }, function () { setMeta(i, "Your drawing is saved. (It couldn't be shown right now.)", "#38761d"); });
+}
+/** I'm finished: save any drawing that hasn't been saved yet. */
+function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k)); }); }
+
+/* ---------- end of the quarter (view only) ---------- */
+function isClosedNow() { return !!(S && S.close && S.close.closed); }
+/** Closed already: view-only page + pop-up. Closing later while the page is open: switch over at that moment. */
+function setUpClose() {
+  var c = S.close;
+  if (!c) return;
+  if (c.closed) { showClosed(); return; }
+  var wait = c.at - (S.now || Date.now()) + 1000;   // the sheet's clock, not this device's
+  if (wait > 0 && wait < 86400000) setTimeout(function () { c.closed = true; showClosed(); }, wait);
+}
+function showClosed() {
+  var c = S.close;
+  S.locked = true;
+  S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
+  document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
+  if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
+  document.getElementById("closedBarText").textContent = c.note;
+  document.getElementById("closedBar").hidden = false;
+  updateFinish(); updateProgress();
+  showClosedPopup();
+}
+function showClosedPopup() {
+  var box = document.getElementById("closedBox"), ok = document.getElementById("closedOk");
+  document.getElementById("closedLead").textContent = S.close.quarter + " ended on " + S.close.ended + ".";
+  box.hidden = false; ok.focus();
+  function close() { box.hidden = true; ok.onclick = box.onclick = null; document.removeEventListener("keydown", key); }
+  function key(e) { if (e.key === "Escape" || e.key === "Enter") close(); }
+  ok.onclick = close;
+  box.onclick = function (e) { if (e.target === box) close(); };
+  document.addEventListener("keydown", key);
+}
+/** A check or save the sheet refused because the quarter ended (the page was opened before closing time). */
+function closedMidway(err) {
+  if (!(S && S.close && /ended/i.test(String(err && err.message)))) return false;
+  if (!S.close.closed) { S.close.closed = true; showClosed(); }
+  return true;
+}
+
+function setMeta(i, text, color) {
+  var m = document.getElementById("m" + i);
+  m.textContent = text; m.style.color = color || "#666";
+}
+
+function autosave(i) {
+  if (isUploadQ(i)) return;
+  var val = answerOf(i);
+  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
+  if (!api.saveDraft) return;
+  api.saveDraft(i, val, function (resp) {
+    if (resp && resp.saved) {
+      draftSaved[i] = val;
+      if (answerOf(i) === val && val !== saved[i]) {
+        setMeta(i, "Draft saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Press Check for feedback.", "#b45f06");
+      }
+    } else if (!(resp && resp.locked)) {
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);   // server busy: try again shortly
+    }
+  }, function (err) {
+    if (cpIsSignInError(err)) { signedOutMidway(); return; }
+    // Quietly try again later; Check still saves right away.
+    clearTimeout(draftTimer[i]);
+    draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+  });
+}
+
+function paint(i, res) {
+  var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
+  if (isUploadQ(i)) {
+    ta.className = (S.questions[i].draw ? "drawpad" : "dropzone") + (res && res.status === "correct" ? " correct" : "") + (S.locked ? " viewonly" : "");
+  } else if (isBoxQ(i)) {
+    ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
+    boxInputs(i).forEach(function (b, k) {
+      var m = res && res.parts ? res.parts[k] : "";
+      b.className = "pbox" + (m && m !== "blank" ? " " + m : "");
+    });
+  } else {
+    ta.className = res && res.status !== "blank" ? res.status : "";
+  }
+  fb.textContent = res ? res.message : "";
+  S.results[i] = res;
+}
+
+/** Busy server or a blip: try again quietly a few times before telling the student. */
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) {
+  var m = String((err && err.message) || err || "");
+  return !/SIGNIN|sign in|locked|turned this in|Unknown question|Unknown request|doesn't have any questions|isn't ready/i.test(m);
+}
+function withRetry(call, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  call(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      var wait = RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500);   // spread students out
+      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, wait);
+    } else fail(err);
+  });
+}
+
+/** Running grade from the colors on the page (same formula as the server). */
+function localGrade() {
+  if (!S.credit) return S.grade;
+  var earned = 0, n = 0;
+  S.results.forEach(function (r, i) { if (isUploadQ(i)) return; n++; earned += S.credit[(r && r.status) || "blank"] || 0; });
+  if (!n) return 0;
+  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
+  return Math.round(pts / S.roundTo) * S.roundTo;
+}
+function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+
+/**
+ * Check = two steps.
+ *  1. FAST: ask the server to grade only (no waiting in line) and show the color + hint.
+ *  2. BACKGROUND: save to the spreadsheet, retrying quietly if the server is busy.
+ */
+function check(i, force) {
+  if (isUploadQ(i)) return;   // pictures save through the upload box
+  var val = answerOf(i);
+  if (S.locked || pending[i]) return;
+  if (!force && val === saved[i]) return;
+  pending[i] = true;
+  clearTimeout(draftTimer[i]);
+  var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
+  meta.style.color = "#666"; meta.textContent = "Checking…"; btn.disabled = true;
+  var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
+                            : function (ok, fail) { api.check(i, val, ok, fail); };
+  RETRY_FAST(gradeCall, function (resp) {
+    pending[i] = false; btn.disabled = false;
+    saved[i] = val;
+    paint(i, resp.result);
+    S.grade = localGrade();
+    updateProgress();
+    if (answerOf(i) !== val) { setMeta(i, "Not checked yet", "#b45f06"); }
+    else setMeta(i, "Checked. Saving…", "#666");
+    queueSave(i, val);
+  }, function (err) {
+    pending[i] = false; btn.disabled = false;
+    setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); });
+}
+/** Grading retries quickly (it doesn't wait in line, so a retry usually works at once). */
+function RETRY_FAST(call, ok, fail, onRetry, attempt) {
+  attempt = attempt || 0;
+  var delays = [600, 1500, 3000, 6000];
+  call(ok, function (err) {
+    if (attempt < delays.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { RETRY_FAST(call, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
+    } else fail(err);
+  });
+}
+
+/** Saves the newest checked answer for a question, one save at a time, in order. */
+function queueSave(i, val) {
+  saveWant[i] = val;
+  if (saving[i]) return;               // the running save will pick up the newest text when it finishes
+  saving[i] = true;
+  var v = saveWant[i];
+  withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
+    saving[i] = false;
+    draftSaved[i] = v;
+    if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
+    if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
+    updateProgress();
+    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
+    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    saving[i] = false;
+    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+  }, 0, function () {
+    if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
+  });
+}
+function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
+
+function updateProgress() {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
+  S.results.forEach(function (r, i) { if (!isUploadQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads aren't graded
+  var n = Math.max(1, S.questions.filter(function (q) { return !q.upload; }).length);
+  document.getElementById("nG").textContent = c.correct;
+  document.getElementById("nY").textContent = c.partial;
+  document.getElementById("nR").textContent = c.incorrect;
+  document.getElementById("nB").textContent = c.blank;
+  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
+  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
+  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
+  document.getElementById("grade").textContent = S.showGrade ? ((isClosedNow() ? "Final grade: " : "Grade: ") + S.grade + " / " + S.maxPoints) : "";
+}
+
+function updateFinish() {
+  var meta = document.getElementById("finishMeta"), fin = document.getElementById("finishBtn");
+  if (isClosedNow()) {
+    fin.textContent = "Closed"; fin.disabled = true;
+    meta.textContent = "This assignment closed when " + S.close.quarter + " ended." +
+      (S.turnedIn ? " You turned it in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) + "." : "");
+  } else if (S.turnedIn) {
+    meta.textContent = "Turned in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) +
+      (S.locked ? ". Your answers are locked." : ". You can still improve answers: your teacher sees your latest work.") +
+      " Don't forget to click Mark as done in Google Classroom.";
+    fin.textContent = S.locked ? "Turned in" : "Turn in again";
+    fin.disabled = S.locked;
+  } else {
+    meta.textContent = "Click when you've answered everything. Then click Mark as done in Google Classroom.";
+  }
+}
+
+var FINISH_MESSAGE = "This will submit your assignment. Click Mark as done in Google Classroom.";
+
+/* In-page OK/Cancel box (replaces the browser's built-in confirm box, which adds "An embedded page at ... says"). */
+function askConfirm(text, onYes, yesLabel, noLabel, onNo) {
+  var box = document.getElementById("confirmBox"), yes = document.getElementById("confirmYes"), no = document.getElementById("confirmNo");
+  document.getElementById("confirmText").textContent = text;
+  yes.textContent = yesLabel || "Submit";
+  no.textContent = noLabel || "Cancel";
+  box.hidden = false; yes.focus();
+  function close(go) {
+    box.hidden = true; yes.onclick = no.onclick = box.onclick = null; document.removeEventListener("keydown", key);
+    if (go) onYes(); else if (onNo) onNo();
+  }
+  function key(e) { if (e.key === "Escape") close(false); }
+  yes.onclick = function () { close(true); };
+  no.onclick = function () { close(false); };
+  box.onclick = function (e) { if (e.target === box) close(false); };
+  document.addEventListener("keydown", key);
+}
+
+function finish() {
+  var missing = missingUploads();
+  if (missing.length) {
+    var which = missing.map(function (k) { return k + 1; }), many = which.length > 1;
+    var thing = missing.every(function (k) { return S.questions[k].draw; }) ? "drawing" : missing.some(function (k) { return S.questions[k].draw; }) ? "drawing or picture" : "picture";
+    askConfirm("You haven't made your " + thing + " for question" + (many ? "s " + which.join(" and ") : " " + which[0]) + " yet. " +
+               "Go back and add " + (many ? "them" : "it") + ", or submit without " + (many ? "them" : "it") + ". (Then click Mark as done in Google Classroom.)",
+               submitNow, "Submit anyway", "Go back", function () { goToUpload(missing[0]); });
+    return;
+  }
+  askConfirm(FINISH_MESSAGE, submitNow);
+}
+function submitNow() {
+  var fin = document.getElementById("finishBtn"); fin.disabled = true;
+  flushDrawings();   // a drawing that hasn't saved yet saves now
+  // Anything typed but not checked yet gets checked and saved first, so no work is lost.
+  S.questions.forEach(function (_, i) { if (answerOf(i) !== saved[i]) check(i, true); });
+  var waited = 0;
+  (function whenSaved() {
+    var busy = savesRunning() || Object.keys(pending).some(function (k) { return pending[k]; });
+    if (busy && waited < 90000) { waited += 500; fin.textContent = "Saving your answers…"; return setTimeout(whenSaved, 500); }
+    fin.textContent = "I'm finished";
+    doTurnIn(fin);
+  })();
+}
+function doTurnIn(fin) {
+  withRetry(function (ok, fail) { api.turnIn(ok, fail); }, function (resp) {
+    S.turnedIn = resp.turnedIn; S.grade = resp.grade;
+    if (resp.locked) {
+      S.locked = true;
+      document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input").forEach(function (x) { x.disabled = true; });
+    }
+    fin.disabled = S.locked;
+    updateFinish(); updateProgress();
+  }, function (err) { fin.disabled = false; if (cpIsSignInError(err)) signedOutMidway(); else if (!closedMidway(err)) showError(err); });
+}
+
+/* ---------- signing in (Class Pass) ---------- */
+function signInInfo(s) { return { title: s.title, domain: s.domain, googleClient: s.googleClient, code: s.code, minutes: s.minutes, passLink: s.passLink }; }
+/** The Class Pass card: before the assignment is on the page (a whole-page card), or midway (a sign-in ran out while working). */
+function showSignIn(info, midway) {
+  var box;
+  if (midway) { box = el("div"); var app = document.getElementById("app"); app.insertBefore(box, app.firstChild); window.scrollTo(0, 0); }
+  else box = CP_HOST.clear(info.title);
+  cpCard(box, info, { midway: midway, done: function (r, card) {
+    if (!midway) { document.getElementById("signin").hidden = true; start(); return; }
+    if (S && r.email === S.email) {
+      if (card) card.remove();
+      note("You're signed in again. Press Check on any answer that didn't save.");
+      return;
+    }
+    // Someone else signed in on a page showing another student's work: don't mix the two.
+    S.locked = true;
+    document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+    if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
+  } });
+}
+/** A check or save found this browser signed out (the sign-in ran out or was removed). */
+function signedOutMidway() {
+  if (cpCardOpen || !S) return;
+  showSignIn(signInInfo(S), true);
+}
+/** "Not you? Sign out" (only shown for Class Pass sign-ins). */
+function signOutHere() {
+  if (savesRunning()) { note("Your answers are still saving. Try again in a few seconds."); return; }
+  askConfirm(CP_SITE ? "Sign out of Class Pass on this device?" : "Sign out of this page on this browser?", function () {
+    var title = S ? S.title : document.title;
+    S = null;
+    var box = CP_HOST.clear(title);
+    var msg = el("div", "banner", "Signing out…");
+    box.appendChild(msg);
+    cpSignOut(function () {
+      if (CP_SITE) return cpGo(cpPassUrl("&signin=1"), true);   // the next student can sign in right away
+      msg.textContent = "You're signed out on this browser. Reload the page to sign in again.";
+    });
+  }, "Sign out");
+}
+
+window.addEventListener("beforeunload", function (e) {
+  if (!S || !S.questions) return;
+  // Only warn if something typed hasn't reached the server yet (autosave covers the rest).
+  var dirty = savesRunning() || S.questions.some(function (_, i) { return answerOf(i) !== draftSaved[i] || (pads[i] && pads[i].dirty); });
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+function start() {
+  // the loading screen's progress bar (cpStep): on the class website it's the last step of Class Pass
+  if (CP_SITE) cpStep(3, "Opening your assignment…"); else cpStep(0, "Loading your self-check…");
+  var handed = cpTakeState();   // the Class Pass page already asked for it while signing in
+  if (handed) return gotState(handed);
+  withRetry(function (ok, fail) { api.getState(ok, fail); }, gotState, function (err) {
+    // The class website can't reach the sheet at all: most often the deployment isn't set to "Anyone" yet.
+    if (CP_SITE && /^NETWORK/.test(String(err && err.message))) err = new Error(err.message + " If it still won't open, please tell your teacher.");
+    showError(err);
+  }, 0, function () { cpStepNote("Lots of students are opening this, so hang on."); });
+}
+function gotState(state) {
+  if (state && state.needSignIn) { S = null; if (!cpNeedSignIn(state)) showSignIn(state, false); return; }
+  S = state; render();
+}
+if (window.MOCK_API) start();
+else if (CP_SITE) cpAppBoot(start);   // on the class website: signed in to this assignment on this device? else Class Pass
+else start();
 </script>
 </body>
 </html>
