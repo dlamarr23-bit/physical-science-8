@@ -98,6 +98,43 @@
   .closed .modal-body p.lead { font-weight:600; font-size:16px; }
   .closed .modal-body p.small { font-size:13px; color:#555; font-style:italic; }
   .item.viewonly textarea, .item.viewonly input.pbox { color:#111; opacity:.8; cursor:default; }
+  /* data table + graph questions (Answer type "table") */
+  .tablezone { display:grid; grid-template-columns: minmax(170px, 230px) 1fr; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
+  @media (max-width: 640px) { .tablezone { grid-template-columns: 1fr; } }
+  table.dtable { width:100%; border-collapse:collapse; font-size:15px; }
+  table.dtable th { background:#000; color:#fff; font-weight:700; padding:6px 8px; border:1px solid #111; }
+  table.dtable td { border:1px solid #111; padding:0; text-align:center; font-weight:600; height:30px; }
+  table.dtable tbody tr:nth-child(even) td { background:#d9d9d9; }
+  input.tcell { width:100%; height:30px; border:0; margin:0; padding:2px 6px; text-align:center; font-family:Poppins, Arial, sans-serif; font-size:15px; font-weight:600;
+                background:transparent; color:inherit; outline:none; }
+  input.tcell:focus { box-shadow: inset 0 0 0 2px #3c78d8; background:#fff; }
+  input.tcell.correct { background:var(--green); } input.tcell.incorrect { background:var(--red); }
+  .tright { border-left:1px solid #111; display:flex; flex-direction:column; min-width:0; }
+  .tgraphhead { background:#000; color:#fff; font-weight:700; text-align:center; padding:6px 8px; }
+  input.tlabel { display:block; margin:8px auto; width:calc(100% - 24px); max-width:440px; padding:6px 8px; border:2px dashed #888; border-radius:6px; background:#fff;
+                 font-family:Poppins, Arial, sans-serif; font-size:15px; font-weight:600; text-align:center; color:#111; outline:none; }
+  input.tlabel:focus { border-style:solid; border-color:#3c78d8; }
+  input.tlabel.correct { background:var(--green); border-color:#38761d; border-style:solid; } input.tlabel.incorrect { background:var(--red); border-color:#cc0000; border-style:solid; }
+  .tgraphmid { display:flex; align-items:stretch; min-width:0; }
+  .tylab { width:44px; flex:none; position:relative; }
+  .tylab input.tlabel { position:absolute; left:50%; top:50%; width:240px; max-width:none; margin:0; transform: translate(-50%, -50%) rotate(-90deg); }
+  @media (max-width: 640px) { .tgraphmid { flex-direction:column; } .tylab { width:auto; }
+    .tylab input.tlabel { position:static; transform:none; width:calc(100% - 24px); margin:0 auto 4px; } }
+  svg.tgraph { flex:1; min-width:0; width:100%; height:auto; display:block; font-family:Poppins, Arial, sans-serif; }
+  .tg-grid { stroke:#e3e3e3; stroke-width:1; } .tg-axis { stroke:#555; stroke-width:1.5; }
+  .tg-tick { font-size:13px; fill:#555; } .tg-empty { font-size:15px; fill:#888; font-style:italic; }
+  .tg-dot { fill:#3c78d8; } .tg-fit { stroke:#9fbbea; stroke-width:3; }
+  html[data-theme="dark"] .tablezone { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable th, html[data-theme="dark"] .tgraphhead { background:#000; border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable td { border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable tbody tr:nth-child(even) td { background:#2a2f38; }
+  html[data-theme="dark"] input.tcell:focus { background:#14171c; }
+  html[data-theme="dark"] input.tcell.correct, html[data-theme="dark"] input.tlabel.correct { background:var(--green); }
+  html[data-theme="dark"] input.tcell.incorrect, html[data-theme="dark"] input.tlabel.incorrect { background:var(--red); }
+  html[data-theme="dark"] .tright { border-color:#5f6670; }
+  html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
+  html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
   /* drawing pad questions (Answer type "draw") */
   .drawpad { border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px 12px; background:#fff; transition: background .25s; }
   .drawpad.correct { background: var(--green); }
@@ -1119,6 +1156,7 @@ function boxInputs(i) { return Array.prototype.slice.call(document.querySelector
 /** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
 function answerOf(i) {
   if (isUploadQ(i)) return saved[i] || "";   // a picture's saved link (uploads don't type)
+  if (isTableQ(i)) return tableAnswerOf(i);
   if (!isBoxQ(i)) return document.getElementById("a" + i).value.trim();
   var parts = boxInputs(i).map(function (b) { return b.value.replace(/\|/g, "/").trim(); });
   return parts.some(function (p) { return p; }) ? parts.join(" | ") : "";
@@ -1210,7 +1248,9 @@ function render() {
       qt.appendChild(ql);
     }
     var ta;
-    if (q.draw) {
+    if (q.table) {
+      ta = tableBox(i);
+    } else if (q.draw) {
       ta = drawBox(i);
     } else if (q.upload) {
       ta = uploadBox(i);
@@ -1265,6 +1305,7 @@ function render() {
     if (S.unchecked && S.unchecked[i]) setMeta(i, "Saved as a draft. Press Check for feedback.", "#b45f06");
     paint(i, S.results[i]);
     if (q.draw) { if (saved[i]) loadDrawing(i); return; }
+    if (q.table) { btn.addEventListener("click", function () { check(i, true); }); wireTable(i); return; }
     if (q.upload) { if (saved[i]) showMyUpload(i); return; }
     btn.addEventListener("click", function () { check(i, true); });
     var fields = isBoxQ(i) ? boxInputs(i) : [ta];
@@ -1428,8 +1469,165 @@ function updateReminders() {
   });
 }
 
+/* ---------- data table + graph questions (Answer type "table") ----------
+   The table on the left (fixed cells are text, the rest are number boxes), the graph on the right, drawn as the
+   student types (dots plus a best-fit line), with boxes for the graph title (above), the y-axis label (left, turned
+   sideways) and the x-axis label (below). Saved as one answer: {"v":[...the boxes...],"t":title,"x":x label,"y":y label}. */
+function isTableQ(i) { return !!S.questions[i].table; }
+function tableFields(i) { return Array.prototype.slice.call(document.querySelectorAll('[data-tq="' + i + '"]')); }
+function tableCells(i) { return Array.prototype.slice.call(document.querySelectorAll('input.tcell[data-tq="' + i + '"]')); }
+function tableLabel(i, k) { return document.getElementById("tl" + i + "_" + k); }
+function tableAnswerOf(i) {
+  var v = tableCells(i).map(function (c) { return c.value.trim(); });
+  var t = tableLabel(i, "t").value.trim(), x = tableLabel(i, "x").value.trim(), y = tableLabel(i, "y").value.trim();
+  if (!t && !x && !y && !v.some(function (s) { return s; })) return "";
+  return JSON.stringify({ v: v, t: t, x: x, y: y });
+}
+function tableSaved(i) {
+  var a = null;
+  try { a = JSON.parse(S.answers[i] || "null"); } catch (e) { a = null; }
+  if (Array.isArray(a)) {   // saved by a sheet before 2026.10.01f: the whole second column
+    var old = a, v = [];
+    S.questions[i].table.rows.forEach(function (row, r) { row.forEach(function (c, k) { if (c === null) v.push(k === 1 && old[r] != null ? String(old[r]) : ""); }); });
+    a = { v: v };
+  }
+  return a && typeof a === "object" ? a : {};
+}
+function tableBox(i) {
+  var T = S.questions[i].table, saved = tableSaved(i), vals = Array.isArray(saved.v) ? saved.v : [], n = 0;
+  var zone = el("div", "tablezone"); zone.id = "a" + i;
+  var left = el("div", "tleft"), tbl = el("table", "dtable"), thead = el("thead"), hr = el("tr");
+  T.cols.forEach(function (c) { hr.appendChild(el("th", null, c)); });
+  thead.appendChild(hr); tbl.appendChild(thead);
+  var tb = el("tbody");
+  T.rows.forEach(function (row, r) {
+    var tr = el("tr");
+    row.forEach(function (c, k) {
+      var td = el("td");
+      if (c === null) {
+        var inp = el("input", "tcell"); inp.type = "text"; inp.inputMode = "decimal"; inp.autocomplete = "off"; inp.maxLength = 12;
+        inp.setAttribute("data-tq", i); inp.setAttribute("data-n", n);
+        inp.setAttribute("aria-label", T.cols[k] + " for " + T.cols[0] + " " + row[0]);
+        inp.value = vals[n] != null ? String(vals[n]) : ""; inp.disabled = S.locked;
+        td.appendChild(inp); n++;
+      } else td.textContent = String(c);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb); left.appendChild(tbl);
+  var right = el("div", "tright");
+  right.appendChild(el("div", "tgraphhead", "Graph"));
+  var title = tableInput(i, "t", "Type your graph's title", saved.t);
+  var mid = el("div", "tgraphmid"), ywrap = el("div", "tylab"), yin = tableInput(i, "y", "Type the y-axis label", saved.y);
+  ywrap.appendChild(yin);
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 600 380"); svg.setAttribute("class", "tgraph"); svg.id = "tg" + i;
+  svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Graph of your data");
+  mid.appendChild(ywrap); mid.appendChild(svg);
+  var xin = tableInput(i, "x", "Type the x-axis label", saved.x);
+  right.appendChild(title); right.appendChild(mid); right.appendChild(xin);
+  zone.appendChild(left); zone.appendChild(right);
+  setTimeout(function () { drawTableGraph(i); }, 0);
+  return zone;
+}
+function tableInput(i, k, ph, val) {
+  var inp = el("input", "tlabel tlabel-" + k); inp.type = "text"; inp.id = "tl" + i + "_" + k; inp.maxLength = k === "t" ? 120 : 80;
+  inp.placeholder = ph; inp.autocomplete = "off"; inp.setAttribute("data-tq", i); inp.setAttribute("aria-label", ph);
+  inp.value = val || ""; inp.disabled = S.locked;
+  return inp;
+}
+/** Hooks up a table question's boxes (called from render, once the table is on the page). */
+function wireTable(i) {
+  var fields = tableFields(i);
+  fields.forEach(function (f) {
+    if (f.classList.contains("tlabel")) blockPaste(f, i);
+    f.addEventListener("input", function () {
+      f.classList.remove("correct", "incorrect");
+      drawTableGraph(i);
+      setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+    });
+    f.addEventListener("blur", function () {
+      // checked once the student leaves the whole table and graph (moving between boxes doesn't check yet)
+      setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+    });
+    f.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      var k = fields.indexOf(f);
+      if (k < fields.length - 1) fields[k + 1].focus(); else check(i, true);
+    });
+  });
+}
+function paintTable(i, res) {
+  var parts = (res && res.parts) || [];
+  document.getElementById("a" + i).className = "tablezone" + (res && res.status !== "blank" ? " " + res.status : "");
+  tableCells(i).forEach(function (c) {
+    c.classList.remove("correct", "incorrect");
+    if (parts[0] === "correct") c.classList.add("correct");
+    else if (parts[0] === "incorrect") c.classList.add(/^-?(\d+\.?\d*|\.\d+)$/.test(c.value.trim().replace(/,/g, "")) ? "correct" : "incorrect");
+  });
+  ["t", "x", "y"].forEach(function (k, j) {
+    var f = tableLabel(i, k), m = parts[j + 1];
+    f.classList.remove("correct", "incorrect");
+    if (m === "correct" || m === "incorrect") f.classList.add(m);
+  });
+}
+/** Nice round steps for the axes. */
+function niceStep(range) {
+  var raw = range / 5, mag = Math.pow(10, Math.floor(Math.log10(raw || 1))), f = raw / mag;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+}
+function drawTableGraph(i) {
+  var svg = document.getElementById("tg" + i);
+  if (!svg) return;
+  var T = S.questions[i].table, cells = tableCells(i), n = 0, pts = [];
+  T.rows.forEach(function (row) {
+    var xy = row.slice(0, 2).map(function (c) {
+      if (c !== null) return Number(c);
+      var v = cells[n] ? cells[n].value.trim().replace(/,/g, "") : ""; n++;
+      return v === "" ? NaN : Number(v);
+    });
+    if (row.length > 2) row.slice(2).forEach(function (c) { if (c === null) n++; });
+    if (isFinite(xy[0]) && isFinite(xy[1])) pts.push(xy);
+  });
+  var xsAll = T.rows.map(function (r) { return Number(r[0]); }).filter(isFinite);
+  var xMax = Math.max.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [1]));
+  var xMin = Math.min.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [0]));
+  var yMax = Math.max.apply(null, pts.map(function (p) { return p[1]; }).concat([1]));
+  var yMin = Math.min.apply(null, pts.map(function (p) { return p[1]; }).concat([0]));
+  var xs = niceStep(xMax - xMin), ys = niceStep(yMax - yMin);
+  xMax = Math.ceil(xMax / xs) * xs; xMin = Math.floor(xMin / xs) * xs; yMax = Math.ceil(yMax / ys) * ys; yMin = Math.floor(yMin / ys) * ys;
+  var L = 56, R = 568, Tp = 16, B = 340;
+  function X(v) { return L + (v - xMin) / (xMax - xMin || 1) * (R - L); }
+  function Y(v) { return B - (v - yMin) / (yMax - yMin || 1) * (B - Tp); }
+  function fmt(v) { return Math.abs(v) >= 1000 || Number.isInteger(v) ? String(Math.round(v)) : String(Math.round(v * 100) / 100); }
+  var h = [];
+  for (var gy = yMin; gy <= yMax + ys / 2; gy += ys) {
+    h.push('<line class="tg-grid" x1="' + L + '" x2="' + R + '" y1="' + Y(gy) + '" y2="' + Y(gy) + '"/>');
+    h.push('<text class="tg-tick" x="' + (L - 8) + '" y="' + (Y(gy) + 4) + '" text-anchor="end">' + fmt(gy) + '</text>');
+  }
+  for (var gx = xMin; gx <= xMax + xs / 2; gx += xs) h.push('<text class="tg-tick" x="' + X(gx) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(gx) + '</text>');
+  h.push('<line class="tg-axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/><line class="tg-axis" x1="' + L + '" x2="' + L + '" y1="' + Tp + '" y2="' + B + '"/>');
+  if (pts.length >= 2) {   // best-fit (trend) line
+    var sx = 0, sy = 0, sxx = 0, sxy = 0, m = pts.length;
+    pts.forEach(function (p) { sx += p[0]; sy += p[1]; sxx += p[0] * p[0]; sxy += p[0] * p[1]; });
+    var d = m * sxx - sx * sx;
+    if (d) {
+      var slope = (m * sxy - sx * sy) / d, b0 = (sy - slope * sx) / m, x0 = Math.min.apply(null, pts.map(function (p) { return p[0]; })), x1 = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
+      var clampY = function (v) { return Math.max(yMin, Math.min(yMax, v)); };
+      h.push('<line class="tg-fit" x1="' + X(x0) + '" y1="' + Y(clampY(slope * x0 + b0)) + '" x2="' + X(x1) + '" y2="' + Y(clampY(slope * x1 + b0)) + '"/>');
+    }
+  }
+  pts.forEach(function (p) { h.push('<circle class="tg-dot" cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="5"/>'); });
+  if (pts.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  svg.innerHTML = h.join("");
+}
+
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.01e";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.01f";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
@@ -1745,7 +1943,7 @@ function showClosed() {
   var c = S.close;
   S.locked = true;
   S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
-  document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
   document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
   if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
   document.getElementById("closedBarText").textContent = c.note;
@@ -1802,7 +2000,9 @@ function autosave(i) {
 
 function paint(i, res) {
   var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
-  if (isUploadQ(i)) {
+  if (isTableQ(i)) {
+    paintTable(i, res);
+  } else if (isUploadQ(i)) {
     ta.className = (S.questions[i].draw ? "drawpad" : "dropzone") + (res && res.status === "correct" ? " correct" : "") + (S.locked ? " viewonly" : "");
   } else if (isBoxQ(i)) {
     ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
@@ -1997,7 +2197,7 @@ function doTurnIn(fin) {
     S.turnedIn = resp.turnedIn; S.grade = resp.grade;
     if (resp.locked) {
       S.locked = true;
-      document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input").forEach(function (x) { x.disabled = true; });
+      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input").forEach(function (x) { x.disabled = true; });
     }
     fin.disabled = S.locked;
     updateFinish(); updateProgress();
@@ -2020,7 +2220,7 @@ function showSignIn(info, midway) {
     }
     // Someone else signed in on a page showing another student's work: don't mix the two.
     S.locked = true;
-    document.querySelectorAll("textarea, input.pbox, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+    document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
     if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
   } });
 }
