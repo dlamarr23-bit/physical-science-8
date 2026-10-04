@@ -262,7 +262,9 @@
   html[data-theme="dark"] .dropzone .dzbox span { color:#b6bcc6; }
   html[data-theme="dark"] .dropzone.over { background:#203050; }
   html[data-theme="dark"] .dropzone button.dzpick, html[data-theme="dark"] .cp-again button, html[data-theme="dark"] a.si-pass { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
-  html[data-theme="dark"] a.simbtn { background:#3b6fd6; border-color:#3b6fd6; }
+  html[data-theme="dark"] a.simbtn, html[data-theme="dark"] button.simbtn { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] .timer { background:#1d2128; border-color:#5f6670; } html[data-theme="dark"] .timernum { color:#f1f3f5; }
+  html[data-theme="dark"] .timer.done { background:var(--red); }
   html[data-theme="dark"] .remind { color:#fff3cd; border-color:#c9a227; }
   html[data-theme="dark"] .signin { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
   html[data-theme="dark"] .signin input { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
@@ -1145,9 +1147,72 @@ var saveWant = {};         // question index -> newest checked text waiting to b
 var AUTOSAVE_MS = 8000;    // autosave this long after the student stops typing
 
 function simButton(l) {
+  var secs = timerSecs(l.url);
+  if (secs) return timerButton(l.label || "Show the timer", secs);
   var a = el("a", "simbtn", l.label || "Open link"), u = cpLinkUrl(l.url);   // web addresses only (see cpLinkUrl)
   if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener"; }
   return a;
+}
+
+/** "timer:120" -> 120 (1 to 86400 seconds), else 0. */
+function timerSecs(u) {
+  var m = /^timer\s*:\s*(\d+)$/i.exec(String(u || "").trim());
+  return m && +m[1] >= 1 && +m[1] <= 86400 ? +m[1] : 0;
+}
+function timerText(s) {
+  var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
+}
+/** A button whose link is timer:N: it shows a countdown under itself (Start / Pause, Reset, a beep at 0). */
+function timerButton(label, secs) {
+  var box = el("div", "timerbox");
+  var btn = el("button", "simbtn", label); btn.type = "button"; btn.setAttribute("aria-expanded", "false");
+  var panel = el("div", "timer"); panel.hidden = true;
+  var num = el("div", "timernum", timerText(secs)); num.setAttribute("role", "timer");
+  var go = el("button", "secondary", "Start"), reset = el("button", "secondary", "Reset");
+  go.type = reset.type = "button";
+  var row = el("div", "timerrow"); row.appendChild(go); row.appendChild(reset);
+  panel.appendChild(num); panel.appendChild(row);
+  box.appendChild(btn); box.appendChild(panel);
+  var left = secs * 1000, endAt = 0, tick = 0, audio = null;
+  function show() {
+    num.textContent = left <= 0 ? "Time's up!" : timerText(Math.ceil(left / 1000));
+    panel.className = "timer" + (left <= 0 ? " done" : "");
+    go.textContent = tick ? "Pause" : (left < secs * 1000 && left > 0 ? "Resume" : "Start");
+    go.disabled = left <= 0;
+  }
+  function stop() { clearInterval(tick); tick = 0; }
+  function step() {
+    left = endAt - Date.now();
+    if (left <= 0) { left = 0; stop(); beep(); }
+    show();
+  }
+  function beep() {
+    try {
+      if (!audio) return;
+      [0, 0.35, 0.7].forEach(function (t) {
+        var o = audio.createOscillator(), g = audio.createGain(), at = audio.currentTime + t;
+        o.type = "sine"; o.frequency.value = 880; o.connect(g); g.connect(audio.destination);
+        g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.4, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
+        o.start(at); o.stop(at + 0.27);
+      });
+    } catch (e) {}
+  }
+  btn.addEventListener("click", function () {
+    panel.hidden = !panel.hidden; btn.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+  go.addEventListener("click", function () {
+    if (tick) { step(); stop(); show(); return; }   // Pause
+    if (left <= 0) return;
+    try {   // the tap lets the page make the beep later
+      if (!audio) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); }
+      if (audio && audio.resume) audio.resume();
+    } catch (e) {}
+    endAt = Date.now() + left; tick = setInterval(step, 250); show();
+  });
+  reset.addEventListener("click", function () { stop(); left = secs * 1000; show(); });
+  show();
+  return box;
 }
 
 function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
@@ -1278,7 +1343,7 @@ function render() {
         inp.value = prev[k] || ""; inp.disabled = S.locked; inp.autocomplete = "off";
         if (q.img) {
           inp.style.left = b.x + "%"; inp.style.top = b.y + "%"; inp.style.width = b.w + "%"; inp.style.height = b.h + "%";
-          inp.placeholder = "type here";
+          if (S.boxHint) inp.placeholder = S.boxHint;   // Settings "Picture box hint text" (blank, or an older sheet: none)
           wrap.appendChild(inp);
         } else {
           var lab = el("label", null, b.label); lab.appendChild(inp); holder.appendChild(lab);

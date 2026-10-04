@@ -43,6 +43,16 @@
              background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
   a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
   .seclinks { margin: -4px 0 14px; }
+  /* timer:N buttons: a countdown under the button */
+  .timerbox { margin: 0 0 8px; }
+  button.simbtn { margin: 0; padding: 9px 16px; border-color:#1b4587; background:#1b4587; color:#fff; cursor:pointer; }
+  button.simbtn:hover, button.simbtn:focus { background:#133261; border-color:#133261; }
+  .timer { margin-top: 8px; display:block; width:fit-content; min-width: 240px; background:#fff; border:2px solid #111; border-radius:8px; padding: 10px 16px; text-align:center; }
+  .timernum { font-size: 52px; font-weight:700; line-height:1.1; font-variant-numeric: tabular-nums; color:#111; }
+  .timer[hidden] { display:none; }
+  .timer.done { background: var(--red); }
+  .timer.done .timernum { font-size: 34px; padding: 9px 0; }
+  .timerrow { display:flex; gap: 8px; justify-content:center; margin-top: 8px; }
   .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
   textarea { display:block; width:100%; min-height: 84px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
              font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
@@ -115,6 +125,20 @@
   .tiBtns button { border-color:#f1c232; }
   .tiBtns button.go { background:#f1c232; color:#111; }
   .tiBtns button.secondary { background:transparent; color:#fff; }
+  /* End of the quarter: "This assignment is closed" pop-up and the CLOSED bar (view only) */
+  .closedbar { background:#111; color:#fff; border-radius:6px; padding:10px 12px; font-size:14px; font-weight:600; margin:10px 0;
+               display:flex; gap:10px; align-items:center; }
+  .closedbar[hidden] { display:none; }
+  .closedbar .tag { background:#cc0000; border-radius:4px; padding:1px 8px; font-size:12px; letter-spacing:.06em; flex:none; }
+  .modal-card.closed { max-width:440px; padding:0; overflow:hidden; }
+  .closed .modal-head { background:var(--strip); border-bottom:2px solid #111; padding:12px 20px; font-weight:700; font-size:18px;
+                        display:flex; align-items:center; gap:10px; }
+  .closed .modal-head svg { width:26px; height:26px; flex:none; }
+  .closed .modal-body { padding:18px 20px 20px; }
+  .closed .modal-body p { margin:0 0 12px; font-size:15px; font-weight:400; line-height:1.5; }
+  .closed .modal-body p.lead { font-weight:600; font-size:16px; }
+  .closed .modal-body p.small { font-size:13px; color:#555; font-style:italic; }
+  .item.viewonly textarea, .item.viewonly input.pbox { color:#111; opacity:.8; cursor:default; }
   /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
   .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
   .signin h2 { font-size:18px; margin:0 0 6px; }
@@ -162,6 +186,7 @@
     <h1 id="title"></h1>
     <div class="who" id="who"></div>
     <div class="intro" id="intro"></div>
+    <div class="closedbar" id="closedBar" hidden><span class="tag">CLOSED</span><span id="closedBarText"></span></div>
     <div class="links" id="links"></div>
     <div id="msg"></div>
     <div class="progress" id="progress">
@@ -178,6 +203,21 @@
     <div class="finish">
       <button id="finishBtn">I'm finished</button>
       <div class="meta" id="finishMeta" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="closedBox" hidden role="dialog" aria-modal="true" aria-labelledby="closedTitle">
+  <div class="modal-card closed">
+    <div class="modal-head" id="closedTitle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      This assignment is closed
+    </div>
+    <div class="modal-body">
+      <p class="lead" id="closedLead"></p>
+      <p>You can still look at your answers and feedback, but you can't change them or earn more credit.</p>
+      <p>Spend your time on this quarter's assignments instead.</p>
+      <p class="small">Think this is a mistake? Talk to your teacher.</p>
+      <div class="modal-btns"><button id="closedOk">View my work</button></div>
     </div>
   </div>
 </div>
@@ -1021,9 +1061,72 @@ var IMAGES = window.IMAGES || {};   // force diagram for each problem, keyed 0, 
 var DECOR = window.DECOR || {};     // title banner, padlock, password picture, mission complete
 
 function simButton(l) {
+  var secs = timerSecs(l.url);
+  if (secs) return timerButton(l.label || "Show the timer", secs);
   var a = el("a", "simbtn", l.label || "Open link"), u = cpLinkUrl(l.url);   // web addresses only (see cpLinkUrl)
   if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener"; }
   return a;
+}
+
+/** "timer:120" -> 120 (1 to 86400 seconds), else 0. */
+function timerSecs(u) {
+  var m = /^timer\s*:\s*(\d+)$/i.exec(String(u || "").trim());
+  return m && +m[1] >= 1 && +m[1] <= 86400 ? +m[1] : 0;
+}
+function timerText(s) {
+  var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
+}
+/** A button whose link is timer:N: it shows a countdown under itself (Start / Pause, Reset, a beep at 0). */
+function timerButton(label, secs) {
+  var box = el("div", "timerbox");
+  var btn = el("button", "simbtn", label); btn.type = "button"; btn.setAttribute("aria-expanded", "false");
+  var panel = el("div", "timer"); panel.hidden = true;
+  var num = el("div", "timernum", timerText(secs)); num.setAttribute("role", "timer");
+  var go = el("button", "secondary", "Start"), reset = el("button", "secondary", "Reset");
+  go.type = reset.type = "button";
+  var row = el("div", "timerrow"); row.appendChild(go); row.appendChild(reset);
+  panel.appendChild(num); panel.appendChild(row);
+  box.appendChild(btn); box.appendChild(panel);
+  var left = secs * 1000, endAt = 0, tick = 0, audio = null;
+  function show() {
+    num.textContent = left <= 0 ? "Time's up!" : timerText(Math.ceil(left / 1000));
+    panel.className = "timer" + (left <= 0 ? " done" : "");
+    go.textContent = tick ? "Pause" : (left < secs * 1000 && left > 0 ? "Resume" : "Start");
+    go.disabled = left <= 0;
+  }
+  function stop() { clearInterval(tick); tick = 0; }
+  function step() {
+    left = endAt - Date.now();
+    if (left <= 0) { left = 0; stop(); beep(); }
+    show();
+  }
+  function beep() {
+    try {
+      if (!audio) return;
+      [0, 0.35, 0.7].forEach(function (t) {
+        var o = audio.createOscillator(), g = audio.createGain(), at = audio.currentTime + t;
+        o.type = "sine"; o.frequency.value = 880; o.connect(g); g.connect(audio.destination);
+        g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.4, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
+        o.start(at); o.stop(at + 0.27);
+      });
+    } catch (e) {}
+  }
+  btn.addEventListener("click", function () {
+    panel.hidden = !panel.hidden; btn.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+  go.addEventListener("click", function () {
+    if (tick) { step(); stop(); show(); return; }   // Pause
+    if (left <= 0) return;
+    try {   // the tap lets the page make the beep later
+      if (!audio) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); }
+      if (audio && audio.resume) audio.resume();
+    } catch (e) {}
+    endAt = Date.now() + left; tick = setInterval(step, 250); show();
+  });
+  reset.addEventListener("click", function () { stop(); left = secs * 1000; show(); });
+  show();
+  return box;
 }
 
 function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
@@ -1164,7 +1267,7 @@ function render() {
         inp.value = prev[k] || ""; inp.disabled = S.locked; inp.autocomplete = "off";
         if (q.img) {
           inp.style.left = b.x + "%"; inp.style.top = b.y + "%"; inp.style.width = b.w + "%"; inp.style.height = b.h + "%";
-          inp.placeholder = "type here";
+          if (S.boxHint) inp.placeholder = S.boxHint;   // Settings "Picture box hint text" (blank, or an older sheet: none)
           wrap.appendChild(inp);
         } else {
           var lab = el("label", null, b.label); lab.appendChild(inp); holder.appendChild(lab);
@@ -1220,6 +1323,7 @@ function render() {
   updateProgress();
   applyLocks(true);
   updateMission();
+  setUpClose();
 }
 
 /* ---------- Escape room ---------- */
@@ -1285,6 +1389,45 @@ function openPicture(dataUrl) {
     for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
     window.open(URL.createObjectURL(new Blob([bytes], { type: m[1] })), "_blank", "noopener");
   } catch (e) {}
+}
+
+/* ---------- end of the quarter (view only) ---------- */
+function isClosedNow() { return !!(S && S.close && S.close.closed); }
+/** Closed already: view-only page + pop-up. Closing later while the page is open: switch over at that moment. */
+function setUpClose() {
+  var c = S.close;
+  if (!c) return;
+  if (c.closed) { showClosed(); return; }
+  var wait = c.at - (S.now || Date.now()) + 1000;   // the sheet's clock, not this device's
+  if (wait > 0 && wait < 86400000) setTimeout(function () { c.closed = true; showClosed(); }, wait);
+}
+function showClosed() {
+  var c = S.close;
+  S.locked = true;
+  S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
+  document.querySelectorAll("textarea, input.pbox, .row button, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
+  if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
+  document.getElementById("closedBarText").textContent = c.note;
+  document.getElementById("closedBar").hidden = false;
+  updateFinish(); updateProgress();
+  showClosedPopup();
+}
+function showClosedPopup() {
+  var box = document.getElementById("closedBox"), ok = document.getElementById("closedOk");
+  document.getElementById("closedLead").textContent = S.close.quarter + " ended on " + S.close.ended + ".";
+  box.hidden = false; ok.focus();
+  function close() { box.hidden = true; ok.onclick = box.onclick = null; document.removeEventListener("keydown", key); }
+  function key(e) { if (e.key === "Escape" || e.key === "Enter") close(); }
+  ok.onclick = close;
+  box.onclick = function (e) { if (e.target === box) close(); };
+  document.addEventListener("keydown", key);
+}
+/** A check or save the sheet refused because the quarter ended (the page was opened before closing time). */
+function closedMidway(err) {
+  if (!(S && S.close && /ended/i.test(String(err && err.message)))) return false;
+  if (!S.close.closed) { S.close.closed = true; showClosed(); }
+  return true;
 }
 
 function setMeta(i, text, color) {
@@ -1393,6 +1536,7 @@ function check(i, force) {
     }
     setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000");
     if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
     else if (err && err.message && /locked/i.test(err.message)) showError(err);
   }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); }); });
 }
@@ -1430,6 +1574,7 @@ function queueSave(i, val) {
     }
     setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
     if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
     else if (err && err.message && /locked/i.test(err.message)) showError(err);
   }, 0, function () {
     if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
@@ -1448,12 +1593,16 @@ function updateProgress() {
   document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
   document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
   document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
-  document.getElementById("grade").textContent = S.showGrade ? ("Grade: " + S.grade + " / " + S.maxPoints) : "";
+  document.getElementById("grade").textContent = S.showGrade ? ((isClosedNow() ? "Final grade: " : "Grade: ") + S.grade + " / " + S.maxPoints) : "";
 }
 
 function updateFinish() {
   var meta = document.getElementById("finishMeta"), fin = document.getElementById("finishBtn");
-  if (S.turnedIn) {
+  if (isClosedNow()) {
+    fin.textContent = "Closed"; fin.disabled = true;
+    meta.textContent = "This assignment closed when " + S.close.quarter + " ended." +
+      (S.turnedIn ? " You turned it in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) + "." : "");
+  } else if (S.turnedIn) {
     meta.textContent = "Turned in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) +
       (S.locked ? ". Your answers are locked." : ". You can still improve answers: your teacher sees your latest work.") +
       " Don't forget to click Mark as done in Google Classroom.";
@@ -1549,7 +1698,7 @@ function doTurnIn(fin) {
        S.locked ? "Your answers are now locked." : "You can still go back and open more locks. Your teacher sees your latest work.",
        "Last step: click Mark as done in Google Classroom."],
       null, [{ text: "OK", cls: "go" }]);
-  }, function (err) { fin.disabled = false; if (cpIsSignInError(err)) signedOutMidway(); else showError(err); });
+  }, function (err) { fin.disabled = false; if (cpIsSignInError(err)) signedOutMidway(); else if (!closedMidway(err)) showError(err); });
 }
 
 /* ---------- signing in (Class Pass) ---------- */
