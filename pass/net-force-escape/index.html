@@ -1061,13 +1061,23 @@ var IMAGES = window.IMAGES || {};   // force diagram for each problem, keyed 0, 
 var DECOR = window.DECOR || {};     // title banner, padlock, password picture, mission complete
 
 function simButton(l) {
-  var secs = timerSecs(l.url);
+  var secs = timerSecs(l.url) || timerLinkSecs(l);   // timer:N, or a link to a web timer ("Open a 20-second timer"): built in
   if (secs) return timerButton(l.label || "Show the timer", secs);
   var a = el("a", "simbtn", l.label || "Open link"), u = cpLinkUrl(l.url);   // web addresses only (see cpLinkUrl)
   if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener"; }
   return a;
 }
 
+/** A button that only opens a web timer (its text or Google search says "20-second timer", "2 minute timer"):
+    its length in seconds, so the page shows its own countdown instead of opening a tab. 0 = an ordinary link. */
+function timerLinkSecs(l) {
+  var q = "";
+  try { var u = new URL(String(l.url || "")); if (/(^|\.)google\.[a-z.]+$/.test(u.hostname) && u.pathname === "/search") q = u.searchParams.get("q") || ""; } catch (e) {}
+  var re = /(\d+(?:\.\d+)?)\s*-?\s*(seconds?|secs?|minutes?|mins?)\s*-?\s*(?:count\s*-?\s*down\s*)?timer\b/i, m = re.exec(q) || re.exec(String(l.label || ""));
+  if (!m) return 0;
+  var s = Math.round(parseFloat(m[1]) * (/^m/i.test(m[2]) ? 60 : 1));
+  return s >= 1 && s <= 86400 ? s : 0;
+}
 /** "timer:120" -> 120 (1 to 86400 seconds), else 0. */
 function timerSecs(u) {
   var m = /^timer\s*:\s*(\d+)$/i.exec(String(u || "").trim());
