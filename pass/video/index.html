@@ -261,7 +261,8 @@ var CP_WHERE = window.CLASS_PASS_PAGE || "exec";
 var CP_SITE = CP_WHERE !== "exec";   // on the class website: every call to the sheet goes through fetch
 var CP_DAYS = 14;
 var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // what the sheet says it is: its page under /pass/
-                 "net-force-escape-room": "net-force-escape" };            // (a one-off page: self-check/custom/, built by make-pass.ps1)
+                 "net-force-escape-room": "net-force-escape",              // (one-off pages: self-check/custom/, built by make-pass.ps1)
+                 "friction-article": "friction" };
 var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
 var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
 var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
