@@ -43,16 +43,15 @@
              background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
   a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
   .seclinks { margin: -4px 0 14px; }
-  /* timer:N buttons: a countdown under the button */
-  .timerbox { margin: 0 0 8px; }
-  button.simbtn { margin: 0; padding: 9px 16px; border-color:#1b4587; background:#1b4587; color:#fff; cursor:pointer; }
-  button.simbtn:hover, button.simbtn:focus { background:#133261; border-color:#133261; }
-  .timer { margin-top: 8px; display:block; width:fit-content; min-width: 240px; background:#fff; border:2px solid #111; border-radius:8px; padding: 10px 16px; text-align:center; }
-  .timernum { font-size: 52px; font-weight:700; line-height:1.1; font-variant-numeric: tabular-nums; color:#111; }
-  .timer[hidden] { display:none; }
-  .timer.done { background: var(--red); }
-  .timer.done .timernum { font-size: 34px; padding: 9px 0; }
-  .timerrow { display:flex; gap: 8px; justify-content:center; margin-top: 8px; }
+  /* timers (timer:N, or a button that links to a web timer): built into the page */
+  .timer { display:flex; flex-wrap:wrap; align-items:center; gap:6px 16px; width:fit-content; max-width:100%; margin: 0 8px 8px 0;
+           background:#fff; color:#111; border:2px solid #1b4587; border-radius:8px; padding: 8px 14px 10px; font-weight:400; }
+  .timertitle { flex-basis:100%; font-size:13px; font-weight:700; color:#1b4587; }
+  .timernum { font-size:44px; font-weight:700; line-height:1; min-width:118px; text-align:center; font-variant-numeric: tabular-nums; }
+  .timerrow { display:flex; gap:8px; }
+  .timer.running .timernum { color:#1b4587; }
+  .timer.done { background: var(--red); border-color:#cc0000; }
+  .timer.done .timernum { font-size:30px; }
   .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
   textarea { display:block; width:100%; min-height: 84px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
              font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
@@ -1087,21 +1086,24 @@ function timerText(s) {
   var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
   return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
 }
-/** A button whose link is timer:N: it shows a countdown under itself (Start / Pause, Reset, a beep at 0). */
+/** The title over an embedded timer: the button text without "Open a" ("Open a 20-second timer" -> "20-second timer"). */
+function timerTitle(label, secs) {
+  var t = String(label || "").trim().replace(/^(open|show|start|use|run)\s+(a|an|the|your)?\s*/i, "");
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : timerText(secs) + " timer";
+}
+/** A timer button (timer:N, or a link to a web timer) becomes a countdown built into the page, always showing:
+    its title, large numbers, Start / Pause and Reset, three beeps at 0. Nothing opens in a new tab. */
 function timerButton(label, secs) {
-  var box = el("div", "timerbox");
-  var btn = el("button", "simbtn", label); btn.type = "button"; btn.setAttribute("aria-expanded", "false");
-  var panel = el("div", "timer"); panel.hidden = true;
+  var panel = el("div", "timer"); panel.setAttribute("role", "group"); panel.setAttribute("aria-label", timerTitle(label, secs));
   var num = el("div", "timernum", timerText(secs)); num.setAttribute("role", "timer");
-  var go = el("button", "secondary", "Start"), reset = el("button", "secondary", "Reset");
+  var go = el("button", null, "Start"), reset = el("button", "secondary", "Reset");
   go.type = reset.type = "button";
   var row = el("div", "timerrow"); row.appendChild(go); row.appendChild(reset);
-  panel.appendChild(num); panel.appendChild(row);
-  box.appendChild(btn); box.appendChild(panel);
+  panel.appendChild(el("div", "timertitle", timerTitle(label, secs))); panel.appendChild(num); panel.appendChild(row);
   var left = secs * 1000, endAt = 0, tick = 0, audio = null;
   function show() {
     num.textContent = left <= 0 ? "Time's up!" : timerText(Math.ceil(left / 1000));
-    panel.className = "timer" + (left <= 0 ? " done" : "");
+    panel.className = "timer" + (left <= 0 ? " done" : tick ? " running" : "");
     go.textContent = tick ? "Pause" : (left < secs * 1000 && left > 0 ? "Resume" : "Start");
     go.disabled = left <= 0;
   }
@@ -1122,9 +1124,6 @@ function timerButton(label, secs) {
       });
     } catch (e) {}
   }
-  btn.addEventListener("click", function () {
-    panel.hidden = !panel.hidden; btn.setAttribute("aria-expanded", String(!panel.hidden));
-  });
   go.addEventListener("click", function () {
     if (tick) { step(); stop(); show(); return; }   // Pause
     if (left <= 0) return;
@@ -1136,9 +1135,8 @@ function timerButton(label, secs) {
   });
   reset.addEventListener("click", function () { stop(); left = secs * 1000; show(); });
   show();
-  return box;
+  return panel;
 }
-
 function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
 function boxInputs(i) { return Array.prototype.slice.call(document.querySelectorAll('input.pbox[data-q="' + i + '"]')); }
 /** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
