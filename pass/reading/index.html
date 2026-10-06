@@ -2,7 +2,7 @@
 <html>
 <head>
 <script>window.CLASS_PASS_PAGE = "app";   /* on the class website, under Class Pass: see CLASS PASS in the page script */</script>
-<title>Self-Check</title>
+<title>Reading</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -140,6 +140,52 @@
   html[data-theme="dark"] input.tcell.correct, html[data-theme="dark"] input.tlabel.correct { background:var(--green); }
   html[data-theme="dark"] input.tcell.incorrect, html[data-theme="dark"] input.tlabel.incorrect { background:var(--red); }
   html[data-theme="dark"] .tright { border-color:#5f6670; }
+  /* timed-trials lab table (Table config {"lab": ...}): stopwatch, the data table with a box for every test, and a graph with one colored line per surface */
+  :root { --lg0:#0072B2; --lg1:#D55E00; --lg2:#00875F; --lg3:#A23B8E; }
+  html[data-theme="dark"] { --lg0:#56B4E9; --lg1:#FF9F5A; --lg2:#3DDBA8; --lg3:#E58BD0; }
+  .labzone { border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
+  .labtop { position:sticky; top:0; z-index:4; display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:8px 12px; background:#eef3fc; border-bottom:2px solid #111; }
+  .swtime { font-size:34px; line-height:1; font-weight:700; font-variant-numeric:tabular-nums; min-width:150px; }
+  .swtime small { font-size:15px; font-weight:600; margin-left:4px; }
+  .swbtns { display:flex; flex-wrap:wrap; gap:8px; }
+  .swbtns button { padding:7px 14px; }
+  .swbtns button.go { background:#1b4587; border-color:#1b4587; color:#fff; min-width:84px; }
+  .swbtns button.go.running { background:#cc0000; border-color:#cc0000; }
+  .swbtns button.use { background:#38761d; border-color:#38761d; color:#fff; }
+  .swbtns button.reset { background:#fff; color:#111; }
+  .swhint { flex:1 1 230px; font-size:13px; line-height:1.4; color:#333; }
+  .swhint b { font-weight:700; color:#111; }
+  .labsec { font-weight:700; font-size:14px; padding:10px 12px 4px; }
+  .labscroll { overflow-x:auto; padding:0 12px 10px; }
+  table.labtable { width:auto; min-width:100%; }
+  table.labtable th { font-size:12px; padding:4px 5px; white-space:nowrap; line-height:1.25; }
+  table.labtable td { min-width:46px; }
+  table.labtable td.labname { text-align:left; padding:0 8px; white-space:nowrap; font-weight:700; font-size:14px; background:var(--strip); }
+  table.labtable tbody tr:nth-child(even) td.labname { background:var(--strip); }
+  table.labtable input.tcell { min-width:46px; font-size:14px; padding:2px 2px; }
+  table.labtable td.labavg { background:#eef3fc; font-variant-numeric:tabular-nums; min-width:54px; font-size:14px; padding:0 3px; }
+  table.labtable tbody tr:nth-child(even) td.labavg { background:#eef3fc; }
+  table.labtable.labctl { width:auto; min-width:0; }
+  .labnote { font-size:13px; color:#444; padding:0 12px 10px; line-height:1.4; }
+  .labgraph { border-top:1px solid #111; }
+  .labkey { list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:4px 18px; margin:0; padding:4px 12px 10px; font-size:14px; font-weight:600; }
+  .labkey li { display:inline-flex; align-items:center; gap:6px; }
+  .labkey svg { width:36px; height:16px; flex:none; }
+  .lg-0 { --lg:var(--lg0); } .lg-1 { --lg:var(--lg1); } .lg-2 { --lg:var(--lg2); } .lg-3 { --lg:var(--lg3); }
+  svg .lg-line { fill:none; stroke:var(--lg); stroke-width:3; stroke-linejoin:round; stroke-linecap:round; }
+  svg .lg-mark { fill:var(--lg); stroke:#fff; stroke-width:1.5; }
+  html[data-theme="dark"] .labzone { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .labtop { background:#232b3a; border-color:#5f6670; }
+  html[data-theme="dark"] .swhint, html[data-theme="dark"] .labnote { color:#b6bcc6; }
+  html[data-theme="dark"] .swhint b { color:#f1f3f5; }
+  html[data-theme="dark"] .swbtns button.reset { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] .swbtns button.go { background:#3b6fd4; border-color:#3b6fd4; }
+  html[data-theme="dark"] .swbtns button.go.running { background:#cc0000; border-color:#cc0000; }
+  html[data-theme="dark"] table.labtable td.labname, html[data-theme="dark"] table.labtable tbody tr:nth-child(even) td.labname { background:#2c3a52; color:#f1f3f5; }
+  html[data-theme="dark"] table.labtable td.labavg, html[data-theme="dark"] table.labtable tbody tr:nth-child(even) td.labavg { background:#232b3a; }
+  html[data-theme="dark"] .labgraph { border-color:#5f6670; }
+  html[data-theme="dark"] svg .lg-mark { stroke:#1d2128; }
+  @media (min-width: 900px) { .split.wideq { grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); } }
   html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
   html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
   html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
@@ -286,6 +332,63 @@
   html[data-theme="dark"] .cp-bar { background:#2a2f38; }
   html[data-theme="dark"] .cp-bar span { background:#6f9bff; }
   html[data-theme="dark"] .pagever { color:#6b717b; }
+
+  /* ---------- Reading page: the article on the left, the questions on the right; each side scrolls on its own ----------
+     Wide screens (900 px and up): two panes side by side, each with its own scroll bar, the title above both.
+     Narrower screens (a phone held upright): one pane at a time, with Article / Questions tabs. */
+  .apphead { display:flex; align-items:baseline; flex-wrap:wrap; gap:0 14px; }
+  .apphead h1 { font-size:20px; margin:4px 0 2px; }
+  .apphead .who { margin-bottom:4px; }
+  .splittabs { display:none; }
+  .split { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:16px; align-items:start; }
+  .artpane { background:#fff; border:2px solid #111; border-radius:8px; padding:4px 18px 28px; }
+  .artpane:focus-visible { outline:3px solid #3c78d8; outline-offset:2px; }
+  .qpane:focus { outline:none; }
+  @media (min-width: 900px) {
+    html.splitview, html.splitview body { height:100%; overflow:hidden; }
+    html.splitview .wrap { position:relative; max-width:none; height:100vh; height:100dvh; display:flex; flex-direction:column; padding:6px 14px 10px; }
+    html.splitview .topbar { position:absolute; top:8px; right:14px; margin:0; z-index:8; }
+    html.splitview .apphead { padding-right:130px; }
+    html.splitview #app { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+    html.splitview .split { flex:1 1 auto; min-height:0; align-items:stretch; }
+    html.splitview .artpane, html.splitview .qpane { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+    html.splitview .qpane { padding:0 8px 40px 2px; }
+  }
+  @media (max-width: 899px) {
+    .splittabs { display:flex; gap:8px; position:sticky; top:0; z-index:9; padding:8px 0; background:#f3f3f3; }
+    html[data-theme="dark"] .splittabs { background:#14171c; }
+    .splittabs button { flex:1 1 0; background:#fff; color:#111; border-color:#111; padding:9px 10px; }
+    .splittabs button[aria-selected="true"] { background:#111; color:#fff; }
+    html[data-theme="dark"] .splittabs button { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+    html[data-theme="dark"] .splittabs button[aria-selected="true"] { background:#e8eaed; color:#14171c; border-color:#e8eaed; }
+    .split { display:block; }
+    .split[data-tab="art"] .qpane, .split[data-tab="q"] .artpane { display:none; }
+    .progress { top:56px; }
+  }
+  /* the article */
+  .art { font-size:15px; line-height:1.6; }
+  .art p { margin:0 0 12px; }
+  .arttitle { font-size:30px; font-weight:700; text-align:center; margin:14px 0 8px; }
+  .art h3 { background:var(--strip); font-weight:700; font-size:17px; line-height:1.35; padding:8px 12px; margin:26px -6px 12px; border-top:2px solid #111; border-bottom:2px solid #111; }
+  .artrow { display:flex; flex-wrap:wrap; gap:4px 18px; align-items:flex-start; margin:0 0 12px; }
+  .artrow .arttxt { flex:1 1 250px; min-width:0; }
+  .artrow .artfig { flex:0 0 auto; max-width:100%; }
+  .artfig { margin:0 0 10px; }
+  .artfig img { display:block; max-width:100%; height:auto; border-radius:6px; background:#fff; }   /* white behind every picture, so a see-through picture with dark writing stays readable in dark mode */
+  .artnote { color:#555; font-style:italic; padding:14px 0; }
+  html[data-theme="dark"] .artnote { color:#b6bcc6; }
+  .artfig figcaption { font-weight:600; font-size:13px; line-height:1.4; margin-bottom:5px; }
+  .artwide { text-align:center; } .artwide img { margin:0 auto; }
+  .artpair { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:4px 16px; align-items:start; margin:0 0 12px; }
+  .artpair .artfig img { width:100%; max-width:440px; }
+  .artq { font-weight:700; margin:0 0 6px; }
+  .arta { background:#eef3fc; border-left:4px solid #3c78d8; border-radius:0 6px 6px 0; padding:8px 12px; margin-bottom:14px; }
+  .artvids { margin:14px 0 4px; }
+  .art ul { margin:0 0 12px; padding-left:22px; }
+  .art li { margin-bottom:6px; }
+  html[data-theme="dark"] .artpane { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .art h3 { border-color:#8fb3ff; color:#eef3ff; }
+  html[data-theme="dark"] .arta { background:#232b3a; border-left-color:#6f9bff; }
 </style>
 </head>
 <body>
@@ -298,13 +401,23 @@
   document.documentElement.setAttribute("data-theme", t);
 })();
 </script>
+<!-- No built-in article on this page: it shows the article from the Google Doc named in the Settings tab (Article Google Doc link). -->
 <div class="wrap">
   <div class="topbar"><button type="button" class="themebtn" id="themeBtn"></button></div>
   <div id="loading">Loading your self-check…</div>
   <div id="signin" hidden></div>
   <div id="app" hidden>
-    <h1 id="title"></h1>
-    <div class="who" id="who"></div>
+    <div class="apphead">
+      <h1 id="title"></h1>
+      <div class="who" id="who"></div>
+    </div>
+    <div class="splittabs" id="splitTabs" role="tablist">
+      <button type="button" role="tab" id="tabArt" aria-selected="false">Article</button>
+      <button type="button" role="tab" id="tabQ" aria-selected="true">Questions</button>
+    </div>
+    <div class="split" id="split" data-tab="q">
+    <section class="artpane" id="artPane" tabindex="0" aria-label="The article. Scroll this side to read."><div id="article"></div></section>
+    <section class="qpane" id="qPane" tabindex="-1" aria-label="The questions. Scroll this side to answer.">
     <div class="intro" id="intro"></div>
     <div class="closedbar" id="closedBar" hidden><span class="tag">CLOSED</span><span id="closedBarText"></span></div>
     <div class="links" id="links"></div>
@@ -323,6 +436,8 @@
       <div class="meta" id="finishMeta" style="margin-top:8px"></div>
     </div>
     <div class="pagever" id="pageVer"></div>
+    </section>
+    </div>
   </div>
 </div>
 <div class="modal" id="closedBox" hidden role="dialog" aria-modal="true" aria-labelledby="closedTitle">
@@ -351,7 +466,7 @@
 /** Student calls that carry this browser's sign-in token, and how many arguments come before it.
     Missing arguments are filled with null so the token always lands in the same place. */
 var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1,
-                   uploadPicture: 3, getMyUpload: 1 };
+                   uploadPicture: 3, getMyUpload: 1, getArticle: 0, getArticlePicture: 1 };
 
 /* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
    Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
@@ -1130,6 +1245,7 @@ var CP_HOST = {
   clear: function (title) {
     document.getElementById("loading").hidden = true;
     document.getElementById("app").hidden = true;
+    document.documentElement.classList.remove("splitview");   // a whole-page card scrolls the page like any other page
     var box = document.getElementById("signin");
     box.hidden = false; box.innerHTML = "";
     if (title) { document.title = title; box.appendChild(el("h1", null, title)); }
@@ -1285,12 +1401,115 @@ function note(text) {   // a short black message at the top of the page
   m.innerHTML = "";
   m.appendChild(el("div", "banner", text));
   window.scrollTo(0, 0);
+  var qp = document.getElementById("qPane"); if (qp) qp.scrollTop = 0;   // the questions side scrolls on its own
+}
+
+/* ---------- the reading page: the article on the left, the questions on the right (each side scrolls on its own) ----------
+   The article comes from the teacher's Google Doc (Settings: Article Google Doc link, then Self-Check > Update the article from the
+   Google Doc): the sheet turns the Doc into simple HTML and keeps it. If the sheet has none, the page's built-in article (articleTpl)
+   is shown when it has one. What the sheet sends is untrusted (a ?app= link can name any sheet), so it is never inserted as it
+   arrives: safeArticle() rebuilds it from a short list of allowed tags, classes and links. */
+var ART_TAGS = { H2: 1, H3: 1, P: 1, UL: 1, OL: 1, LI: 1, B: 1, STRONG: 1, I: 1, EM: 1, A: 1, BR: 1, DIV: 1, FIGURE: 1, FIGCAPTION: 1, IMG: 1 };
+var ART_CLASSES = { arttitle: 1, artrow: 1, arttxt: 1, artfig: 1, artwide: 1, artpair: 1, artq: 1, arta: 1, artvids: 1, simbtn: 1 };
+function safeArticle(html) {
+  var doc = new DOMParser().parseFromString("<!DOCTYPE html><body>" + String(html == null ? "" : html), "text/html");   // inert: nothing in it runs or loads
+  var out = document.createDocumentFragment();
+  function copy(from, into) {
+    for (var n = from.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType === 3) { into.appendChild(document.createTextNode(n.nodeValue)); continue; }
+      if (n.nodeType !== 1) continue;
+      var tag = n.tagName;
+      if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|LINK|META|FORM|INPUT|BUTTON|SVG|MATH)$/.test(tag)) continue;   // dropped with everything inside
+      if (!ART_TAGS[tag]) { copy(n, into); continue; }   // any other tag: keep its words, lose the tag
+      if (tag === "A") {
+        var u = cpLinkUrl(n.getAttribute("href"));
+        if (!u) { copy(n, into); continue; }   // no safe address: just the words
+      }
+      var e = document.createElement(tag.toLowerCase());
+      var cls = (n.getAttribute("class") || "").split(/\s+/).filter(function (c) { return ART_CLASSES.hasOwnProperty(c); });
+      if (cls.length) e.className = cls.join(" ");
+      if (tag === "A") { e.href = u; e.target = "_blank"; e.rel = "noopener noreferrer"; }
+      if (tag === "IMG") {
+        var k = n.getAttribute("data-pic");
+        if (!/^\d{1,3}$/.test(String(k))) continue;
+        e.setAttribute("data-pic", k);
+        ["width", "height"].forEach(function (a) { var v = parseInt(n.getAttribute(a), 10); if (v >= 1 && v <= 2000) e.setAttribute(a, String(v)); });
+        e.alt = String(n.getAttribute("alt") || "").slice(0, 300);
+      } else copy(n, e);
+      into.appendChild(e);
+    }
+  }
+  copy(doc.body, out);
+  return out;
+}
+/** The article's pictures come one at a time (two at once) as the sheet sends them, then are shown from blob: addresses. */
+var artPicQ = [], artPicBusy = 0;
+function loadArticlePics(root, pics) {
+  Array.prototype.forEach.call(root.querySelectorAll("img[data-pic]"), function (img) {
+    var i = Number(img.getAttribute("data-pic"));
+    if (!pics[i]) { img.remove(); return; }
+    artPicQ.push({ img: img, i: i });
+  });
+  artPicNext();
+}
+function artPicNext() {
+  while (artPicBusy < 2 && artPicQ.length) (function (job) {
+    artPicBusy++;
+    cpRetry(cpCall("getArticlePicture", [job.i]), function (r) {
+      artPicBusy--;
+      var ok = false;
+      if (r && /^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) && typeof r.data === "string") {   // never a page or a script
+        try {
+          var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+          for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
+          job.img.src = URL.createObjectURL(new Blob([bytes], { type: r.mime })); ok = true;
+        } catch (e) { ok = false; }
+      }
+      if (!ok) job.img.alt = "The picture didn't load. Reload the page to try again.";
+      artPicNext();
+    }, function () { artPicBusy--; job.img.alt = "The picture didn't load. Reload the page to try again."; artPicNext(); });
+  })(artPicQ.shift());
+}
+function showArticle() {
+  var art = document.getElementById("article"), tpl = document.getElementById("articleTpl");
+  function builtIn(why) {
+    art.textContent = "";
+    if (tpl && tpl.content) art.appendChild(tpl.content.cloneNode(true));
+    else art.appendChild(el("p", "artnote", why || "The article isn't ready yet. Please tell your teacher."));
+  }
+  if (!S.article) { builtIn(); return; }
+  art.appendChild(el("p", "artnote", "Loading the article…"));
+  withRetry(function (ok, fail) { api.run("getArticle", [], ok, fail); }, function (r) {
+    if (!r || !r.has) { builtIn(); return; }
+    var wrap = el("div", "art");
+    wrap.appendChild(safeArticle(r.html));
+    art.textContent = ""; art.appendChild(wrap);
+    loadArticlePics(wrap, r.pics || []);
+  }, function () { builtIn("The article didn't load. Reload the page, or tell your teacher."); });
+}
+function setUpSplit() {
+  document.documentElement.classList.add("splitview");
+  var art = document.getElementById("article");
+  if (!art.firstChild) showArticle();
+  var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
+  function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
+    split.setAttribute("data-tab", which);
+    tabA.setAttribute("aria-selected", which === "art" ? "true" : "false");
+    tabQ.setAttribute("aria-selected", which === "q" ? "true" : "false");
+    window.scrollTo(0, 0);
+  }
+  tabA.onclick = function () { show("art"); };
+  tabQ.onclick = function () { show("q"); };
+  var narrow = false;
+  try { narrow = window.matchMedia("(max-width: 899px)").matches; } catch (e) { narrow = false; }
+  show(narrow ? "art" : "q");   // on a phone, read first
 }
 
 function render() {
   document.getElementById("loading").hidden = true;
   document.getElementById("signin").hidden = true;
   document.getElementById("app").hidden = false;
+  setUpSplit();
   document.title = S.title;
   document.getElementById("title").textContent = S.title;
   var who = document.getElementById("who");
@@ -1306,6 +1525,7 @@ function render() {
   L.hidden = !(S.links && S.links.length);
 
   var box = document.getElementById("items");
+  if (S.questions.some(function (q) { return q.table && q.table.lab; })) document.getElementById("split").classList.add("wideq");   // a lab table is wide: give the questions side more room
   var sec = {}; S.sections.forEach(function (s) { sec[s.before] = s; });
   S.questions.forEach(function (q, i) {
     if (sec[i]) {
@@ -1337,7 +1557,7 @@ function render() {
     }
     var ta;
     if (q.table) {
-      ta = tableBox(i);
+      ta = q.table.lab ? labBox(i) : tableBox(i);
     } else if (q.draw) {
       ta = drawBox(i);
     } else if (q.upload) {
@@ -1639,7 +1859,7 @@ function wireTable(i) {
     });
     f.addEventListener("blur", function () {
       // checked once the student leaves the whole table and graph (moving between boxes doesn't check yet)
-      setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+      setTimeout(function () { if (fields.indexOf(document.activeElement) === -1 && !S.questions[i].table.lab) check(i, false); }, 0);   // (a lab table checks when you leave the whole zone, stopwatch included)
     });
     f.addEventListener("keydown", function (e) {
       if (e.key !== "Enter") return;
@@ -1651,11 +1871,15 @@ function wireTable(i) {
 }
 function paintTable(i, res) {
   var parts = (res && res.parts) || [];
-  document.getElementById("a" + i).className = "tablezone" + (res && res.status !== "blank" ? " " + res.status : "");
+  document.getElementById("a" + i).className = (S.questions[i].table.lab ? "labzone" : "tablezone") + (res && res.status !== "blank" ? " " + res.status : "");
   tableCells(i).forEach(function (c) {
     c.classList.remove("correct", "incorrect");
     if (parts[0] === "correct") c.classList.add("correct");
-    else if (parts[0] === "incorrect") c.classList.add(/^-?(\d+\.?\d*|\.\d+)$/.test(c.value.trim().replace(/,/g, "")) ? "correct" : "incorrect");
+    else if (parts[0] === "incorrect") {
+      var typed = c.value.trim();
+      if (/^-?(\d+\.?\d*|\.\d+)$/.test(typed.replace(/,/g, ""))) c.classList.add("correct");
+      else if (typed || !S.questions[i].table.lab) c.classList.add("incorrect");   // a lab table is filled in over a whole class period: its empty boxes aren't marked wrong
+    }
   });
   ["t", "x", "y"].forEach(function (k, j) {
     var f = tableLabel(i, k), m = parts[j + 1];
@@ -1669,6 +1893,7 @@ function niceStep(range) {
   return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
 }
 function drawTableGraph(i) {
+  if (S.questions[i].table.lab) { drawLab(i); return; }
   var svg = document.getElementById("tg" + i);
   if (!svg) return;
   var T = S.questions[i].table, cells = tableCells(i), n = 0, pts = [];
@@ -1711,6 +1936,218 @@ function drawTableGraph(i) {
   }
   pts.forEach(function (p) { h.push('<circle class="tg-dot" cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="5"/>'); });
   if (pts.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  svg.innerHTML = h.join("");
+}
+
+/* ---------- timed-trials lab table: a stopwatch, the data table, and a graph with one colored line per surface ----------
+   Answer type "table" with a Table config of {"lab": {...}} (parseLabConfig_ in Code.gs). The boxes are the plain data table's kind
+   (class tcell, saved as {"v":[...],"t":title,"x":x label,"y":y label}) in this order: the control's tests (ramp only), then each
+   surface's distances in turn, each with its tests. The averages and the graph are worked out here as the student types: a
+   distance's average is its tests added up and divided by how many, minus the control's average (the ramp's own time). */
+/** The lab config as the page uses it. What a sheet sends is untrusted on the class website (a ?app= link can name any sheet), so names and the unit are cut
+    down to short text, the distances to numbers, and the counts to small whole numbers before anything is drawn. */
+var LAB_CONF = {};   // the cleaned configs, kept here (never on what the sheet sent, which could carry its own copy)
+function labConf(i) {
+  if (LAB_CONF[i]) return LAB_CONF[i];
+  var L = S.questions[i].table.lab || {};
+  function s(v, n) { return String(v == null ? "" : v).slice(0, n); }
+  var tests = Math.round(Number(L.tests));
+  LAB_CONF[i] = {
+    surfaces: (Array.isArray(L.surfaces) ? L.surfaces : []).slice(0, 6).map(function (x) { return s(x, 30); }),
+    distances: (Array.isArray(L.distances) ? L.distances : []).slice(0, 6).map(Number).filter(function (d) { return isFinite(d) && d > 0 && d < 100000; }),
+    tests: tests >= 1 && tests <= 5 ? tests : 3, unit: s(L.unit, 10) || "cm", control: s(L.control, 40)
+  };
+  return LAB_CONF[i];
+}
+/** Text for the inside of an SVG string (the graph is drawn with innerHTML): nothing that could become a tag. */
+function labEsc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); }
+function labNum(s) { s = String(s == null ? "" : s).trim().replace(/,/g, ""); return /^-?(\d+\.?\d*|\.\d+)$/.test(s) ? Number(s) : NaN; }
+function labFmt(v) { return isFinite(v) ? (Math.round(v * 1000) / 1000).toFixed(3) : ""; }
+/** The stopwatch reading: 0.000 up to a minute, then 1:05.123. */
+function labClock(ms) {
+  var s = Math.max(0, ms) / 1000;
+  if (s < 60) return s.toFixed(3);
+  var m = Math.floor(s / 60), r = s - m * 60;
+  return m + ":" + (r < 10 ? "0" : "") + r.toFixed(3);
+}
+function labBox(i) {
+  var L = labConf(i), saved = tableSaved(i), vals = Array.isArray(saved.v) ? saved.v : [], n = 0, T = L.tests;
+  var zone = el("div", "labzone"); zone.id = "a" + i;
+  zone.appendChild(labWatch(i, zone));
+  function cell(label) {
+    var inp = el("input", "tcell"); inp.type = "text"; inp.inputMode = "decimal"; inp.autocomplete = "off"; inp.maxLength = 12;
+    inp.setAttribute("data-tq", i); inp.setAttribute("data-n", n); inp.setAttribute("aria-label", label);
+    inp.value = vals[n] != null ? String(vals[n]) : ""; inp.disabled = S.locked;
+    blockPaste(inp, i);
+    n++;
+    var td = el("td"); td.appendChild(inp);
+    return td;
+  }
+  var k, tr, th;
+  if (L.control) {   // the control: the ramp on its own
+    zone.appendChild(el("div", "labsec", "CONTROL TEST: " + L.control));
+    var sc1 = el("div", "labscroll"), ct = el("table", "dtable labtable labctl"), ch = el("thead"), chr = el("tr");
+    for (k = 1; k <= T; k++) chr.appendChild(el("th", null, "Test " + k + " (s)"));
+    chr.appendChild(el("th", null, "Average (s)"));
+    ch.appendChild(chr); ct.appendChild(ch);
+    var cb = el("tbody"), cr = el("tr");
+    for (k = 1; k <= T; k++) cr.appendChild(cell(L.control + ", test " + k));
+    var ca = el("td", "labavg"); ca.id = "lc" + i; cr.appendChild(ca);
+    cb.appendChild(cr); ct.appendChild(cb); sc1.appendChild(ct); zone.appendChild(sc1);
+  }
+  zone.appendChild(el("div", "labsec", "TIME FOR THE TRIP (seconds)"));
+  var sc2 = el("div", "labscroll"), tbl = el("table", "dtable labtable"), thead = el("thead"), h1 = el("tr"), h2 = el("tr");
+  th = el("th", null, "Type of Surface"); th.rowSpan = 2; h1.appendChild(th);
+  L.distances.forEach(function (d) { th = el("th", null, d + " " + L.unit); th.colSpan = T; h1.appendChild(th); });
+  th = el("th", null, "Average (s)"); th.title = "Average of the tests, minus the control"; th.colSpan = L.distances.length; h1.appendChild(th);
+  L.distances.forEach(function () { for (var j = 1; j <= T; j++) h2.appendChild(el("th", null, "Test " + j)); });
+  L.distances.forEach(function (d) { h2.appendChild(el("th", null, d + " " + L.unit)); });
+  thead.appendChild(h1); thead.appendChild(h2); tbl.appendChild(thead);
+  var tb = el("tbody");
+  L.surfaces.forEach(function (name, s) {
+    tr = el("tr"); tr.appendChild(el("td", "labname", name));
+    L.distances.forEach(function (d) { for (var j = 1; j <= T; j++) tr.appendChild(cell(name + ", " + d + " " + L.unit + ", test " + j)); });
+    L.distances.forEach(function (d, di) { var a = el("td", "labavg"); a.id = "lv" + i + "_" + s + "_" + di; tr.appendChild(a); });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb); sc2.appendChild(tbl); zone.appendChild(sc2);
+  zone.appendChild(el("div", "labnote", "Average = the " + T + " tests added up and divided by " + T + (L.control ? ", minus your control average (the ramp's own time)" : "") + ". If one test looks way off (an outlier), go back and test it again."));
+  var g = el("div", "labgraph");
+  g.appendChild(el("div", "tgraphhead", "Graph"));
+  var title = tableInput(i, "t", "Type your graph's title", saved.t);
+  var mid = el("div", "tgraphmid"), ywrap = el("div", "tylab"), yin = tableInput(i, "y", "Type the y-axis label", saved.y);
+  ywrap.appendChild(yin);
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 600 380"); svg.setAttribute("class", "tgraph"); svg.id = "tg" + i;
+  svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Graph of your data: time for the trip at each distance, one line for each surface");
+  mid.appendChild(ywrap); mid.appendChild(svg);
+  var xin = tableInput(i, "x", "Type the x-axis label", saved.x);
+  g.appendChild(title); g.appendChild(mid); g.appendChild(xin);
+  var key = el("ul", "labkey"); key.setAttribute("aria-label", "Key: which color is which surface");
+  L.surfaces.forEach(function (name, s) {
+    var li = el("li"), sw = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    sw.setAttribute("viewBox", "0 0 36 16"); sw.setAttribute("aria-hidden", "true"); sw.setAttribute("class", "lg-" + (s % 4));
+    sw.innerHTML = '<line class="lg-line" x1="2" y1="8" x2="34" y2="8"/>' + labMark(s % 4, 18, 8, 5.5);
+    li.appendChild(sw); li.appendChild(document.createTextNode(name)); key.appendChild(li);
+  });
+  g.appendChild(key);
+  zone.appendChild(g);
+  // moving from the table to the stopwatch isn't leaving it; leaving the whole lab zone checks the answer (like leaving a plain table)
+  zone.addEventListener("focusout", function () { setTimeout(function () { if (!zone.contains(document.activeElement)) check(i, false); }, 0); });
+  setTimeout(function () { var wb = zone.querySelector(".labwatch"); if (wb && wb._say) wb._say(); drawLab(i); labStick(); }, 0);
+  return zone;
+}
+/** One graph marker: a different shape for each surface (so the lines can be told apart without color), in the surface's color. */
+function labMark(c, x, y, r) {
+  if (c === 1) return '<rect class="lg-mark" x="' + (x - r) + '" y="' + (y - r) + '" width="' + (2 * r) + '" height="' + (2 * r) + '"/>';
+  if (c === 2) return '<polygon class="lg-mark" points="' + x + "," + (y - r - 1) + " " + (x + r + 1) + "," + (y + r) + " " + (x - r - 1) + "," + (y + r) + '"/>';
+  if (c === 3) return '<polygon class="lg-mark" points="' + x + "," + (y - r - 2) + " " + (x + r + 2) + "," + y + " " + x + "," + (y + r + 2) + " " + (x - r - 2) + "," + y + '"/>';
+  return '<circle class="lg-mark" cx="' + x + '" cy="' + y + '" r="' + r + '"/>';
+}
+/** The stopwatch above the table. Start / Stop, then "Use this time" puts the reading (in seconds, to the thousandth) in the box you chose. */
+function labWatch(i, zone) {
+  var box = el("div", "labtop labwatch"), disp = el("div", "swtime"), num = el("span", null, "0.000"), unit = el("small", null, "s");
+  disp.appendChild(num); disp.appendChild(unit); disp.setAttribute("role", "timer"); disp.setAttribute("aria-label", "Stopwatch");
+  var btns = el("div", "swbtns"), go = el("button", "go", "Start"), use = el("button", "use", "Use this time"), reset = el("button", "reset", "Reset");
+  [go, use, reset].forEach(function (b) { b.type = "button"; });
+  use.disabled = true; use.title = "Put this time in the box you chose"; reset.title = "Back to 0.000";
+  btns.appendChild(go); btns.appendChild(use); btns.appendChild(reset);
+  var hint = el("div", "swhint");
+  if (S.locked) [go, use, reset].forEach(function (b) { b.disabled = true; });
+  box.appendChild(disp); box.appendChild(btns); box.appendChild(hint);
+  var run = false, t0 = 0, acc = 0, raf = 0, last = null, mine = null;
+  function now() { return acc + (run ? performance.now() - t0 : 0); }
+  function tick() { num.textContent = labClock(now()); if (run) raf = requestAnimationFrame(tick); }
+  function cells() { return tableCells(i); }
+  function target() {   // the box you clicked last, else the first empty one
+    var all = cells();
+    if (mine && all.indexOf(mine) !== -1 && !mine.disabled) return mine;
+    for (var k = 0; k < all.length; k++) if (!all[k].value.trim()) return all[k];
+    return null;
+  }
+  function say() {
+    var t = target();
+    hint.textContent = "";
+    if (!t) { hint.appendChild(document.createTextNode("Every time box is full. Click a box to replace its time.")); return; }
+    hint.appendChild(document.createTextNode("Click a time box, run the stopwatch, then press Use this time. The next time goes in: "));
+    hint.appendChild(el("b", null, t.getAttribute("aria-label") + (t.value.trim() ? " (replaces " + t.value.trim() + ")" : "")));
+  }
+  go.addEventListener("click", function () {
+    if (!run) { run = true; t0 = performance.now(); go.textContent = "Stop"; go.classList.add("running"); use.disabled = true; tick(); }
+    else { acc = now(); run = false; cancelAnimationFrame(raf); go.textContent = "Start"; go.classList.remove("running"); last = acc; num.textContent = labClock(acc); use.disabled = !(acc > 0); }
+  });
+  reset.addEventListener("click", function () { run = false; cancelAnimationFrame(raf); acc = 0; last = null; go.textContent = "Start"; go.classList.remove("running"); use.disabled = true; num.textContent = "0.000"; });
+  use.addEventListener("click", function () {
+    var t = target();
+    if (last == null || !t) return;
+    t.value = (last / 1000).toFixed(3);
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+    var all = cells(), at = all.indexOf(t), nxt = null;
+    for (var k = 1; k <= all.length; k++) { var c = all[(at + k) % all.length]; if (!c.value.trim()) { nxt = c; break; } }
+    reset.click();
+    mine = nxt;
+    if (nxt) nxt.focus();
+    say();
+  });
+  zone.addEventListener("focusin", function (e) { if (e.target.classList && e.target.classList.contains("tcell")) { mine = e.target; say(); } });
+  zone.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("tcell")) say(); });
+  say();
+  box._say = say;   // the table calls this once its boxes are on the page
+  return box;
+}
+/** The stopwatch bar sticks just under the progress bar while you scroll through the table and graph. */
+function labStick() {
+  var p = document.getElementById("progress"), top = 0;
+  if (p) { var cs = getComputedStyle(p); top = (parseFloat(cs.top) || 0) + p.offsetHeight + 6; }
+  Array.prototype.forEach.call(document.querySelectorAll(".labtop"), function (b) { b.style.top = top + "px"; });
+}
+window.addEventListener("resize", function () { labStick(); });
+/** Averages into the table, lines into the graph. */
+function drawLab(i) {
+  var svg = document.getElementById("tg" + i);
+  if (!svg) return;
+  var L = labConf(i), T = L.tests, cells = tableCells(i).map(function (c) { return labNum(c.value); }), at = 0;
+  function mean(from) { var sum = 0; for (var k = 0; k < T; k++) { var v = cells[from + k]; if (!isFinite(v)) return NaN; sum += v; } return sum / T; }
+  var ctl = 0, ctlAvg = NaN;
+  if (L.control) { ctlAvg = mean(0); ctl = ctlAvg; at = T; var ce = document.getElementById("lc" + i); if (ce) ce.textContent = labFmt(ctlAvg); }
+  var ready = !L.control || isFinite(ctlAvg), all = [];
+  var series = L.surfaces.map(function (name, s) {
+    var pts = L.distances.map(function (d, di) {
+      var m = mean(at); at += T;
+      var y = ready && isFinite(m) ? m - ctl : NaN, ae = document.getElementById("lv" + i + "_" + s + "_" + di);
+      if (ae) ae.textContent = labFmt(y);
+      if (isFinite(y)) all.push(y);
+      return { x: d, y: y };
+    });
+    return { name: name, pts: pts };
+  });
+  var xMax = Math.max.apply(null, L.distances.concat([1]));
+  var yMax = Math.max.apply(null, all.concat([0.001])), yMin = Math.min.apply(null, all.concat([0]));
+  var ys = niceStep(yMax - yMin);
+  yMax = Math.ceil(yMax / ys) * ys; yMin = Math.floor(yMin / ys) * ys;
+  var Lf = 56, R = 568, Tp = 16, B = 340;
+  function X(v) { return Lf + v / (xMax || 1) * (R - Lf); }
+  function Y(v) { return B - (v - yMin) / (yMax - yMin || 1) * (B - Tp); }
+  function fmt(v) { return Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000); }
+  var h = [];
+  for (var gy = yMin; gy <= yMax + ys / 2; gy += ys) {
+    h.push('<line class="tg-grid" x1="' + Lf + '" x2="' + R + '" y1="' + Y(gy) + '" y2="' + Y(gy) + '"/>');
+    h.push('<text class="tg-tick" x="' + (Lf - 8) + '" y="' + (Y(gy) + 4) + '" text-anchor="end">' + fmt(gy) + '</text>');
+  }
+  [0].concat(L.distances).forEach(function (d) { h.push('<text class="tg-tick" x="' + X(d) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(d) + '</text>'); });
+  h.push('<line class="tg-axis" x1="' + Lf + '" x2="' + R + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/><line class="tg-axis" x1="' + Lf + '" x2="' + Lf + '" y1="' + Tp + '" y2="' + B + '"/>');
+  var lines = [], marks = [], any = false;
+  series.forEach(function (sr, s) {
+    var c = s % 4, good = sr.pts.filter(function (p) { return isFinite(p.y); });
+    if (good.length) any = true;
+    if (good.length > 1) lines.push('<polyline class="lg-line lg-' + c + '" points="' + good.map(function (p) { return X(p.x) + "," + Y(p.y); }).join(" ") + '"/>');
+    good.forEach(function (p) {
+      marks.push('<g class="lg-' + c + '">' + labMark(c, X(p.x), Y(p.y), 6) + '<title>' + labEsc(sr.name) + ", " + labEsc(p.x) + " " + labEsc(L.unit) + ": " + labFmt(p.y) + ' s</title></g>');
+    });
+  });
+  h = h.concat(lines, marks);
+  if (!any) h.push('<text class="tg-empty" x="' + ((Lf + R) / 2) + '" y="' + ((Tp + B) / 2 - 8) + '" text-anchor="middle">' + (ready ? "Your lines appear here as you fill in the table." : "Fill in the control test (ramp only) first.") + '</text>' +
+    (ready ? "" : '<text class="tg-empty" x="' + ((Lf + R) / 2) + '" y="' + ((Tp + B) / 2 + 14) + '" text-anchor="middle">The graph subtracts the ramp\'s own time.</text>'));
   svg.innerHTML = h.join("");
 }
 
@@ -2031,7 +2468,7 @@ function showClosed() {
   var c = S.close;
   S.locked = true;
   S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
-  document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, .labwatch button, #finishBtn").forEach(function (x) { x.disabled = true; });
   document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
   if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
   document.getElementById("closedBarText").textContent = c.note;
@@ -2302,7 +2739,11 @@ function signInInfo(s) { return { title: s.title, domain: s.domain, googleClient
 /** The Class Pass card: before the assignment is on the page (a whole-page card), or midway (a sign-in ran out while working). */
 function showSignIn(info, midway) {
   var box;
-  if (midway) { box = el("div"); var app = document.getElementById("app"); app.insertBefore(box, app.firstChild); window.scrollTo(0, 0); }
+  if (midway) {
+    box = el("div"); var host = document.getElementById("qPane") || document.getElementById("app");
+    host.insertBefore(box, host.firstChild); host.scrollTop = 0; window.scrollTo(0, 0);
+    document.getElementById("split").setAttribute("data-tab", "q");   // (a narrow screen: show the questions side, where the card is)
+  }
   else box = CP_HOST.clear(info.title);
   cpCard(box, info, { midway: midway, done: function (r, card) {
     if (!midway) { document.getElementById("signin").hidden = true; start(); return; }
@@ -2313,7 +2754,7 @@ function showSignIn(info, midway) {
     }
     // Someone else signed in on a page showing another student's work: don't mix the two.
     S.locked = true;
-    document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+    document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .row button, .dropzone button, .drawpad button, .drawpad input, .labwatch button, #finishBtn").forEach(function (x) { x.disabled = true; });
     if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
   } });
 }
