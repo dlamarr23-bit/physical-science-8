@@ -197,7 +197,19 @@
   html[data-theme="dark"] .simbar .simtab { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
   html[data-theme="dark"] .simbar .simtab[aria-pressed="true"] { background:#3b6fd4; color:#fff; border-color:#3b6fd4; }
   html[data-theme="dark"] .simopen { color:#8fb3ff; }
-  @media (min-width: 900px) { .split.wideq { grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); } }
+  @media (min-width: 900px) { .split.wideq { grid-template-columns:minmax(0, 5fr) 16px minmax(0, 7fr); }
+    /* the divider: drag it (or use the arrow keys) to give one side more room; double-click puts it back */
+    .split > .splitdiv { display:block; position:relative; cursor:col-resize; touch-action:none; align-self:stretch; border-radius:6px; outline:none; }
+    .splitdiv::before { content:""; position:absolute; left:5px; top:0; bottom:0; width:6px; border-radius:3px; background:#9aa1ab; opacity:.55; transition:background .15s, opacity .15s; }
+    .splitdiv::after { content:""; position:absolute; left:3px; top:50%; width:10px; height:46px; margin-top:-23px; border-radius:5px; background:#4b5563;
+                       box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px #4b5563; }
+    .splitdiv:hover::before, .splitdiv:focus-visible::before, .split.dragging .splitdiv::before { background:#1b4587; opacity:1; }
+    .splitdiv:focus-visible { box-shadow:0 0 0 3px rgba(60,120,216,.55); }
+    .split.dragging { cursor:col-resize; user-select:none; }
+    .split.dragging iframe { pointer-events:none; }
+    html[data-theme="dark"] .splitdiv::before { background:#8a9099; }
+    html[data-theme="dark"] .splitdiv::after { background:#c9ced6; box-shadow: inset 0 0 0 2px #1d2128, 0 0 0 1px #c9ced6; }
+    html[data-theme="dark"] .splitdiv:hover::before, html[data-theme="dark"] .split.dragging .splitdiv::before { background:#8fb3ff; opacity:1; } }
   html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
   html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
   html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
@@ -352,7 +364,8 @@
   .apphead h1 { font-size:20px; margin:4px 0 2px; }
   .apphead .who { margin-bottom:4px; }
   .splittabs { display:none; }
-  .split { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:16px; align-items:start; }
+  .split { display:grid; grid-template-columns:minmax(0, 1fr) 16px minmax(0, 1fr); gap:0; align-items:start; }
+  .splitdiv { display:none; }
   .artpane { background:#fff; border:2px solid #111; border-radius:8px; padding:4px 18px 28px; }
   .artpane:focus-visible { outline:3px solid #3c78d8; outline-offset:2px; }
   .qpane:focus { outline:none; }
@@ -539,6 +552,7 @@
     </div>
     <div class="split" id="split" data-tab="q">
     <section class="artpane" id="artPane" tabindex="0" aria-label="The article. Scroll this side to read."><div id="article"></div></section>
+    <div class="splitdiv" id="splitDiv" role="separator" aria-orientation="vertical" tabindex="0" title="Drag to make one side bigger (double-click to reset)" aria-label="Resize: drag, or use the left and right arrow keys. Home resets."></div>
     <section class="qpane" id="qPane" tabindex="-1" aria-label="The questions. Scroll this side to answer.">
     <div class="intro" id="intro"></div>
     <div class="closedbar" id="closedBar" hidden><span class="tag">CLOSED</span><span id="closedBarText"></span></div>
@@ -1647,10 +1661,56 @@ function setUpSim() {
   showWhich(false);
   var ta = document.getElementById("tabArt"); if (ta) ta.textContent = "Directions and simulation";
 }
+/** The divider between the two sides: drag it, or press the left / right arrow keys, to make one side bigger (the simulation, say). Double-click or Home
+    puts it back. The choice is remembered on this device. Only on a wide screen (900 px and up); below that the sides are tabs. */
+var SPLIT_KEY = "selfcheck-split", SPLIT_MIN = 240, SPLIT_GAP = 16;
+function setUpSplitDrag() {
+  var split = document.getElementById("split"), dv = document.getElementById("splitDiv");
+  if (!split || !dv || dv.getAttribute("data-wired")) return;
+  dv.setAttribute("data-wired", "1");
+  var frac = null;   // the left side's share of the room (0 to 1), or null = the page's own
+  try { var s = parseFloat(localStorage.getItem(SPLIT_KEY)); if (s > 0.1 && s < 0.9) frac = s; } catch (e) {}
+  function room() { return split.clientWidth - SPLIT_GAP; }
+  function apply() {
+    if (frac == null || room() < SPLIT_MIN * 2) { split.style.gridTemplateColumns = ""; return; }
+    var left = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, Math.round(frac * room())));
+    split.style.gridTemplateColumns = left + "px " + SPLIT_GAP + "px minmax(0, 1fr)";
+  }
+  function setLeft(px) {
+    if (room() < SPLIT_MIN * 2) return;
+    frac = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, px)) / room();
+    apply();
+  }
+  function save() { try { if (frac == null) localStorage.removeItem(SPLIT_KEY); else localStorage.setItem(SPLIT_KEY, String(frac)); } catch (e) {} }
+  function reset() { frac = null; apply(); save(); }
+  function leftNow() { return document.getElementById("artPane").getBoundingClientRect().width; }
+  dv.addEventListener("pointerdown", function (e) {
+    if (e.button > 0) return;
+    e.preventDefault();
+    try { dv.setPointerCapture(e.pointerId); } catch (x) {}
+    split.classList.add("dragging");
+    var x0 = e.clientX, w0 = leftNow();
+    function move(m) { setLeft(w0 + (m.clientX - x0)); }
+    function up() {
+      split.classList.remove("dragging");
+      dv.removeEventListener("pointermove", move); dv.removeEventListener("pointerup", up); dv.removeEventListener("pointercancel", up);
+      save();
+    }
+    dv.addEventListener("pointermove", move); dv.addEventListener("pointerup", up); dv.addEventListener("pointercancel", up);
+  });
+  dv.addEventListener("dblclick", reset);
+  dv.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); setLeft(leftNow() + (e.key === "ArrowLeft" ? -32 : 32)); save(); }
+    else if (e.key === "Home") { e.preventDefault(); reset(); }
+  });
+  window.addEventListener("resize", apply);
+  apply();
+}
 function setUpSplit() {
   document.documentElement.classList.add("splitview");
   var art = document.getElementById("article");
   if (!art.firstChild) showArticle();
+  setUpSplitDrag();
   if (labSim() && !document.querySelector(".simbar")) setUpSim();
   var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
   function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
