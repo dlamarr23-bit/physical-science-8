@@ -185,6 +185,18 @@
   html[data-theme="dark"] table.labtable td.labavg, html[data-theme="dark"] table.labtable tbody tr:nth-child(even) td.labavg { background:#232b3a; }
   html[data-theme="dark"] .labgraph { border-color:#5f6670; }
   html[data-theme="dark"] svg .lg-mark { stroke:#1d2128; }
+  .artpane.hassim { padding-top:0; }
+  .simbar { position:sticky; top:0; z-index:3; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 0; margin:0 0 6px; background:#fff; border-bottom:2px solid #111; }
+  .simbar .simtab { background:#fff; color:#111; padding:7px 16px; }
+  .simbar .simtab[aria-pressed="true"] { background:#1b4587; color:#fff; border-color:#1b4587; }
+  .simopen { margin-left:auto; font-size:13px; font-weight:600; color:#1b4587; }
+  .simframe iframe { display:block; width:100%; height:78vh; min-height:420px; border:0; border-radius:6px; background:#fff; }
+  @media (min-width: 900px) { html.splitview .artpane.simview { display:flex; flex-direction:column; overflow:hidden; padding-bottom:6px; }
+    html.splitview .artpane.simview .simframe { flex:1 1 auto; min-height:0; } html.splitview .artpane.simview .simframe iframe { height:100%; min-height:0; } }
+  html[data-theme="dark"] .simbar { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .simbar .simtab { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] .simbar .simtab[aria-pressed="true"] { background:#3b6fd4; color:#fff; border-color:#3b6fd4; }
+  html[data-theme="dark"] .simopen { color:#8fb3ff; }
   @media (min-width: 900px) { .split.wideq { grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); } }
   html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
   html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
@@ -612,7 +624,8 @@ var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // 
                  "net-force-escape-room": "net-force-escape",              // (one-off pages: self-check/custom/, built by make-pass.ps1)
                  "reading-activity": "reading",                            // a side-by-side reading page whose article comes from a Google Doc
                  "friction-article": "friction",
-                 "friction-speed-lab": "friction-lab" };                    // the friction and speed lab: handout on the left, stopwatch + data table + graph, rubric-scored conclusion
+                 "friction-speed-lab": "friction-lab",
+                 "friction-sim-lab": "friction-sim" };                      // the same lab with the ramp simulation live on the left (Directions / Simulation buttons)                    // the friction and speed lab: handout on the left, stopwatch + data table + graph, rubric-scored conclusion
 var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
 var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
 var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
@@ -1597,10 +1610,48 @@ function showArticle() {
     loadArticlePics(wrap, r.pics || []);
   }, function () { builtIn("The article didn't load. Reload the page, or tell your teacher."); });
 }
+/* ---------- a lab page with a live simulation on the left ----------
+   The page's own built-in part (pictures.html) can hold <template id="simTpl" data-url="https://...">: then the left side gets two buttons,
+   Directions (the handout) and Simulation (that web page, live in a frame, so a change to the simulation shows up at once with no update here).
+   The address comes from this page, never from the sheet, and must be https. The frame stays on the page while you look at the directions,
+   so the simulation keeps running. It is sandboxed (its own scripts run; it can't navigate this page or read it). */
+function labSim() { return !!document.getElementById("simTpl"); }
+/** The simulation's address must be https on an allowed site: pages.dev or phet.colorado.edu. (The sheet's Settings tab can name one: "Simulation link".) */
+function simUrlOk(u) {
+  u = cpLinkUrl(u);
+  var m = /^https:\/\/([a-z0-9.-]+)(?::\d+)?(?:[\/?#]|$)/i.exec(u);
+  return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
+}
+function setUpSim() {
+  var tpl = document.getElementById("simTpl"), url = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : "");   // the sheet's address if it is allowed, else the page's own
+  if (!url || !/^https:\/\//.test(url)) return;
+  var pane = document.getElementById("artPane"), art = document.getElementById("article"), frame = null;
+  pane.classList.add("hassim");
+  var bar = el("div", "simbar"), bD = el("button", "simtab", "Directions"), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
+  bD.type = bS.type = "button"; op.href = url; op.target = "_blank"; op.rel = "noopener";
+  bar.appendChild(bD); bar.appendChild(bS); bar.appendChild(op);
+  var box = el("div", "simframe"); box.hidden = true;
+  pane.insertBefore(bar, art); pane.appendChild(box);
+  function showWhich(sim) {
+    bD.setAttribute("aria-pressed", sim ? "false" : "true"); bS.setAttribute("aria-pressed", sim ? "true" : "false");
+    art.hidden = sim; box.hidden = !sim; pane.classList.toggle("simview", sim);
+    if (sim && !frame) {   // loaded the first time it's wanted, then kept
+      frame = document.createElement("iframe"); frame.src = url; frame.title = "The ramp and friction simulation";
+      frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); frame.setAttribute("allow", "fullscreen"); frame.referrerPolicy = "no-referrer";
+      box.appendChild(frame);
+    }
+    if (!sim) pane.scrollTop = 0;
+  }
+  bD.onclick = function () { showWhich(false); };
+  bS.onclick = function () { showWhich(true); };
+  showWhich(false);
+  var ta = document.getElementById("tabArt"); if (ta) ta.textContent = "Directions and simulation";
+}
 function setUpSplit() {
   document.documentElement.classList.add("splitview");
   var art = document.getElementById("article");
   if (!art.firstChild) showArticle();
+  if (labSim() && !document.querySelector(".simbar")) setUpSim();
   var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
   function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
     split.setAttribute("data-tab", which);
@@ -2083,7 +2134,8 @@ function labClock(ms) {
 function labBox(i) {
   var L = labConf(i), saved = tableSaved(i), vals = Array.isArray(saved.v) ? saved.v : [], n = 0, T = L.tests;
   var zone = el("div", "labzone"); zone.id = "a" + i;
-  zone.appendChild(labWatch(i, zone));
+  var single = T === 1;   // one reading per distance (a simulation gives the same time every run): no tests to average
+  if (!labSim()) zone.appendChild(labWatch(i, zone));   // (a page with a simulation uses the simulation's own timer)
   function cell(label) {
     var inp = el("input", "tcell"); inp.type = "text"; inp.inputMode = "decimal"; inp.autocomplete = "off"; inp.maxLength = 12;
     inp.setAttribute("data-tq", i); inp.setAttribute("data-n", n); inp.setAttribute("aria-label", label);
@@ -2105,23 +2157,26 @@ function labBox(i) {
     var ca = el("td", "labavg"); ca.id = "lc" + i; cr.appendChild(ca);
     cb.appendChild(cr); ct.appendChild(cb); sc1.appendChild(ct); zone.appendChild(sc1);
   }
-  zone.appendChild(el("div", "labsec", "TIME FOR THE TRIP (seconds)"));
+  zone.appendChild(el("div", "labsec", single ? "TIME AT EACH DISTANCE (seconds)" : "TIME FOR THE TRIP (seconds)"));
   var sc2 = el("div", "labscroll"), tbl = el("table", "dtable labtable"), thead = el("thead"), h1 = el("tr"), h2 = el("tr");
-  th = el("th", null, "Type of Surface"); th.rowSpan = 2; h1.appendChild(th);
-  L.distances.forEach(function (d) { th = el("th", null, d + " " + L.unit); th.colSpan = T; h1.appendChild(th); });
-  th = el("th", null, "Average (s)"); th.title = "Average of the tests, minus the control"; th.colSpan = L.distances.length; h1.appendChild(th);
-  L.distances.forEach(function () { for (var j = 1; j <= T; j++) h2.appendChild(el("th", null, "Test " + j)); });
-  L.distances.forEach(function (d) { h2.appendChild(el("th", null, d + " " + L.unit)); });
-  thead.appendChild(h1); thead.appendChild(h2); tbl.appendChild(thead);
+  th = el("th", null, "Type of Surface"); if (!single) th.rowSpan = 2; h1.appendChild(th);
+  L.distances.forEach(function (d) { th = el("th", null, d + " " + L.unit); if (!single) th.colSpan = T; h1.appendChild(th); });
+  if (!single) {
+    th = el("th", null, "Average (s)"); th.title = "Average of the tests, minus the control"; th.colSpan = L.distances.length; h1.appendChild(th);
+    L.distances.forEach(function () { for (var j = 1; j <= T; j++) h2.appendChild(el("th", null, "Test " + j)); });
+    L.distances.forEach(function (d) { h2.appendChild(el("th", null, d + " " + L.unit)); });
+  }
+  thead.appendChild(h1); if (!single) thead.appendChild(h2); tbl.appendChild(thead);
   var tb = el("tbody");
   L.surfaces.forEach(function (name, s) {
     tr = el("tr"); tr.appendChild(el("td", "labname", name));
-    L.distances.forEach(function (d) { for (var j = 1; j <= T; j++) tr.appendChild(cell(name + ", " + d + " " + L.unit + ", test " + j)); });
-    L.distances.forEach(function (d, di) { var a = el("td", "labavg"); a.id = "lv" + i + "_" + s + "_" + di; tr.appendChild(a); });
+    L.distances.forEach(function (d) { for (var j = 1; j <= T; j++) tr.appendChild(cell(name + ", " + d + " " + L.unit + (single ? "" : ", test " + j))); });
+    if (!single) L.distances.forEach(function (d, di) { var a = el("td", "labavg"); a.id = "lv" + i + "_" + s + "_" + di; tr.appendChild(a); });
     tb.appendChild(tr);
   });
   tbl.appendChild(tb); sc2.appendChild(tbl); zone.appendChild(sc2);
-  zone.appendChild(el("div", "labnote", "Average = the " + T + " tests added up and divided by " + T + (L.control ? ", minus your control average (the ramp's own time)" : "") + ". If one test looks way off (an outlier), go back and test it again."));
+  zone.appendChild(el("div", "labnote", single ? "Copy each time from the simulation's data table. Every line on the graph starts at 0 " + L.unit + " and 0 s." :
+    "Average = the " + T + " tests added up and divided by " + T + (L.control ? ", minus your control average (the ramp's own time)" : "") + ". If one test looks way off (an outlier), go back and test it again. Every line on the graph starts at 0 " + L.unit + " and 0 s."));
   var g = el("div", "labgraph");
   g.appendChild(el("div", "tgraphhead", "Graph"));
   var title = tableInput(i, "t", "Type your graph's title", saved.t);
@@ -2250,7 +2305,8 @@ function drawLab(i) {
   series.forEach(function (sr, s) {
     var c = s % 4, good = sr.pts.filter(function (p) { return isFinite(p.y); });
     if (good.length) any = true;
-    if (good.length > 1) lines.push('<polyline class="lg-line lg-' + c + '" points="' + good.map(function (p) { return X(p.x) + "," + Y(p.y); }).join(" ") + '"/>');
+    // every line starts at 0, 0 (no distance, no time), then goes through the points
+    if (good.length > 0) lines.push('<polyline class="lg-line lg-' + c + '" points="' + [{ x: 0, y: 0 }].concat(good).map(function (p) { return X(p.x) + "," + Y(p.y); }).join(" ") + '"/>');
     good.forEach(function (p) {
       marks.push('<g class="lg-' + c + '">' + labMark(c, X(p.x), Y(p.y), 6) + '<title>' + labEsc(sr.name) + ", " + labEsc(p.x) + " " + labEsc(L.unit) + ": " + labFmt(p.y) + ' s</title></g>');
     });

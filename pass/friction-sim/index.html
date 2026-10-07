@@ -2,7 +2,7 @@
 <html>
 <head>
 <script>window.CLASS_PASS_PAGE = "app";   /* on the class website, under Class Pass: see CLASS PASS in the page script */</script>
-<title>Friction Lab</title>
+<title>Friction Sim Lab</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -413,11 +413,14 @@
   document.documentElement.setAttribute("data-theme", t);
 })();
 </script>
-<!-- The Friction and Speed lab handout (the left side of the page). make-lab.ps1 writes pictures.html from this file, and make-pass.ps1 puts it into Index.html
-     (at its pictures marker). Edit the handout HERE, then run both. Only the tags and classes the page allows (see safeArticle in the reading page) are used. -->
+<!-- The Friction and Speed SIMULATION lab: the left side of the page. make-lab.ps1 writes pictures.html from this file, and make-pass.ps1 puts it into Index.html
+     (at its pictures marker). Edit it HERE, then run both. Only the tags and classes the page allows (see safeArticle in the reading page) are used.
+     simTpl holds the address of the simulation. It is shown live in a frame (so a change to that page shows up with nothing to update here); it must be https. -->
+<template id="simTpl" data-url="https://sim-library-87y.pages.dev/how-friction-affects-speed/"></template>
 <template id="articleTpl">
 <div class="art">
-  <h2 class="arttitle">Determine How Friction Affects Speed Lab</h2>
+  <h2 class="arttitle">How Friction Affects Speed</h2>
+  <p class="artnote">Use the <b>Simulation</b> button above to open the ramp simulation. Come back to <b>Directions</b> any time. The simulation keeps its place.</p>
 
   <h3>Background Information</h3>
   <p><b><i>Friction</i> is a force that two surfaces exert on each other when they rub against each other.</b></p>
@@ -428,23 +431,15 @@
   <p class="artq">How do different frictional surfaces affect a vehicle's speed?</p>
 
   <h3>Task</h3>
-  <p>You are to set up a way to test this question. You will have access to the following materials:</p>
-  <ul>
-    <li>a vehicle (the car)</li>
-    <li>a ramp, 30 cm high</li>
-    <li>a meter stick</li>
-    <li>a timer (use the stopwatch on the right)</li>
-    <li>various types of surfaces on which your vehicle will travel: counter, carpet, rubber mat and sand</li>
-  </ul>
-  <p>The questions on the right guide how you design your experiment. Answer them first, then write your hypothesis and your set up.</p>
+  <p>You will test this question with a simulation of a small car (60 g) rolling down a ramp and across four different surfaces: a bare countertop, a thin layer of sand, carpet padding and a thin layer of ice. The questions on the right guide how you design your experiment. Answer them first, then write your hypothesis and your set up.</p>
 
-  <h3>Collecting Your Data</h3>
+  <h3>Using the Simulation</h3>
   <ol>
-    <li><b>Control test first.</b> Before the real test, find out how long the car takes to roll down just the ramp. Time it 3 times. The table finds the average for you. It subtracts this control average from every other average, so the times you graph are only the time on the surface.</li>
-    <li><b>Then test each surface.</b> Time the car on the counter, the carpet, the rubber mat and the sand. For each surface, time the trip over 20 cm, 40 cm and 60 cm, and do 3 tests at each distance.</li>
-    <li><b>Use milliseconds.</b> Type every time in seconds with three decimal places, like 1.254. Or run the stopwatch and press <b>Use this time</b>, and it types the time in the box you chose.</li>
-    <li><b>Look for outliers.</b> If you see a time that is way off from the others, go back and test it again.</li>
-    <li><b>Your graph builds itself.</b> Every average appears as a point, and each surface gets its own color of line. Use the key under the graph to tell the lines apart. Give your graph a title and label both axes.</li>
+    <li><b>Choose a surface</b> under "Surface on the counter". Leave the ramp height where it is (or pick one height and keep it the same for every surface). The height is a variable you must control.</li>
+    <li><b>Press Release car.</b> The car rolls down the ramp. The timer starts the instant the car reaches the bottom. It records a split time as the car passes each distance mark (15, 30, 45, 60 and 75 cm).</li>
+    <li><b>Copy the times</b> from the simulation's data table into the data table on the right, in seconds, to the thousandth (like 1.254). If a surface shows a dash, the car stopped before that mark: leave that box and ask your teacher.</li>
+    <li><b>Do all four surfaces.</b> You can run them one at a time, or use "Test all 4 surfaces".</li>
+    <li><b>Your graph builds itself</b> on the right. Every surface gets its own color of line, and every line starts at 0 cm and 0 seconds. Use the key under the graph to tell the lines apart. Give your graph a title and label both axes.</li>
   </ol>
 
   <h3>Writing Your Hypothesis</h3>
