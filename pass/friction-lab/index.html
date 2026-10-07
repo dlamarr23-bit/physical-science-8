@@ -1581,12 +1581,13 @@ function simUrlOk(u) {
   var m = /^https:\/\/([a-z0-9.-]+)(?::\d+)?(?:[\/?#]|$)/i.exec(u);
   return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
 }
+function hasSim() { return labSim() || !!simUrlOk(S && S.simUrl); }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
 function setUpSim() {
   var tpl = document.getElementById("simTpl"), url = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : "");   // the sheet's address if it is allowed, else the page's own
   if (!url || !/^https:\/\//.test(url)) return;
   var pane = document.getElementById("artPane"), art = document.getElementById("article"), frame = null;
   pane.classList.add("hassim");
-  var bar = el("div", "simbar"), bD = el("button", "simtab", "Directions"), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
+  var bar = el("div", "simbar"), bD = el("button", "simtab", tpl ? "Directions" : "Article"), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
   bD.type = bS.type = "button"; op.href = url; op.target = "_blank"; op.rel = "noopener";
   bar.appendChild(bD); bar.appendChild(bS); bar.appendChild(op);
   var box = el("div", "simframe"); box.hidden = true;
@@ -1604,7 +1605,7 @@ function setUpSim() {
   bD.onclick = function () { showWhich(false); };
   bS.onclick = function () { showWhich(true); };
   showWhich(false);
-  var ta = document.getElementById("tabArt"); if (ta) ta.textContent = "Directions and simulation";
+  var ta = document.getElementById("tabArt"); if (ta) ta.textContent = tpl ? "Directions and simulation" : "Article and simulation";
 }
 /** The divider between the two sides: drag it, or press the left / right arrow keys, to make one side bigger (the simulation, say). Double-click or Home
     puts it back. The choice is remembered on this device. Only on a wide screen (900 px and up); below that the sides are tabs. */
@@ -1656,7 +1657,7 @@ function setUpSplit() {
   var art = document.getElementById("article");
   if (!art.firstChild) showArticle();
   setUpSplitDrag();
-  if (labSim() && !document.querySelector(".simbar")) setUpSim();
+  if (hasSim() && !document.querySelector(".simbar")) setUpSim();
   var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
   function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
     split.setAttribute("data-tab", which);
