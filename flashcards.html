@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thermal Energy &amp; Heat Flow · Physical Science 8</title>
+<title>Flashcards · Physical Science 8</title>
 <meta name="description" content="An interactive middle school science textbook: Units 1–6">
 <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
@@ -12,8 +12,15 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="./assets/icons.js" defer></script>
 <script src="./assets/app.js" defer></script>
+<style>
+  /* the top bar stays, and the embedded site fills the rest of the window */
+  html, body{ height:100%; }
+  body{ display:flex; flex-direction:column; margin:0; }
+  .topbar{ flex:none; }
+  .embed-frame{ flex:1 1 auto; min-height:0; width:100%; border:0; display:block; }
+</style>
 </head>
-<body data-unit="u5">
+<body>
 <div class="topbar">
   <div class="topbar-inner">
     <a class="brand" href="./index.html" style="text-decoration:none;">
@@ -47,47 +54,23 @@
     </div><div class="unit-block">
       <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
       <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
-    </div><div class="unit-block current">
-      <a class="unit-title active" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
       <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
     </div><div class="unit-block">
       <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
       <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
     </div>
 </div>
-<div class="hero">
-  <div class="hero-inner has-art">
+<div class="hero hero-page">
+  <div class="hero-inner no-art">
     <div>
-      <span class="eyebrow">Unit 5 of 6</span>
-      <h1>Thermal Energy &amp; Heat Flow</h1>
-      <p class="standards"><span class="sr-only">NGSS standards: </span><a class="std" href="https://www.nextgenscience.org/pe/ms-ps1-4-matter-and-its-interactions" target="_blank" rel="noopener" title="MS-PS1-4: Develop a model that predicts and describes changes in particle motion, temperature, and state of a pure substance when thermal energy is added or removed.">MS-PS1-4</a><a class="std" href="https://www.nextgenscience.org/pe/ms-ps3-3-energy" target="_blank" rel="noopener" title="MS-PS3-3: Apply scientific principles to design, construct, and test a device that either minimizes or maximizes thermal energy transfer.">MS-PS3-3</a><a class="std" href="https://www.nextgenscience.org/pe/ms-ps3-4-energy" target="_blank" rel="noopener" title="MS-PS3-4: Plan an investigation to determine the relationships among the energy transferred, the type of matter, the mass, and the change in the average kinetic energy of the particles as measured by the temperature of the sample.">MS-PS3-4</a><a class="std" href="https://www.nextgenscience.org/pe/ms-ets1-1-engineering-design" target="_blank" rel="noopener" title="MS-ETS1-1: Define the criteria and constraints of a design problem with sufficient precision to ensure a successful solution, taking into account relevant scientific principles and potential impacts on people and the natural environment that may limit possible solutions.">MS-ETS1-1</a><a class="std" href="https://www.nextgenscience.org/pe/ms-ets1-4-engineering-design" target="_blank" rel="noopener" title="MS-ETS1-4: Develop a model to generate data for iterative testing and modification of a proposed object, tool, or process such that an optimal design can be achieved.">MS-ETS1-4</a></p>
-      <p class="lede">Every day your body senses thermal energy on the move: a cold soda sweats on a hot afternoon, hot cocoa cools while you do homework, and an ice cube disappears into a puddle. In this unit you'll zoom down to the level of jiggling, zooming particles to understand what temperature and heat really are, and why some things heat up or cool down faster than others.</p>
+      <span class="eyebrow">Reference</span>
+      <h1>Glossary</h1>
+      <p class="lede">Every vocabulary word from every chapter, all in one place.</p>
     </div>
-    <div class="hero-art"><img src="./assets/chapter-art/u5.jpg" width="960" height="416" alt="" decoding="async" fetchpriority="high"></div>
   </div>
 </div>
-<main class="container">
-  <div class="callout">
-    <div class="label">The big idea driving this unit</div>
-    <p>Heat is thermal energy moving from warmer to cooler objects, while temperature measures how fast particles move on average. Adding or removing energy changes that motion and can change a substance's state, and engineers use insulators and melting ice to keep coolers cold.</p>
-  </div>
-  <h2>Chapters in this unit</h2>
-  <ul class="topic-list"><li><a href="./u5-t1.html">
-        <span class="tnum">1</span>
-        <img class="tthumb" src="./assets/chapter-art/u5-t1.jpg" width="960" height="414" alt="" loading="lazy" decoding="async">
-        <span>Energy Transfer and Temperature<span class="tq">A metal doorknob and a wooden door in the same room are the same temperature, so why does the doorknob feel colder, and how is heat different from temperature?</span><span class="tstd"><span>MS-PS3-3</span><span>MS-PS3-4</span><span>MS-ETS1-1</span><span>MS-ETS1-4</span></span></span>
-      </a></li><li><a href="./u5-t2.html">
-        <span class="tnum">2</span>
-        <img class="tthumb" src="./assets/chapter-art/u5-t2.jpg" width="960" height="297" alt="" loading="lazy" decoding="async">
-        <span>Changes in Energy at the Molecular Level<span class="tq">When the liquid in a thermometer climbs up its narrow glass tube, what is happening to the liquid's particles, and what is the thermometer really measuring?</span><span class="tstd"><span>MS-PS1-4</span><span>MS-PS3-4</span></span></span>
-      </a></li><li><a href="./u5-t3.html">
-        <span class="tnum">3</span>
-        <img class="tthumb" src="./assets/chapter-art/u5-t3.jpg" width="960" height="404" alt="" loading="lazy" decoding="async">
-        <span>Phase Changes and Energy Transfer<span class="tq">While an ice cube melts, its temperature stays at exactly 0°C the entire time, so where is all the thermal energy it absorbs actually going?</span><span class="tstd"><span>MS-PS1-4</span><span>MS-PS3-3</span><span>MS-PS3-4</span></span></span>
-      </a></li></ul>
-</main>
-<footer>
-  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook: Units 1–6 &middot; Built for classroom use</div>
-</footer>
+<iframe class="embed-frame" src="https://vocabulary-b3b.pages.dev/flashcards/" title="Vocabulary flashcards" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
 </body>
 </html>
