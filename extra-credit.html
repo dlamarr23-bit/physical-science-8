@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extra Credit · Physical Science 8</title>
+<meta name="description" content="Science extra credit reading list: books in the Placerita School Library, with points, reading level, and pages">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+<link rel="stylesheet" href="./assets/style.css">
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/app.js" defer></script>
+<style>
+  /* ---------------- extra credit book list ---------------- */
+  /* How to earn your points: three numbered steps in a row */
+  .ec-steps h2{ font-size:1.4rem; margin:0 0 14px; }
+  .ec-step-list{ list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .ec-step-list li{
+    display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:16px 18px; box-shadow:var(--shadow-sm);
+  }
+  .ec-step-list b{ display:block; color:var(--ink); line-height:1.3; margin-bottom:3px; }
+  .ec-step-list span.ec-step-text{ display:block; color:var(--ink-soft); font-size:.9rem; line-height:1.5; }
+  .ec-num{
+    width:34px; height:34px; border-radius:50%; background:var(--accent-tint); color:var(--accent-dark);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; flex:none;
+  }
+  .ec-steps .connection-note{ margin:0; }
+  @media (max-width:820px){ .ec-step-list{ grid-template-columns:1fr; gap:10px; } }
+
+  /* filters on the left, books on the right */
+  .ec-books{ margin-top:44px; }
+  .ec-books > h2{ font-size:1.4rem; margin:0 0 16px; padding-top:22px; border-top:1px solid var(--line); }
+  .ec-layout{ display:grid; grid-template-columns:260px minmax(0,1fr); gap:28px; align-items:start; }
+  .ec-filters{
+    position:sticky; top:84px; max-height:calc(100vh - 100px); overflow-y:auto;
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:18px 16px 18px; box-shadow:var(--shadow-sm);
+  }
+  .ec-label{
+    display:block; font-size:.7rem; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-soft); font-weight:700; margin:0 0 8px;
+  }
+  .ec-group{ margin-bottom:20px; }
+  .ec-input{
+    width:100%; font:inherit; font-size:.95rem; padding:10px 16px; border-radius:999px;
+    border:1.5px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .ec-input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-tint); }
+
+  /* genre: toggle chips */
+  .ec-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .ec-chip{
+    font:inherit; font-size:.84rem; font-weight:600; cursor:pointer; color:var(--ink-soft);
+    background:#fff; border:1.5px solid var(--line); border-radius:999px; padding:6px 13px;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .ec-chip .n{ font-size:.74rem; font-weight:700; opacity:.65; }
+  .ec-chip:hover{ border-color:var(--accent); color:var(--accent-dark); }
+  .ec-chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ec-chip[aria-pressed="true"] .n{ opacity:.85; }
+  .ec-chip:focus-visible, .ec-dd-btn:focus-visible, .ec-card:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* author: a drop-down checklist */
+  .ec-dd-btn{
+    width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-size:.9rem; font-weight:600;
+    color:var(--ink); background:#fff; border:1.5px solid var(--line); border-radius:999px; padding:9px 16px; cursor:pointer; text-align:left;
+  }
+  .ec-dd-btn:hover{ border-color:var(--accent); }
+  .ec-dd-btn .ec-dd-count{
+    display:none; background:var(--accent); color:#fff; font-size:.72rem; font-weight:700;
+    border-radius:999px; padding:1px 8px;
+  }
+  .ec-dd-btn .chev{ margin-left:auto; color:var(--ink-soft); font-size:.7rem; transition:transform .2s; }
+  .ec-dd.open .ec-dd-btn{ border-color:var(--accent); }
+  .ec-dd.open .ec-dd-btn .chev{ transform:rotate(180deg); }
+  .ec-dd-panel{ display:none; margin-top:8px; border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px; background:var(--paper-soft); }
+  .ec-dd.open .ec-dd-panel{ display:block; }
+  .ec-dd-panel .ec-opt-search{
+    width:100%; font:inherit; font-size:.85rem; padding:7px 12px; margin-bottom:6px;
+    border:1.5px solid var(--line); border-radius:8px; background:#fff; color:var(--ink);
+  }
+  .ec-dd-panel .ec-opt-search:focus{ outline:none; border-color:var(--accent); }
+  .ec-opt-list{ max-height:230px; overflow-y:auto; }
+  .ec-opt-list label{
+    display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:8px; cursor:pointer;
+    font-size:.86rem; font-weight:500; color:var(--ink); line-height:1.35;
+  }
+  .ec-opt-list label:hover{ background:#fff; }
+  .ec-opt-list input{ accent-color:var(--accent); width:15px; height:15px; flex:none; }
+  .ec-opt-list .n{ margin-left:auto; color:var(--ink-soft); font-size:.75rem; font-variant-numeric:tabular-nums; }
+  .ec-opt-empty{ padding:6px 8px; font-size:.85rem; color:var(--ink-soft); }
+  .ec-dd-clear{
+    width:100%; margin-top:6px; padding:7px; border:none; border-radius:8px; cursor:pointer; background:#fff;
+    font:inherit; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .ec-dd-clear:hover{ color:var(--accent-dark); }
+
+  /* range sliders with two handles */
+  .ec-slider{ margin-bottom:20px; }
+  .ec-slider .ec-sl-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .ec-slider .ec-label{ margin:0; }
+  .ec-slider .ec-sl-read{ font-size:.85rem; font-weight:700; color:var(--accent-dark); font-variant-numeric:tabular-nums; }
+  .ec-range{ position:relative; height:24px; }
+  .ec-range .track{ position:absolute; top:10px; left:0; right:0; height:4px; border-radius:2px; background:var(--line); }
+  .ec-range .track-fill{ position:absolute; top:10px; height:4px; border-radius:2px; background:var(--accent); }
+  .ec-range input[type=range]{
+    position:absolute; top:0; left:0; width:100%; height:24px; margin:0; background:transparent;
+    -webkit-appearance:none; appearance:none; pointer-events:none;
+  }
+  .ec-range input[type=range]::-webkit-slider-runnable-track{ background:transparent; }
+  .ec-range input[type=range]::-moz-range-track{ background:transparent; }
+  .ec-range input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; pointer-events:auto; width:18px; height:18px; border-radius:50%;
+    background:#fff; border:3px solid var(--accent); cursor:pointer; box-shadow:0 1px 4px rgba(20,25,50,.25);
+  }
+  .ec-range input[type=range]::-moz-range-thumb{
+    pointer-events:auto; width:12px; height:12px; border-radius:50%; background:#fff; border:3px solid var(--accent); cursor:pointer;
+  }
+  .ec-range input[type=range]:focus{ outline:none; }
+  .ec-range input[type=range]:focus-visible::-webkit-slider-thumb{ box-shadow:0 0 0 4px var(--accent-tint), 0 0 0 6px var(--accent); }
+  .ec-range input[type=range]:focus-visible::-moz-range-thumb{ box-shadow:0 0 0 4px var(--accent-tint); }
+  .ec-reset{ width:100%; margin-top:4px; }
+
+  /* results: count, live/saved status, sort */
+  .ec-toolbar{ display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; margin-bottom:18px; }
+  .ec-count{ font-size:1.05rem; font-weight:700; color:var(--ink); }
+  .ec-count b{ color:var(--accent-dark); }
+  .ec-feed{ display:inline-flex; align-items:center; gap:7px; font-size:.78rem; font-weight:600; color:var(--ink-soft); }
+  .ec-feed .dot{ width:8px; height:8px; border-radius:50%; background:var(--line); }
+  .ec-feed.live .dot{ background:var(--good); }
+  .ec-feed.saved .dot{ background:#e0a100; }
+  .ec-sort{ margin-left:auto; display:flex; align-items:center; gap:8px; min-width:0; max-width:100%; }
+  .ec-sort .ec-label{ margin:0; }
+  .ec-sort select{
+    min-width:0; max-width:100%;
+    font:inherit; font-size:.88rem; font-weight:600; color:var(--ink); background:#fff; cursor:pointer;
+    border:1.5px solid var(--line); border-radius:999px; padding:8px 14px;
+  }
+  .ec-sort select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-tint); }
+  .ec-filter-toggle{ display:none; }
+
+  /* book cards */
+  .ec-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:18px; }
+  .ec-card{
+    display:flex; flex-direction:column; text-align:left; font:inherit; color:inherit; cursor:pointer;
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 10px 14px;
+    box-shadow:var(--shadow-sm); transition:transform .15s, box-shadow .15s, border-color .15s;
+  }
+  .ec-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--accent); }
+  .ec-cover{
+    position:relative; width:100%; aspect-ratio:2/3; border-radius:8px; overflow:hidden; background:var(--accent-tint);
+  }
+  .ec-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .ec-ph{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:14px;
+    text-align:center; font-weight:700; font-size:.9rem; line-height:1.3; color:var(--accent-dark);
+    background:linear-gradient(150deg,var(--accent-tint),#fff);
+  }
+  .ec-pts{
+    position:absolute; top:8px; right:8px; z-index:2; background:var(--accent); color:#fff; border-radius:999px;
+    font-size:.78rem; font-weight:700; padding:3px 10px; box-shadow:0 2px 8px rgba(20,25,50,.3); font-variant-numeric:tabular-nums;
+  }
+  .ec-info{ padding:12px 4px 0; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .ec-genre{
+    align-self:flex-start; font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
+    padding:3px 9px; border-radius:999px; background:var(--accent-tint); color:var(--accent-dark);
+  }
+  .ec-genre.fic{ background:#e9f7f1; color:#1d7a55; }
+  .ec-title{
+    font-weight:700; font-size:.93rem; line-height:1.3; color:var(--ink);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .ec-author{
+    font-size:.8rem; color:var(--ink-soft); line-height:1.35;
+    display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .ec-stats{ margin-top:auto; padding-top:6px; font-size:.74rem; font-weight:600; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+  .ec-empty{
+    display:none; text-align:center; padding:50px 20px; background:#fff; border:1px dashed var(--line);
+    border-radius:var(--radius); color:var(--ink-soft);
+  }
+  .ec-empty b{ display:block; font-size:1.15rem; color:var(--ink); margin-bottom:4px; }
+
+  /* book details pop-up */
+  .ec-modal-wrap{
+    position:fixed; inset:0; z-index:100; display:none; align-items:flex-start; justify-content:center;
+    padding:80px 18px 24px; overflow-y:auto; background:rgba(15,18,30,.45);
+  }
+  .ec-modal-wrap.open{ display:flex; }
+  .ec-modal{
+    position:relative; width:min(580px,100%); background:#fff; border-radius:var(--radius);
+    box-shadow:0 24px 60px rgba(15,18,30,.35); animation:popIn .16s ease;
+  }
+  .ec-close{
+    position:absolute; top:14px; right:14px; border:none; background:var(--paper-soft); width:34px; height:34px;
+    border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--ink); line-height:1;
+  }
+  .ec-close:hover{ background:var(--accent-tint); color:var(--accent-dark); }
+  .ec-dwrap{ display:flex; gap:22px; padding:26px 26px 20px; }
+  .ec-dcover{
+    position:relative; width:140px; flex:none; aspect-ratio:2/3; border-radius:10px; overflow:hidden;
+    background:var(--accent-tint); box-shadow:var(--shadow);
+  }
+  .ec-dcover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .ec-dtext{ min-width:0; padding-right:30px; }
+  .ec-dtext h2{ font-size:1.3rem; margin:6px 0 4px; }
+  .ec-dtext .ec-byline{ color:var(--ink-soft); font-size:.95rem; margin:0 0 12px; }
+  .ec-dstats{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:0;
+    padding:18px 26px; border-top:1px solid var(--line);
+  }
+  .ec-dstats dt{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-dark); margin:0 0 4px; }
+  .ec-dstats dd{ margin:0; font-size:1.3rem; font-weight:800; color:var(--ink); line-height:1.2; font-variant-numeric:tabular-nums; }
+  .ec-dhow{
+    margin:0; padding:14px 26px 22px; font-size:.86rem; color:var(--ink-soft); line-height:1.55;
+    background:var(--paper-soft); border-top:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius);
+  }
+  .ec-dhow b{ color:var(--ink); }
+
+  @media (max-width:860px){
+    .ec-layout{ grid-template-columns:minmax(0,1fr); gap:16px; }
+    .ec-filters{ position:static; max-height:none; display:none; }
+    body.ec-filters-open .ec-filters{ display:block; }
+    .ec-filter-toggle{ display:inline-flex; padding:9px 18px; font-size:.88rem; }
+    .ec-sort{ margin-left:0; }
+  }
+  @media (max-width:560px){
+    .ec-steps .connection-note{ flex-direction:column; gap:4px; }
+    .ec-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .ec-card{ padding:8px 8px 12px; }
+    .ec-dwrap{ flex-direction:column; align-items:center; text-align:center; padding:26px 20px 18px; }
+    .ec-dtext{ padding-right:0; }
+    .ec-dtext .ec-genre{ align-self:center; }
+    .ec-dstats{ padding:16px 20px; }
+    .ec-dhow{ padding:14px 20px 20px; }
+  }
+  @media (prefers-reduced-motion:reduce){ .ec-card, .ec-modal{ transition:none; animation:none; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+            <img class="mascot" src="./assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
+      <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
+    </a>
+    <nav class="inline-links">
+      <a href="./index.html">Home</a>
+      <a href="./flashcards.html">Flashcards</a>
+      <a href="./sims.html">Sims</a>
+      <a href="./extra-credit.html">Extra Credit</a>
+      <a href="./glossary.html">Glossary</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./u1.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./u1-t1.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./u1-t2.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./u1-t3.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./u1-t4.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./u1-t5.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./u1-t6.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u2.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./u2-t1.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./u2-t2.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./u2-t3.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u3.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./u3-t1.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./u3-t2.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u4.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./u4-t1.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./u4-t2.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./u4-t3.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u5.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./u5-t1.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./u5-t2.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./u5-t3.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./u6.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./u6-t1.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./u6-t2.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./u6-t3.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./u6-t4.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner no-art">
+    <div>
+      <span class="eyebrow">Extra Credit</span>
+      <h1>Science Extra Credit</h1>
+      <p class="lede">Every book on this list is on the shelf in the Placerita School Library. Read one, pass its AR test, and turn in a summary to earn the points shown on its cover.</p>
+    </div>
+  </div>
+</div>
+<main class="container">
+  <section class="ec-steps" aria-labelledby="ecStepsTitle">
+    <h2 id="ecStepsTitle">How to earn your points</h2>
+    <ol class="ec-step-list">
+      <li><span class="ec-num">1</span><div><b>Read a book</b><span class="ec-step-text">Pick a book from the list below and check it out from the library.</span></div></li>
+      <li><span class="ec-num">2</span><div><b>Take the AR test</b><span class="ec-step-text">Take the AR test for that book.</span></div></li>
+      <li><span class="ec-num">3</span><div><b>Turn in a summary</b><span class="ec-step-text">Type a one-page, double-spaced summary and turn it in to receive your points.</span></div></li>
+    </ol>
+    <div class="connection-note"><span class="tag">Good to know</span><span>It may sound like a lot of work, but the book also counts toward your AR points in English class. If there's a different science book you'd like to read that isn't on the list, you can ask me to approve it. Any questions? Come ask me for help.</span></div>
+  </section>
+
+  <section class="ec-books" aria-labelledby="ecBooksTitle">
+    <h2 id="ecBooksTitle">Book list</h2>
+    <div class="ec-layout">
+      <aside class="ec-filters" id="ecFilters" aria-label="Search and filters">
+        <div class="ec-group">
+          <label class="ec-label" for="searchBox">Search</label>
+          <input class="ec-input" id="searchBox" type="search" placeholder="Title or author" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ec-group">
+          <span class="ec-label" id="genreLabel">Genre</span>
+          <div class="ec-chips" id="genreChips" role="group" aria-labelledby="genreLabel"></div>
+        </div>
+        <div class="ec-group ec-dd" id="authorDD">
+          <span class="ec-label" id="authorLabel">Author</span>
+          <button class="ec-dd-btn" type="button" aria-expanded="false" aria-controls="authorPanel"><span class="ec-dd-text">Any author</span><span class="ec-dd-count"></span><span class="chev" aria-hidden="true">&#9662;</span></button>
+          <div class="ec-dd-panel" id="authorPanel">
+            <input class="ec-opt-search" type="search" placeholder="Find an author" autocomplete="off" aria-label="Find an author">
+            <div class="ec-opt-list" role="group" aria-labelledby="authorLabel"></div>
+            <button class="ec-dd-clear" type="button">Clear authors</button>
+          </div>
+        </div>
+        <div id="sliders"></div>
+        <button class="btn secondary ec-reset" id="resetAll" type="button">Reset all filters</button>
+      </aside>
+
+      <div class="ec-results">
+        <div class="ec-toolbar">
+          <div class="ec-count" id="count" aria-live="polite">&ndash;</div>
+          <span class="ec-feed" id="feed"><span class="dot"></span><span id="feedText">Loading&hellip;</span></span>
+          <button class="btn secondary ec-filter-toggle" id="filterToggle" type="button" aria-controls="ecFilters" aria-expanded="false">Search &amp; filters</button>
+          <div class="ec-sort">
+            <label class="ec-label" for="sortSel">Sort</label>
+            <select id="sortSel">
+              <option value="title|asc">Title A &rarr; Z</option>
+              <option value="title|desc">Title Z &rarr; A</option>
+              <option value="author|asc">Author A &rarr; Z</option>
+              <option value="level|asc">Reading level (low &rarr; high)</option>
+              <option value="level|desc">Reading level (high &rarr; low)</option>
+              <option value="points|desc">Points (most first)</option>
+              <option value="points|asc">Points (fewest first)</option>
+              <option value="pages|asc">Pages (shortest)</option>
+              <option value="pages|desc">Pages (longest)</option>
+            </select>
+          </div>
+        </div>
+        <div class="ec-grid" id="grid"></div>
+        <div class="ec-empty" id="empty"><b>No books match those filters</b>Try widening a slider or clearing a filter.</div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook: Units 1–6 &middot; Built for classroom use</div>
+</footer>
+
+<div class="ec-modal-wrap" id="detail">
+  <div class="ec-modal" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <button class="ec-close" type="button" data-close aria-label="Close">&times;</button>
+    <div class="ec-dwrap">
+      <div class="ec-dcover" id="dCover"></div>
+      <div class="ec-dtext">
+        <span id="dGenre"></span>
+        <h2 id="dTitle"></h2>
+        <p class="ec-byline" id="dAuthor"></p>
+      </div>
+    </div>
+    <dl class="ec-dstats">
+      <div><dt>Points</dt><dd id="dPts"></dd></div>
+      <div><dt>Reading level</dt><dd id="dLevel"></dd></div>
+      <div><dt>Pages</dt><dd id="dPages"></dd></div>
+    </dl>
+    <p class="ec-dhow"><b>To earn these points:</b> read the book, take its AR test, then turn in a one-page, double-spaced typed summary.</p>
+  </div>
+</div>
+
+<script id="book-data" type="application/json">[{"title": "Albert Einstein and Relativity", "author": "Steve Parker", "pages": 32, "points": 5, "level": 6.5, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/81ibmA1pSML._SY385_.jpg"}, {"title": "Alexander Graham Bell and the Telephone", "author": "Steve Parker", "pages": 32, "points": 2.5, "level": 6.4, "genre": "Non-fiction", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVMl9cViwQVCIW_FGEhK1kuorktkcMgCCXRA&s"}, {"title": "Alien Astronauts", "author": "Gary L. Blackwood", "pages": 80, "points": 5, "level": 7.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1335056905i/2229343.jpg"}, {"title": "Amphibians", "author": "Edward R. Ricciuti", "pages": 64, "points": 15, "level": 6.8, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/51CAPM6ZKVL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Antoine Lavoisier : Founder of Modern Chemistry", "author": "Lisa Yount", "pages": 128, "points": 10, "level": 5.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1171977622i/128863.jpg"}, {"title": "Antoni van Leeuwenhoek : First to See Microscopic Life", "author": "Lisa Yount", "pages": 128, "points": 10, "level": 5.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347250182i/10149643.jpg"}, {"title": "Apollo to the Moon", "author": "Gregory P. Kennedy", "pages": 111, "points": 25, "level": 9.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266536075i/370216.jpg"}, {"title": "Archimedes and the Door of Science", "author": "Jeanne Bendick", "pages": 143, "points": 15, "level": 6.9, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/71JQnuJr0xL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Aristotle and Scientific Thought", "author": "Steve Parker", "pages": 32, "points": 2.5, "level": 6.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266694002i/1005912.jpg"}, {"title": "Astronomers", "author": "Neil Morris", "pages": 48, "points": 10, "level": 8.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1273332885i/8152766.jpg"}, {"title": "Astronomy", "author": "Kristen Lippincott", "pages": 64, "points": 15, "level": 8.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1309295481i/21132.jpg"}, {"title": "Atom Bomb Project", "author": "Dale Anderson", "pages": 32, "points": 5, "level": 8.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266804513i/3663899.jpg"}, {"title": "Benjamin Franklin : Founding Father and Inventor", "author": "Leila Merrell Foster", "pages": 128, "points": 20, "level": 6.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1267452099i/3027307.jpg"}, {"title": "Benjamin Franklin and Electricity", "author": "Steve Parker", "pages": 32, "points": 5, "level": 7.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266674694i/4347661.jpg"}, {"title": "Bleeps and Blips to Rocket Ships: Great Inventions in Communication", "author": "Alannah Hegedus", "pages": 88, "points": 30, "level": 8.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1320466158i/1188697.jpg"}, {"title": "Carl Linnaeus : Father of Classification", "author": "Margaret J. Anderson", "pages": 128, "points": 10, "level": 5.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1529252867i/9734871.jpg"}, {"title": "Chemistry", "author": "Ann Newmark", "pages": 64, "points": 25, "level": 8.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1309210094i/1605353.jpg"}, {"title": "Congo", "author": "Michael Crichton", "pages": 442, "points": 30, "level": 7.5, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388889401i/7672.jpg"}, {"title": "Crustaceans", "author": "Edward R. Ricciuti", "pages": 64, "points": 15, "level": 6.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1328022667i/8983860.jpg"}, {"title": "Earth", "author": "Susanna Van Rose", "pages": 64, "points": 25, "level": 7.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1429241838i/2858538.jpg"}, {"title": "Ecology", "author": "Steve Pollock", "pages": 64, "points": 25, "level": 7.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1267956972i/3359327.jpg"}, {"title": "Edwin Hubble : Discoverer of Galaxies", "author": "Claire L. Datnow", "pages": 128, "points": 10, "level": 6.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348763505i/3187135.jpg"}, {"title": "Electricity", "author": "Steve Parker", "pages": 64, "points": 25, "level": 8.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1178002213i/749228.jpg"}, {"title": "Electronics", "author": "Roger Bridgman", "pages": 64, "points": 25, "level": 8.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1667267540i/2025556.jpg"}, {"title": "Elements", "author": "Dan Green", "pages": 105, "points": 10, "level": 7.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1344673080i/12987152.jpg"}, {"title": "Elephants", "author": "Eric S. Grace", "pages": 62, "points": 15, "level": 7.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266838320i/1578992.jpg"}, {"title": "Energy", "author": "Jack Challoner", "pages": 64, "points": 25, "level": 7.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1181407477i/1148272.jpg"}, {"title": "Evolution", "author": "Linda Gamlin", "pages": 64, "points": 25, "level": 8.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1695166234i/170577699.jpg"}, {"title": "Extraordinary Endangered Animals", "author": "Sandrine Silhol", "pages": 157, "points": 20, "level": 8.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1328766879i/11389941.jpg"}, {"title": "Fighting Infectious Diseases", "author": "Carol Ballard", "pages": 64, "points": 15, "level": 9.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348899525i/6559290.jpg"}, {"title": "First Men in Space", "author": "Gregory P. Kennedy", "pages": 111, "points": 25, "level": 9.2, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/91LQZ0d9RdL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Force & Motion", "author": "Peter Lafferty", "pages": 64, "points": 25, "level": 7.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1420762430i/219886.jpg"}, {"title": "Fungi", "author": "Jenny Tesar", "pages": 64, "points": 15, "level": 6.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1267048846i/4950383.jpg"}, {"title": "Galileo : Astronomer and Physicist", "author": "Robin S. Doak", "pages": 112, "points": 10, "level": 7.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348796998i/3747655.jpg"}, {"title": "Galileo and the Universe", "author": "Steve Parker", "pages": 32, "points": 5, "level": 7.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1342003006i/3933187.jpg"}, {"title": "George and the Big Bang", "author": "Stephen Hawking", "pages": 287, "points": 16, "level": 6.6, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1337495867i/12254770.jpg"}, {"title": "George's Cosmic Treasure Hunt", "author": "Lucy Hawking", "pages": 299, "points": 16, "level": 6.1, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348575350i/5495650.jpg"}, {"title": "George's Secret Key to the Universe", "author": "Lucy Hawking", "pages": 297, "points": 16, "level": 5.6, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348222726i/1111741.jpg"}, {"title": "Giants of Science: Albert Einstein", "author": "Kathleen Krull", "pages": 141, "points": 20, "level": 8.1, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347953880i/6767136.jpg"}, {"title": "Giants of Science: Benjamin Franklin", "author": "Kathleen Krull", "pages": 121, "points": 15, "level": 8.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1355945289i/15812148.jpg"}, {"title": "Giants of Science: Charles Darwin", "author": "Kathleen Krull", "pages": 144, "points": 20, "level": 8.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347963140i/9766261.jpg"}, {"title": "Giants of Science: Isaac Newton", "author": "Kathleen Krull", "pages": 126, "points": 15, "level": 7.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1714440245i/2871818.jpg"}, {"title": "Giants of Science: Leonardo Da Vinci", "author": "Kathleen Krull", "pages": 124, "points": 15, "level": 7.7, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/51VklcOHlyL.jpg"}, {"title": "Green Plants", "author": "Jenny Tesar", "pages": 64, "points": 15, "level": 6.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266844442i/3704905.jpg"}, {"title": "Gregor Mendel : Father of Genetics", "author": "Roger Klare", "pages": 128, "points": 10, "level": 5.2, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1694808847i/153806770.jpg"}, {"title": "Guglielmo Marconi and Radio", "author": "Steve Parker", "pages": 32, "points": 5, "level": 6.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266574108i/4188656.jpg"}, {"title": "Guts : The True Stories Behind Hatchet and the Brian Books", "author": "Gary Paulsen", "pages": 148, "points": 20, "level": 6.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1391130426i/53.jpg"}, {"title": "Health and Disease", "author": "Kathy Elgin", "pages": 32, "points": 5, "level": 6.8, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348937620i/6319324.jpg"}, {"title": "Hitchhiker's Guide to the Galaxy", "author": "Douglas Adams", "pages": 215, "points": 16, "level": 6.6, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1531891848i/11.jpg"}, {"title": "Human Body", "author": "Steve Parker", "pages": 64, "points": 25, "level": 7.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1694827869i/137262710.jpg"}, {"title": "Insects", "author": "Jenny Tesar", "pages": 64, "points": 15, "level": 6.5, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/517566JHECL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Into Thin Air : A Personal Account of the Mount Everest Disaster", "author": "Jon Krakauer", "pages": 293, "points": 40, "level": 8.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1638265971i/57121732.jpg"}, {"title": "Isaac Newton and Gravity", "author": "Steve Parker", "pages": 32, "points": 5, "level": 7.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1185236617i/1560784.jpg"}, {"title": "Jupiter, Neptune, and the Outer Planets", "author": "Chris Oxlade", "pages": 48, "points": 5, "level": 6.6, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/51a6ghI6YZL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Jurassic Park", "author": "Michael Crichton", "pages": 400, "points": 40, "level": 7.3, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1529604411i/40604658.jpg"}, {"title": "Life", "author": "David Burnie", "pages": 64, "points": 25, "level": 8.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1387752697i/8363.jpg"}, {"title": "Life as We Knew It", "author": "Susan Beth Pfeffer", "pages": 337, "points": 28, "level": 4.7, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1328012816i/213753.jpg"}, {"title": "Light", "author": "David Burnie", "pages": 64, "points": 25, "level": 8.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1165654349i/8360.jpg"}, {"title": "Lives of Scientists", "author": "Kathleen Krull", "pages": 96, "points": 15, "level": 8.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1345683787i/15814390.jpg"}, {"title": "Lost World : A Novel", "author": "Michael Crichton", "pages": 393, "points": 34, "level": 5.0, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1386864575i/8650.jpg"}, {"title": "Louis Pasteur and Germs", "author": "Steve Parker", "pages": 32, "points": 5, "level": 7.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266813610i/1478738.jpg"}, {"title": "Mae Jemison : The First African American Woman in Space", "author": "Magdalena Alagna", "pages": 112, "points": 10, "level": 8.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1677792688i/1893103.jpg"}, {"title": "Marie Curie and Radium", "author": "Steve Parker", "pages": 32, "points": 5, "level": 7.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1342108686i/1792180.jpg"}, {"title": "Matter", "author": "Chris Cooper", "pages": 64, "points": 25, "level": 8.2, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1267055344i/2724266.jpg"}, {"title": "Matter and Energy : Principles of Matter and Thermodynamics", "author": "Paul Fleisher", "pages": 63, "points": 10, "level": 7.0, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1349081223i/916295.jpg"}, {"title": "Microorganisms : The Unseen World", "author": "Edward R. Ricciuti", "pages": 64, "points": 15, "level": 6.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266899237i/3761778.jpg"}, {"title": "Nanotechnology", "author": "Dianne Maddox", "pages": 48, "points": 5, "level": 8.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348328366i/9052193.jpg"}, {"title": "Nicolaus Copernicus : Father of Modern Astronomy", "author": "Barbara A. Somervill", "pages": 112, "points": 10, "level": 7.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348795842i/4561667.jpg"}, {"title": "Objects in Motion : Principles of Classical Mechanics", "author": "Paul Fleisher", "pages": 79, "points": 10, "level": 7.3, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1349080385i/2938263.jpg"}, {"title": "Out of the Deep", "author": "Gloria Skurzynski", "pages": 147, "points": 10, "level": 5.1, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1180416160i/1037822.jpg"}, {"title": "Probing Deep Space", "author": "Terrance Dolan", "pages": 111, "points": 25, "level": 9.6, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266830927i/4602120.jpg"}, {"title": "Radioactive Boy Scout", "author": "David Hahn", "pages": 209, "points": 40, "level": 10.1, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1170623706i/64618.jpg"}, {"title": "Relativity and Quantum Mechanics : Principles of Modern Physics", "author": "Paul Fleisher", "pages": 63, "points": 10, "level": 7.2, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1349088609i/260148.jpg"}, {"title": "Reptiles", "author": "Edward R. Ricciuti", "pages": 64, "points": 15, "level": 6.6, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/5161X5TS1DL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Rocket Boys", "author": "Homer Hickam", "pages": 368, "points": 40, "level": 5.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1320533768i/96642.jpg"}, {"title": "Sally Ride : First American Woman in Space", "author": "Carol Ann Camp", "pages": 104, "points": 20, "level": 7.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1189898701i/1893098.jpg"}, {"title": "Spiders", "author": "Jenny Tesar", "pages": 64, "points": 15, "level": 6.5, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1267802636i/5709893.jpg"}, {"title": "Storm Warning : Tornadoes and Hurricanes", "author": "Jonathan D. Kahl", "pages": 64, "points": 10, "level": 7.8, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266820256i/2434097.jpg"}, {"title": "Stranded", "author": "Ben Mikaelsen", "pages": 247, "points": 16, "level": 4.2, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347473829i/897163.jpg"}, {"title": "Tanglewreck", "author": "Jeanette Winterson", "pages": 414, "points": 22, "level": 5.4, "genre": "Fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1442785511i/15045.jpg"}, {"title": "Thomas Alva Edison : Inventor", "author": "Ellen M. Dolan", "pages": 128, "points": 20, "level": 6.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266993974i/3859594.jpg"}, {"title": "Thomas Edison and Electricity", "author": "Steve Parker", "pages": 32, "points": 5, "level": 6.7, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1178001967i/749160.jpg"}, {"title": "Time and Space", "author": "John and Mary Gribbin", "pages": 64, "points": 25, "level": 7.8, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/81YfWC1kXnL._AC_UF1000,1000_QL80_.jpg"}, {"title": "William Harvey : Discoverer of How Blood Circulates", "author": "Lisa Yount", "pages": 128, "points": 10, "level": 5.4, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347247129i/7929631.jpg"}, {"title": "Within Reach : My Everest Story", "author": "Mark Pfetzer and Jack Galvin", "pages": 224, "points": 40, "level": 6.2, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348276561i/751515.jpg"}, {"title": "Woman in the Moon", "author": "Richard Maurer", "pages": 272, "points": 40, "level": 6.9, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1670272466i/58484160.jpg"}, {"title": "Women in Earth Science Careers", "author": "Jetty Kahn", "pages": 48, "points": 2.5, "level": 5.3, "genre": "Non-fiction", "img": "https://books.google.com/books/content?id=3JsbS5m07R0C&pg=PP1&img=1&zoom=3&hl=en&sig=ACfU3U1zQB8oztqZrgtzbTM9Mfd7aUo6Ew&w=1280"}, {"title": "Women in Life Science Careers", "author": "Jetty Kahn", "pages": 48, "points": 2.5, "level": 5.6, "genre": "Non-fiction", "img": "https://m.media-amazon.com/images/I/31V1UMo42XL._AC_UF1000,1000_QL80_.jpg"}, {"title": "Women in Physical Science Careers", "author": "Jetty Kahn", "pages": 48, "points": 2.5, "level": 5.5, "genre": "Non-fiction", "img": "https://www.picclickimg.com/pvUAAOSwCCxnk3sH/Women-in-Physical-Science-Careers-Hardcover-Jetty-Kahn.webp"}, {"title": "Wright Brothers and Aviation", "author": "Steve Parker", "pages": 32, "points": 5, "level": 6.1, "genre": "Non-fiction", "img": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1266730200i/1149032.jpg"}]</script>
+<script>
+(function(){
+/* ===== data source ===== */
+// The list is read from the Extra Credit Google Sheet each time the page opens. The copy in
+// #book-data shows right away and stays on screen if the sheet can't be reached.
+const SHEET_ID='16h2wTYYexj-FZ1xxdlCBCwt7WLL8cUBFWkaQ7KjwA2Y';
+const GVIZ_BASE='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json';
+// Column order in the sheet (0-based): A cover-image, B Title, C Pages, D Author,
+// E Points, F Reading Level, G Genre, H notes, I cover URL.
+const COL={title:1,pages:2,author:3,points:4,level:5,genre:6,img:8};
+const SNAPSHOT=JSON.parse(document.getElementById('book-data').textContent);
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const normGenre=g=>/^non/i.test(String(g).trim())?'Non-fiction':(String(g).trim()?'Fiction':'');
+const toNum=v=>{const n=typeof v==='number'?v:parseFloat(v);return isNaN(n)?null:n;};
+const fmtNum=(v,dp)=>dp?(+v).toFixed(dp).replace(/\.0$/,''):String(Math.round(v));
+
+/* ---- live loader (fetch, then JSONP if fetch is blocked) ---- */
+function parseGviz(json){
+  const out=[];
+  (json.table.rows||[]).forEach(r=>{
+    const c=r.c||[];
+    const cell=i=>{const x=c[i];return x==null?null:(x.v==null?null:x.v);};
+    const title=cell(COL.title), author=cell(COL.author);
+    if(!title || !author) return;                     // skip header / footer / blank rows
+    if(String(title).trim()==='Title') return;
+    out.push({
+      title:String(title).trim(),
+      author:String(author).trim(),
+      pages:toNum(cell(COL.pages)),
+      points:toNum(cell(COL.points)),
+      level:toNum(cell(COL.level)),
+      genre:normGenre(cell(COL.genre)),
+      img:String(cell(COL.img)||'').trim(),
+    });
+  });
+  return out.filter(b=>b.points!=null && b.level!=null);
+}
+function viaFetch(){
+  return fetch(GVIZ_BASE).then(r=>{if(!r.ok)throw 0;return r.text();})
+    .then(t=>parseGviz(JSON.parse(t.substring(t.indexOf('(')+1,t.lastIndexOf(')')))));
+}
+function viaJsonp(){
+  return new Promise((res,rej)=>{
+    const cb='__gv_'+Math.random().toString(36).slice(2);
+    const timer=setTimeout(()=>{cleanup();rej(0);},12000);
+    function cleanup(){clearTimeout(timer);delete window[cb];s.remove();}
+    window[cb]=json=>{cleanup();try{res(parseGviz(json));}catch(e){rej(e);}};
+    const s=document.createElement('script');
+    s.src=GVIZ_BASE+';responseHandler:'+cb;
+    s.onerror=()=>{cleanup();rej(0);};
+    document.head.appendChild(s);
+  });
+}
+async function loadLive(){
+  try{const d=await viaFetch(); if(d&&d.length) return d;}catch(e){}
+  try{const d=await viaJsonp(); if(d&&d.length) return d;}catch(e){}
+  return null;
+}
+function setFeed(state){
+  const f=$('#feed');
+  if(state==='live'){f.className='ec-feed live';$('#feedText').textContent='Up to date with the list';}
+  else{f.className='ec-feed saved';$('#feedText').textContent='Showing saved copy';}
+}
+
+/* ===== filters ===== */
+let books=[];
+const selected={genre:new Set(),author:new Set()};
+const facetValues={};
+const SLIDERS=[
+  {label:'Reading level',key:'level',step:0.1,dp:1},
+  {label:'Points',key:'points',step:0.5,dp:1},
+  {label:'Pages',key:'pages',step:1,dp:0},
+];
+const rangeState={};
+
+function buildFacetValues(){
+  Object.keys(selected).forEach(key=>{
+    const m=new Map();
+    books.forEach(b=>{const v=b[key];if(v)m.set(v,(m.get(v)||0)+1);});
+    facetValues[key]=[...m.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    // a refresh from the sheet keeps choices that still exist
+    [...selected[key]].forEach(v=>{if(!m.has(v))selected[key].delete(v);});
+  });
+}
+
+// genre: one chip per genre in the list; none pressed means every genre
+function buildGenreChips(){
+  const host=$('#genreChips');
+  host.innerHTML=facetValues.genre.map(([v,n])=>
+    `<button class="ec-chip" type="button" data-v="${esc(v)}" aria-pressed="${selected.genre.has(v)}">${esc(v)}<span class="n">${n}</span></button>`).join('');
+}
+$('#genreChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.ec-chip');if(!chip)return;
+  const v=chip.dataset.v;
+  selected.genre.has(v)?selected.genre.delete(v):selected.genre.add(v);
+  chip.setAttribute('aria-pressed',selected.genre.has(v));
+  applyFilters();
+});
+
+// author: a drop-down checklist with its own search box
+const dd=$('#authorDD'), ddBtn=dd.querySelector('.ec-dd-btn'), ddList=dd.querySelector('.ec-opt-list'), ddSearch=dd.querySelector('.ec-opt-search');
+function renderAuthors(){
+  const ql=ddSearch.value.trim().toLowerCase();
+  const items=facetValues.author.filter(([v])=>!ql||v.toLowerCase().includes(ql));
+  ddList.innerHTML=items.map(([v,n])=>`<label><input type="checkbox" value="${esc(v)}" ${selected.author.has(v)?'checked':''}>
+    <span>${esc(v)}</span><span class="n">${n}</span></label>`).join('')||'<div class="ec-opt-empty">No authors match</div>';
+}
+function updateAuthorButton(){
+  const n=selected.author.size, count=dd.querySelector('.ec-dd-count');
+  dd.querySelector('.ec-dd-text').textContent=n===1?[...selected.author][0]:(n?'Authors':'Any author');
+  count.style.display=n>1?'inline-block':'none';count.textContent=n;
+}
+function setDD(open){
+  dd.classList.toggle('open',open);ddBtn.setAttribute('aria-expanded',open);
+  if(open){renderAuthors();ddSearch.focus();}
+}
+ddBtn.addEventListener('click',()=>setDD(!dd.classList.contains('open')));
+ddSearch.addEventListener('input',renderAuthors);
+ddList.addEventListener('change',e=>{
+  if(e.target.type!=='checkbox')return;
+  e.target.checked?selected.author.add(e.target.value):selected.author.delete(e.target.value);
+  updateAuthorButton();applyFilters();
+});
+dd.querySelector('.ec-dd-clear').addEventListener('click',()=>{
+  selected.author.clear();renderAuthors();updateAuthorButton();applyFilters();
+});
+document.addEventListener('click',e=>{if(!e.target.closest('#authorDD'))setDD(false);});
+
+function buildSliders(){
+  const host=$('#sliders');host.innerHTML='';
+  SLIDERS.forEach(s=>{
+    const vals=books.map(b=>b[s.key]).filter(v=>v!=null);
+    s.min=Math.floor(Math.min(...vals));s.max=Math.ceil(Math.max(...vals));
+    rangeState[s.key]={lo:s.min,hi:s.max};
+    const el=document.createElement('div');el.className='ec-slider';
+    el.innerHTML=`<div class="ec-sl-head"><span class="ec-label">${esc(s.label)}</span><span class="ec-sl-read" data-read></span></div>
+      <div class="ec-range"><div class="track"></div><div class="track-fill"></div>
+      <input type="range" class="lo" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.min}" aria-label="${esc(s.label)} minimum">
+      <input type="range" class="hi" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.max}" aria-label="${esc(s.label)} maximum"></div>`;
+    host.appendChild(el);
+    const lo=el.querySelector('.lo'),hi=el.querySelector('.hi'),fill=el.querySelector('.track-fill'),read=el.querySelector('[data-read]');
+    const paint=()=>{
+      const a=+lo.value,b=+hi.value,mn=Math.min(a,b),mx=Math.max(a,b);
+      rangeState[s.key]={lo:mn,hi:mx};
+      const pct=v=>(v-s.min)/(s.max-s.min||1)*100;
+      fill.style.left=pct(mn)+'%';fill.style.width=(pct(mx)-pct(mn))+'%';
+      read.textContent=`${fmtNum(mn,s.dp)}–${fmtNum(mx,s.dp)}`;
+    };
+    paint();
+    let t;const onInput=()=>{paint();clearTimeout(t);t=setTimeout(applyFilters,120);};
+    lo.addEventListener('input',onInput);hi.addEventListener('input',onInput);
+    s._reset=()=>{lo.value=s.min;hi.value=s.max;paint();};
+  });
+}
+
+/* ===== results ===== */
+let filtered=[];
+function applyFilters(){
+  const q=$('#searchBox').value.trim().toLowerCase();
+  filtered=books.filter(b=>{
+    if(q&&!b.search.includes(q))return false;
+    for(const key in selected){const sel=selected[key];if(sel.size&&!sel.has(b[key]))return false;}
+    for(const s of SLIDERS){const r=rangeState[s.key];if(r.lo>s.min||r.hi<s.max){const v=b[s.key];if(v==null||v<r.lo||v>r.hi)return false;}}
+    return true;
+  });
+  sortNow();render();
+}
+function sortNow(){
+  const [key,dir]=$('#sortSel').value.split('|');const mul=dir==='desc'?-1:1;
+  filtered.sort((a,b)=>{
+    if(key==='title'||key==='author'){const x=a[key].toLowerCase(),y=b[key].toLowerCase();return mul*(x<y?-1:x>y?1:0)||a.title.localeCompare(b.title);}
+    return mul*((a[key]??0)-(b[key]??0))||a.title.localeCompare(b.title);
+  });
+}
+const genreTag=b=>b.genre?`<span class="ec-genre${b.genre==='Fiction'?' fic':''}">${esc(b.genre)}</span>`:'';
+function coverHTML(b,lazy){
+  return b.img
+    ? `<img ${lazy?'loading="lazy" ':''}decoding="async" referrerpolicy="no-referrer" src="${esc(b.img)}" alt="Cover of ${esc(b.title)}" data-title="${esc(b.title)}">`
+    : `<div class="ec-ph">${esc(b.title)}</div>`;
+}
+// a cover that won't load becomes a title card
+document.addEventListener('error',e=>{
+  const img=e.target;
+  if(img.tagName!=='IMG'||!img.closest('.ec-cover,.ec-dcover'))return;
+  const ph=document.createElement('div');ph.className='ec-ph';ph.textContent=img.dataset.title||'';
+  img.replaceWith(ph);
+},true);
+function render(){
+  const total=filtered.length;
+  $('#count').innerHTML=`<b>${total}</b> ${total===1?'book':'books'}`;
+  const grid=$('#grid'),empty=$('#empty');
+  if(!total){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=filtered.map(b=>{
+    const stats=[b.level!=null?'Level '+fmtNum(b.level,1):'',b.pages!=null?b.pages+' pages':''].filter(Boolean).join(' · ');
+    return `<button class="ec-card" type="button" data-id="${b.id}" aria-label="${esc(b.title)} by ${esc(b.author)}, ${fmtNum(b.points,1)} points">
+      <div class="ec-cover"><span class="ec-pts">${fmtNum(b.points,1)} pts</span>${coverHTML(b,true)}</div>
+      <div class="ec-info">${genreTag(b)}<div class="ec-title">${esc(b.title)}</div><div class="ec-author">${esc(b.author)}</div>
+      ${stats?`<div class="ec-stats">${stats}</div>`:''}</div>
+    </button>`;}).join('');
+}
+
+/* ===== book details ===== */
+let lastFocus=null;
+function openDetail(id){
+  const b=books[id];if(!b)return;
+  $('#dCover').innerHTML=coverHTML(b,false);
+  $('#dGenre').innerHTML=genreTag(b);
+  $('#dTitle').textContent=b.title;
+  $('#dAuthor').textContent='by '+b.author;
+  $('#dPts').textContent=fmtNum(b.points,1);
+  $('#dLevel').textContent=b.level!=null?fmtNum(b.level,1):'—';
+  $('#dPages').textContent=b.pages!=null?b.pages:'—';
+  lastFocus=document.activeElement;
+  $('#detail').classList.add('open');document.body.style.overflow='hidden';
+  $('#detail .ec-close').focus();
+}
+function closeDetail(){
+  const w=$('#detail');if(!w.classList.contains('open'))return;
+  w.classList.remove('open');document.body.style.overflow='';
+  if(lastFocus)lastFocus.focus();
+}
+$('#grid').addEventListener('click',e=>{const c=e.target.closest('.ec-card');if(c)openDetail(+c.dataset.id);});
+$('#detail').addEventListener('click',e=>{if(e.target===e.currentTarget||e.target.closest('[data-close]'))closeDetail();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if($('#detail').classList.contains('open'))closeDetail();else setDD(false);
+});
+
+/* ===== other controls ===== */
+let st;$('#searchBox').addEventListener('input',()=>{clearTimeout(st);st=setTimeout(applyFilters,180);});
+$('#sortSel').addEventListener('change',()=>{sortNow();render();});
+$('#resetAll').addEventListener('click',()=>{
+  $('#searchBox').value='';ddSearch.value='';
+  Object.values(selected).forEach(s=>s.clear());
+  buildGenreChips();renderAuthors();updateAuthorButton();
+  SLIDERS.forEach(s=>s._reset&&s._reset());
+  applyFilters();
+});
+$('#filterToggle').addEventListener('click',()=>{
+  const open=document.body.classList.toggle('ec-filters-open');
+  $('#filterToggle').textContent=open?'Hide filters':'Search & filters';
+  $('#filterToggle').setAttribute('aria-expanded',open);
+});
+
+/* ===== start ===== */
+function rebuild(data){
+  books=data.map((b,i)=>({...b,id:i,search:(b.title+' '+b.author).toLowerCase()}));
+  buildFacetValues();buildGenreChips();renderAuthors();updateAuthorButton();buildSliders();applyFilters();
+}
+rebuild(SNAPSHOT);            // instant paint from the saved copy
+setFeed('saved');
+loadLive().then(fresh=>{      // then refresh from the sheet if it can be reached
+  if(fresh&&fresh.length){ rebuild(fresh); setFeed('live'); }
+});
+})();
+</script>
+</body>
+</html>
