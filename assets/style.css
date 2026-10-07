@@ -77,9 +77,15 @@ button{ font-family:inherit; }
 .menu-btn:hover{ border-color:var(--accent); color:var(--accent-dark); }
 .topbar nav.inline-links{ display:flex; gap:4px; margin-left:auto; }
 .topbar nav.inline-links a{
-  padding:8px 14px; border-radius:999px; color:var(--ink-soft); font-weight:600; font-size:.92rem;
+  padding:8px 14px; border-radius:999px; color:var(--ink-soft); font-weight:600; font-size:.92rem; white-space:nowrap;
 }
 .topbar nav.inline-links a:hover, .topbar nav.inline-links a.active{ background:var(--accent-tint); color:var(--accent-dark); text-decoration:none; }
+/* squeezed: the title wraps instead of running under the links, then the links drop to their own row */
+@media (max-width:1180px){ .brand{ white-space:normal; line-height:1.25; } }
+@media (max-width:960px){
+  .topbar-inner{ flex-wrap:wrap; row-gap:6px; }
+  .topbar nav.inline-links{ order:3; width:100%; margin-left:0; }
+}
 @media (max-width:760px){ .topbar nav.inline-links{ display:none; } }
 
 /* ---------------- drawer / table of contents ---------------- */
