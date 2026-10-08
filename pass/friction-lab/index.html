@@ -1706,7 +1706,7 @@ function render() {
     var item = el("div", "item");
     var qt = el("div", "qtext");
     qt.appendChild(el("span", "qnum", qLabel(i + 1)));
-    if (q.points) qt.appendChild(el("span", "qpts", (Math.round(q.points * 100) / 100) + (q.points === 1 ? " point" : " points")));
+    if (q.points && S.showPoints) qt.appendChild(el("span", "qpts", (Math.round(q.points * 100) / 100) + (q.points === 1 ? " point" : " points")));
     qt.appendChild(document.createTextNode(q.text));
     if (q.img && !(q.boxes && q.boxes.length)) {
       var fig = el("figure", "qimg");
