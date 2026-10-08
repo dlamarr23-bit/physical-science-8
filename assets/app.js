@@ -556,9 +556,9 @@
 
     function pageList(){
       var seen = {}, list = [];
-      document.querySelectorAll("#drawer a[href]").forEach(function(a){
+      document.querySelectorAll("#drawer .unit-block a[href]").forEach(function(a){
         var href = a.getAttribute("href");
-        if(/^\.\/u\d+(-t\d+)?\.html$/.test(href) && !seen[href]){ seen[href] = true; list.push(href); }
+        if(/^\.\/[\w-]+\.html$/.test(href) && !seen[href]){ seen[href] = true; list.push(href); }
       });
       return list; // unit and chapter pages only; the glossary has its own search box
     }
