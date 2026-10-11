@@ -1596,9 +1596,10 @@ function setUpSim() {
     bD.setAttribute("aria-pressed", sim ? "false" : "true"); bS.setAttribute("aria-pressed", sim ? "true" : "false");
     art.hidden = sim; box.hidden = !sim; pane.classList.toggle("simview", sim);
     if (sim && !frame) {   // loaded the first time it's wanted, then kept
-      frame = document.createElement("iframe"); frame.src = simThemed(url); frame.title = "The ramp and friction simulation";
+      var fu = simBare(url);
+      frame = document.createElement("iframe"); frame.src = simThemed(fu); frame.title = "The ramp and friction simulation";
       frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); frame.setAttribute("allow", "fullscreen"); frame.referrerPolicy = "no-referrer";
-      simFrame = frame; simOrigin = new URL(url).origin; frame.addEventListener("load", tellSimTheme);
+      simFrame = frame; simOrigin = new URL(fu).origin; frame.addEventListener("load", tellSimTheme);
       box.appendChild(frame);
     }
     if (!sim) pane.scrollTop = 0;
@@ -1611,6 +1612,12 @@ function setUpSim() {
 /** The simulation matches this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
     messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
 var simFrame = null, simOrigin = "";
+/** A sim's address on the class website's Sims page (physical-science-8.pages.dev/sims/<sim>, the address its Sims page shows) has the website's
+    top bar over the sim. In the frame it is the sim alone (sim-library-87y.pages.dev/<sim>/); Open it in a new tab keeps the address as typed. */
+function simBare(url) {
+  var m = /^https:\/\/physical-science-8\.pages\.dev\/sims\/([a-z0-9-]+)\/?(?:[?#].*)?$/i.exec(url);
+  return m ? "https://sim-library-87y.pages.dev/" + m[1].toLowerCase() + "/" : url;
+}
 function simThemed(url) {
   try { var u = new URL(url); if (/\.pages\.dev$/i.test(u.hostname)) u.searchParams.set("theme", currentTheme()); return u.href; } catch (e) { return url; }
 }
