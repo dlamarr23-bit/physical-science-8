@@ -53,14 +53,19 @@
   .timer.done { background: var(--red); border-color:#cc0000; }
   .timer.done .timernum { font-size:30px; }
   .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
-  textarea { display:block; width:100%; min-height: 84px; border:0; border-top:3px solid #111; border-bottom:3px solid #111;
-             font-family:Poppins, Arial, sans-serif; font-size:15px; padding:10px 12px; resize: vertical; outline:none; background:#fff;
-             transition: background .25s; }
+  /* a typed answer starts one line tall and grows as the student writes (field-sizing; fitAnswer() does the same where a browser lacks it) */
+  textarea { display:block; width:100%; min-height: calc(1.5em + 26px); border:0; border-top:3px solid #111; border-bottom:3px solid #111;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; line-height:1.5; padding:10px 12px; resize: none; overflow-y:auto; outline:none; background:#fff;
+             transition: background .25s; field-sizing: content; }
   textarea:focus { box-shadow: inset 0 0 0 2px #3c78d8; }
   textarea.correct { background: var(--green); } textarea.partial { background: var(--yellow); } textarea.incorrect { background: var(--red); }
-  .fb { background:#000; color:#fff; font-style: italic; font-size: 14px; padding: 9px 12px; min-height: 38px; line-height:1.45; }
-  .row { display:flex; align-items:center; justify-content: space-between; gap: 8px; padding: 8px 12px; background:#fff; }
+  /* the black bar under each answer: the feedback (and the save status under it) on the left, the Check button on the right */
+  .fbbar { display:flex; align-items:center; gap:10px; background:#000; color:#fff; padding: 6px 8px 6px 12px; min-height: 44px; }
+  .fbtext { flex:1 1 auto; min-width:0; }
+  .fb { font-style: italic; font-size: 14px; line-height:1.45; }
+  .fbbar button { flex:none; padding: 5px 14px; }
   .meta { font-size: 12px; color:#666; }
+  .fbbar .meta { margin-top:2px; } .fbbar .meta:empty { display:none; }
   button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
            background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
   button.secondary { background:#fff; color:#111; }
@@ -1287,15 +1292,15 @@ function render() {
       });
       ta.appendChild(holder);
     } else {
-      ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…";
+      ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…"; ta.rows = 1; growAnswer(ta);
       ta.disabled = S.locked;
     }
     var fb = el("div", "fb"); fb.id = "f" + i;
-    var row = el("div", "row");
-    var meta = el("span", "meta"); meta.id = "m" + i;
+    var row = el("div", "fbbar"), fbt = el("div", "fbtext");   // the black bar: feedback and the save status on the left, Check on the right
+    var meta = el("div", "meta"); meta.id = "m" + i;
     var btn = el("button", "secondary", "Check"); btn.id = "b" + i; btn.disabled = S.locked;
-    row.appendChild(meta); row.appendChild(btn);
-    item.appendChild(qt); item.appendChild(ta); item.appendChild(fb); item.appendChild(row);
+    fbt.appendChild(fb); fbt.appendChild(meta); row.appendChild(fbt); row.appendChild(btn);
+    item.appendChild(qt); item.appendChild(ta); item.appendChild(row);
     if (i > 0) {
       // Escape room: a padlock covers this problem until the one before it is green.
       var lockOv = el("div", "lockOverlay hidden"); lockOv.id = "lock" + i;
@@ -1417,7 +1422,7 @@ function showClosed() {
   var c = S.close;
   S.locked = true;
   S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
-  document.querySelectorAll("textarea, input.pbox, .row button, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll("textarea, input.pbox, .fbbar button, #finishBtn").forEach(function (x) { x.disabled = true; });
   document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
   if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
   document.getElementById("closedBarText").textContent = c.note;
@@ -1442,9 +1447,26 @@ function closedMidway(err) {
   return true;
 }
 
+/** Typed answers start one line tall and grow as the student writes. CSS field-sizing does it (Chrome); this does the same in a browser without it. */
+var GROW_CSS = (function () { try { return !!(window.CSS && CSS.supports("field-sizing", "content")); } catch (e) { return false; } })();
+function fitAnswer(ta) {
+  if (GROW_CSS || !ta.scrollHeight) return;   // 0 while its side of the page is hidden: it fits when shown, focused or typed in
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight + 6) + "px";   // + the 3 px top and bottom borders (border-box)
+}
+function growAnswer(ta) {
+  ta.setAttribute("data-grow", "1");
+  if (GROW_CSS) return;
+  ta.addEventListener("input", function () { fitAnswer(ta); });
+  ta.addEventListener("focus", function () { fitAnswer(ta); });
+  setTimeout(function () { fitAnswer(ta); }, 0);
+}
+window.addEventListener("resize", function () { if (!GROW_CSS) Array.prototype.forEach.call(document.querySelectorAll("textarea[data-grow]"), fitAnswer); });
+
 function setMeta(i, text, color) {
   var m = document.getElementById("m" + i);
-  m.textContent = text; m.style.color = color || "#666";
+  m.textContent = text;
+  m.style.color = { "#b45f06": "#f5b971", "#38761d": "#8fd19e", "#cc0000": "#ff8a80" }[String(color || "").toLowerCase()] || "#a7adb7";   // light colors on the black bar
 }
 
 function autosave(i) {
@@ -1700,7 +1722,7 @@ function doTurnIn(fin) {
     S.turnedIn = resp.turnedIn; S.grade = resp.grade;
     if (resp.locked) {
       S.locked = true;
-      document.querySelectorAll("textarea, input.pbox, .row button").forEach(function (x) { x.disabled = true; });
+      document.querySelectorAll("textarea, input.pbox, .fbbar button").forEach(function (x) { x.disabled = true; });
     }
     fin.disabled = S.locked;
     updateFinish(); updateProgress();
@@ -1729,7 +1751,7 @@ function showSignIn(info, midway) {
     }
     // Someone else signed in on a page showing another student's work: don't mix the two.
     S.locked = true;
-    document.querySelectorAll("textarea, input.pbox, .row button, #finishBtn").forEach(function (x) { x.disabled = true; });
+    document.querySelectorAll("textarea, input.pbox, .fbbar button, #finishBtn").forEach(function (x) { x.disabled = true; });
     if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
   } });
 }
