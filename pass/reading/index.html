@@ -1498,21 +1498,21 @@ function artPicNext() {
   })(artPicQ.shift());
 }
 function showArticle() {
-  var art = document.getElementById("article"), tpl = document.getElementById("articleTpl");
+  var art = document.getElementById("article"), tpl = document.getElementById("articleTpl"), own = artOwnName();   // the notes use the Settings name when there is one
   function builtIn(why) {
     art.textContent = "";
     if (tpl && tpl.content) art.appendChild(tpl.content.cloneNode(true));
-    else art.appendChild(el("p", "artnote", why || "The article isn't ready yet. Please tell your teacher."));
+    else art.appendChild(el("p", "artnote", why || (own ? own + ": not ready yet. Please tell your teacher." : "The article isn't ready yet. Please tell your teacher.")));
   }
   if (!S.article) { builtIn(); return; }
-  art.appendChild(el("p", "artnote", "Loading the article…"));
+  art.appendChild(el("p", "artnote", own ? "Loading " + own + "…" : "Loading the article…"));
   withRetry(function (ok, fail) { api.run("getArticle", [], ok, fail); }, function (r) {
     if (!r || !r.has) { builtIn(); return; }
     var wrap = el("div", "art");
     wrap.appendChild(safeArticle(r.html));
     art.textContent = ""; art.appendChild(wrap);
     loadArticlePics(wrap, r.pics || []);
-  }, function () { builtIn("The article didn't load. Reload the page, or tell your teacher."); });
+  }, function () { builtIn((own || "The article") + " didn't load. Reload the page, or tell your teacher."); });
 }
 /* ---------- a lab page with a live simulation on the left ----------
    The page's own built-in part (pictures.html) can hold <template id="simTpl" data-url="https://...">: then the left side gets two buttons,
@@ -1527,12 +1527,19 @@ function simUrlOk(u) {
   return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
 }
 function hasSim() { return labSim() || !!simUrlOk(S && S.simUrl); }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
+/** What the left side is called. The sheet's Settings "Article button name" can name it (Directions, say, for a lab whose Doc holds the directions):
+    untrusted words from the sheet, so plain text only (always set with textContent), one line, 24 characters at most. "" = none set. */
+function artOwnName() {
+  var n = Array.from(String(S && S.artBtn != null ? S.artBtn : "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim());
+  return n.slice(0, 24).join("").trim();
+}
+function artName() { return artOwnName() || (labSim() ? "Directions" : "Article"); }
 function setUpSim() {
   var tpl = document.getElementById("simTpl"), url = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : "");   // the sheet's address if it is allowed, else the page's own
   if (!url || !/^https:\/\//.test(url)) return;
   var pane = document.getElementById("artPane"), art = document.getElementById("article"), frame = null;
   pane.classList.add("hassim");
-  var bar = el("div", "simbar"), bD = el("button", "simtab", tpl ? "Directions" : "Article"), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
+  var bar = el("div", "simbar"), bD = el("button", "simtab", artName()), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
   bD.type = bS.type = "button"; op.href = url; op.target = "_blank"; op.rel = "noopener";
   bar.appendChild(bD); bar.appendChild(bS); bar.appendChild(op);
   var box = el("div", "simframe"); box.hidden = true;
@@ -1552,7 +1559,6 @@ function setUpSim() {
   bD.onclick = function () { showWhich(false); };
   bS.onclick = function () { showWhich(true); };
   showWhich(false);
-  var ta = document.getElementById("tabArt"); if (ta) ta.textContent = tpl ? "Directions and simulation" : "Article and simulation";
 }
 /** The simulation matches this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
     messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
@@ -1626,6 +1632,8 @@ function setUpSplit() {
   setUpSplitDrag();
   if (hasSim() && !document.querySelector(".simbar")) setUpSim();
   var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
+  tabA.textContent = document.querySelector(".simbar") ? artName() + " and simulation" : artName();   // the phone tab: Article, Directions, or the Settings name
+  if (artOwnName()) document.getElementById("artPane").setAttribute("aria-label", artOwnName() + ". Scroll this side to read.");
   function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
     split.setAttribute("data-tab", which);
     tabA.setAttribute("aria-selected", which === "art" ? "true" : "false");
