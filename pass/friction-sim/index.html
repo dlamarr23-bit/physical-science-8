@@ -1591,8 +1591,9 @@ function setUpSim() {
     bD.setAttribute("aria-pressed", sim ? "false" : "true"); bS.setAttribute("aria-pressed", sim ? "true" : "false");
     art.hidden = sim; box.hidden = !sim; pane.classList.toggle("simview", sim);
     if (sim && !frame) {   // loaded the first time it's wanted, then kept
-      frame = document.createElement("iframe"); frame.src = url; frame.title = "The ramp and friction simulation";
+      frame = document.createElement("iframe"); frame.src = simThemed(url); frame.title = "The ramp and friction simulation";
       frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); frame.setAttribute("allow", "fullscreen"); frame.referrerPolicy = "no-referrer";
+      simFrame = frame; simOrigin = new URL(url).origin; frame.addEventListener("load", tellSimTheme);
       box.appendChild(frame);
     }
     if (!sim) pane.scrollTop = 0;
@@ -1602,6 +1603,20 @@ function setUpSim() {
   showWhich(false);
   var ta = document.getElementById("tabArt"); if (ta) ta.textContent = tpl ? "Directions and simulation" : "Article and simulation";
 }
+/** The simulation matches this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
+    messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
+var simFrame = null, simOrigin = "";
+function simThemed(url) {
+  try { var u = new URL(url); if (/\.pages\.dev$/i.test(u.hostname)) u.searchParams.set("theme", currentTheme()); return u.href; } catch (e) { return url; }
+}
+function tellSimTheme() {
+  if (simFrame && simFrame.contentWindow) try { simFrame.contentWindow.postMessage({ simTheme: currentTheme() }, simOrigin); } catch (e) {}
+}
+window.addEventListener("message", function (e) {
+  if (!simFrame || e.source !== simFrame.contentWindow || e.origin !== simOrigin) return;
+  var t = e.data && e.data.simTheme;
+  if ((t === "dark" || t === "light") && t !== currentTheme()) setTheme(t);
+});
 /** The divider between the two sides: drag it, or press the left / right arrow keys, to make one side bigger (the simulation, say). Double-click or Home
     puts it back. The choice is remembered on this device. Only on a wide screen (900 px and up); below that the sides are tabs. */
 var SPLIT_KEY = "selfcheck-split", SPLIT_MIN = 240, SPLIT_GAP = 16;
@@ -2334,13 +2349,13 @@ function showThemeButton() {
   var b = document.getElementById("themeBtn");
   if (!b) return;
   showThemeButton();
-  b.addEventListener("click", function () {
-    var next = currentTheme() === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("selfcheck-theme", next); } catch (e) {}
-    showThemeButton();
-  });
+  b.addEventListener("click", function () { setTheme(currentTheme() === "dark" ? "light" : "dark"); });
 })();
+function setTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("selfcheck-theme", t); } catch (e) {}
+  showThemeButton(); tellSimTheme();   // the simulation on the left switches too
+}
 
 /* ---------- drawing pad questions (Answer type "draw" in the Questions tab) ----------
    Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors, a size slider, undo,
