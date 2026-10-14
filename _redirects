@@ -57,3 +57,6 @@
 
 # Each sim has its own address on the Sims page, e.g. /sims/how-friction-affects-speed (sims.html reads it).
 /sims/* /sims 200
+
+# Each flashcard set has its own address on the Flashcards page, e.g. /flashcards/my/<set>/ (flashcards.html reads it).
+/flashcards/* /flashcards 200
