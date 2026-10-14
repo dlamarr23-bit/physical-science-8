@@ -43,6 +43,8 @@
              background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
   a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
   .seclinks { margin: -4px 0 14px; }
+  .secimg { margin: -4px 0 14px; }
+  html[data-theme="dark"] .secimg figcaption { color:#b6bcc6; }
   /* timers (timer:N, or a button that links to a web timer): built into the page */
   .timer { display:flex; flex-wrap:wrap; align-items:center; gap:6px 16px; width:fit-content; max-width:100%; margin: 0 8px 8px 0;
            background:#fff; color:#111; border:2px solid #1b4587; border-radius:8px; padding: 8px 14px 10px; font-weight:400; }
@@ -1728,10 +1730,19 @@ function render() {
 
   var box = document.getElementById("items");
   if (S.questions.some(function (q) { return q.table && q.table.lab; })) document.getElementById("split").classList.add("wideq");   // a lab table is wide: give the questions side more room
-  var sec = {}; S.sections.forEach(function (s) { sec[s.before] = s; });
+  var sec = {}, secNo = {}; S.sections.forEach(function (s, k) { sec[s.before] = s; secNo[s.before] = k; });
   S.questions.forEach(function (q, i) {
     if (sec[i]) {
       box.appendChild(el("div", "strip", sec[i].title));
+      if (sec[i].img) {   // a picture right under the strip (Questions tab: Section picture)
+        var sf = el("figure", "qimg secimg");
+        var sim = el("img"); sim.alt = sec[i].imgCaption || ("Picture for " + sec[i].title); sim.loading = "lazy";
+        cpPicture(sim, sec[i].img, "s" + secNo[i]);
+        sim.addEventListener("click", function () { var u = cpImgUrl(this.src); if (u) window.open(u, "_blank", "noopener"); });
+        sf.appendChild(sim);
+        if (sec[i].imgCaption) sf.appendChild(el("figcaption", null, sec[i].imgCaption));
+        box.appendChild(sf);
+      }
       if (sec[i].links && sec[i].links.length) {
         var sl = el("div", "seclinks");
         sec[i].links.forEach(function (l) { sl.appendChild(simButton(l)); });
@@ -2359,7 +2370,7 @@ function drawLab(i) {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.11b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.14";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
