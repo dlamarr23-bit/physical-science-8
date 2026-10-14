@@ -64,9 +64,10 @@
 </div>
 <iframe class="embed-frame" id="vocabFrame" title="Vocabulary flashcards" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
 <script>
-/* Each flashcard set has its own address here, the same as on the vocabulary site:
-   /flashcards/my/<set>/ opens that set, /flashcards/my/<set>/#learn opens it in Learn,
-   /flashcards#folder-<id> opens a folder. (_redirects serves this page at every /flashcards/... address.)
+/* Each flashcard set has its own address here by its name, the same as on the vocabulary site:
+   /flashcards/frame-of-reference/ opens that set, /flashcards/frame-of-reference/#learn opens it in Learn,
+   /flashcards#folder-<id> opens a folder, and older /flashcards/my/<set id>/ links still work.
+   (_redirects serves this page at every /flashcards/... address.)
    The vocabulary site's pages say which page is open (its book.js), and the address follows along. */
 (function(){
   var VOCAB = "https://vocabulary-room901.pages.dev";
