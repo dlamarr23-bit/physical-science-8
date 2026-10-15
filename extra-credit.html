@@ -12,6 +12,14 @@
 <script src="./assets/icons.js" defer></script>
 <script src="./assets/app.js" defer></script>
 <style>
+  /* banner: the Extra Credit badge sits left of the title; on phones it shrinks and the text wraps around it */
+  .hero-inner.ec-hero{ grid-template-columns:auto minmax(0,1fr); gap:30px; }
+  .ec-badge{ display:block; width:190px; height:auto; }
+  @media (max-width:700px){
+    .hero-inner.ec-hero{ display:flow-root; }
+    .ec-badge{ float:left; width:100px; margin:0 14px 8px 0; }
+  }
+
   /* ---------------- extra credit book list ---------------- */
   /* How to earn your points: three numbered steps in a row */
   .ec-steps h2{ font-size:1.4rem; margin:0 0 14px; }
@@ -282,7 +290,8 @@
     </div>
 </div>
 <div class="hero hero-page">
-  <div class="hero-inner no-art">
+  <div class="hero-inner ec-hero">
+    <img class="ec-badge" src="./assets/extra-credit-badge.png" width="198" height="191" alt="Extra Credit badge: a cartoon reader sitting on a big green check mark with stacks of books">
     <div>
       <span class="eyebrow">Extra Credit</span>
       <h1>Science Extra Credit</h1>
