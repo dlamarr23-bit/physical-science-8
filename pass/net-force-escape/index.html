@@ -88,6 +88,8 @@
   .boxlist label { font-size: 13px; font-weight:600; }
   .boxlist input.pbox { display:block; width:100%; margin-top:3px; padding:7px 8px; border:2px solid #111; border-radius:4px;
              font-family:Poppins, Arial, sans-serif; font-size:15px; background:#fff; outline:none; }
+  .boxlist input.pbox.correct { background: var(--green); border-color:#38761d; }   /* after the list rule above, so each box in a list colors itself too */
+  .boxlist input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
   .boxhint { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:6px; }
   .boxarea { border-top:3px solid #111; }
   .boxarea.correct { box-shadow: inset 6px 0 0 #38761d; } .boxarea.partial { box-shadow: inset 6px 0 0 #bf9000; } .boxarea.incorrect { box-shadow: inset 6px 0 0 #cc0000; }

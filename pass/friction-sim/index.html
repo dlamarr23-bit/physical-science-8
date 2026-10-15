@@ -89,6 +89,8 @@
   .boxlist label { font-size: 13px; font-weight:600; }
   .boxlist input.pbox { display:block; width:100%; margin-top:3px; padding:7px 8px; border:2px solid #111; border-radius:4px;
              font-family:Poppins, Arial, sans-serif; font-size:15px; background:#fff; outline:none; }
+  .boxlist input.pbox.correct { background: var(--green); border-color:#38761d; }   /* after the list rule above, so each box in a list colors itself too */
+  .boxlist input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
   .boxhint { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:6px; }
   .boxarea { border-top:3px solid #111; }
   .boxarea.correct { box-shadow: inset 6px 0 0 #38761d; } .boxarea.partial { box-shadow: inset 6px 0 0 #bf9000; } .boxarea.incorrect { box-shadow: inset 6px 0 0 #cc0000; }
@@ -2365,7 +2367,7 @@ function drawLab(i) {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.14";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.14b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
