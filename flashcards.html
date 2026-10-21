@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flashcards · Physical Science 8</title>
+<title>Review · Physical Science 8</title>
 <meta name="description" content="An interactive middle school science textbook: Units 1–6">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="/assets/icons.js" defer></script>
 <script src="/assets/app.js" defer></script>
+<script src="/assets/pass-menu.js" defer></script>
 <style>
   /* the top bar stays, and the embedded site fills the rest of the window */
   html, body{ height:100%; }
@@ -28,14 +30,16 @@
             <img class="mascot" src="/assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
       <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
     </a>
-    <nav class="inline-links">
+    <nav class="inline-links" aria-label="Site">
       <a href="/index.html">Home</a>
-      <a href="/flashcards.html">Flashcards</a>
+      <a href="/flashcards.html" class="active" aria-current="page">Review</a>
       <a href="/sims.html">Sims</a>
       <a href="/extra-credit.html">Extra Credit</a>
       <a href="/glossary.html">Glossary</a>
+      <a href="/leaderboard.html" class="nav-board">Leaderboard</a>
     </nav>
     <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -62,18 +66,23 @@
       <ul><li><a class="" href="/molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="/physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="/conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="/synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
     </div>
 </div>
-<iframe class="embed-frame" id="vocabFrame" title="Vocabulary flashcards" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
+<iframe class="embed-frame" id="vocabFrame" title="Review: flashcard sets and class games" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
 <script>
-/* Each flashcard set has its own address here by its name, the same as on the vocabulary site:
+/* The Review page (it was called Flashcards until 2026-10-20; its address stays /flashcards, so old links work).
+   Each flashcard set has its own address here by its name, the same as on the vocabulary site:
    /flashcards/frame-of-reference/ opens that set, /flashcards/frame-of-reference/#learn opens it in Learn,
    /flashcards#folder-<id> opens a folder, and older /flashcards/my/<set id>/ links still work.
    (_redirects serves this page at every /flashcards/... address.)
-   The vocabulary site's pages say which page is open (its book.js), and the address follows along. */
+   The vocabulary site's pages say which page is open (its book.js), and the address follows along.
+   The Class Pass menu in the top bar links to /flashcards?go=live (Host a game) and /flashcards?go=join. */
 (function(){
   var VOCAB = "https://vocabulary-room901.pages.dev";
   var frame = document.getElementById("vocabFrame");
   var pageTitle = document.title, siteName = pageTitle.split(" · ").pop();
   function open(){
+    var go = (location.search.match(/[?&]go=(live|join|leaderboard)\b/) || [])[1];
+    var code = (location.search.match(/[?&]code=([A-Za-z2-9]{6})\b/) || [])[1];
+    if(go){ frame.src = VOCAB + "/" + go + "/" + (go === "join" && code ? "?code=" + code.toUpperCase() : ""); return; }
     var m = location.pathname.match(/^\/flashcards(\/[\w\/.-]*)?$/);
     frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + location.hash;
   }

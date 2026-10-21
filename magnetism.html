@@ -9,9 +9,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
 <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
 <link rel="stylesheet" href="./assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="./assets/icons.js" defer></script>
+<script src="./assets/page-text.js" defer></script>
 <script src="./assets/app.js" defer></script>
+<script src="./assets/pass-menu.js" defer></script>
 </head>
 <body data-unit="u3">
 <div class="topbar">
@@ -21,14 +24,16 @@
             <img class="mascot" src="./assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
       <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
     </a>
-    <nav class="inline-links">
+    <nav class="inline-links" aria-label="Site">
       <a href="./index.html">Home</a>
-      <a href="./flashcards.html">Flashcards</a>
+      <a href="./flashcards.html">Review</a>
       <a href="./sims.html">Sims</a>
       <a href="./extra-credit.html">Extra Credit</a>
       <a href="./glossary.html">Glossary</a>
+      <a href="./leaderboard.html" class="nav-board">Leaderboard</a>
     </nav>
     <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -136,7 +141,7 @@
   
 
   <h2 id="real-world">Real-World Connections</h2>
-  <div class="examples-grid"><div class="example-card"><h4>Compasses and Earth's Magnetic Field</h4><p>A compass needle lines up with Earth's own magnetic field, generated deep inside the planet by swirling molten iron, the reason compasses have guided navigation for centuries.</p></div><div class="example-card"><h4>Magnetic Junkyard Cranes</h4><p>The giant electromagnetic cranes used at junkyards and recycling centers can lift an entire car using a magnetic field, then release the metal instantly by switching the field off.</p></div></div>
+  <div class="rw-figures"><figure class="rw-figure"><a href="./assets/real-world/u3-t1-1.jpg" target="_blank" rel="noopener" aria-label="Compasses and Earth's Magnetic Field: open the picture full size"><img src="./assets/real-world/u3-t1-1.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Compasses and Earth's Magnetic Field.</b> A compass needle lines up with Earth's own magnetic field, generated deep inside the planet by swirling molten iron, the reason compasses have guided navigation for centuries.</figcaption></figure><figure class="rw-figure"><a href="./assets/real-world/u3-t1-2.jpg" target="_blank" rel="noopener" aria-label="Magnetic Junkyard Cranes: open the picture full size"><img src="./assets/real-world/u3-t1-2.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Magnetic Junkyard Cranes.</b> The giant electromagnetic cranes used at junkyards and recycling centers can lift an entire car using a magnetic field, then release the metal instantly by switching the field off.</figcaption></figure><p class="rw-hint"><span class="zoom-hint"></span> a picture to open it full size.</p></div>
   <div class="connection-note"><span class="tag">How they tie together</span><span>Both show magnetic fields exerting real force on objects without ever touching them, whether that field comes from deep inside our planet or a machine built to sort scrap metal.</span></div>
 
   <h2 id="scientist">Meet the Scientist</h2>

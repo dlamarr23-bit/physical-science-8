@@ -9,9 +9,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
 <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
 <link rel="stylesheet" href="./assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="./assets/icons.js" defer></script>
+<script src="./assets/page-text.js" defer></script>
 <script src="./assets/app.js" defer></script>
+<script src="./assets/pass-menu.js" defer></script>
 </head>
 <body data-unit="u1">
 <div class="topbar">
@@ -21,14 +24,16 @@
             <img class="mascot" src="./assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
       <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
     </a>
-    <nav class="inline-links">
+    <nav class="inline-links" aria-label="Site">
       <a href="./index.html">Home</a>
-      <a href="./flashcards.html">Flashcards</a>
+      <a href="./flashcards.html">Review</a>
       <a href="./sims.html">Sims</a>
       <a href="./extra-credit.html">Extra Credit</a>
       <a href="./glossary.html">Glossary</a>
+      <a href="./leaderboard.html" class="nav-board">Leaderboard</a>
     </nav>
     <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -121,7 +126,7 @@
   
 
   <h2 id="real-world">Real-World Connections</h2>
-  <div class="examples-grid"><div class="example-card"><h4>Passing Cars on the Highway</h4><p>If you're riding in a car going 65 mph and another car passes you going 70 mph, that car only looks like it's crawling by, even though both cars are flying down the road relative to someone standing on the shoulder.</p></div><div class="example-card"><h4>Flying Against the Wind</h4><p>A jet cruising at 500 mph relative to the air around it might only cover 420 mph relative to the ground if it's fighting a strong headwind, or 580 mph if that same wind pushes from behind.</p></div></div>
+  <div class="rw-figures"><figure class="rw-figure"><a href="./assets/real-world/u1-t1-1.jpg" target="_blank" rel="noopener" aria-label="Passing Cars on the Highway: open the picture full size"><img src="./assets/real-world/u1-t1-1.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Passing Cars on the Highway.</b> If you're riding in a car going 65 mph and another car passes you going 70 mph, that car only looks like it's crawling by, even though both cars are flying down the road relative to someone standing on the shoulder.</figcaption></figure><figure class="rw-figure"><a href="./assets/real-world/u1-t1-2.jpg" target="_blank" rel="noopener" aria-label="Flying Against the Wind: open the picture full size"><img src="./assets/real-world/u1-t1-2.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Flying Against the Wind.</b> A jet cruising at 500 mph relative to the air around it might only cover 420 mph relative to the ground if it's fighting a strong headwind, or 580 mph if that same wind pushes from behind.</figcaption></figure><p class="rw-hint"><span class="zoom-hint"></span> a picture to open it full size.</p></div>
   <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples show the same idea: an object's speed only means something once you say what it's being compared to. Change the reference point, and the same motion can look completely different.</span></div>
 
   <h2 id="scientist">Meet the Scientist</h2>

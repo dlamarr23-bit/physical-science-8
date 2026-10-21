@@ -9,9 +9,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
 <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
 <link rel="stylesheet" href="./assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="./assets/icons.js" defer></script>
+<script src="./assets/page-text.js" defer></script>
 <script src="./assets/app.js" defer></script>
+<script src="./assets/pass-menu.js" defer></script>
 </head>
 <body data-unit="u5">
 <div class="topbar">
@@ -21,14 +24,16 @@
             <img class="mascot" src="./assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
       <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
     </a>
-    <nav class="inline-links">
+    <nav class="inline-links" aria-label="Site">
       <a href="./index.html">Home</a>
-      <a href="./flashcards.html">Flashcards</a>
+      <a href="./flashcards.html">Review</a>
       <a href="./sims.html">Sims</a>
       <a href="./extra-credit.html">Extra Credit</a>
       <a href="./glossary.html">Glossary</a>
+      <a href="./leaderboard.html" class="nav-board">Leaderboard</a>
     </nav>
     <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -129,7 +134,7 @@
   
 
   <h2 id="real-world">Real-World Connections</h2>
-  <div class="examples-grid"><div class="example-card"><h4>Sea Breezes at the Beach</h4><p>Land heats up and cools down faster than water, which is why a cool breeze often blows from the ocean toward shore on a hot afternoon, as heat flows from the warmer land and air toward the cooler sea air replacing it.</p></div><div class="example-card"><h4>Why Metal Feels Colder Than Wood</h4><p>A metal railing and a wooden fence sitting outside at the same temperature feel different to the touch because metal pulls heat away from your hand much faster than wood does.</p></div></div>
+  <div class="rw-figures"><figure class="rw-figure"><a href="./assets/real-world/u5-t1-1.jpg" target="_blank" rel="noopener" aria-label="Sea Breezes at the Beach: open the picture full size"><img src="./assets/real-world/u5-t1-1.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Sea Breezes at the Beach.</b> Land heats up and cools down faster than water, which is why a cool breeze often blows from the ocean toward shore on a hot afternoon, as heat flows from the warmer land and air toward the cooler sea air replacing it.</figcaption></figure><figure class="rw-figure"><a href="./assets/real-world/u5-t1-2.jpg" target="_blank" rel="noopener" aria-label="Why Metal Feels Colder Than Wood: open the picture full size"><img src="./assets/real-world/u5-t1-2.jpg" width="1600" height="894" loading="lazy" decoding="async" alt=""></a><figcaption class="sr-only"><b>Why Metal Feels Colder Than Wood.</b> A metal railing and a wooden fence sitting outside at the same temperature feel different to the touch because metal pulls heat away from your hand much faster than wood does.</figcaption></figure><p class="rw-hint"><span class="zoom-hint"></span> a picture to open it full size.</p></div>
   <div class="connection-note"><span class="tag">How they tie together</span><span>Both examples show heat naturally flowing from warmer things to cooler things: whether that's warm land heating the air above it, or your warm hand losing heat to cold metal.</span></div>
 
   <h2 id="scientist">Meet the Scientist</h2>

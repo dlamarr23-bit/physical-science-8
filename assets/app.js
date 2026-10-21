@@ -41,6 +41,20 @@
     var drawer = document.getElementById("drawer");
     var backdrop = document.getElementById("drawerBackdrop");
     if(!drawer) return;
+    // the top bar's links as a row of buttons at the top of the drawer
+    var links = document.querySelector(".topbar nav.inline-links");
+    var title = drawer.querySelector("h3");
+    if(links && title && !drawer.querySelector(".drawer-links")){
+      var row = document.createElement("nav");
+      row.className = "drawer-links";
+      row.setAttribute("aria-label", "Site");
+      links.querySelectorAll("a").forEach(function(a){
+        var copy = a.cloneNode(true);
+        copy.className = a.classList.contains("active") ? "active" : "";
+        row.appendChild(copy);
+      });
+      title.insertAdjacentElement("afterend", row);
+    }
     function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); }
     function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open"); }
     if(openBtn) openBtn.addEventListener("click", open);
@@ -408,6 +422,7 @@
   }
 
   /* ---------- in-text glossary terms: click to pop out a definition ---------- */
+  var wireTerm = null; // set below, so words the teacher changed after the page opened (page-text.js) work too
   function initGlossaryTerms(){
     var terms = document.querySelectorAll(".gloss-term");
     if(!terms.length) return;
@@ -488,7 +503,9 @@
       current = {el: el, popout: pop};
     }
 
-    terms.forEach(function(el){
+    wireTerm = function(el){
+      if(el._ps8Wired) return;
+      el._ps8Wired = true;
       el.setAttribute("role", "button");
       el.setAttribute("tabindex", "0");
       el.setAttribute("aria-expanded", "false");
@@ -496,7 +513,8 @@
       el.addEventListener("keydown", function(e){
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openPopout(el); }
       });
-    });
+    };
+    terms.forEach(wireTerm);
 
     backdrop.addEventListener("click", closePopout);
     document.addEventListener("click", function(e){
@@ -727,6 +745,17 @@
     // wait a beat so images above the word have their size before we scroll
     window.setTimeout(function(){ go(1); }, 150);
   }
+
+  /* ---------- words put in after the page started (the teacher's changes, page-text.js) ---------- */
+  window.PS8App = {
+    refresh: function(box){
+      if(wireTerm) box.querySelectorAll(".gloss-term").forEach(wireTerm);
+      if(box.tagName === "H2" && box.id){
+        var link = document.querySelector('.rail-nav a[href="#' + box.id + '"]');
+        if(link) link.textContent = box.textContent;
+      }
+    }
+  };
 
   document.addEventListener("DOMContentLoaded", function(){
     injectIcons();

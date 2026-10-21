@@ -9,9 +9,11 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="/assets/icons.js" defer></script>
 <script src="/assets/app.js" defer></script>
+<script src="/assets/pass-menu.js" defer></script>
 <style>
   /* the top bar stays, and the embedded site fills the rest of the window */
   html, body{ height:100%; }
@@ -28,14 +30,16 @@
             <img class="mascot" src="/assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
       <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
     </a>
-    <nav class="inline-links">
+    <nav class="inline-links" aria-label="Site">
       <a href="/index.html">Home</a>
-      <a href="/flashcards.html">Flashcards</a>
-      <a href="/sims.html">Sims</a>
+      <a href="/flashcards.html">Review</a>
+      <a href="/sims.html" class="active" aria-current="page">Sims</a>
       <a href="/extra-credit.html">Extra Credit</a>
       <a href="/glossary.html">Glossary</a>
+      <a href="/leaderboard.html" class="nav-board">Leaderboard</a>
     </nav>
     <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -66,18 +70,30 @@
 <script>
 /* Each sim has its own address: /sims/<the sim's folder in the library>, e.g. /sims/how-friction-affects-speed.
    (_redirects serves this page at every /sims/... address.) The library's pages say which sim is open,
-   and the address follows along; opening a sim's address opens that sim. */
+   and the address follows along; opening a sim's address opens that sim.
+   Light or dark: the library and its sims open in this site's mode (?theme=), hear about a change from the
+   Class Pass menu ({simTheme} message), and a sim's own light/dark button switches this site too. */
 (function(){
   var LIBRARY = "https://sim-library-87y.pages.dev";
   var frame = document.getElementById("simFrame");
   var pageTitle = document.title;
+  function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+  function tellTheme(){ try { frame.contentWindow.postMessage({simTheme: theme()}, LIBRARY); } catch(e){ /* still loading */ } }
   var m = location.pathname.match(/^\/sims\/([a-z0-9-]+)\/?$/);
-  frame.src = LIBRARY + "/" + (m ? m[1] + "/" : "");
+  frame.src = LIBRARY + "/" + (m ? m[1] + "/" : "") + "?theme=" + theme();
+  window.addEventListener("ps8:theme", tellTheme);
 
   window.addEventListener("message", function(e){
     if(e.origin !== LIBRARY || e.source !== frame.contentWindow) return;
+    var t = e.data && e.data.simTheme;
+    if(t === "light" || t === "dark"){
+      if(t !== theme() && window.PS8Pass) window.PS8Pass.setTheme(t);
+      return;
+    }
     var info = e.data && e.data.simLibrary;
     if(!info || typeof info.path !== "string") return;
+    // a page of the library just opened: it shows this site's mode (one opened from a link may not know it yet)
+    tellTheme();
     var sim = (info.path.match(/^\/([a-z0-9-]+)\/?$/) || [])[1];
     var address = sim ? "/sims/" + sim : "/sims";
     // replace, not push: the frame's own move is already a step in the Back button's history
