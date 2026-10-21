@@ -493,7 +493,10 @@ figure.section-figure{ margin:22px 0 30px; }
 .example-card p{ margin:0; color:var(--ink-soft); font-size:.92rem; }
 /* an example that has its own picture shows the picture instead of the card: the picture carries the words,
    which stay in the page (sr-only caption) for screen readers and the site search */
-.rw-figures{ display:grid; gap:18px; margin:18px 0 14px; }
+/* two to a row (an example still without a picture sits beside the one with a picture); one per row on phones */
+.rw-figures{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:18px; margin:18px 0 14px; }
+.rw-figures > .rw-hint{ grid-column:1 / -1; }
+@media (max-width:700px){ .rw-figures{ grid-template-columns:minmax(0,1fr); } }
 .rw-figure{
   margin:0; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
   overflow:hidden; box-shadow:var(--shadow-sm); border-top:4px solid var(--accent);
@@ -503,7 +506,6 @@ figure.section-figure{ margin:22px 0 30px; }
 .rw-hint{ margin:-6px 0 0; font-size:.8rem; font-weight:500; color:var(--ink-soft); }
 .rw-hint .zoom-hint::before{ content:"Tap"; }
 @media (hover:hover) and (pointer:fine){ .rw-hint .zoom-hint::before{ content:"Click"; } }
-.rw-figures + .examples-grid{ margin-top:0; }
 .connection-note{
   display:flex; gap:10px; align-items:flex-start; background:var(--accent-tint); border-radius:var(--radius-sm);
   padding:14px 18px; margin:4px 0 8px; font-size:.92rem; color:var(--ink);
