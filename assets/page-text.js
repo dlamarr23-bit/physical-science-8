@@ -15,7 +15,12 @@
    the glossary terms; changes that arrive later are wired up through PS8App.refresh(box). The last changes
    seen are kept in this browser (ps8-text-v1:<page>), so a page opened before shows them at once.
 
-   Teacher: Class Pass menu > Edit this page. Click any words to change them, then Save.
+   Pictures (2026-10-21): a picture's description (its alt text, read aloud by screen readers) is changed the
+   same way and kept with the words' changes, named alt- and a short code made from the picture's file, e.g.
+   alt-k2j3d (alt-k2j3d-2 for the same picture a second time). So it comes off by itself if the picture is swapped.
+
+   Teacher: Class Pass menu > Edit this page. Click any words to change them, or a picture to change its
+   description, then Save.
 
    window.PS8Text: canEdit(), edit(). */
 (function(){
@@ -113,6 +118,36 @@
     });
   }
 
+  /* ---------- finding the pictures ---------- */
+  // app.js puts some pictures in (a lab's setup) as the page gets ready, so they are found after that
+  var pics = [], picsFound = false, latest = null;
+  function plain(s){ return String(s == null ? "" : s).replace(/\s+/g, " ").trim().slice(0, 2000); }
+  function scanPics(){
+    if(picsFound) return;
+    picsFound = true;
+    var seen = {};
+    [document.querySelector(".hero"), document.querySelector("main")].forEach(function(root){
+      if(!root) return;
+      Array.prototype.forEach.call(root.querySelectorAll("img"), function(img){
+        if(img.closest(".topbar, .drawer, [data-no-edit]")) return;
+        var src = (img.getAttribute("src") || "").replace(/^\.\//, "").split(/[?#]/)[0];
+        if(!src) return;
+        var base = "alt-" + hash(src);
+        seen[base] = (seen[base] || 0) + 1;
+        pics.push({el: img, key: seen[base] > 1 ? base + "-" + seen[base] : base, raw: plain(img.getAttribute("alt")), applied: null});
+      });
+    });
+    if(latest) applyPics(latest);
+  }
+  function applyPics(c){
+    pics.forEach(function(p){
+      var want = Object.prototype.hasOwnProperty.call(c.edits, p.key) ? plain(c.edits[p.key]) : null;
+      if(want === p.applied) return;
+      p.el.alt = want == null ? p.raw : want;
+      p.applied = want;
+    });
+  }
+
   /* ---------- putting the changes in ---------- */
   function readCache(){
     try { var c = JSON.parse(localStorage.getItem(CACHE + page)); if(c && c.edits) return c; } catch(e){ /* no storage */ }
@@ -134,6 +169,8 @@
       changed.push(b.el);
     });
     if(changed.length && window.PS8App && window.PS8App.refresh) changed.forEach(window.PS8App.refresh);
+    latest = c;
+    applyPics(c);
   }
 
   function load(){
@@ -162,6 +199,12 @@
     document.execCommand("insertText", false, text);
   }
   function onKey(e){
+    var pic = e.target.closest && e.target.closest("[data-pt-pic]");
+    if(pic && (e.key === "Enter" || e.key === " ")){
+      e.preventDefault();
+      describe(picFor(pic));
+      return;
+    }
     if(!e.target.closest || !e.target.closest("[data-pt-box]")) return;
     // one box is one paragraph: Enter does not start another (Shift+Enter breaks the line)
     if(e.key === "Enter"){
@@ -169,8 +212,15 @@
       if(e.shiftKey) document.execCommand("insertLineBreak");
     }
   }
-  // inside the boxes, a link or glossary word is just words while editing
+  // inside the boxes, a link or glossary word is just words while editing; a picture opens its description
   function onClick(e){
+    var pic = e.target.closest && e.target.closest("[data-pt-pic]");
+    if(pic){
+      e.preventDefault();
+      e.stopPropagation();
+      describe(picFor(pic));
+      return;
+    }
     if(e.target.closest && e.target.closest("[data-pt-box]")){
       if(e.target.closest("a")) e.preventDefault();
       e.stopPropagation();
@@ -187,19 +237,31 @@
     e.returnValue = "";
   }
   function boxFor(el){ for(var i = 0; i < boxes.length; i++) if(boxes[i].el === el) return boxes[i]; return null; }
+  function picFor(el){ for(var i = 0; i < pics.length; i++) if(pics[i].el === el) return pics[i]; return null; }
   function original(b){ return clean(b.raw); }
   function current(b){ return clean(b.el.innerHTML); }
-  function dirty(){ return boxes.some(function(b){ return current(b) !== clean(b.before); }); }
+  function dirty(){
+    return boxes.some(function(b){ return current(b) !== clean(b.before); }) ||
+      pics.some(function(p){ return p.el.alt !== p.before; });
+  }
 
   function update(){
     if(!bar) return;
-    var n = 0;
+    var n = 0, m = 0;
     boxes.forEach(function(b){
       var mine = current(b) !== original(b);
       if(mine) n++;
       b.el.toggleAttribute("data-pt-changed", mine);
     });
-    bar.querySelector(".pt-count").textContent = n ? n + (n === 1 ? " box changed" : " boxes changed") + " on this page" : "No changes on this page yet";
+    pics.forEach(function(p){
+      var mine = plain(p.el.alt) !== p.raw;
+      if(mine) m++;
+      p.el.toggleAttribute("data-pt-changed", mine);
+    });
+    var said = [];
+    if(n) said.push(n + (n === 1 ? " box" : " boxes"));
+    if(m) said.push(m + (m === 1 ? " picture description" : " picture descriptions"));
+    bar.querySelector(".pt-count").textContent = said.length ? said.join(" and ") + " changed on this page" : "No changes on this page yet";
     var put = bar.querySelector(".pt-restore");
     put.hidden = !(focused && current(focused) !== original(focused));
   }
@@ -215,12 +277,20 @@
       b.el.setAttribute("contenteditable", "true");
       b.el.setAttribute("spellcheck", "true");
     });
+    scanPics();
+    pics.forEach(function(p){
+      p.before = p.el.alt;
+      p.title = p.el.getAttribute("title");
+      p.el.setAttribute("data-pt-pic", "");
+      p.el.setAttribute("tabindex", "0");
+      p.el.setAttribute("title", "Click to change this picture's description");
+    });
     bar = document.createElement("div");
     bar.className = "pt-bar";
     bar.setAttribute("role", "region");
     bar.setAttribute("aria-label", "Editing this page");
     bar.innerHTML =
-      '<div class="pt-bar-text"><b>Editing this page.</b> Click any words to change them. ' +
+      '<div class="pt-bar-text"><b>Editing this page.</b> Click any words to change them, or a picture to change its description. ' +
       '<span class="pt-keys">Ctrl+B bold, Ctrl+I italic, Shift+Enter new line.</span> <span class="pt-count"></span></div>' +
       '<div class="pt-bar-btns"><button type="button" class="btn secondary pt-restore" hidden>Put back the original words</button>' +
       '<button type="button" class="btn secondary pt-cancel">Cancel</button>' +
@@ -244,6 +314,53 @@
     update();
   }
 
+  // a picture's description: a small window with the picture and its words; Done puts them on the picture,
+  // and Save in the bar keeps them with the rest of the page's changes
+  function describe(p){
+    if(!p) return;
+    var old = document.querySelector(".pt-pic-back");
+    if(old) old.remove();
+    var back = document.createElement("div");
+    back.className = "cp-dlg-back pt-pic-back";
+    back.innerHTML =
+      '<form class="cp-dlg pt-pic" role="dialog" aria-modal="true" aria-labelledby="ptPicTitle">' +
+      '<button type="button" class="cp-dlg-x" aria-label="Close">×</button>' +
+      '<h2 class="cp-dlg-title" id="ptPicTitle">Picture description</h2>' +
+      '<img class="pt-pic-img" alt="">' +
+      '<p class="cp-dlg-text">Screen readers read this aloud to students who cannot see the picture. Say what the picture shows.</p>' +
+      '<textarea class="cp-dlg-input pt-pic-words" rows="5" maxlength="2000" spellcheck="true" aria-label="Picture description"></textarea>' +
+      '<div class="pt-pic-btns"><button type="button" class="btn secondary pt-pic-orig">Put back the original description</button>' +
+      '<button type="submit" class="btn">Done</button></div>' +
+      '</form>';
+    var box = back.querySelector("form"), words = back.querySelector("textarea"), orig = back.querySelector(".pt-pic-orig");
+    back.querySelector(".pt-pic-img").src = p.el.currentSrc || p.el.src;
+    words.value = p.el.alt;
+    function showOrig(){ orig.hidden = plain(words.value) === p.raw; }
+    // the box grows to show all of the words (up to a point)
+    function fit(){ words.style.height = "auto"; words.style.height = Math.min(words.scrollHeight + 4, 280) + "px"; }
+    function close(){
+      back.remove();
+      document.removeEventListener("keydown", onEsc, true);
+      p.el.focus({preventScroll: true});
+    }
+    function onEsc(e){ if(e.key === "Escape"){ e.stopPropagation(); close(); } }
+    document.addEventListener("keydown", onEsc, true);
+    words.addEventListener("input", function(){ showOrig(); fit(); });
+    orig.addEventListener("click", function(){ words.value = p.raw; showOrig(); fit(); words.focus(); });
+    back.querySelector(".cp-dlg-x").addEventListener("click", close);
+    back.addEventListener("click", function(e){ if(e.target === back) close(); });
+    box.addEventListener("submit", function(e){
+      e.preventDefault();
+      p.el.alt = plain(words.value);
+      close();
+      update();
+    });
+    document.body.appendChild(back);
+    showOrig();
+    fit();
+    words.focus();
+  }
+
   function stop(){
     editing = false;
     document.body.classList.remove("pt-editing");
@@ -253,6 +370,14 @@
       b.el.removeAttribute("contenteditable");
       b.el.removeAttribute("spellcheck");
     });
+    pics.forEach(function(p){
+      p.el.removeAttribute("data-pt-pic");
+      p.el.removeAttribute("data-pt-changed");
+      p.el.removeAttribute("tabindex");
+      if(p.title == null) p.el.removeAttribute("title"); else p.el.setAttribute("title", p.title);
+    });
+    var pic = document.querySelector(".pt-pic-back");
+    if(pic) pic.remove();
     document.removeEventListener("paste", onPaste, true);
     document.removeEventListener("keydown", onKey, true);
     document.removeEventListener("click", onClick, true);
@@ -269,6 +394,7 @@
     boxes.forEach(function(b){
       if(b.el.innerHTML !== b.before) b.el.innerHTML = b.before;
     });
+    pics.forEach(function(p){ p.el.alt = p.before; });
     stop();
     refreshAll();
   }
@@ -285,6 +411,10 @@
       var now = current(b);
       if(now !== original(b)) edits[b.key] = now;
     });
+    pics.forEach(function(p){
+      var now = plain(p.el.alt);
+      if(now !== p.raw) edits[p.key] = now;
+    });
     if(!window.PS8Pass){ msg.textContent = "Saving needs the Class Pass button in the top bar. Reload the page and try again."; return; }
     btn.disabled = true;
     msg.className = "pt-msg";
@@ -298,6 +428,11 @@
         if(current(b) !== clean(html)) b.el.innerHTML = html;
         b.applied = want;
       });
+      pics.forEach(function(p){
+        p.applied = Object.prototype.hasOwnProperty.call(edits, p.key) ? edits[p.key] : null;
+        p.el.alt = p.applied == null ? p.raw : p.applied;
+      });
+      latest = c;
       writeCache(c);
       stop();
       refreshAll();
@@ -321,4 +456,7 @@
   var cached = readCache();
   if(cached) apply(cached);
   load();
+  // the pictures once app.js has put its own in (its page-ready step runs after this one)
+  if(document.readyState === "complete") scanPics();
+  else document.addEventListener("DOMContentLoaded", function(){ setTimeout(scanPics, 0); });
 })();
