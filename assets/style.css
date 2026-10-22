@@ -311,6 +311,10 @@ body.pt-editing [data-pt-changed]{ background:#fff6cc; }
 }
 .hero-inner.no-art{ grid-template-columns:1fr; }
 
+/* home page: wide banner under the title, intro text as wide as the title */
+.home-banner{ display:block; width:100%; height:auto; border-radius:16px; box-shadow:var(--shadow); margin:4px 0 20px; }
+.hero .home-banner + .lede{ max-width:none; }
+
 /* ---------------- callout (unit "big idea") ---------------- */
 .callout{
   background:var(--card); border:1px solid var(--line); border-left:6px solid var(--accent);
