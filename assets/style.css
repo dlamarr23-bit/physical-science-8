@@ -14,13 +14,13 @@
   /* the unit colors (Donny's palette, 2026-10-21): u0 is the default, u1 to u6 are the units.
      --uN fills bars and buttons, --uN-on is the words on that fill, --uN-ink is words in the unit's color
      (a deeper shade where the color itself is too light to read), --uN-tint is a pale wash of it */
-  --u0:#080D16; --u0-on:#ffffff; --u0-ink:#080D16; --u0-tint:#eaeef6;
-  --u1:#161E2C; --u1-on:#ffffff; --u1-ink:#161E2C; --u1-tint:#ebeef5;
-  --u2:#273449; --u2-on:#ffffff; --u2-ink:#273449; --u2-tint:#ebeff4;
-  --u3:#3D526C; --u3-on:#ffffff; --u3-ink:#3D526C; --u3-tint:#ebeff4;
-  --u4:#56718F; --u4-on:#ffffff; --u4-ink:#455a72; --u4-tint:#eceff4;
-  --u5:#7197B7; --u5-on:#080D16; --u5-ink:#3c5c77; --u5-tint:#ebf0f5;
-  --u6:#A8C2D6; --u6-on:#080D16; --u6-ink:#375b76; --u6-tint:#eaf0f5;
+  --u0:#081C2B; --u0-on:#ffffff; --u0-ink:#081C2B; --u0-tint:#eaf1f6;
+  --u1:#123C5E; --u1-on:#ffffff; --u1-ink:#123C5E; --u1-tint:#eaf0f6;
+  --u2:#1D6EA5; --u2-on:#ffffff; --u2-ink:#185d8b; --u2-tint:#eaf1f6;
+  --u3:#3A4650; --u3-on:#ffffff; --u3-ink:#3A4650; --u3-tint:#edf0f2;
+  --u4:#7A8690; --u4-on:#081C2B; --u4-ink:#525a62; --u4-tint:#eef0f1;
+  --u5:#1F5C44; --u5-on:#ffffff; --u5-ink:#1F5C44; --u5-tint:#eaf6f1;
+  --u6:#6EAF8F; --u6-on:#081C2B; --u6-ink:#345f4a; --u6-tint:#ebf4f0;
   --accent:var(--u0);
   --on-accent:var(--u0-on);
   --accent-dark:var(--u0-ink);
@@ -49,7 +49,7 @@ body[data-unit="u6"]{ --accent:var(--u6); --on-accent:var(--u6-on); --accent-dar
 
 /* ---- dark mode (Class Pass menu > Dark mode; pass-menu.js, set before the page draws by the script in <head>) ----
    --accent fills buttons (--on-accent words on it), --accent-dark is the colored words, so in the dark it is the light one.
-   The unit colors are lifted to lighter shades of the same blues, in the same order, so even the near-black ones show.
+   The unit colors are lifted to lighter shades of the same colors, so the darkest ones still show and no two units look alike.
    The posters and pictures stay as they are. */
 html[data-theme="dark"]{
   --ink:#e7e9f1;
@@ -57,13 +57,13 @@ html[data-theme="dark"]{
   --paper:#171a23;
   --paper-soft:#0e1016;
   --line:#2b3040;
-  --u0:#5272ad; --u0-on:#ffffff; --u0-ink:#9aadd0; --u0-tint:#232c3f;
-  --u1:#5f7caf; --u1-on:#080D16; --u1-ink:#99accc; --u1-tint:#252e3f;
-  --u2:#7089b3; --u2-on:#080D16; --u2-ink:#9badca; --u2-tint:#293040;
-  --u3:#829bb9; --u3-on:#080D16; --u3-ink:#99adc6; --u3-tint:#2c3441;
-  --u4:#93a9c2; --u4-on:#080D16; --u4-ink:#9aafc6; --u4-tint:#303743;
-  --u5:#a3bbd0; --u5-on:#080D16; --u5-ink:#a3bbd0; --u5-tint:#333a46;
-  --u6:#bacede; --u6-on:#080D16; --u6-ink:#bacede; --u6-tint:#383e48;
+  --u0:#1c6297; --u0-on:#ffffff; --u0-ink:#71b3e5; --u0-tint:#18283a;
+  --u1:#2478bc; --u1-on:#ffffff; --u1-ink:#72b1e4; --u1-tint:#1a2d42;
+  --u2:#389adc; --u2-on:#081C2B; --u2-ink:#67b2e4; --u2-tint:#1e3448;
+  --u3:#5e7282; --u3-on:#ffffff; --u3-ink:#a1afbb; --u3-tint:#252c36;
+  --u4:#909aa3; --u4-on:#081C2B; --u4-ink:#a4acb3; --u4-tint:#2f343d;
+  --u5:#2b7e5d; --u5-on:#ffffff; --u5-ink:#45c090; --u5-tint:#1b2e2f;
+  --u6:#6EAF8F; --u6-on:#081C2B; --u6-ink:#7eb89c; --u6-tint:#283839;
   --on-accent-dark:#080D16;
   --good:#34b37f;
   --bad:#ef6a62;
