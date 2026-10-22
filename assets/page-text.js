@@ -18,6 +18,7 @@
    Pictures (2026-10-21): a picture's description (its alt text, read aloud by screen readers) is changed the
    same way and kept with the words' changes, named alt- and a short code made from the picture's file, e.g.
    alt-k2j3d (alt-k2j3d-2 for the same picture a second time). So it comes off by itself if the picture is swapped.
+   While the teacher is signed in, resting the mouse on a picture shows its description (students see nothing).
 
    Teacher: Class Pass menu > Edit this page. Click any words to change them, or a picture to change its
    description, then Save.
@@ -134,10 +135,14 @@
         if(!src) return;
         var base = "alt-" + hash(src);
         seen[base] = (seen[base] || 0) + 1;
-        pics.push({el: img, key: seen[base] > 1 ? base + "-" + seen[base] : base, raw: plain(img.getAttribute("alt")), applied: null});
+        pics.push({el: img, key: seen[base] > 1 ? base + "-" + seen[base] : base, raw: plain(img.getAttribute("alt")),
+          applied: null, title: img.getAttribute("title")});
       });
     });
     if(latest) applyPics(latest);
+    // pass-menu.js (it runs before this) says when the teacher signs in or out
+    if(window.PS8Pass && window.PS8Pass.onChange) window.PS8Pass.onChange(tips);
+    tips();
   }
   function applyPics(c){
     pics.forEach(function(p){
@@ -145,6 +150,17 @@
       if(want === p.applied) return;
       p.el.alt = want == null ? p.raw : want;
       p.applied = want;
+    });
+    tips();
+  }
+  // the teacher sees a picture's description when the mouse rests on it; students do not
+  function tips(){
+    if(editing) return;
+    var teacher = Boolean(window.PS8Pass && window.PS8Pass.view && (window.PS8Pass.view() || {}).teacher);
+    pics.forEach(function(p){
+      if(teacher) p.el.setAttribute("title", p.el.alt ? "Picture description: " + p.el.alt : "This picture has no description yet.");
+      else if(p.title == null) p.el.removeAttribute("title");
+      else p.el.setAttribute("title", p.title);
     });
   }
 
@@ -280,7 +296,6 @@
     scanPics();
     pics.forEach(function(p){
       p.before = p.el.alt;
-      p.title = p.el.getAttribute("title");
       p.el.setAttribute("data-pt-pic", "");
       p.el.setAttribute("tabindex", "0");
       p.el.setAttribute("title", "Click to change this picture's description");
@@ -374,8 +389,8 @@
       p.el.removeAttribute("data-pt-pic");
       p.el.removeAttribute("data-pt-changed");
       p.el.removeAttribute("tabindex");
-      if(p.title == null) p.el.removeAttribute("title"); else p.el.setAttribute("title", p.title);
     });
+    tips(); // the picture's own title again (or its description for the teacher)
     var pic = document.querySelector(".pt-pic-back");
     if(pic) pic.remove();
     document.removeEventListener("paste", onPaste, true);
