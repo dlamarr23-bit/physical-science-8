@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>window.CLASS_PASS_PAGE = "app";   /* on the class website, under Class Pass: see CLASS PASS in the page script */</script>
+<title>Review Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<base target="_blank">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Poppins loads without holding up the page or its script (media="print" until it arrives; Arial until then) -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+  /* REVIEW GAME (self-check\custom\review-game\): a Wayground-style game on a Self-Check sheet. Multiple choice, one try per
+     question, points, streaks, power-ups and a leaderboard. Built by class-pass\make-pass.ps1 into /pass/review/. */
+  :root { --bg1:#160726; --bg2:#3a0c44; --glow:#c2185b; --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.16);
+          --ink:#fff; --muted:#dccbe8; --green:#13b866; --green-dk:#0b8a4b; --red:#d93a4a; --red-dk:#a51f2e; --gold:#ffc83d;
+          --t0:#6b8a0e; --t1:#8a3fd1; --t2:#c8580f; --t3:#0f8a78; --t4:#c42d63; --t5:#2a62c4; }
+  * { box-sizing:border-box; }
+  html, body { min-height:100%; }
+  body { margin:0; color:var(--ink); font-family:Poppins, Arial, sans-serif;
+         background: radial-gradient(ellipse 70% 38% at 50% 92%, rgba(194,24,91,.55), rgba(194,24,91,0) 70%),
+                     radial-gradient(ellipse 30% 45% at 50% 0%, rgba(160,110,255,.35), rgba(160,110,255,0) 70%),
+                     linear-gradient(180deg, var(--bg1), var(--bg2)) fixed; background-color:var(--bg1); }
+  button { font-family:inherit; cursor:pointer; }
+  button:disabled { cursor:default; }
+  .wrap { max-width:1180px; margin:0 auto; padding:12px 16px 110px; }
+  [hidden] { display:none !important; }
+  /* loading and sign-in: light cards on the dark stage (the Class Pass block is styled for a light page) */
+  #loading { background:#fff; color:#111; border-radius:16px; max-width:520px; margin:18vh auto 0; padding:26px 20px; text-align:center; font-weight:600; }
+  #signin { background:#fff; color:#111; border-radius:16px; max-width:620px; margin:6vh auto 0; padding:16px 18px; }
+  #signin h1 { font-size:22px; margin:6px 0; }
+  #signin button:not(.linkbtn):not(.si-google) { background:#1b4587; color:#fff; border:2px solid #1b4587; border-radius:6px; padding:9px 16px; font-weight:700; }
+
+  /* ---------- the start screen ---------- */
+  .lobby { max-width:560px; margin:4vh auto 0; text-align:center; }
+  .lobby h1 { font-size:26px; line-height:1.25; margin:6px 0 4px; font-weight:800; }
+  .hello { color:var(--muted); font-size:15px; margin-bottom:14px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin:12px 0; backdrop-filter:blur(4px); }
+  .track { position:relative; height:10px; border-radius:5px; background:rgba(255,255,255,.18); margin:22px 6px 6px; }
+  .track span { position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:#fff; transition:width .6s ease; }
+  .track svg { position:absolute; top:-22px; width:18px; height:18px; fill:#fff; }
+  .track .tstart { left:-4px; } .track .tend { right:-4px; }
+  .tlabels { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin:0 2px; }
+  .remain { font-weight:700; font-size:17px; margin:10px 0 14px; }
+  .bigbtns { display:flex; gap:10px; }
+  .bigbtns button { flex:1; min-height:58px; border-radius:12px; font-size:19px; font-weight:800; border:0; border-bottom:5px solid rgba(0,0,0,.25); }
+  .go { background:var(--green); color:#fff; }
+  .go:hover:not(:disabled) { filter:brightness(1.08); }
+  .soft { background:#f1eef4; color:#4a3b57; }
+  .soft:hover:not(:disabled) { background:#fff; }
+  .go:disabled, .soft:disabled { opacity:.5; }
+  .stats { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:12px; }
+  .stat { background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:10px; padding:6px 12px; font-size:13px; color:var(--muted); }
+  .stat b { color:#fff; font-size:15px; margin-left:4px; }
+  .setTitle { text-align:left; color:var(--muted); font-size:13px; font-weight:600; margin:16px 2px 6px; }
+  .setRow { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 14px; margin-bottom:8px; text-align:left; font-size:15px; }
+  .setRow svg { width:20px; height:20px; fill:#fff; flex:none; }
+  .setRow span { flex:1; }
+  .switch { width:46px; height:26px; border-radius:13px; border:0; background:rgba(255,255,255,.3); position:relative; flex:none; padding:0; }
+  .switch::after { content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
+  .switch[aria-checked="true"] { background:var(--green); }
+  .switch[aria-checked="true"]::after { left:23px; }
+  .intro { color:var(--muted); font-size:13px; line-height:1.5; margin:14px 4px 0; }
+  .whoLine { color:var(--muted); font-size:12px; margin-top:14px; }
+  .whoLine button { background:none; border:0; color:#fff; text-decoration:underline; font-size:12px; padding:0; }
+  .linkish { background:none; border:0; color:#fff; text-decoration:underline; font-weight:600; font-size:14px; padding:6px; }
+  .closedNote { background:#fff3cd; color:#5c4400; border-radius:12px; padding:10px 14px; font-size:14px; margin:10px 0; text-align:left; }
+
+  /* ---------- 3, 2, 1 ---------- */
+  .count { position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(20,6,34,.92); }
+  .count .num { width:100%; text-align:center; background:rgba(0,0,0,.35); padding:18px 0; font-size:110px; font-weight:800; line-height:1; animation:pop .9s ease; }
+  .count .tip { margin-top:40px; width:100%; text-align:center; background:rgba(0,0,0,.45); padding:16px; }
+  .count .tip b { display:block; font-size:22px; }
+  @keyframes pop { from { transform:scale(.5); opacity:0; } 40% { transform:scale(1.1); opacity:1; } to { transform:scale(1); } }
+
+  /* ---------- playing ---------- */
+  .topbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.3); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:700; font-size:14px; white-space:nowrap; }
+  .chip svg { width:16px; height:16px; fill:currentColor; }
+  .chip.rank { color:#ffd6ec; background:rgba(194,24,91,.35); }
+  .chip.pts { color:var(--gold); }
+  .chip.streak { color:#ffb36b; }
+  .chip.streak.hot { color:#fff; background:linear-gradient(90deg,#ff7a18,#e8346c); border-color:transparent; }
+  .spacer { flex:1; }
+  .iconbtn { width:38px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid var(--line); background:rgba(0,0,0,.3); color:#fff; padding:0; }
+  .iconbtn svg { width:18px; height:18px; fill:currentColor; }
+  .iconbtn:hover { background:rgba(255,255,255,.15); }
+  .counter { display:block; width:max-content; margin:0 auto 10px; background:rgba(0,0,0,.4); border:1px solid var(--line); border-radius:14px; padding:3px 12px; font-weight:700; font-size:14px; color:var(--gold); }
+  .qcard { display:flex; gap:18px; align-items:center; background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:14px; padding:16px; min-height:150px; }
+  .qpic { flex:0 0 min(42%, 440px); position:relative; background:#fff; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:120px; border:0; padding:0; }
+  .qpic img { display:block; max-width:100%; max-height:300px; object-fit:contain; }
+  .qpic .zoom { position:absolute; left:8px; bottom:8px; width:30px; height:30px; border-radius:6px; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; }
+  .qpic .zoom svg { width:16px; height:16px; fill:#fff; }
+  .qbody { flex:1; text-align:center; }
+  .qsec { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  .qtext { font-size:clamp(17px, 2.3vw, 24px); font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
+  .qcap { font-size:12px; color:#555; padding:4px 8px 6px; text-align:center; }
+  .speak { margin-top:10px; }
+  .multi { display:block; width:max-content; margin:12px auto 0; background:rgba(255,255,255,.18); border-radius:12px; padding:3px 12px; font-size:13px; font-weight:600; }
+  .tiles { display:grid; gap:10px; margin-top:12px; grid-template-columns:repeat(var(--n), minmax(0, 1fr)); }
+  .tile { position:relative; min-height:150px; border:0; border-radius:12px; color:#fff; font-size:clamp(15px, 1.7vw, 21px); font-weight:700; line-height:1.3;
+          padding:30px 12px 18px; display:flex; align-items:center; justify-content:center; text-align:center; overflow-wrap:anywhere;
+          box-shadow:inset 0 -6px 0 rgba(0,0,0,.22); transition:transform .12s, opacity .25s, filter .2s; }
+  .tile:hover:not(:disabled) { transform:translateY(-3px); filter:brightness(1.1); }
+  .tile:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+  .tile .key { position:absolute; top:8px; right:8px; min-width:22px; height:22px; border-radius:5px; background:rgba(0,0,0,.28); font-size:12px; display:flex; align-items:center; justify-content:center; }
+  .tile .box { position:absolute; top:8px; left:8px; width:24px; height:24px; border-radius:6px; border:2px solid rgba(255,255,255,.85); background:rgba(0,0,0,.15); }
+  .tile.sel .box { background:#fff; }
+  .tile.sel .box::after { content:""; position:absolute; left:6px; top:1px; width:7px; height:13px; border:solid #2b1640; border-width:0 3px 3px 0; transform:rotate(45deg); }
+  .tile.sel { box-shadow:inset 0 -6px 0 rgba(0,0,0,.22), 0 0 0 4px #fff; }
+  .tile img { max-width:100%; max-height:200px; background:#fff; border-radius:8px; display:block; }
+  .tile.picTile { padding:34px 10px 14px; }
+  .c0 { background:linear-gradient(180deg,#8fb31a,var(--t0)); } .c1 { background:linear-gradient(180deg,#a865ea,var(--t1)); }
+  .c2 { background:linear-gradient(180deg,#f0832e,var(--t2)); } .c3 { background:linear-gradient(180deg,#1fb7a0,var(--t3)); }
+  .c4 { background:linear-gradient(180deg,#e9558a,var(--t4)); } .c5 { background:linear-gradient(180deg,#4f86e6,var(--t5)); }
+  .tile.waiting { animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { filter:brightness(1.25); transform:scale(1.02); } }
+  .tile.right { background:linear-gradient(180deg,#2fd884,var(--green)); opacity:1; }
+  .tile.wrong { background:linear-gradient(180deg,#f0606c,var(--red)); opacity:1; }
+  .tile.dim { opacity:.28; }
+  .tile .mark { position:absolute; top:8px; left:8px; width:26px; height:26px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; }
+  .tile .mark svg { width:16px; height:16px; }
+  .tile .gain { position:absolute; left:50%; top:42%; transform:translate(-50%,-50%); font-size:34px; font-weight:800; text-shadow:0 3px 0 rgba(0,0,0,.35); animation:rise 1.4s ease forwards; pointer-events:none; }
+  @keyframes rise { from { opacity:0; transform:translate(-50%,-20%) scale(.6); } 25% { opacity:1; transform:translate(-50%,-60%) scale(1.15); } to { opacity:0; transform:translate(-50%,-140%) scale(1); } }
+  .submitRow { text-align:right; margin-top:10px; }
+  .submitRow button { min-width:150px; min-height:46px; border-radius:10px; border:0; font-size:17px; font-weight:800; background:#fff; color:#2b1640; box-shadow:inset 0 -4px 0 rgba(0,0,0,.18); }
+  .submitRow button:disabled { opacity:.45; }
+  /* the result bar along the bottom after answering */
+  .result { position:fixed; left:0; right:0; bottom:0; z-index:20; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); animation:slideUp .25s ease; }
+  .result.ok { background:var(--green-dk); } .result.no { background:var(--red-dk); }
+  .result .in { max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .result .verdict { font-size:22px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .result .verdict svg { width:26px; height:26px; fill:#fff; }
+  .result .extra { flex:1 1 300px; font-size:14px; line-height:1.45; }
+  .result .extra b { color:#fff; }
+  .result button { min-width:140px; min-height:48px; border-radius:10px; border:0; font-size:18px; font-weight:800; background:#fff; color:#2b1640; box-shadow:inset 0 -4px 0 rgba(0,0,0,.2); }
+  .result .bar { position:absolute; left:0; top:0; height:4px; background:rgba(255,255,255,.7); }
+  @keyframes slideUp { from { transform:translateY(100%); } to { transform:none; } }
+  @keyframes drain { from { width:100%; } to { width:0; } }
+  /* power-ups along the bottom */
+  .powers { position:fixed; left:50%; bottom:12px; transform:translateX(-50%); z-index:10; display:flex; gap:8px; background:rgba(0,0,0,.45); border:1px solid var(--line); border-radius:14px; padding:6px; }
+  .power { position:relative; width:52px; height:52px; border-radius:10px; border:2px solid transparent; color:#fff; padding:0; display:flex; align-items:center; justify-content:center; }
+  .power svg { width:26px; height:26px; fill:#fff; }
+  .power .n { position:absolute; right:-6px; top:-6px; min-width:20px; height:20px; border-radius:10px; background:var(--gold); color:#2b1640; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+  .power.p-double { background:linear-gradient(180deg,#7c6cff,#4b3cc9); }
+  .power.p-saver { background:linear-gradient(180deg,#2ed06f,#139447); }
+  .power.p-boost { background:linear-gradient(180deg,#ff9a3c,#e2551a); }
+  .power:disabled { filter:grayscale(1); opacity:.35; }
+  .power.armed { border-color:#fff; box-shadow:0 0 0 3px var(--gold), 0 0 18px var(--gold); transform:translateY(-4px); }
+  .armedNote { text-align:center; color:var(--gold); font-weight:700; font-size:14px; margin-top:10px; min-height:1.4em; }
+  .toast { position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:40; background:#fff; color:#2b1640; border-radius:12px; padding:10px 16px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.35); display:flex; gap:10px; align-items:center; max-width:calc(100% - 32px); animation:pop .4s ease; }
+  .toast svg { width:24px; height:24px; flex:none; }
+  /* a fun fact between questions */
+  .fun { max-width:560px; margin:8vh auto 0; text-align:center; }
+  .fun .card { background:#fff; color:#2b1640; border-radius:16px; padding:22px; font-size:18px; line-height:1.5; font-weight:600; }
+  .fun .card small { display:block; color:#8a3fd1; font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; font-weight:800; }
+  .fun .rankLine { margin-top:14px; font-weight:700; color:var(--gold); }
+
+  /* ---------- the end ---------- */
+  .done { max-width:760px; margin:2vh auto 0; text-align:center; }
+  .done h1 { font-size:28px; font-weight:800; margin:6px 0; }
+  .ring { width:170px; height:170px; margin:10px auto; position:relative; }
+  .ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .ring .pct { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:40px; font-weight:800; }
+  .ring .pct small { font-size:13px; font-weight:600; color:var(--muted); }
+  .gradeLine { font-size:18px; font-weight:700; margin:6px 0; }
+  .bestLine { color:var(--muted); font-size:14px; margin:4px 0 8px; }
+  .doneBtns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0; }
+  .doneBtns button { min-width:180px; min-height:52px; border-radius:12px; border:0; font-size:17px; font-weight:800; border-bottom:5px solid rgba(0,0,0,.25); }
+  .lastStep { font-size:14px; color:var(--muted); margin-top:4px; }
+  details.review { text-align:left; margin-top:14px; }
+  details.review summary { cursor:pointer; font-weight:700; font-size:16px; padding:8px 4px; }
+  .rv { background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; font-size:14px; line-height:1.45; }
+  .rv .rq { font-weight:600; margin-bottom:4px; }
+  .rv .ans { display:flex; gap:6px; align-items:flex-start; }
+  .rv .ans svg { width:16px; height:16px; flex:none; margin-top:3px; }
+  .rv .ok { color:#7ef0b0; } .rv .no { color:#ff9aa3; } .rv .key { color:#7ef0b0; } .rv .why { color:var(--muted); font-style:italic; }
+  .rv img { max-height:60px; vertical-align:middle; background:#fff; border-radius:4px; }
+
+  /* ---------- leaderboard ---------- */
+  .board h2 { font-size:20px; margin:0 0 8px; }
+  .tabs { display:flex; gap:6px; justify-content:center; margin-bottom:10px; }
+  .tabs button { border:1px solid var(--line); background:rgba(0,0,0,.3); color:#fff; border-radius:16px; padding:5px 14px; font-weight:600; font-size:13px; }
+  .tabs button[aria-pressed="true"] { background:#fff; color:#2b1640; }
+  ol.rows { list-style:none; margin:0; padding:0; text-align:left; }
+  ol.rows li { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; margin-bottom:5px; background:rgba(255,255,255,.07); font-size:15px; }
+  ol.rows li.me { background:rgba(255,200,61,.22); outline:2px solid var(--gold); }
+  ol.rows .place { width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex:none; }
+  ol.rows li:nth-child(1) .place { background:#e8b21a; color:#2b1640; } ol.rows li:nth-child(2) .place { background:#c9ced6; color:#2b1640; } ol.rows li:nth-child(3) .place { background:#cd7f32; color:#fff; }
+  ol.rows .nm { flex:1; font-weight:600; }
+  ol.rows .pv { font-weight:800; color:var(--gold); }
+  .gap { text-align:center; color:var(--muted); margin:2px 0; }
+  .boardNote { font-size:12px; color:var(--muted); margin-top:10px; }
+
+  /* ---------- pop-ups ---------- */
+  .modal { position:fixed; inset:0; z-index:50; background:rgba(10,3,18,.75); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal-card { background:#2a1238; border:1px solid var(--line); border-radius:16px; padding:18px; width:min(560px, 100%); max-height:calc(100vh - 32px); overflow:auto; position:relative; }
+  .modal-card.light { background:#fff; color:#111; }
+  .modal-card p { line-height:1.5; }
+  .modal-btns { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:12px; }
+  .modal-btns button { min-height:44px; padding:0 18px; border-radius:10px; border:0; font-weight:800; font-size:15px; }
+  .modal-btns .yes { background:var(--green); color:#fff; } .modal-btns .no { background:#ece7f1; color:#2b1640; }
+  .closeX { position:absolute; right:10px; top:10px; width:34px; height:34px; border-radius:8px; border:0; background:rgba(255,255,255,.12); color:#fff; font-size:20px; line-height:1; }
+  .zoomBox img { max-width:100%; max-height:calc(100vh - 90px); display:block; margin:0 auto; background:#fff; border-radius:8px; }
+  .zoomBox .modal-card { width:min(1100px, 100%); background:#111; }
+  .confetti { position:fixed; inset:0; pointer-events:none; z-index:45; overflow:hidden; }
+  .confetti i { position:absolute; top:-12px; width:9px; height:14px; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall { to { transform:translateY(110vh) rotate(720deg); } }
+  .ver { text-align:center; font-size:11px; color:rgba(255,255,255,.35); margin-top:28px; }
+  .errorBox { background:#fff; color:#111; border-radius:12px; padding:12px 14px; margin:10px auto; max-width:620px; font-weight:600; }
+
+  @media (max-width: 760px) {
+    .qcard { flex-direction:column; align-items:stretch; }
+    .qpic { flex:none; }
+    .tiles { grid-template-columns:1fr !important; }
+    .tile { min-height:64px; padding:12px 40px; font-size:16px; }
+    .tile.picTile { padding:34px 10px 12px; }
+    .count .num { font-size:80px; }
+    .wrap { padding-bottom:140px; }
+  }
+  @media (min-width: 761px) and (max-width: 1000px) { .tiles.n4, .tiles.n5, .tiles.n6 { grid-template-columns:repeat(2, minmax(0, 1fr)); } .tile { min-height:110px; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition:none !important; }
+  }
+  /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
+  .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
+  .signin h2 { font-size:18px; margin:0 0 6px; }
+  .signin p { font-size:14px; line-height:1.5; margin:6px 0 12px; }
+  .signin label { display:block; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .signin input { display:block; width:100%; max-width:360px; margin-top:4px; padding:8px 10px; border:2px solid #111; border-radius:6px;
+                  font-family:Poppins, Arial, sans-serif; font-size:16px; background:#fff; outline:none; }
+  .signin input:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  .signin input.si-code { max-width:200px; font-size:22px; letter-spacing:4px; }
+  .si-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+  .si-status { font-weight:600; min-height:1.5em; }
+  .si-status.bad { color:#cc0000; }
+  .si-alt { font-size:13px; color:#555; font-style:italic; border-top:1px solid #ddd; padding-top:10px; margin-bottom:0 !important; }
+  .si-or { font-size:13px; font-weight:600; color:#555; border-top:1px solid #ddd; padding-top:12px; margin-top:16px !important; }
+  button.linkbtn { background:none; border:0; border-radius:0; padding:0; color:#1b4587; text-decoration:underline; font-weight:600; font-size:inherit; }
+  button.si-google, a.si-pass { display:inline-flex; align-items:center; gap:10px; background:#fff; color:#111; border:2px solid #111; border-radius:6px;
+                                font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:15px; padding:9px 18px; text-decoration:none; cursor:pointer; }
+  button.si-google svg { width:20px; height:20px; flex:none; }
+  a.si-pass { background:#1b4587; border-color:#1b4587; color:#fff; }
+  .cp-brand { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff; background:#1b4587;
+              border-radius:4px; padding:2px 8px; margin:8px 0 2px; }
+  .probewait { margin-top:14px; font-weight:400; font-size:14px; }
+  /* the loading screen's progress bar (cpStep) */
+  .cp-load { max-width:400px; margin:0 auto; font-family:Poppins, Arial, sans-serif; text-align:center; }
+  .cp-step { font-size:16px; font-weight:600; color:#111; line-height:1.4; }
+  .cp-bar { position:relative; height:6px; margin:14px auto 0; border-radius:3px; background:#d5deeb; overflow:hidden; }
+  .cp-bar span { position:absolute; left:0; top:0; bottom:0; width:0; border-radius:3px; background:#1b4587; transition:width .5s linear; overflow:hidden; }
+  .cp-bar span::after { content:""; position:absolute; top:0; bottom:0; left:0; width:60%;
+                        background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0)); animation:cp-sheen 1.3s linear infinite; }
+  @keyframes cp-sheen { from { transform:translateX(-100%); } to { transform:translateX(170%); } }
+  @media (prefers-reduced-motion: reduce) { .cp-bar span { transition:none; } .cp-bar span::after { animation:none; display:none; } }
+  .cp-slow { font-size:14px; font-weight:400; color:#555; margin-top:12px; min-height:1.5em; }
+  .cp-again { margin-top:10px; }
+  .cp-again button { background:#1b4587; border-color:#1b4587; color:#fff; }
+  .cp-detail { font-size:12px; font-weight:400; color:#777; margin-top:10px; }
+  /* @@CLASSPASS-CSS-END */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading">Loading your review game…</div>
+  <div id="signin" hidden></div>
+  <div id="app" hidden>
+    <div id="msg"></div>
+
+    <!-- the start screen -->
+    <section class="lobby" id="lobby" hidden>
+      <h1 id="title"></h1>
+      <div class="hello" id="hello"></div>
+      <div id="closedNote" class="closedNote" hidden></div>
+      <div class="panel">
+        <div class="track" aria-hidden="true">
+          <svg class="tstart" viewBox="0 0 24 24"><path d="M13.5 5.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9.8 8.9 7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+          <span id="lobbyBar" style="width:0"></span>
+          <svg class="tend" viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+        </div>
+        <div class="tlabels"><span>Start</span><span>End</span></div>
+        <div class="remain" id="remain"></div>
+        <div class="bigbtns">
+          <button class="go" id="startBtn" type="button">Start</button>
+          <button class="soft" id="overBtn" type="button">Start Over</button>
+        </div>
+        <div class="stats" id="lobbyStats"></div>
+      </div>
+      <button class="linkish" id="lobbyBoardBtn" type="button">See the leaderboard</button>
+      <div class="setTitle">Settings</div>
+      <div class="setRow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg><span id="lblRead">Read questions aloud</span><button class="switch" type="button" role="switch" aria-labelledby="lblRead" data-pref="read"></button></div>
+      <div class="setRow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6A4 4 0 1 0 14 17V7h4V3h-6z"/></svg><span id="lblSound">Sound effects</span><button class="switch" type="button" role="switch" aria-labelledby="lblSound" data-pref="sound"></button></div>
+      <div class="setRow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21c0 .6.4 1 1 1h4c.6 0 1-.4 1-1v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17c0 .6.4 1 1 1h6c.6 0 1-.4 1-1v-2.3A7 7 0 0 0 12 2z"/></svg><span id="lblFun">Fun facts between questions</span><button class="switch" type="button" role="switch" aria-labelledby="lblFun" data-pref="fun"></button></div>
+      <div class="intro" id="intro"></div>
+      <div class="whoLine" id="whoLine"></div>
+    </section>
+
+    <!-- a question -->
+    <section id="play" hidden>
+      <div class="topbar">
+        <span class="chip rank" id="rankChip" title="Your place in your class period" hidden></span>
+        <span class="chip pts" title="Game points"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z"/></svg><span id="ptsText">0</span></span>
+        <span class="chip streak" id="streakChip" title="Right answers in a row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5.7s.7 2.6.7 4.7c0 2-1.3 3.6-3.3 3.6S7.4 7.4 7.4 5.4V5A11 11 0 0 0 4 13a8 8 0 0 0 16 0c0-5.4-2.6-10.2-6.5-12.3zM11.7 20c-1.8 0-3.2-1.4-3.2-3.1 0-1.6 1-2.8 2.8-3.1 1.8-.4 3.6-1.2 4.6-2.6.4 1.3.6 2.6.6 4A5 5 0 0 1 11.7 20z"/></svg><span id="streakText">0</span></span>
+        <span class="spacer"></span>
+        <button class="iconbtn" id="playBoardBtn" type="button" title="Leaderboard" aria-label="Leaderboard"><svg viewBox="0 0 24 24"><path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/></svg></button>
+        <button class="iconbtn" id="soundBtn" type="button" title="Sound effects" aria-label="Sound effects"></button>
+        <button class="iconbtn" id="exitBtn" type="button" title="Stop for now (your game is saved)" aria-label="Stop for now"><svg viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg></button>
+      </div>
+      <span class="counter" id="counter"></span>
+      <div class="qcard" id="qcard"></div>
+      <span class="multi" id="multiNote" hidden>Select all correct options</span>
+      <div class="tiles" id="tiles"></div>
+      <div class="submitRow" id="submitRow" hidden><button type="button" id="submitBtn" disabled>Submit</button></div>
+      <div class="armedNote" id="armedNote" aria-live="polite"></div>
+    </section>
+    <div class="powers" id="powers" hidden></div>
+    <div class="result" id="result" hidden></div>
+
+    <!-- a fun fact between questions -->
+    <section class="fun" id="fun" hidden></section>
+
+    <!-- the end of the game -->
+    <section class="done" id="done" hidden></section>
+
+    <div class="ver" id="ver"></div>
+  </div>
+</div>
+
+<div class="count" id="count" hidden><div class="num" id="countNum">3</div><div class="tip"><b>Pro tip:</b><span id="countTip"></span></div></div>
+<div class="modal" id="boardBox" hidden role="dialog" aria-modal="true" aria-label="Leaderboard"><div class="modal-card board" id="boardCard"></div></div>
+<div class="modal zoomBox" id="zoomBox" hidden role="dialog" aria-modal="true" aria-label="Picture"><div class="modal-card"><button class="closeX" type="button" id="zoomClose" aria-label="Close">×</button><img id="zoomImg" alt=""></div></div>
+<div class="modal" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmText">
+  <div class="modal-card light">
+    <p id="confirmText"></p>
+    <div class="modal-btns"><button class="no" type="button" id="confirmNo">Cancel</button><button class="yes" type="button" id="confirmYes">OK</button></div>
+  </div>
+</div>
+<div id="toastWrap" aria-live="polite"></div>
+
+<!-- No built-in pictures on this page: question and choice pictures come from the Questions tab (Drive share links or https addresses). -->
+<script>
+/** Student calls that carry this browser's sign-in token, and how many arguments come before it.
+    Missing arguments are filled with null so the token always lands in the same place. */
+var TOKEN_ARGS = { getStudentState: 0, answerChoice: 3, startOver: 0, getLeaderboard: 0, signOut: 0, getPicture: 1 };
+
+/* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
+   Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
+   Google account is signed in before the school one (Google won't even open the web app there), or one with
+   no Google account at all. The student signs in with Google (on the Class Pass page, where they can pick
+   their school account) or, only if the teacher allows it in the Settings tab, with a 6-digit code emailed to
+   their school address. Either one keeps that browser signed in to that assignment for 14 days.
+
+   THE SAME BLOCK is in Video Check's and Self-Check's Index.html and in the Class Pass page on the class
+   website. Change it only in class-pass/classpass.js, then run class-pass/make-pass.ps1, which copies it into
+   every page (the tests fail if a copy is different).
+
+   Where it runs (window.CLASS_PASS_PAGE, set by the page):
+     (not set) "exec": the web app's own page, script.google.com/.../exec. Google usually says who it is.
+     "pass": the Class Pass page, /pass/?app=<deployment ID>, the link students get. It checks out of sight
+             whether Google will open the web app itself (school Chromebooks go straight there) and signs
+             everyone else in, then opens the assignment's page under /pass/.
+     "app":  an assignment's page on the class website (/pass/video/, /pass/check/). It talks to the sheet
+             with fetch (see doPost in Code.gs), so no Google sign-in rides along and nothing can mix up.
+
+   ONE SIGN-IN FOR EVERY ASSIGNMENT: each sheet keeps its own sign-ins, so a pass from one sheet means nothing
+   to another. Instead, the device remembers which school account signed in with Google (classpass-me), and
+   the next assignment asks Google for that account quietly (prompt=none): no box, just a quick trip through
+   Google. That sheet checks Google's answer itself. An emailed code is only ever good for its own sheet.
+
+   The host page sets CP_HOST before anything here runs:
+     { tokenKey: where the /exec page keeps its sign-in, tokenArgs: { fn: arguments before the token },
+       clear(title): empty the page and return the element to put a sign-in card in } */
+var CP_WHERE = window.CLASS_PASS_PAGE || "exec";
+var CP_SITE = CP_WHERE !== "exec";   // on the class website: every call to the sheet goes through fetch
+var CP_DAYS = 14;
+var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // what the sheet says it is: its page under /pass/
+                 "net-force-escape-room": "net-force-escape",              // (one-off pages: self-check/custom/, built by make-pass.ps1)
+                 "reading-activity": "reading",                            // a side-by-side reading page whose article comes from a Google Doc
+                 "friction-article": "friction",
+                 "friction-speed-lab": "friction-lab",
+                 "review-game": "review",                                   // a Wayground-style review game: multiple choice, one try each, points and a leaderboard
+                 "friction-sim-lab": "friction-sim" };                      // the same lab with the ramp simulation live on the left (Directions / Simulation buttons)                    // the friction and speed lab: handout on the left, stopwatch + data table + graph, rubric-scored conclusion
+var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
+var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
+var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
+var CP_EXEC = /^AKfycb[\w-]{20,}$/.test(CP_APP) ? "https://script.google.com/macros/s/" + CP_APP + "/exec" : "";
+
+function cpEl(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function cpBtn(label, cls, onClick) { var b = cpEl("button", cls || "", label); b.type = "button"; if (onClick) b.addEventListener("click", onClick); return b; }
+function cpIsSignInError(err) { return /SIGNIN/.test(String((err && err.message) || err || "")); }
+function cpSignInText(err) { return String((err && err.message) || err || "").replace(/^[\s\S]*?SIGNIN:\s*/, "").replace(/^(BUSY|NETWORK): /, ""); }
+/** Leaves this page. replace = the Back button skips it (so it can't send the student straight back). */
+function cpGo(url, replace) {
+  if (window.__classPassGo) return window.__classPassGo(url, replace);   // local tests only
+  if (replace) location.replace(url); else location.assign(url);
+}
+/** The Class Pass page for this assignment, from an assignment's page on the class website. */
+function cpPassUrl(extra) { return new URL("../?app=" + encodeURIComponent(CP_APP) + (extra || ""), location.href).href; }
+/** A Class Pass link that skips the out-of-sight check (?signin=1): the /exec page already knows Google can't say who this is. */
+function cpSignInLink(u) { u = String(u || ""); return /[?&]signin=1(&|#|$)/.test(u) ? u : u + (u.indexOf("?") === -1 ? "?" : "&") + "signin=1"; }
+/** A message in place of the loading screen (a problem, or a choice to make): no progress bar. */
+function cpStatus(text) { var ld = document.getElementById("loading"); if (ld) { cpStepStop(); ld.hidden = false; ld.textContent = text; } }
+/** What the browser's console shows (DevTools > Console), to find a slow step: seconds since this page started loading. */
+function cpLog(what) { try { console.info("Class Pass " + (performance.now() / 1000).toFixed(1) + " s: " + what); } catch (e) {} }
+
+/* ---------- the loading screen: a thin progress bar with the step in words ----------
+   Every wait before the assignment is on the page says which step it's on:
+     Step 1 of 3: Checking your school sign-in…  the out-of-sight check (the Class Pass page)
+     Step 2 of 3: Signing you in…               Google's answer, checked by the sheet
+     Step 3 of 3: Opening your assignment…      the Class Pass page, then the assignment's page
+   The /exec page shows the bar with no step number. After CP_SLOW_MS on one step it adds "Still working", after
+   CP_STUCK_MS a Try again button (reloads the page) and, in small print, what it's waiting for. A step's clock carries
+   on to the next page in the same tab (sessionStorage classpass-step), so a slow step can't hide behind a page change. */
+var CP_STEPS = 3, CP_SLOW_MS = 10000, CP_STUCK_MS = 25000, CP_STEP_CARRY_MS = 30000;
+var cpStepNow = null, cpStepTimer = 0, cpCalls = {}, cpCallN = 0;
+/** n = the step (1 to 3; 0 = no number), text = what's happening. The same step again only changes the words. */
+function cpStep(n, text) {
+  var ld = document.getElementById("loading");
+  if (!ld) return;
+  var box = document.getElementById("cpLoad");
+  if (!box || !ld.contains(box)) {
+    ld.textContent = ""; cpStepNow = null;
+    box = cpEl("div", "cp-load"); box.id = "cpLoad";
+    var line = cpEl("div", "cp-step"), bar = cpEl("div", "cp-bar"), slow = cpEl("div", "cp-slow"), again = cpEl("div", "cp-again");
+    line.setAttribute("aria-live", "polite"); slow.setAttribute("aria-live", "polite");   // (not the small print: it counts seconds)
+    bar.setAttribute("aria-hidden", "true"); bar.appendChild(cpEl("span"));
+    again.hidden = true;
+    again.appendChild(cpBtn("Try again", "", function () { cpStepForget(); location.reload(); }));
+    again.appendChild(cpEl("div", "cp-detail"));
+    box.appendChild(line); box.appendChild(bar); box.appendChild(slow); box.appendChild(again);
+    ld.appendChild(box);
+  }
+  ld.hidden = false;
+  cpSetText(box.querySelector(".cp-step"), (n ? "Step " + n + " of " + CP_STEPS + ": " : "") + text);
+  if (cpStepNow && cpStepNow.n === n) return;
+  var now = Date.now(), at = now, kept = null;
+  try { kept = JSON.parse(sessionStorage.getItem("classpass-step") || "null"); } catch (e) { kept = null; }
+  if (!cpStepNow && kept && kept.n === n && kept.a === CP_APP && now - kept.at >= 0 && now - kept.at < CP_STEP_CARRY_MS) at = kept.at;   // carried on from the last page
+  cpStepNow = { n: n, at: at, note: "" };
+  try { sessionStorage.setItem("classpass-step", JSON.stringify({ n: n, a: CP_APP, at: at })); } catch (e) {}
+  box.querySelector(".cp-again").hidden = true;
+  cpLog("step " + n + ", " + text + (at < now ? " (" + ((now - at) / 1000).toFixed(1) + " s so far)" : ""));
+  clearInterval(cpStepTimer);
+  cpStepTimer = setInterval(cpStepTick, 500);
+  cpStepTick();
+}
+/** A line under the bar for this step (a retry, a busy sheet). */
+function cpStepNote(text) { if (cpStepNow) { cpStepNow.note = text || ""; cpStepTick(); } }
+function cpStepTick() {
+  var ld = document.getElementById("loading"), box = document.getElementById("cpLoad");
+  if (!cpStepNow || !ld || !box || ld.hidden || !ld.contains(box)) return cpStepStop();   // the card or the assignment took its place
+  var t = Date.now() - cpStepNow.at, n = cpStepNow.n, from = n ? (n - 1) / CP_STEPS : 0, part = n ? 1 / CP_STEPS : 1;
+  // this step's share of the bar, filling toward its end (and a little slower the longer it takes)
+  box.querySelector(".cp-bar span").style.width = (100 * (from + part * (0.1 + 0.8 * (1 - Math.exp(-t / 8000))))).toFixed(1) + "%";
+  cpSetText(box.querySelector(".cp-slow"), [t >= CP_SLOW_MS ? "Still working, this can take a moment." : "", cpStepNow.note].filter(Boolean).join(" "));
+  var again = box.querySelector(".cp-again");
+  if (t >= CP_STUCK_MS) {
+    if (again.hidden) { again.hidden = false; cpLog("still on step " + n + " after " + Math.round(t / 1000) + " s. " + cpWaitingFor(t)); }
+    again.querySelector(".cp-detail").textContent = cpWaitingFor(t);
+  }
+}
+/** For the small print under Try again: the step, its time, and what it's waiting on. */
+function cpWaitingFor(t) {
+  var now = Date.now(), list = Object.keys(cpCalls).map(function (k) { return cpCalls[k].fn + " " + Math.round((now - cpCalls[k].at) / 1000) + " s"; });
+  return "Step " + (cpStepNow ? cpStepNow.n : 0) + ", " + Math.round(t / 1000) + " s. " + (list.length ? "Waiting for the sheet: " + list.join(", ") + "." : "Not waiting for the sheet.");
+}
+/** Changes the words only when they change (a screen reader reads a live line again on every change). */
+function cpSetText(e, s) { if (e.textContent !== s) e.textContent = s; }
+function cpStepStop() { clearInterval(cpStepTimer); cpStepTimer = 0; if (cpStepNow) { cpStepNow = null; cpStepForget(); } }
+function cpStepForget() { try { sessionStorage.removeItem("classpass-step"); } catch (e) {} }
+/* On the class website, whatever a sheet sends is untrusted: a ?app= link can name ANY web app, and a script that ran on
+   this site could read every Class Pass sign-in on the device. So its text only ever goes in as text, and its links
+   and pictures only as web addresses (never javascript: or data:). */
+/** A link (a simulation button, say): http(s) only, or "". */
+function cpLinkUrl(u) { u = String(u == null ? "" : u).trim(); return /^https?:\/\/[^\s"'<>\\]+$/i.test(u) ? u : ""; }
+/** A picture to show or open: https, or a picture this page made from the sheet's answer (blob:, image types only). */
+function cpImgUrl(u) { u = String(u == null ? "" : u).trim(); return /^https:\/\/[^\s"'<>\\]+$/i.test(u) || /^blob:/.test(u) ? u : ""; }
+/** The page under /pass/ for what a sheet says it is, or "". */
+function cpPageFor(kind) { return Object.prototype.hasOwnProperty.call(CP_KINDS, String(kind)) ? CP_KINDS[kind] : ""; }
+
+/* ---------- what this device keeps (localStorage; memory only if the browser blocks it) ---------- */
+var cpMem = {};
+function cpGet(k) {
+  var v = null;
+  try { v = localStorage.getItem(k); } catch (e) { v = null; }
+  return v != null ? v : (cpMem.hasOwnProperty(k) ? cpMem[k] : null);
+}
+function cpPut(k, v) {
+  if (v == null) delete cpMem[k]; else cpMem[k] = String(v);
+  try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) { /* kept for this visit only */ }
+}
+function cpJSON(k) { try { return JSON.parse(cpGet(k) || "null"); } catch (e) { return null; } }
+
+/** On the class website: this assignment's sign-in, { t: token, e: email, k: what the sheet is, x: when it runs out }, or null. */
+function cpPass() {
+  var k = "classpass:" + CP_APP, r = cpJSON(k);
+  if (!r) {   // signed in on the old Video Check front door (/video/) before Class Pass: keep that sign-in
+    var old = cpGet("videocheck-signin:" + CP_APP);
+    if (old && /^[0-9a-f]{64}$/.test(old)) {
+      r = { t: old, e: "", k: "video-check", x: Date.now() + CP_DAYS * 86400000 };
+      cpPut(k, JSON.stringify(r));
+      cpPut("videocheck-signin:" + CP_APP, null);
+    }
+  }
+  return r && typeof r.t === "string" && r.t && !(r.x && r.x < Date.now()) ? r : null;
+}
+/** This browser's sign-in token for this assignment, or "". */
+function cpToken() {
+  if (!CP_SITE) return cpGet(CP_HOST.tokenKey) || "";
+  var r = cpPass();
+  return r ? r.t : "";
+}
+function cpSetToken(t, email, kind) {
+  if (!CP_SITE) { cpPut(CP_HOST.tokenKey, t || null); return; }
+  var k = "classpass:" + CP_APP, old = cpJSON(k) || {};
+  if (!t) { cpPut(k, null); return; }
+  cpPut(k, JSON.stringify({ t: t, e: email || old.e || "", k: kind || old.k || "", x: Date.now() + CP_DAYS * 86400000 }));
+}
+/** The school account last signed in with Class Pass on this device (for 14 days): { e: email, g: with Google, at } or null. */
+function cpMe() { var m = cpJSON("classpass-me"); return m && m.e && Date.now() - m.at < CP_DAYS * 86400000 ? m : null; }
+function cpRemember(email, google) { if (CP_SITE && /^[^@\s"<>]+@[^@\s"<>]+\.[a-z]{2,}$/i.test(String(email || ""))) cpPut("classpass-me", JSON.stringify({ e: String(email).toLowerCase(), g: !!google, at: Date.now() })); }
+/** "Not you? Sign out": ends this assignment's sign-in on the sheet, and forgets every Class Pass sign-in on this device.
+    done() runs once the sheet has answered (or after 4 s), so leaving the page can't cut the request off. */
+function cpSignOut(done) {
+  var over = false;
+  function end() { if (over) return; over = true; if (done) done(); }
+  cpRun("signOut", [], end, end);   // sends the token now, before it's forgotten below
+  setTimeout(end, 4000);
+  if (!CP_SITE) { cpSetToken(""); cpPut(cpCodeKey(), null); return; }
+  var keys = [];
+  try { for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i)); } catch (e) {}
+  keys.concat(Object.keys(cpMem)).forEach(function (k) {
+    if (/^(classpass[:\-]|videocheck-signin|videocheck-code-sent)/.test(String(k))) cpPut(k, null);
+  });
+}
+
+/* ---------- talking to the sheet ---------- */
+/** From the class website: {fn, args, token} as text/plain (so the browser sends no CORS check first) to doPost. */
+function cpFetch(fn, args, ok, fail) {
+  fetch(CP_EXEC, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                   body: JSON.stringify({ fn: fn, args: args, token: cpToken() }) })   // the server puts the token in place
+    .then(function (r) {
+      if (!r.ok) throw new Error("NETWORK: The assignment's sheet didn't answer (" + r.status + "). Wait a minute and try again.");
+      return r.text();
+    })
+    .then(function (text) {
+      var out = null;
+      try { out = JSON.parse(text); } catch (e) { out = null; }
+      if (!out) {
+        if (/doPost/.test(text)) throw new Error("This assignment isn't ready for Class Pass yet. Please tell your teacher: its sheet needs the newest version.");
+        throw new Error("NETWORK: The assignment's sheet sent something unexpected. Wait a minute and try again.");
+      }
+      return out;
+    })
+    .then(function (out) {
+      if (out.ok) { if (ok) ok(out.result); }
+      else fail(new Error(out.error || "Something went wrong. Reload the page."));
+    }, function (err) {
+      var m = String((err && err.message) || "");
+      fail(/^NETWORK|isn't ready/.test(m) ? err : new Error("NETWORK: Couldn't reach the assignment's sheet. Check your internet connection."));
+    });
+}
+/** Every call to the sheet. On the /exec page the token goes in as the last argument (missing ones are null).
+    Calls on their way are listed in cpCalls (for the loading screen's small print) and timed in the console. */
+function cpRun(fn, args, ok, fail) {
+  fail = fail || function () {};
+  var id = ++cpCallN, t0 = Date.now();
+  cpCalls[id] = { fn: fn, at: t0 };
+  function done(f, how) {
+    return function (x) {
+      delete cpCalls[id];
+      if (cpStepNow) cpLog(fn + " " + how + " in " + ((Date.now() - t0) / 1000).toFixed(1) + " s");   // only while a loading screen shows
+      if (f) f(x);
+    };
+  }
+  if (CP_SITE) return cpFetchHedged(fn, (args || []).slice(), done(ok, "answered"), done(fail, "failed"));
+  var a = (args || []).slice(), n = CP_HOST.tokenArgs || {};
+  if (n.hasOwnProperty(fn)) { while (a.length < n[fn]) a.push(null); a.push(cpToken()); }
+  var r = google.script.run.withSuccessHandler(done(ok, "answered")).withFailureHandler(done(fail, "failed"));
+  r[fn].apply(r, a);
+}
+/* Now and then one answer from the sheet takes far longer than the rest (seen on 2026-09-30: classPass 26.8 s while the
+   same sheet answered the probe, sent at the same moment, in 1.9 s, and every call before and after in 1 to 4 s).
+   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS is sent once more alongside, and whichever answers
+   first wins. Saves are never sent twice this way (they have their own retries). */
+var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 6000;
+function cpFetchHedged(fn, args, ok, fail) {
+  var sent = 1, failed = 0, over = false, timer = 0;
+  function win(x) { if (over) return; over = true; clearTimeout(timer); ok(x); }
+  function lose(e) { failed++; if (over || failed < sent) return; over = true; clearTimeout(timer); fail(e); }   // only when every try failed
+  cpFetch(fn, args, win, lose);
+  if (CP_HEDGE[fn]) timer = setTimeout(function () {
+    if (over) return;
+    sent++;
+    cpLog(fn + " is slow: asking once more alongside");
+    cpFetch(fn, args, win, lose);
+  }, CP_HEDGE_MS);
+}
+function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
+/** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
+var CP_RETRY = [1500, 3500, 7000, 12000];
+function cpRetry(c, ok, fail, attempt) {
+  attempt = attempt || 0;
+  c(ok, function (err) {
+    var m = String((err && err.message) || err || "");
+    if (attempt < CP_RETRY.length && !/SIGNIN|Unknown request|isn't ready|NOT OPEN|NOT YET|Unknown picture/.test(m)) {
+      cpLog("trying again: " + m);
+      cpStepNote("The assignment's sheet didn't answer. Trying again…");   // on a loading screen only
+      setTimeout(function () { cpRetry(c, ok, fail, attempt + 1); }, CP_RETRY[attempt] + Math.floor(Math.random() * 1500));
+    } else fail(err);
+  });
+}
+
+/* ---------- the sign-in card ---------- */
+/* A code on its way is remembered on this device for its lifetime, so a student who leaves to read their email
+   (on a phone this often reloads the page) comes back to the box for the code, not to "Email me a code". */
+function cpCodeKey() { return CP_SITE ? "classpass-code:" + CP_APP : CP_HOST.tokenKey + ":code"; }
+function cpPending(set) {
+  if (set === null) { cpPut(cpCodeKey(), null); return null; }
+  if (set) { cpPut(cpCodeKey(), JSON.stringify(set)); return set; }
+  var p = cpJSON(cpCodeKey());
+  return p && p.email && Date.now() - p.at < p.minutes * 60000 ? p : null;
+}
+var cpCardOpen = false, cpEmail = "";
+var CP_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.2 5.6c4.2-3.9 7.1-9.6 7.1-17.1z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.3-8.7 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>';
+
+/**
+ * The Class Pass card, put into box. info comes from the sheet: { title, domain, googleClient, code, minutes, passLink, kind }.
+ * opt: { midway: the page already shows work (a sign-in ran out while working), note: a message to show, done(r): signed in, r = { token, email } }.
+ * Sign in with Google is on the Class Pass page, and (in a new tab) on an assignment's page midway. The /exec page links to Class Pass.
+ */
+function cpCard(box, info, opt) {
+  opt = opt || {};
+  cpCardOpen = true;
+  cpStepStop();   // the card takes the loading screen's place; whatever comes after it starts its own clock
+  var midway = !!opt.midway, codeOk = info.code !== false;   // sheets older than Class Pass always allow the code
+  var google = info.googleClient && (CP_WHERE === "pass" || (CP_WHERE === "app" && midway)) ? info.googleClient : "";
+  var passLink = CP_WHERE === "exec" && /^https:\/\//.test(info.passLink || "") ? cpSignInLink(info.passLink) : "";
+  if (CP_WHERE === "pass") cpPrefetch();   // the assignment's page, ready for when this sign-in is done
+  var card = cpEl("div", "signin"), pa = null; card.id = "cpCard";
+  card.appendChild(cpEl("h2", null, midway ? "Sign in again to keep saving" : "Sign in with Class Pass"));
+  card.appendChild(cpEl("p", null, midway
+    ? "Your sign-in on this device ran out. Your answers are still on this page. Sign in again, then press Check on any answer that didn't save."
+    : CP_WHERE === "exec"
+      ? "This browser isn't signed in to your school Google account first, so this page can't tell who you are."
+      : "Class Pass signs you in with your school account" + (info.title ? " to open " + info.title : "") + ". You'll stay signed in on this device for " + CP_DAYS + " days."));
+  var status = cpEl("p", "si-status"); status.setAttribute("aria-live", "polite");
+  function say(text, bad) { status.textContent = text || ""; status.className = "si-status" + (bad ? " bad" : ""); }
+
+  if (google) {
+    var gBtn = cpBtn("", "si-google", function () {
+      if (CP_WHERE === "pass") return cpGoogle(google, { tab: !!opt.tab }, say);
+      // midway on an assignment's page: sign in on a new tab, so nothing typed here is lost
+      cpTabSignIn(say, function (r) { if (opt.done) opt.done(r, card); });
+    });
+    gBtn.innerHTML = CP_G;
+    gBtn.appendChild(document.createTextNode("Sign in with Google"));
+    card.appendChild(gBtn);
+    card.appendChild(cpEl("p", null, "Pick your school account" + (info.domain ? " (it ends in @" + info.domain + ")" : "") + ". If it isn't in the list, choose Use another account."));
+  }
+  if (passLink && !midway) {
+    pa = cpEl("a", "si-pass", "Open with Class Pass");
+    pa.href = passLink; pa.target = "_top"; pa.rel = "noopener";
+    card.appendChild(pa);
+    card.appendChild(cpEl("p", null, "Class Pass lets you sign in with your school Google account on any device."));
+  }
+
+  var step1 = null, step2 = null, em = null, code = null, sendBtn, haveBtn, goBtn, againBtn, otherBtn, sentTo;
+  if (codeOk) {
+    if (google || (passLink && !midway)) card.appendChild(cpEl("p", "si-or", "Or get a 6-digit code at your school email (it comes from your teacher's email):"));
+    else card.appendChild(cpEl("p", null, "We'll email a 6-digit code to your school address. It comes from your teacher's email."));
+    step1 = cpEl("form"); step1.noValidate = true;
+    var l1 = cpEl("label", null, "Your school email");
+    em = cpEl("input"); em.type = "text"; em.inputMode = "email"; em.autocomplete = "email"; em.spellcheck = false;
+    em.setAttribute("autocapitalize", "none"); em.placeholder = "yourname@" + (info.domain || "school.org"); em.value = cpEmail;
+    l1.appendChild(em); step1.appendChild(l1);
+    sendBtn = cpEl("button", null, "Email me a code"); sendBtn.type = "submit";
+    haveBtn = cpBtn("I already have a code", "secondary");
+    var b1 = cpEl("div", "si-buttons"); b1.appendChild(sendBtn); b1.appendChild(haveBtn); step1.appendChild(b1);
+    step2 = cpEl("form"); step2.noValidate = true; step2.hidden = true;
+    sentTo = cpEl("p");
+    var l2 = cpEl("label", null, "6-digit code");
+    code = cpEl("input", "si-code"); code.type = "text"; code.inputMode = "numeric"; code.autocomplete = "one-time-code"; code.maxLength = 7;
+    l2.appendChild(code);
+    goBtn = cpEl("button", null, "Sign in"); goBtn.type = "submit";
+    againBtn = cpBtn("Send a new code", "secondary"); otherBtn = cpBtn("Use a different email", "secondary");
+    var b2 = cpEl("div", "si-buttons"); b2.appendChild(goBtn); b2.appendChild(againBtn); b2.appendChild(otherBtn);
+    step2.appendChild(sentTo); step2.appendChild(l2); step2.appendChild(b2);
+    card.appendChild(step1); card.appendChild(step2);
+  } else if (!google && !passLink) {
+    card.appendChild(cpEl("p", null, "Signing in on this page isn't turned on for this assignment. Open it from the link in Google Classroom, or ask your teacher."));
+  }
+  if (passLink && midway) {
+    var pm = cpEl("p", "si-alt");
+    pm.appendChild(document.createTextNode("Or open this assignment with "));
+    var pl = cpEl("a", null, "Class Pass"); pl.href = passLink; pl.target = "_blank"; pl.rel = "noopener";
+    pm.appendChild(pl); pm.appendChild(document.createTextNode(" in a new tab (answers that didn't save here need to be typed there again)."));
+    card.appendChild(pm);
+  }
+  card.appendChild(status);
+  if (CP_WHERE === "exec") card.appendChild(cpEl("p", "si-alt", "Or open a private window, sign in to your school account at accounts.google.com, then open this link again."));
+  box.appendChild(card);
+  if (!codeOk) { if (opt.note) say(opt.note, true); if (pa) pa.focus(); return card; }
+
+  function busy(on) { [sendBtn, haveBtn, goBtn, againBtn, otherBtn].forEach(function (b) { b.disabled = on; }); }
+  function showStep2(email, minutes) {
+    cpEmail = email;
+    step1.hidden = true; step2.hidden = false;
+    sentTo.textContent = "We emailed a code to " + email + ". Open your school email, then type the code here. It works for " + minutes + " minutes.";
+    code.value = ""; code.focus();
+  }
+  function send(to) {
+    busy(true); say("Sending a code…");
+    // Safe to repeat if the answer gets lost: asking again within 45 s gets "sent" back, with no second email.
+    cpRetry(cpCall("sendSignInCode", [to]), function (r) {
+      busy(false);
+      cpPending({ email: r.email, at: Date.now(), minutes: r.minutes });
+      showStep2(r.email, r.minutes); say("");
+    }, function (err) { busy(false); say(cpSignInText(err), true); });
+  }
+  step1.addEventListener("submit", function (e) { e.preventDefault(); if (em.value.trim()) send(em.value); else say("Type your school email first.", true); });
+  haveBtn.addEventListener("click", function () {
+    var p = cpPending(), typed = em.value.trim();
+    if (!typed && !p) { say("Type your school email first, then press I already have a code.", true); return; }
+    var e = typed || p.email;
+    if (e.indexOf("@") === -1 && info.domain) e += "@" + info.domain;
+    showStep2(e.toLowerCase(), info.minutes || 10); say("");
+  });
+  againBtn.addEventListener("click", function () { send(cpEmail); });
+  otherBtn.addEventListener("click", function () { step2.hidden = true; step1.hidden = false; say(""); em.value = cpEmail; em.focus(); });
+  step2.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (code.value.replace(/\D/g, "").length !== 6) { say("The code has 6 digits.", true); return; }
+    busy(true); say("Checking your code…");
+    // Safe to repeat: the same right code again within 2 minutes gets the same sign-in back.
+    cpRetry(cpCall("verifySignInCode", [cpEmail, code.value]), function (r) {
+      cpSetToken(r.token, r.email, info.kind);
+      cpRemember(r.email, false);
+      cpPending(null);
+      cpCardOpen = false;
+      if (opt.done) opt.done(r, card);
+    }, function (err) { busy(false); say(cpSignInText(err), true); code.select(); });
+  });
+  var pend = midway ? null : cpPending();
+  if (pend) showStep2(pend.email, pend.minutes);   // back from reading the email: straight to the box for the code
+  if (opt.note) say(opt.note, true);
+  if (pa && !pend) pa.focus();   // the /exec page: Open with Class Pass is the one thing to do
+  else if (!google) (step1.hidden ? code : em).focus();
+  return card;
+}
+
+/** Midway on an assignment's page: sign in with Google on a new tab. When it's done there, this tab carries on. */
+function cpTabSignIn(say, done) {
+  var before = cpToken(), w = null, timer = 0;
+  try { w = window.open(cpPassUrl("&signin=1&tab=1"), "_blank"); } catch (e) { w = null; }
+  if (!w) { say("Your browser blocked the new tab. Allow pop-ups for this page, or reload the page to sign in (answers that didn't save need to be typed again).", true); return; }
+  say("Finish signing in on the new tab. This page carries on by itself when you're done.");
+  function check() {
+    var r = cpPass();
+    if (!r || r.t === before) return;
+    clearInterval(timer); window.removeEventListener("storage", check);
+    cpCardOpen = false;
+    if (done) done({ token: r.t, email: r.e });
+  }
+  timer = setInterval(check, 1500);
+  window.addEventListener("storage", check);
+}
+
+/* ---------- Sign in with Google (the Class Pass page only) ----------
+   Google's own sign-in page, so the student can pick their school account even when another account is signed in
+   first. It sends the browser back here with an ID token after the # (never to any server), and the sheet checks
+   that token with Google before signing this browser in. The nonce ties the answer to this tab. */
+function cpGoogle(client, opt, say) {
+  opt = opt || {};
+  var nonce = "";
+  try {
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    // The nonce ends with the deployment this sign-in is for. Google puts it inside the signed ID token, and each sheet
+    // refuses a token made for a different deployment, so a link to some other web app can't collect a student's
+    // Google sign-in and use it at a real assignment.
+    nonce = Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("") + "." + CP_APP;
+    sessionStorage.setItem("classpass-google", JSON.stringify({ n: nonce, s: !!opt.silent, t: !!opt.tab, a: CP_APP }));
+  } catch (e) { nonce = ""; }
+  if (!nonce) { if (say) say("This browser blocks a step Google sign-in needs (a private window can do that). Try a regular window.", true); return false; }
+  // Google only returns to the exact address registered with the client ID: .../pass/ (never .../pass/index.html)
+  var p = { client_id: client, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ""), response_type: "id_token",
+            scope: "openid email", nonce: nonce, state: CP_APP, hd: "*" };
+  if (opt.silent) { p.prompt = "none"; p.login_hint = opt.hint; }   // no box: Google answers at once, or says it needs the student
+  else p.prompt = "select_account";
+  cpGo("https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams(p).toString());
+  return true;
+}
+/** Back from Google's sign-in page? Its answer is after the # in the address. Returns { app, idToken, error } and takes
+    the answer out of the address bar and the history, or returns null. */
+function cpTakeGoogleReturn() {
+  var h = location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
+  if (!h || !(h.get("id_token") || h.get("error"))) return null;
+  var out = { app: String(h.get("state") || ""), idToken: h.get("id_token") || "", error: h.get("error") || "" };
+  var app = new URLSearchParams(location.search).get("app") || out.app;
+  try { history.replaceState(null, "", location.pathname + (/^AKfycb[\w-]{20,}$/.test(app) ? "?app=" + app : "")); } catch (e) {}
+  return out;
+}
+function cpClaims(t) {
+  try {
+    var p = String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (p.length % 4) p += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(p))));
+  } catch (e) { return null; }
+}
+/** done(note, r, how): r = { token, email } when signed in; note = what to tell the student otherwise ("" = nothing:
+    the quiet try just needs the student to pick). how = { s: quiet try, t: sign in for another tab }. */
+function cpFinishGoogle(back, kind, done) {
+  var want = null;
+  try { want = JSON.parse(sessionStorage.getItem("classpass-google") || "null"); sessionStorage.removeItem("classpass-google"); } catch (e) { want = null; }
+  if (!want) {   // started on the old Video Check front door (/video/) just before it moved here
+    try { var old = sessionStorage.getItem("videocheck-google-nonce"); if (old) want = { n: old }; sessionStorage.removeItem("videocheck-google-nonce"); } catch (e) {}
+  }
+  want = want || {};
+  if (back.error) {
+    if (want.s) return done("", null, want);
+    return done(back.error === "access_denied" ? "Google sign-in was canceled. Press Sign in with Google to try again."
+              : "Google sign-in didn't work here (" + back.error + "). Try again, or ask your teacher.", null, want);
+  }
+  var claims = back.idToken ? cpClaims(back.idToken) : null;
+  if (!claims || !want.n || claims.nonce !== want.n || (want.a && want.a !== CP_APP)) return done("That Google sign-in didn't start on this page. Press Sign in with Google again.", null, want);
+  cpStep(2, "Signing you in…");
+  cpRetry(cpCall("signInWithGoogle", [back.idToken]), function (r) {
+    cpSetToken(r.token, r.email, cpPageFor(r.kind) ? r.kind : kind);
+    cpRemember(r.email, true);
+    done("", r, want);
+  }, function (err) { done(cpSignInText(err), null, want); });
+}
+/** The quiet Google try happens at most once a minute in a tab, so a sheet that keeps refusing can't cause a loop. */
+function cpMayTryQuietly() {
+  try {
+    var last = Number(sessionStorage.getItem("classpass-quiet:" + CP_APP)) || 0;
+    if (Date.now() - last < 60000) return false;
+    sessionStorage.setItem("classpass-quiet:" + CP_APP, String(Date.now()));
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- the out-of-sight check (the Class Pass page) ----------
+   Loads the web app itself in a hidden frame. Its tiny probe page (doGet with ?probe=1) tells this page whether
+   Google said who is signed in. Google's error page says nothing, so no answer in time means "sign in here". */
+var CP_CROS = /\bCrOS\b/.test(navigator.userAgent);
+// The probe page loads inside Google's page, so its answer usually comes before that page's load event: elsewhere
+// 1.5 s after the load is plenty (it was 4 s). Chromebooks wait longer: at school it's almost always "yes", and a slow
+// start on Google's side shouldn't send a whole class to the sign-in card.
+var CP_PROBE_MAX_MS = 15000, CP_PROBE_AFTER_LOAD_MS = CP_CROS ? 8000 : 1500, CP_PROBE_SKIP_MS = 5000;
+function cpProbe(done) {
+  var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
+  function end(known) {
+    if (over) return;
+    over = true;
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    window.removeEventListener("message", onMsg);
+    f.remove();
+    var sk = document.getElementById("probeSkip"); if (sk) sk.remove();
+    cpLog("the school sign-in check: " + (known === 1 ? "Google knows the student" : known === 0 ? "Google doesn't know the student" : "no answer (Google's error page, or too slow)"));
+    done(known);
+  }
+  function onMsg(e) {
+    // (The probe's message is named videoCheckProbe for every app: sheets from before Class Pass send that name.)
+    if (!e.data || typeof e.data !== "object" || !("videoCheckProbe" in e.data)) return;
+    if (!/^https:\/\/[\w-]+\.googleusercontent\.com$/.test(e.origin) && e.origin !== location.origin) return;
+    if (!fromProbe(e.source)) return;   // only the hidden frame's own page (Google puts it a frame or two inside)
+    end(e.data.videoCheckProbe === 1 ? 1 : 0);
+  }
+  function fromProbe(w) {
+    try {
+      for (var i = 0; w && i < 8; i++) { if (w === f.contentWindow) return true; if (w === w.parent) return false; w = w.parent; }
+    } catch (err) {}
+    return false;
+  }
+  window.addEventListener("message", onMsg);
+  f.title = "Checking your school sign-in";
+  f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:absolute;left:-9999px;top:0;width:10px;height:10px;border:0";
+  f.addEventListener("load", function () { clearTimeout(t2); t2 = setTimeout(function () { end(null); }, CP_PROBE_AFTER_LOAD_MS); });
+  f.src = window.CLASS_PASS_PROBE_URL ? window.CLASS_PASS_PROBE_URL(CP_APP, location.origin)   // local tests only
+        : CP_EXEC + "?probe=1&from=" + encodeURIComponent(location.origin);
+  document.body.appendChild(f);
+  t1 = setTimeout(function () { end(null); }, CP_PROBE_MAX_MS);
+  t3 = setTimeout(function () {   // taking a while (a slow start on Google's side): let the student skip ahead to signing in
+    var ld = document.getElementById("cpLoad") || document.getElementById("loading"), b = cpBtn("Sign in with Class Pass instead", "secondary", function () { end(null); });
+    var box = cpEl("div", "probewait", "Taking a while? ");
+    box.id = "probeSkip"; box.appendChild(b); if (ld) ld.appendChild(box);
+  }, CP_PROBE_SKIP_MS);
+}
+
+/** What the sheet says about itself: { kind, title, domain, googleClient, code, minutes }. A Video Check sheet from
+    before Class Pass (2026.09.29 or older) doesn't know this question, so its sign-in card's details are used. */
+function cpInfo(ok, fail) {
+  cpRetry(cpCall("classPass"), function (i) { ok(i); }, function (err) {
+    if (!/Unknown request/.test(String((err && err.message) || err))) return fail(err);
+    cpRetry(cpCall("getStudentState"), function (s) {
+      ok({ kind: "video-check", title: s.title || "", domain: s.domain || "", googleClient: s.googleClient || "", code: true, minutes: s.minutes || 10 });
+    }, fail);
+  });
+}
+function cpFail(err) {
+  var m = String((err && err.message) || err || "Something went wrong. Reload the page.").replace(/^(BUSY|NETWORK): /, "");
+  if (/^NETWORK/.test(String((err && err.message) || ""))) m += " If it keeps happening, please tell your teacher.";
+  cpStatus(m);
+  var app = document.getElementById("app"); if (app) app.hidden = true;
+}
+
+/**
+ * The Class Pass page (/pass/?app=<deployment ID>), start to finish:
+ *   1. Just back from Google: finish that sign-in.
+ *   2. Already signed in to this assignment on this device: open it.
+ *   3. This device signed in with Class Pass before (or ?signin=1): skip the check; ask Google quietly for the
+ *      account it used, or show the card.
+ *   4. Otherwise the out-of-sight check: Google knows the student (school Chromebooks): the plain /exec link.
+ *      Not: the card.
+ * Meanwhile it asks the sheet what it is (Video Check or Self-Check), which picks the page that opens, and it
+ * prefetches both assignment pages. With a Google sign-in the sheet sends the assignment too (2026.09.30 on); after
+ * any other sign-in it asks for it (getStudentState). Either way it hands the answer to the assignment's page
+ * (cpKeepState), which then draws without asking again.
+ * ?tab=1: opened by an assignment's page to sign in again. It signs in, then sends the student back to that tab.
+ */
+function cpPassBoot() {
+  document.title = "Class Pass";
+  var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  var info = null, waiting = [], failed = null, pre = null, left = false;
+  function withInfo(f) { if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
+  function getInfo() {
+    cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
+           function (err) { failed = err; waiting.splice(0); if (!left) cpFail(err); });   // (already on the way to the assignment: no matter)
+  }
+  function page(kind) { return cpPageFor(kind) ? new URL(cpPageFor(kind) + "/?app=" + encodeURIComponent(CP_APP), location.href).href : ""; }
+  function preload() {   // just signed in: ask for the assignment now (once, no retries), for its page
+    if (tab || pre) return;
+    var p = pre = { over: false, state: null, then: [] };
+    function end(s) { if (p.over) return; p.over = true; p.state = s; p.then.splice(0).forEach(function (f) { f(); }); }
+    cpRun("getStudentState", [], function (s) { end(s && typeof s === "object" && !s.needSignIn ? s : null); }, function () { end(null); });
+    setTimeout(function () { end(null); }, CP_PRELOAD_MS);   // too slow: the assignment's page asks for itself
+  }
+  function open(r) {   // signed in: the assignment's own page under /pass/, or back to the tab that asked
+    if (!tab) cpStep(3, "Opening your assignment…");
+    // A sheet from 2026.09.30 on sends the assignment with its Google sign-in (r.state): no second trip to the sheet.
+    if (!tab && !pre && r && r.state && typeof r.state === "object" && !r.state.needSignIn) pre = { over: true, state: r.state, then: [] };
+    preload();
+    function onward(kind) {
+      var rec = cpPass();
+      if (rec && rec.k !== kind) cpSetToken(rec.t, rec.e, kind);
+      if (tab) return cpSignedInTab();
+      var url = page(kind);
+      if (!url) return cpFail("This assignment can't open with Class Pass yet. Please tell your teacher.");
+      function go() { left = true; if (pre && pre.state) cpKeepState(pre.state); cpGo(url, true); }
+      if (pre && !pre.over) pre.then.push(go); else go();
+    }
+    // It also says what it is (r.kind), so this doesn't wait for classPass (one slow answer held students here).
+    if (r && cpPageFor(r.kind)) return onward(r.kind);
+    withInfo(function (i) { onward(i.kind); });
+  }
+  function card(note) {
+    withInfo(function (i) { cpCard(CP_HOST.clear(i.title), i, { tab: tab, note: note, done: open }); });
+  }
+  function signIn(note) {   // a quiet Google try for the account this device used before, else the card
+    cpPrefetch();
+    cpStep(2, "Signing you in…");
+    withInfo(function (i) {
+      var me = cpMe();
+      if (!note && me && me.g && i.googleClient && cpMayTryQuietly()) {
+        if (cpGoogle(i.googleClient, { silent: true, hint: me.e, tab: tab })) return;
+      }
+      card(note);
+    });
+  }
+  if (CP_BACK) {
+    cpStep(2, "Signing you in…");
+    cpPrefetch();
+    getInfo();
+    return cpFinishGoogle(CP_BACK, "", function (note, r, how) {
+      if (how && how.t) tab = true;
+      if (r) open(r); else card(note);
+    });
+  }
+  var rec = tab ? null : cpPass();   // ?tab=1: the sign-in here just ran out, so it doesn't count
+  if (rec) {
+    cpStep(3, "Opening your assignment…");
+    if (page(rec.k)) return cpGo(page(rec.k), true);
+    getInfo(); return open();
+  }
+  getInfo();
+  if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
+  cpStep(1, "Checking your school sign-in…");
+  cpProbe(function (known) {
+    if (known === 1) return cpGo(CP_EXEC, true);
+    if (known === 0 && CP_CROS) {
+      // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
+      // But if this device was just sent on the same way and is back, the assignment may not have opened: let the student choose.
+      var wk = "classpass-went:" + CP_APP, last = Number(cpGet(wk)) || 0;
+      if (Date.now() - last > 600000) { cpPut(wk, String(Date.now())); return cpGo(CP_EXEC, true); }
+      cpPut(wk, null);
+      var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+      c.appendChild(cpEl("h2", null, "Open the assignment"));
+      c.appendChild(cpEl("p", null, "If it didn't open a minute ago (Google said \"Sorry, unable to open the file\"), sign in with Class Pass instead."));
+      var row = cpEl("div", "si-buttons");
+      row.appendChild(cpBtn("Open the assignment", "", function () { cpPut(wk, String(Date.now())); cpGo(CP_EXEC, true); }));
+      row.appendChild(cpBtn("Sign in with Class Pass", "secondary", function () { signIn(""); }));
+      c.appendChild(row); box.appendChild(c);
+      return;
+    }
+    signIn("");
+  });
+}
+/** ?tab=1 is done: the assignment's own tab carries on by itself (it watches for the new sign-in). */
+function cpSignedInTab() {
+  var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+  c.appendChild(cpEl("h2", null, "You're signed in"));
+  c.appendChild(cpEl("p", null, "Go back to your assignment's tab. Your answers are still there, and it keeps saving now."));
+  var row = cpEl("div", "si-buttons");
+  row.appendChild(cpBtn("Close this tab", "", function () { try { window.close(); } catch (e) {} }));
+  c.appendChild(row); box.appendChild(c);
+}
+
+/** The Class Pass page: fetch both assignment pages (their exact addresses) into the browser's cache now, so the one
+    that opens after signing in is already here. Chrome keeps a prefetched page for 5 minutes. */
+function cpPrefetch() {
+  if (CP_WHERE !== "pass" || !CP_EXEC || cpPrefetch.done) return;
+  cpPrefetch.done = true;
+  CP_PREFETCH.forEach(function (page) {
+    var l = document.createElement("link");
+    l.rel = "prefetch"; l.href = new URL(page + "/?app=" + encodeURIComponent(CP_APP), location.href).href;
+    document.head.appendChild(l);
+  });
+}
+
+/* ---------- the assignment, handed from the Class Pass page to the assignment's page ----------
+   Right after signing in, the Class Pass page asks the sheet for the assignment (getStudentState, cpPassBoot's
+   preload) and leaves the answer in this tab's sessionStorage (classpass-state). The assignment's page uses it only
+   for the same assignment, the same sign-in, under CP_HANDOFF_MS old, and only once; otherwise it asks the sheet. */
+var CP_PRELOAD_MS = 15000, CP_HANDOFF_MS = 60000;
+function cpKeepState(s) {
+  var r = cpPass();
+  if (!r) return;
+  try { sessionStorage.setItem("classpass-state", JSON.stringify({ a: CP_APP, t: r.t.slice(-16), at: Date.now(), s: s })); } catch (e) {}   // too big: the page asks
+}
+/** On an assignment's page: the assignment as the Class Pass page just got it, or null. */
+function cpTakeState() {
+  if (CP_WHERE !== "app") return null;
+  var h = null, r = cpPass(), age;
+  try { h = JSON.parse(sessionStorage.getItem("classpass-state") || "null"); sessionStorage.removeItem("classpass-state"); } catch (e) { h = null; }
+  if (!h || !r || h.a !== CP_APP || h.t !== r.t.slice(-16)) return null;
+  age = Date.now() - Number(h.at);
+  if (!(age >= 0 && age < CP_HANDOFF_MS) || !h.s || typeof h.s !== "object" || h.s.needSignIn) return null;
+  cpLog("the assignment came with the sign-in (" + (age / 1000).toFixed(1) + " s old)");
+  return h.s;
+}
+
+/** An assignment's page on the class website: signed in to it on this device? Then start(). If not, the Class Pass page. */
+function cpAppBoot(start) {
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  if (!cpToken()) return cpGo(cpPassUrl(""), true);
+  start();
+}
+/** The sheet says this device isn't signed in (or its sign-in ran out) and nothing is on the page yet. true = handled
+    here (off to the Class Pass page); false = the host shows the card (the /exec page).
+    state = the sheet's answer: on the /exec page, with a Class Pass link, it tries to go straight to Class Pass
+    (?signin=1, no out-of-sight check). Google's frame only lets a page leave after a tap, so the card with its
+    Open with Class Pass button usually stays. */
+function cpNeedSignIn(state) {
+  cpSetToken("");
+  if (CP_WHERE === "exec") {
+    var link = state && /^https:\/\//.test(state.passLink || "") ? cpSignInLink(state.passLink) : "";
+    if (link && window.__classPassGo) window.__classPassGo(link, true);   // local tests only
+    else if (link) try { window.top.location.replace(link); } catch (e) { cpLog("Google's frame kept this page here (" + e.name + ")"); }
+    return false;
+  }
+  if (CP_WHERE !== "app") return false;
+  cpGo(cpPassUrl("&signin=1"), true);
+  return true;
+}
+
+/* ---------- pictures ----------
+   On the class website a Google Drive picture comes through the sheet (getPicture): Drive only shows a picture shared
+   with the district to a browser whose FIRST Google account is a school one. Two at a time, each once. */
+var cpPics = {}, cpPicQ = [], cpPicBusy = 0;
+function cpPicture(img, src, idx) {
+  if (!CP_SITE || !/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (cpPics[idx]) { img.src = cpPics[idx]; return; }
+  cpPicQ.push({ img: img, src: src, idx: idx });
+  cpPicNext();
+}
+function cpPicNext() {
+  while (cpPicBusy < 2 && cpPicQ.length) (function (job) {
+    if (cpPics[job.idx]) { job.img.src = cpPics[job.idx]; return; }
+    cpPicBusy++;
+    cpRetry(cpCall("getPicture", [job.idx]), function (r) {
+      cpPicBusy--;
+      if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") {   // never a page or a script
+        job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return;
+      }
+      try {
+        var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        cpPics[job.idx] = URL.createObjectURL(new Blob([bytes], { type: r.mime }));   // a blob: address also opens in a new tab
+      } catch (e) { job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return; }
+      job.img.src = cpPics[job.idx];
+      cpPicNext();
+    }, function (err) {
+      cpPicBusy--;
+      if (/Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
+      else job.img.alt = "The picture didn't load. Reload the page to try again.";
+      cpPicNext();
+    });
+  })(cpPicQ.shift());
+}
+/* ============================== (@@CLASSPASS-END) ============================== */
+
+/* ---------- Class Pass hooks (see CLASS PASS above) ----------
+   On the class website (Class Pass), this page runs as /pass/review/ and talks to the sheet with fetch. */
+var CP_HOST = {
+  tokenKey: "reviewgame-signin",   // the /exec page's own sign-in (the class website keeps one per assignment: classpass:<id>)
+  tokenArgs: TOKEN_ARGS,
+  /** Empties the page for a sign-in card: the game stays hidden until someone is signed in. */
+  clear: function (title) {
+    document.getElementById("loading").hidden = true;
+    document.getElementById("app").hidden = true;
+    hidePlayBits();
+    var box = document.getElementById("signin");
+    box.hidden = false; box.innerHTML = "";
+    if (title) { document.title = title; box.appendChild(el("h1", null, title)); }
+    return box;
+  }
+};
+
+/* The page talks to the server through `api`: google.script.run on the /exec page, fetch on the class website
+   (both through cpRun, which adds this browser's sign-in). Tests swap in a mock. */
+var api = window.MOCK_API || {
+  run: function (fn, args, ok, fail) { cpRun(fn, args, ok, fail || showError); },
+  getState:  function (ok, fail) { this.run("getStudentState", [], ok, fail); },
+  answer:    function (i, picks, power, ok, fail) { this.run("answerChoice", [i, picks, power], ok, fail); },
+  startOver: function (ok, fail) { this.run("startOver", [], ok, fail); },
+  board:     function (ok, fail) { this.run("getLeaderboard", [], ok, fail); }
+};
+
+var S = null;          // the game from the sheet (getStudentState), kept up to date after every answer
+var ORDER = [];        // question numbers (0-based) in this student's order for this try
+var cur = -1;          // the question on the screen
+var picked = [];       // choices picked on a select-all question (choice numbers, 0-based)
+var armed = "";        // the power-up armed for this question
+var answering = false; // an answer is on its way to the sheet
+var nextTimer = 0;     // moves on by itself after a right answer
+var BOARD = null;      // the last leaderboard from the sheet
+var boardAt = 0, boardTab = "mine";
+var PREF_KEY = "reviewgame-prefs";
+var prefs = loadPrefs();
+
+var POWER_INFO = {
+  double: { name: "Double points", tip: "This question is worth twice the points.", svg: '<svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" font-family="Poppins, Arial, sans-serif">2x</text></svg>' },
+  saver:  { name: "Streak saver", tip: "If you miss this one, you keep your streak.", svg: '<svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.6 3.8 10.7 9 12 5.2-1.3 9-6.4 9-12V5l-9-4zm-1.5 15.5-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z"/></svg>' },
+  boost:  { name: "Streak boost", tip: "Your streak jumps up 3 before you answer, so a right answer earns more.", svg: '<svg viewBox="0 0 24 24"><path d="M13.1 2.2C17 3 20.9 7 21.8 10.9L16.6 16l.4 3.8-3.4 3.4-1.8-4.6-4.4-4.4-4.6-1.8L6.2 9l3.8.4zM15 9a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 15 9zM5.6 15.6l2.8 2.8c-1.2 1.6-3.8 2.6-5.6 2.8.2-1.8 1.2-4.4 2.8-5.6z"/></svg>' }
+};
+var TIPS = ["Get answers right in a row to build a streak. Each one in a row is worth more points.",
+            "Power-ups show up every few questions. Use them wisely!",
+            "You get one try on each question, so read every choice first.",
+            "You can stop any time. Your game saves after every answer.",
+            "Click a picture to make it bigger.",
+            "Press 1, 2, 3 or 4 on your keyboard to pick an answer."];
+var FACTS = ["Astronaut David Scott dropped a hammer and a feather on the Moon in 1971. With no air to slow the feather, they hit the ground at the same time.",
+             "When you jump, you push Earth down a tiny bit too. Earth has so much mass that its acceleration is far too small to notice.",
+             "Rockets work in space because of Newton's third law: they push hot gas out the back, and the gas pushes the rocket forward.",
+             "Seat belts and airbags make a crash take a little longer, so the force on your body is smaller.",
+             "A squid moves by shooting water backward out of its body. The water pushes the squid forward.",
+             "Inertia is why you can yank a tablecloth out from under dishes: the dishes tend to stay at rest.",
+             "Momentum is mass times velocity, so a slow moving truck can have more momentum than a fast baseball.",
+             "On the Moon your weight would be about one sixth of your weight on Earth, but your mass would stay the same.",
+             "Isaac Newton published his three laws of motion in 1687.",
+             "A cheetah can speed up from 0 to about 60 miles per hour in about 3 seconds."];
+
+/* ---------- small helpers ---------- */
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function $(id) { return document.getElementById(id); }
+function svgIcon(html) { var s = el("span"); s.innerHTML = html; return s.firstChild; }
+var ICON_OK = '<svg viewBox="0 0 24 24"><path fill="#0b8a4b" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+var ICON_NO = '<svg viewBox="0 0 24 24"><path fill="#a51f2e" d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>';
+var ICON_OK_W = '<svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+var ICON_NO_W = '<svg viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg>';
+var ICON_SOUND_ON = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>';
+var ICON_SOUND_OFF = '<svg viewBox="0 0 24 24"><path d="M16.5 12A4.5 4.5 0 0 0 14 8v2.2l2.5 2.5V12zM19 12c0 .9-.2 1.8-.5 2.6l1.5 1.5A9 9 0 0 0 14 3.2v2.1a7 7 0 0 1 5 6.7zM4.3 3 3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.3c-.7.5-1.4.9-2.3 1.2v2.1a9 9 0 0 0 3.7-1.8l2 2 1.3-1.3L4.3 3zM12 4 9.9 6.1 12 8.2V4z"/></svg>';
+function ordinal(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+function fmt(n) { return Number(n || 0).toLocaleString("en-US"); }
+function firstName() { var n = String((S && S.name) || "").trim(); return /@/.test(n) ? "" : n.split(/\s+/)[0]; }
+function loadPrefs() {
+  var p = { sound: true, read: false, fun: true };
+  try { var s = JSON.parse(localStorage.getItem(PREF_KEY) || "null"); if (s && typeof s === "object") for (var k in p) if (typeof s[k] === "boolean") p[k] = s[k]; } catch (e) {}
+  return p;
+}
+function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} }
+
+/* the same "random" order every time for one student and one try, so a reload shows the same order */
+function hashText(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function seeded(seed) {
+  return function () { seed = (seed + 0x6D2B79F5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function shuffled(list, seedText) {
+  var r = seeded(hashText(seedText)), a = list.slice();
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+/** The order a question's choices are shown in (true/false, yes/no and "all of the above" questions keep theirs). */
+function choiceOrder(i) {
+  var q = S.questions[i], idx = q.choices.map(function (_, k) { return k; });
+  if (!S.game.shuffleC) return idx;
+  var keep = q.choices.some(function (c) { return /\b(all|none|both|neither) of (the|these)\b|^(true|false|yes|no)$/i.test(String(c.t || "").trim()); });
+  return keep ? idx : shuffled(idx, S.email + "|c|" + i);
+}
+function makeOrder() {
+  var idx = [];
+  S.questions.forEach(function (q, i) { if (q.choices) idx.push(i); });
+  ORDER = S.game.shuffleQ ? shuffled(idx, S.email + "|q|" + S.game.attempt) : idx;
+}
+function answered(i) { var r = S.results[i]; return !!(r && r.status && r.status !== "blank"); }
+function nextQuestion() { for (var k = 0; k < ORDER.length; k++) if (!answered(ORDER[k])) return ORDER[k]; return -1; }
+function answeredCount() { return ORDER.filter(answered).length; }
+function rightCount() { return ORDER.filter(function (i) { return S.results[i] && S.results[i].status === "correct"; }).length; }
+function sectionTitle(i) { var t = ""; (S.sections || []).forEach(function (s) { if (s.before === i) t = s.title; }); return t; }
+function canStartOver() { return !!(S.game.startOver && !S.locked && !(S.close && S.close.closed)); }
+function isClosed() { return !!(S.close && S.close.closed); }
+
+/* ---------- sounds (made right here, no files) ---------- */
+var AC = null;
+function tone(f, at, dur, type, vol) {
+  var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + at;
+  o.type = type || "sine"; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function sfx(kind) {
+  if (!prefs.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    if (kind === "right") { tone(659, 0, 0.12, "triangle"); tone(880, 0.1, 0.12, "triangle"); tone(1175, 0.2, 0.22, "triangle"); }
+    else if (kind === "wrong") { tone(196, 0, 0.18, "sawtooth", 0.08); tone(147, 0.16, 0.3, "sawtooth", 0.08); }
+    else if (kind === "tick") tone(880, 0, 0.06, "square", 0.05);
+    else if (kind === "go") { tone(523, 0, 0.1, "triangle"); tone(784, 0.1, 0.25, "triangle"); }
+    else if (kind === "power") { [523, 659, 784, 1047].forEach(function (f, k) { tone(f, k * 0.07, 0.12, "triangle", 0.12); }); }
+    else if (kind === "streak") { tone(784, 0, 0.1, "square", 0.06); tone(1047, 0.09, 0.18, "square", 0.06); }
+    else if (kind === "finish") { [523, 659, 784, 1047, 784, 1047].forEach(function (f, k) { tone(f, k * 0.12, 0.2, "triangle", 0.14); }); }
+  } catch (e) { /* no sound on this device */ }
+}
+function speak(text) {
+  if (!prefs.read || !window.speechSynthesis) return;
+  try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {}
+}
+function stopSpeaking() { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} }
+
+/* ---------- messages ---------- */
+function showError(err) {
+  var m = String((err && err.message) || err || "Something went wrong.").replace(/^(BUSY|NETWORK|SIGNIN|NOT OPEN|NOT YET): /, "");
+  if (!S) return cpFail(err);
+  var box = $("msg"); box.innerHTML = "";
+  var e = el("div", "errorBox", m + " ");
+  e.appendChild(el("span", null, "If it keeps happening, reload the page (your answers are saved)."));
+  box.appendChild(e);
+  window.scrollTo(0, 0);
+}
+function toast(html, text, ms) {
+  var w = $("toastWrap"), t = el("div", "toast");
+  if (html) t.appendChild(svgIcon(html));
+  t.appendChild(el("span", null, text));
+  w.innerHTML = ""; w.appendChild(t);
+  setTimeout(function () { if (t.parentNode) t.remove(); }, ms || 2600);
+}
+function askConfirm(text, onYes, yesLabel) {
+  var box = $("confirmBox");
+  $("confirmText").textContent = text;
+  $("confirmYes").textContent = yesLabel || "OK";
+  box.hidden = false;
+  $("confirmYes").focus();
+  function close() { box.hidden = true; $("confirmYes").onclick = null; $("confirmNo").onclick = null; }
+  $("confirmYes").onclick = function () { close(); onYes(); };
+  $("confirmNo").onclick = close;
+}
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) { return /^(BUSY|NETWORK)/.test(String((err && err.message) || "")) || /Lots of students|timed out|Failed to fetch|NetworkError/i.test(String((err && err.message) || err || "")); }
+function withRetry(call, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  call(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, RETRY_DELAYS[attempt]);
+    } else fail(err);
+  });
+}
+function closedMidway(err) {
+  if (!/NOT OPEN|quarter|closed/i.test(String((err && err.message) || ""))) return false;
+  if (S && S.close) S.close.closed = true;
+  showLobby();
+  return true;
+}
+
+/* ---------- screens ---------- */
+function hidePlayBits() {
+  ["play", "fun", "done", "lobby"].forEach(function (id) { var x = $(id); if (x) x.hidden = true; });
+  var p = $("powers"), r = $("result"); if (p) p.hidden = true; if (r) r.hidden = true;
+  clearTimeout(nextTimer);
+}
+function showOnly(id) {
+  hidePlayBits();
+  $(id).hidden = false;
+  window.scrollTo(0, 0);
+}
+
+function render() {
+  document.title = S.title;
+  $("loading").hidden = true;
+  $("signin").hidden = true;
+  $("app").hidden = false;
+  $("ver").textContent = "Review game " + (S.version || "");
+  if (!S.game) { showError(new Error("This sheet isn't set up as a review game yet. Please tell your teacher.")); return; }
+  makeOrder();
+  setUpSwitches();
+  showLobby();
+  loadBoard(false);
+}
+
+function showLobby() {
+  stopSpeaking();
+  showOnly("lobby");
+  $("title").textContent = S.title;
+  $("hello").textContent = (firstName() ? "Hi, " + firstName() + "! " : "") + (S.game.attempt > 1 ? "This is try " + S.game.attempt + "." : "");
+  var total = ORDER.length, done = answeredCount(), left = total - done;
+  $("lobbyBar").style.width = (total ? Math.round(done / total * 100) : 0) + "%";
+  $("remain").textContent = !total ? "This game has no questions yet." : left ? left + (left === 1 ? " question remaining" : " questions remaining") : "You answered every question!";
+  var start = $("startBtn"), over = $("overBtn");
+  start.textContent = !left ? "See my results" : done ? "Continue" : "Start";
+  start.disabled = !total || (isClosed() && !!left && !done);
+  if (isClosed() && left) start.textContent = done ? "See my answers" : "Closed";
+  over.hidden = !canStartOver() || !done;
+  var stats = $("lobbyStats"); stats.innerHTML = "";
+  function stat(label, value) { var s = el("span", "stat", label); s.appendChild(el("b", null, value)); stats.appendChild(s); }
+  if (done) stat("Right so far", rightCount() + " / " + done);
+  if (S.game.best) stat("Best try", S.game.best.pct + "%");
+  if (S.showGrade && (S.game.done || S.game.best)) stat("Grade", S.grade + " / " + S.maxPoints);   // only after a whole try (a half-done try's grade looks low)
+  if (S.game.topPoints) stat("Top points", fmt(S.game.topPoints));
+  var cn = $("closedNote");
+  cn.hidden = !isClosed();
+  if (isClosed()) cn.textContent = S.close.note || "This game is closed. You can look at your answers, but you can't change them.";
+  else if (S.locked) { cn.hidden = false; cn.textContent = "You finished this game, and your teacher has locked it. You can look at your results."; }
+  $("intro").textContent = S.intro || "";
+  var who = $("whoLine"); who.innerHTML = "";
+  who.appendChild(document.createTextNode("Signed in as " + S.email + ". "));
+  if (S.via === "code") { var so = el("button", null, "Not you? Sign out"); so.type = "button"; so.onclick = signOutHere; who.appendChild(so); }
+  start.focus();
+}
+
+function setUpSwitches() {
+  [].forEach.call(document.querySelectorAll(".switch"), function (b) {
+    var k = b.getAttribute("data-pref");
+    b.setAttribute("aria-checked", prefs[k] ? "true" : "false");
+    b.onclick = function () {
+      prefs[k] = !prefs[k]; savePrefs();
+      b.setAttribute("aria-checked", prefs[k] ? "true" : "false");
+      if (k === "sound") { paintSoundBtn(); if (prefs.sound) sfx("tick"); }
+      if (k === "read" && !prefs.read) stopSpeaking();
+    };
+  });
+  paintSoundBtn();
+}
+function paintSoundBtn() {
+  var b = $("soundBtn"); b.innerHTML = prefs.sound ? ICON_SOUND_ON : ICON_SOUND_OFF;
+  b.setAttribute("aria-pressed", prefs.sound ? "true" : "false");
+  var sw = document.querySelector('.switch[data-pref="sound"]'); if (sw) sw.setAttribute("aria-checked", prefs.sound ? "true" : "false");
+}
+
+function startPressed() {
+  if (!ORDER.length) return;
+  if (nextQuestion() === -1 || isClosed() || S.locked) { showDone(false); return; }
+  if (answeredCount()) { showQuestion(); return; }
+  countdown(showQuestion);
+}
+function countdown(then) {
+  var box = $("count"), n = 3;
+  $("countTip").textContent = " " + TIPS[Math.floor(Math.random() * TIPS.length)];
+  box.hidden = false;
+  function step() {
+    if (n === 0) { box.hidden = true; sfx("go"); then(); return; }
+    var num = $("countNum"); num.textContent = n; num.style.animation = "none"; void num.offsetWidth; num.style.animation = "";
+    sfx("tick"); n--; setTimeout(step, 850);
+  }
+  step();
+}
+
+/* ---------- a question ---------- */
+function showQuestion() {
+  clearTimeout(nextTimer);
+  cur = nextQuestion();
+  if (cur === -1) { showDone(true); return; }
+  showOnly("play");
+  $("msg").innerHTML = "";
+  picked = []; armed = ""; answering = false;
+  var q = S.questions[cur], n = answeredCount() + 1;
+  $("counter").textContent = n + " / " + ORDER.length;
+  paintTop();
+  var card = $("qcard"); card.innerHTML = "";
+  if (q.img) {
+    var pic = el("button", "qpic"); pic.type = "button"; pic.setAttribute("aria-label", "Make the picture bigger");
+    var img = el("img"); img.alt = q.imgCaption || "Picture for this question";
+    cpPicture(img, q.img, cur);
+    pic.appendChild(img);
+    var z = el("span", "zoom"); z.appendChild(svgIcon('<svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM12 10H10v2H9v-2H7V9h2V7h1v2h2v1z"/></svg>')); pic.appendChild(z);
+    pic.onclick = function () { zoom(img); };
+    var holder = el("div"); holder.style.cssText = "flex:0 0 min(42%, 440px);display:flex;flex-direction:column;background:#fff;border-radius:10px;overflow:hidden";
+    if (window.matchMedia && matchMedia("(max-width: 760px)").matches) holder.style.flex = "none";
+    pic.style.flex = "1"; holder.appendChild(pic);
+    if (q.imgCaption) holder.appendChild(el("div", "qcap", q.imgCaption));
+    card.appendChild(holder);
+  }
+  var body = el("div", "qbody");
+  var sec = sectionTitle(cur); if (sec) body.appendChild(el("div", "qsec", sec));
+  body.appendChild(el("div", "qtext", q.text));
+  if (window.speechSynthesis) {
+    var sp = el("button", "linkish speak", "Read it to me"); sp.type = "button";
+    sp.onclick = function () { var was = prefs.read; prefs.read = true; readQuestion(); prefs.read = was; };
+    body.appendChild(sp);
+  }
+  card.appendChild(body);
+  $("multiNote").hidden = !q.multi;
+  var tiles = $("tiles"); tiles.innerHTML = "";
+  var order = choiceOrder(cur);
+  tiles.style.setProperty("--n", Math.min(order.length, 5));
+  tiles.className = "tiles n" + order.length;
+  order.forEach(function (k, pos) {
+    var c = q.choices[k], b = el("button", "tile c" + (pos % 6) + (c.img ? " picTile" : ""));
+    b.type = "button"; b.setAttribute("data-k", k);
+    b.appendChild(el("span", "key", String(pos + 1)));
+    if (q.multi) b.appendChild(el("span", "box"));
+    if (c.img) { var im = el("img"); im.alt = "Picture choice " + (pos + 1); cpPicture(im, c.img, "c" + cur + "." + k); b.appendChild(im); b.setAttribute("aria-label", "Choice " + (pos + 1) + " (a picture)"); }
+    else b.appendChild(el("span", null, c.t));
+    b.onclick = function () { pick(k, b); };
+    tiles.appendChild(b);
+  });
+  $("submitRow").hidden = !q.multi;
+  $("submitBtn").disabled = true;
+  paintPowers();
+  $("armedNote").textContent = "";
+  readQuestion();
+  var first = tiles.querySelector(".tile"); if (first) first.focus({ preventScroll: true });
+}
+function readQuestion() {
+  if (!prefs.read || cur < 0) return;
+  var q = S.questions[cur], order = choiceOrder(cur);
+  speak(q.text + ". " + order.map(function (k, pos) { var c = q.choices[k]; return "Choice " + (pos + 1) + ": " + (c.img ? "a picture" : c.t) + "."; }).join(" "));
+}
+function paintTop() {
+  var g = S.game;
+  $("ptsText").textContent = fmt(g.points);
+  $("streakText").textContent = g.streak;
+  $("streakChip").classList.toggle("hot", g.streak >= 3);
+  var rc = $("rankChip"), me = myPlace();
+  rc.hidden = !me;
+  if (me) rc.textContent = ordinal(me.place) + (me.period ? " in P" + me.period : "");
+}
+function paintPowers() {
+  var box = $("powers"); box.innerHTML = "";
+  var g = S.game, any = false;
+  ["double", "saver", "boost"].forEach(function (p) {
+    var n = (g.powers && g.powers[p]) || 0, info = POWER_INFO[p];
+    var b = el("button", "power p-" + p + (armed === p ? " armed" : "")); b.type = "button";
+    b.innerHTML = info.svg; b.title = info.name + ": " + info.tip; b.setAttribute("aria-label", info.name + " (" + n + ")");
+    b.setAttribute("aria-pressed", armed === p ? "true" : "false");
+    if (n) { b.appendChild(el("span", "n", String(n))); any = true; }
+    b.disabled = !n || answering;
+    b.onclick = function () {
+      armed = armed === p ? "" : p;
+      sfx("tick");
+      $("armedNote").textContent = armed ? POWER_INFO[armed].name + " is on for this question. " + POWER_INFO[armed].tip : "";
+      paintPowers();
+    };
+    box.appendChild(b);
+  });
+  box.hidden = $("play").hidden || (!any && !armed);
+}
+function pick(k, b) {
+  if (answering || cur < 0) return;
+  var q = S.questions[cur];
+  if (q.multi) {
+    var at = picked.indexOf(k);
+    if (at === -1) picked.push(k); else picked.splice(at, 1);
+    b.classList.toggle("sel", at === -1);
+    b.setAttribute("aria-pressed", at === -1 ? "true" : "false");
+    $("submitBtn").disabled = !picked.length;
+    sfx("tick");
+    return;
+  }
+  picked = [k];
+  send();
+}
+function send() {
+  if (answering || cur < 0 || !picked.length) return;
+  answering = true;
+  stopSpeaking();
+  var i = cur, sentPicks = picked.slice(), power = armed;
+  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
+    t.disabled = true;
+    if (sentPicks.indexOf(Number(t.getAttribute("data-k"))) !== -1) t.classList.add("waiting");
+  });
+  $("submitBtn").disabled = true;
+  paintPowers();
+  withRetry(function (ok, fail) { api.answer(i, sentPicks.map(function (k) { return k + 1; }), power, ok, fail); }, function (r) {
+    gotAnswer(i, sentPicks, r);
+  }, function (err) {
+    answering = false;
+    [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) { t.disabled = false; t.classList.remove("waiting"); });
+    $("submitBtn").disabled = !picked.length;
+    paintPowers();
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (!closedMidway(err)) showError(err);
+  });
+}
+function gotAnswer(i, sentPicks, r) {
+  if (i !== cur) return;
+  answering = false; picked = [];   // (the tiles stay disabled until the next question)
+  S.results[i] = r.result;
+  S.game = r.game; S.grade = r.grade;
+  var ok = r.result.status === "correct", right = r.result.right || [], mine = r.result.picks || sentPicks;
+  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
+    var k = Number(t.getAttribute("data-k"));
+    t.classList.remove("waiting", "sel");
+    var isRight = right.indexOf(k) !== -1, isMine = mine.indexOf(k) !== -1;
+    t.classList.add(isRight ? "right" : isMine ? "wrong" : "dim");
+    if (isRight || isMine) { var m = el("span", "mark"); m.innerHTML = isRight ? ICON_OK : ICON_NO; var bx = t.querySelector(".box"); if (bx) bx.remove(); t.appendChild(m); }
+    if (ok && isMine && r.gained) t.appendChild(el("span", "gain", "+" + fmt(r.gained)));
+  });
+  sfx(ok ? (S.game.streak >= 3 ? "streak" : "right") : "wrong");
+  paintTop();
+  armed = "";
+  paintPowers();
+  $("armedNote").textContent = "";
+  if (r.earned && POWER_INFO[r.earned]) setTimeout(function () { sfx("power"); toast(POWER_INFO[r.earned].svg.replace("<svg", '<svg fill="#8a3fd1"'), "New power-up: " + POWER_INFO[r.earned].name + "!", 3000); }, 500);
+  showResult(ok, r);
+  if (answeredCount() % 3 === 0 || S.game.done) loadBoard(true);
+}
+function showResult(ok, r) {
+  var bar = $("result"); bar.innerHTML = ""; bar.className = "result " + (ok ? "ok" : "no"); bar.hidden = false;
+  var inner = el("div", "in");
+  var v = el("div", "verdict"); v.appendChild(svgIcon(ok ? ICON_OK_W : ICON_NO_W)); v.appendChild(el("span", null, ok ? "Correct!" : "Incorrect"));
+  inner.appendChild(v);
+  var extra = el("div", "extra"), lines = [];
+  if (ok && r.gained) lines.push("+" + fmt(r.gained) + " points" + (r.power === "double" ? " (doubled!)" : ""));
+  if (ok && S.game.streak >= 2) lines.push(S.game.streak + " in a row!");
+  if (!ok) lines.push(r.power === "saver" ? "Your streak saver kept your streak." : "The right answer is in green.");
+  extra.appendChild(el("div", null, lines.join(" ")));
+  if (r.result.explain) { var ex = el("div"); ex.appendChild(el("b", null, "Why: ")); ex.appendChild(document.createTextNode(r.result.explain)); extra.appendChild(ex); }
+  inner.appendChild(extra);
+  var nb = el("button", null, S.game.done ? "See results" : "Next"); nb.type = "button"; nb.id = "nextBtn";
+  nb.onclick = afterResult;
+  inner.appendChild(nb);
+  bar.appendChild(inner);
+  $("powers").hidden = true;
+  nb.focus({ preventScroll: true });
+  if (ok && !r.result.explain && !S.game.done) {   // a right answer moves on by itself; a wrong one waits, so the right answer can be read
+    var drain = el("div", "bar"); drain.style.animation = "drain 2.6s linear forwards"; bar.appendChild(drain);
+    nextTimer = setTimeout(afterResult, 2600);
+  }
+}
+function afterResult() {
+  clearTimeout(nextTimer);
+  $("result").hidden = true;
+  answering = false;
+  if (S.game.done || nextQuestion() === -1) { showDone(true); return; }
+  var n = answeredCount();
+  if (prefs.fun && n % 5 === 0) { showFun(); return; }
+  showQuestion();
+}
+function showFun() {
+  showOnly("fun");
+  var box = $("fun"); box.innerHTML = "";
+  var card = el("div", "card");
+  card.appendChild(el("small", null, "Fun fact"));
+  card.appendChild(document.createTextNode(FACTS[(answeredCount() / 5 + hashText(S.email)) % FACTS.length | 0]));
+  box.appendChild(card);
+  var me = myPlace();
+  if (me) box.appendChild(el("div", "rankLine", "You're " + ordinal(me.place) + (me.period ? " in Period " + me.period : "") + " with " + fmt(Math.max(me.points, S.game.topPoints || 0)) + " points!"));   // (the board can be a few answers old)
+  var go = el("button", "linkish", "Next question"); go.type = "button"; go.style.marginTop = "14px"; go.onclick = showQuestion;
+  box.appendChild(go);
+  go.focus({ preventScroll: true });
+  nextTimer = setTimeout(showQuestion, 4500);
+}
+
+/* ---------- the end ---------- */
+function showDone(fresh) {
+  stopSpeaking();
+  showOnly("done");
+  var box = $("done"); box.innerHTML = "";
+  var total = ORDER.length, right = rightCount(), done = answeredCount();
+  var pct = total ? Math.round(right / total * 100) : 0;
+  var full = S.fullCreditAt ? Math.round(S.fullCreditAt * 100) : 70;
+  box.appendChild(el("h1", null, done < total ? "Your answers so far" : pct >= full ? "Great job!" : "Game complete!"));
+  var ring = el("div", "ring");
+  var circ = 2 * Math.PI * 70;
+  ring.innerHTML = '<svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="14"/>' +
+    '<circle cx="80" cy="80" r="70" fill="none" stroke="' + (pct >= full ? "#13b866" : "#ffc83d") + '" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - pct / 100)) + '"/></svg>';
+  var pc = el("div", "pct", pct + "%"); pc.appendChild(el("small", null, right + " of " + total + " right")); ring.appendChild(pc);
+  box.appendChild(ring);
+  if (S.showGrade) box.appendChild(el("div", "gradeLine", "Grade: " + S.grade + " / " + S.maxPoints));
+  var best = S.game.best;
+  if (best && best.pct > pct) box.appendChild(el("div", "bestLine", "Your best try was " + best.pct + "%. Your grade uses your best try."));
+  else if (pct < full && done >= total) box.appendChild(el("div", "bestLine", full + "% or better gets full credit." + (canStartOver() ? " You can start over to try again. Your best try counts." : "")));
+  var stats = el("div", "stats");
+  function stat(label, value) { var s = el("span", "stat", label); s.appendChild(el("b", null, value)); stats.appendChild(s); }
+  stat("Points", fmt(S.game.points)); stat("Best streak", String(S.game.bestStreak));
+  if (S.game.topPoints > S.game.points) stat("Top points", fmt(S.game.topPoints));
+  box.appendChild(stats);
+  var btns = el("div", "doneBtns");
+  if (done < total && !isClosed() && !S.locked) { var cont = el("button", "go", "Keep playing"); cont.type = "button"; cont.onclick = showQuestion; btns.appendChild(cont); }
+  if (canStartOver()) { var again = el("button", "go", "Start Over"); again.type = "button"; again.onclick = confirmStartOver; btns.appendChild(again); }
+  var back = el("button", "soft", "Back to start"); back.type = "button"; back.onclick = showLobby; btns.appendChild(back);
+  box.appendChild(btns);
+  if (done >= total) box.appendChild(el("div", "lastStep", "Your score is saved for your teacher. If Google Classroom shows a Mark as done button, click it."));
+  var bp = el("div", "panel"); bp.id = "doneBoard"; box.appendChild(bp);
+  drawBoard(bp, false);
+  loadBoard(true, function () { drawBoard(bp, false); });
+  box.appendChild(reviewList());
+  if (fresh && done >= total) { sfx("finish"); if (pct >= full) confetti(); }
+}
+function reviewList() {
+  var d = el("details", "review");
+  d.appendChild(el("summary", null, "Review my answers"));
+  ORDER.forEach(function (i, n) {
+    var q = S.questions[i], r = S.results[i] || {}, item = el("div", "rv");
+    item.appendChild(el("div", "rq", (n + 1) + ". " + q.text));
+    function choiceBits(list) {
+      var span = el("span");
+      list.forEach(function (k, j) {
+        var c = q.choices[k]; if (!c) return;
+        if (j) span.appendChild(document.createTextNode(" + "));
+        if (c.img) { var im = el("img"); im.alt = "picture choice"; cpPicture(im, c.img, "c" + i + "." + k); span.appendChild(im); }
+        else span.appendChild(document.createTextNode(c.t));
+      });
+      return span;
+    }
+    if (!answered(i)) { item.appendChild(el("div", "why", "Not answered yet.")); d.appendChild(item); return; }
+    var ok = r.status === "correct";
+    var mine = el("div", "ans " + (ok ? "ok" : "no")); mine.appendChild(svgIcon(ok ? ICON_OK_W.replace("<svg", '<svg fill="#7ef0b0"') : ICON_NO_W.replace("<svg", '<svg fill="#ff9aa3"')));
+    var t = el("span"); t.appendChild(document.createTextNode("Your answer: ")); t.appendChild(choiceBits(r.picks || [])); mine.appendChild(t);
+    item.appendChild(mine);
+    if (!ok) { var key = el("div", "ans key"); key.appendChild(document.createTextNode("Right answer: ")); key.appendChild(choiceBits(r.right || [])); item.appendChild(key); }
+    if (r.explain) item.appendChild(el("div", "why", r.explain));
+    d.appendChild(item);
+  });
+  return d;
+}
+function confirmStartOver() {
+  var best = S.game.best, now = S.game.now, keep = Math.max(best ? best.pct : 0, now && now.total ? now.pct : 0);
+  askConfirm("Start over? All of your answers will be cleared so you can try every question again. " +
+    (keep ? "Your best try so far (" + keep + "%) still counts for your grade." : "Your best try counts for your grade."), doStartOver, "Start Over");
+}
+function doStartOver() {
+  var btns = document.querySelectorAll("#done button, #lobby button"); [].forEach.call(btns, function (b) { b.disabled = true; });
+  withRetry(function (ok, fail) { api.startOver(ok, fail); }, function (r) {
+    [].forEach.call(btns, function (b) { b.disabled = false; });
+    S.game = r.game; S.grade = r.grade; S.results = r.results;
+    makeOrder();
+    loadBoard(true);
+    countdown(showQuestion);
+  }, function (err) {
+    [].forEach.call(btns, function (b) { b.disabled = false; });
+    if (cpIsSignInError(err)) signedOutMidway(); else if (!closedMidway(err)) showError(err);
+  });
+}
+function confetti() {
+  var box = el("div", "confetti"), colors = ["#ffc83d", "#13b866", "#a865ea", "#f0832e", "#1fb7a0", "#e9558a", "#fff"];
+  for (var k = 0; k < 90; k++) {
+    var c = el("i");
+    c.style.left = Math.random() * 100 + "vw"; c.style.background = colors[k % colors.length];
+    c.style.animationDuration = (2.2 + Math.random() * 2.4) + "s"; c.style.animationDelay = Math.random() * 0.8 + "s";
+    box.appendChild(c);
+  }
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 6000);
+}
+
+/* ---------- the leaderboard ---------- */
+function myPlace() {
+  if (!BOARD) return null;
+  var v = BOARD.period ? BOARD.mine : BOARD.all, me = null;
+  v.rows.forEach(function (r) { if (r.me) me = r; });
+  return me || v.mine || null;
+}
+function loadBoard(force, then) {
+  if (!force && BOARD && Date.now() - boardAt < 30000) { if (then) then(); return; }
+  api.board(function (b) { BOARD = b; boardAt = Date.now(); if (S && !$("play").hidden) paintTop(); if (then) then(); }, function () { if (then) then(); });
+}
+function drawBoard(box, inPopup) {
+  box.innerHTML = "";
+  if (inPopup) { var x = el("button", "closeX", "×"); x.type = "button"; x.setAttribute("aria-label", "Close"); x.onclick = closeBoard; box.appendChild(x); }
+  box.appendChild(el("h2", null, "Leaderboard"));
+  if (!BOARD) { box.appendChild(el("p", null, "Loading the leaderboard…")); return; }
+  var hasP = !!BOARD.period;
+  if (hasP) {
+    var tabs = el("div", "tabs");
+    [["mine", "Period " + BOARD.period], ["all", "All periods"]].forEach(function (t) {
+      var b = el("button", null, t[1]); b.type = "button"; b.setAttribute("aria-pressed", boardTab === t[0] ? "true" : "false");
+      b.onclick = function () { boardTab = t[0]; drawBoard(box, inPopup); };
+      tabs.appendChild(b);
+    });
+    box.appendChild(tabs);
+  }
+  var v = hasP && boardTab === "mine" ? BOARD.mine : BOARD.all;
+  if (!v.rows.length) { box.appendChild(el("p", null, "No points yet. Answer a question to get on the board!")); }
+  else {
+    var ol = el("ol", "rows");
+    function row(r) {
+      var li = el("li", r.me ? "me" : "");
+      li.appendChild(el("span", "place", String(r.place)));
+      li.appendChild(el("span", "nm", r.name + (r.me ? " (you)" : "") + (!hasP || boardTab === "all" ? (r.period ? "  P" + r.period : "") : "")));
+      li.appendChild(el("span", "pv", fmt(r.points)));
+      return li;
+    }
+    v.rows.forEach(function (r) { ol.appendChild(row(r)); });
+    box.appendChild(ol);
+    if (v.mine) { box.appendChild(el("div", "gap", "⋯")); var ol2 = el("ol", "rows"); ol2.appendChild(row(v.mine)); box.appendChild(ol2); }
+  }
+  box.appendChild(el("div", "boardNote", "Points come from your best try. Right answers in a row and power-ups earn more." + (S.game.website ? " Your points also go on the Leaderboard on the class website." : "")));
+}
+function openBoard() {
+  var box = $("boardBox"), card = $("boardCard");
+  box.hidden = false;
+  drawBoard(card, true);
+  loadBoard(true, function () { if (!box.hidden) drawBoard(card, true); });
+}
+function closeBoard() { $("boardBox").hidden = true; }
+
+/* ---------- pictures ---------- */
+function zoom(img) {
+  if (!img.src) return;
+  $("zoomImg").src = img.src; $("zoomImg").alt = img.alt;
+  $("zoomBox").hidden = false;
+  $("zoomClose").focus();
+}
+
+/* ---------- keys ---------- */
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") { $("zoomBox").hidden = true; closeBoard(); if (!$("confirmBox").hidden) $("confirmNo").click(); return; }
+  if (!$("confirmBox").hidden || !$("boardBox").hidden || !$("zoomBox").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!$("result").hidden && (e.key === "Enter" || e.key === " ")) { if (document.activeElement && document.activeElement.id === "nextBtn") return; e.preventDefault(); afterResult(); return; }
+  if ($("play").hidden || answering || !$("result").hidden) return;
+  if (/^[1-6]$/.test(e.key)) {
+    var t = document.querySelectorAll("#tiles .tile")[Number(e.key) - 1];
+    if (t && !t.disabled) { e.preventDefault(); t.click(); }
+  } else if (e.key === "Enter" && S && cur >= 0 && S.questions[cur].multi && picked.length && document.activeElement && !document.activeElement.classList.contains("tile")) { e.preventDefault(); send(); }
+});
+
+/* ---------- wiring ---------- */
+$("startBtn").onclick = startPressed;
+$("overBtn").onclick = confirmStartOver;
+$("submitBtn").onclick = send;
+$("lobbyBoardBtn").onclick = openBoard;
+$("playBoardBtn").onclick = openBoard;
+$("soundBtn").onclick = function () { prefs.sound = !prefs.sound; savePrefs(); paintSoundBtn(); if (prefs.sound) sfx("tick"); };
+$("exitBtn").onclick = function () { if (answering) return; stopSpeaking(); showLobby(); };
+$("zoomClose").onclick = function () { $("zoomBox").hidden = true; };
+$("zoomBox").onclick = function (e) { if (e.target === this) this.hidden = true; };
+$("boardBox").onclick = function (e) { if (e.target === this) closeBoard(); };
+
+/* ---------- signing in (Class Pass) ---------- */
+function signInInfo(s) { return { title: s.title, domain: s.domain, googleClient: s.googleClient, code: s.code, minutes: s.minutes, passLink: s.passLink }; }
+/** The Class Pass card: before the game is on the page (a whole-page card), or midway (a sign-in ran out while playing). */
+function showSignIn(info, midway) {
+  var box;
+  if (midway) { box = el("div", "modal-card light"); var wrap = el("div", "modal"); wrap.id = "midSignIn"; wrap.appendChild(box); document.body.appendChild(wrap); }
+  else box = CP_HOST.clear(info.title);
+  cpCard(box, info, { midway: midway, done: function (r) {
+    if (!midway) { $("signin").hidden = true; start(); return; }
+    var w = $("midSignIn"); if (w) w.remove();
+    if (S && r.email === S.email) { toast(null, "You're signed in again. Pick your answer again.", 3000); return; }
+    location.reload();   // someone else signed in: start over with their game
+  } });
+}
+function signedOutMidway() {
+  if (cpCardOpen || !S) return;
+  showSignIn(signInInfo(S), true);
+}
+function signOutHere() {
+  if (answering) return;
+  askConfirm(CP_SITE ? "Sign out of Class Pass on this device?" : "Sign out of this game on this browser?", function () {
+    var title = S ? S.title : document.title;
+    S = null;
+    var box = CP_HOST.clear(title);
+    var msg = el("p", null, "Signing out…");
+    box.appendChild(msg);
+    cpSignOut(function () {
+      if (CP_SITE) return cpGo(cpPassUrl("&signin=1"), true);   // the next student can sign in right away
+      msg.textContent = "You're signed out on this browser. Reload the page to sign in again.";
+    });
+  }, "Sign out");
+}
+window.addEventListener("beforeunload", function (e) { if (answering) { e.preventDefault(); e.returnValue = ""; } });
+
+function start() {
+  if (CP_SITE) cpStep(3, "Opening your review game…"); else cpStep(0, "Loading your review game…");
+  var handed = cpTakeState();   // the Class Pass page already asked for it while signing in
+  if (handed) return gotState(handed);
+  withRetry(function (ok, fail) { api.getState(ok, fail); }, gotState, function (err) {
+    if (CP_SITE && /^NETWORK/.test(String(err && err.message))) err = new Error(err.message + " If it still won't open, please tell your teacher.");
+    cpFail(err);
+  }, 0, function () { cpStepNote("Lots of students are opening this, so hang on."); });
+}
+function gotState(state) {
+  if (state && state.needSignIn) { S = null; if (!cpNeedSignIn(state)) showSignIn(state, false); return; }
+  S = state; render();
+}
+if (window.MOCK_API) start();
+else if (CP_SITE) cpAppBoot(start);   // on the class website: signed in to this game on this device? else Class Pass
+else start();
+</script>
+</body>
+</html>

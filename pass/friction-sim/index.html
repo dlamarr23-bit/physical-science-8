@@ -594,6 +594,7 @@ var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // 
                  "reading-activity": "reading",                            // a side-by-side reading page whose article comes from a Google Doc
                  "friction-article": "friction",
                  "friction-speed-lab": "friction-lab",
+                 "review-game": "review",                                   // a Wayground-style review game: multiple choice, one try each, points and a leaderboard
                  "friction-sim-lab": "friction-sim" };                      // the same lab with the ramp simulation live on the left (Directions / Simulation buttons)                    // the friction and speed lab: handout on the left, stopwatch + data table + graph, rubric-scored conclusion
 var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
 var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
