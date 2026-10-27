@@ -1322,9 +1322,10 @@ function render() {
   $("ver").textContent = "Review game " + (S.version || "");
   if (!S.game) { showError(new Error("This sheet isn't set up as a review game yet. Please tell your teacher.")); return; }
   makeOrder();
+  resumePending();   // answers this browser clicked that never reached the sheet
   setUpSwitches();
   showLobby();
-  loadBoard(false);
+  afterSaves(function () { loadBoard(false); });   // (after any left-over answers, so the board counts them)
 }
 
 function showLobby() {
@@ -1499,11 +1500,153 @@ function pick(k, b) {
   picked = [k];
   send();
 }
+/* ---------- checking an answer ----------
+   The sheet sends each question's right choices scrambled (S.game.keys; gameStateFor_ in Code.gs), so a click shows right or wrong
+   at once. The answer then goes to the sheet in the background (SAVE_Q: one at a time and in order, so the streak counts the same
+   there), which saves and grades it, and the sheet's word is final. Answers still on their way are kept in this browser
+   (localStorage), so a reload sends them. A sheet that sends no keys gets the old way: wait for the sheet. */
+var SAVE_Q = [], saving = false, saveRetry = 0;
+function quickHash(str) {   // cyrb53, the very same as quickHash_ in Code.gs
+  var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (var i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+/** The right choices of question i (0-based, sorted), found from its scrambled key; null when the sheet sent none. */
+function rightOf(i) {
+  var key = S.game.keys && S.game.keys[i], q = S.questions[i];
+  if (!key || !q.choices || q.choices.length > 10) return null;
+  for (var m = 1; m < (1 << q.choices.length); m++) {
+    var set = [];
+    for (var k = 0; k < q.choices.length; k++) if (m & (1 << k)) set.push(k);
+    if (quickHash(S.game.salt + "|" + i + "|" + set.join(",")) === key) return set;
+  }
+  return null;
+}
+function sameSet(a, b) { return a.length === b.length && a.every(function (x, k) { return x === b[k]; }); }
+/** Points, streak and power-ups for an answer, the same way answerChoice counts them (the sheet's numbers replace these when it answers). */
+function scoreHere(ok, power) {
+  var g = S.game, r = g.rules || { base: 500, step: 100, max: 5 }, gained = 0;
+  g.powers = g.powers || {};
+  if (power) g.powers[power] = Math.max(0, (g.powers[power] || 0) - 1);
+  if (power === "boost") g.streak += 3;
+  if (ok) { g.streak++; gained = r.base + r.step * Math.min(g.streak - 1, r.max); if (power === "double") gained *= 2; }
+  else if (power !== "saver") g.streak = 0;
+  g.points += gained;
+  g.bestStreak = Math.max(g.bestStreak, g.streak);
+  g.answered++;
+  g.topPoints = Math.max(g.topPoints || 0, g.points);
+  g.done = nextQuestion() === -1;
+  return gained;
+}
 function send() {
   if (answering || cur < 0 || !picked.length) return;
-  answering = true;
   stopSpeaking();
-  var i = cur, sentPicks = picked.slice(), power = armed;
+  var i = cur, sentPicks = picked.slice().sort(function (a, b) { return a - b; }), power = armed, right = rightOf(i);
+  if (!right) { sendAndWait(i, sentPicks, power); return; }
+  var ok = sameSet(sentPicks, right);
+  S.results[i] = { status: ok ? "correct" : "incorrect", picks: sentPicks, right: right, explain: "" };
+  var gained = scoreHere(ok, power);
+  picked = [];
+  paintAnswer(ok, right, sentPicks, gained);
+  showResult(ok, { gained: gained, power: power, result: S.results[i] });
+  queueSave({ i: i, picks: sentPicks.map(function (k) { return k + 1; }), power: power, attempt: S.game.attempt });
+}
+function pendKey() { return "reviewgame-pending:" + (CP_APP || "exec") + ":" + S.email; }
+function keepPending() { try { if (SAVE_Q.length) localStorage.setItem(pendKey(), JSON.stringify(SAVE_Q)); else localStorage.removeItem(pendKey()); } catch (e) {} }
+function queueSave(job) { SAVE_Q.push(job); keepPending(); flushSaves(); }
+/** Sends the oldest answer still on its way, then the next. A failed send stays in line and is tried again. */
+function flushSaves() {
+  if (saving || !SAVE_Q.length || !S) return;
+  var job = SAVE_Q[0];
+  saving = true;
+  withRetry(function (ok, fail) { api.answer(job.i, job.picks, job.power, ok, fail); }, function (r) {
+    saving = false; saveRetry = 0;
+    SAVE_Q.shift(); keepPending();
+    serverAnswer(job, r);
+    flushSaves();
+  }, function (err) {
+    saving = false;
+    if (cpIsSignInError(err)) { signedOutMidway(); return; }   // stays in line: sent once they sign in again
+    if (closedMidway(err)) { SAVE_Q = []; keepPending(); return; }
+    toast(null, "Your answers are still saving. Check your internet connection.", 4000);
+    clearTimeout(saveRetry); saveRetry = setTimeout(flushSaves, 15000);
+  });
+}
+/** The sheet saved an answer: its result, grade and game are final. */
+function serverAnswer(job, r) {
+  if (!S.game || job.attempt !== S.game.attempt) return;
+  var was = S.results[job.i] && S.results[job.i].status;
+  S.results[job.i] = r.result;
+  S.grade = r.grade;
+  if (!SAVE_Q.length) S.game = r.game;   // nothing else on its way: the sheet's points, streak and power-ups
+  else if (r.earned) S.game.powers[r.earned] = (S.game.powers[r.earned] || 0) + 1;
+  if (r.earned && POWER_INFO[r.earned]) { sfx("power"); toast(POWER_INFO[r.earned].svg.replace("<svg", '<svg fill="#8a3fd1"'), "New power-up: " + POWER_INFO[r.earned].name + "!", 3000); }
+  var onScreen = job.i === cur && !$("result").hidden && !$("play").hidden;
+  if (onScreen && was !== r.result.status) {   // the sheet checked it differently (a Right choice changed): show the sheet's
+    var ok = r.result.status === "correct";
+    clearTimeout(nextTimer);
+    paintAnswer(ok, r.result.right || [], r.result.picks || [], 0);
+    showResult(ok, { gained: r.gained, power: r.power, result: r.result });
+  } else if (onScreen && r.result.explain) addWhy(r.result.explain);
+  if (!$("play").hidden) { paintTop(); if ($("result").hidden) paintPowers(); }
+  if (answeredCount() % 3 === 0 || (S.game && S.game.done)) afterSaves(function () { loadBoard(true); });
+  if (!$("done").hidden && !SAVE_Q.length) doneSaved();
+}
+/** Puts the sheet's explanation on the result bar that's showing. */
+function addWhy(text) {
+  var extra = document.querySelector("#result .extra");
+  if (!extra || extra.querySelector(".why")) return;
+  var ex = el("div", "why"); ex.appendChild(el("b", null, "Why: ")); ex.appendChild(document.createTextNode(text)); extra.appendChild(ex);
+  clearTimeout(nextTimer);   // time to read it
+  var bar = document.querySelector("#result .bar"); if (bar) bar.remove();
+}
+/** Colors the tiles: right ones green, a wrong pick red, the rest dimmed. */
+function paintAnswer(ok, right, mine, gained) {
+  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
+    var k = Number(t.getAttribute("data-k"));
+    t.disabled = true;
+    t.classList.remove("waiting", "sel", "right", "wrong", "dim");
+    [].forEach.call(t.querySelectorAll(".mark, .gain"), function (x) { x.remove(); });
+    var isRight = right.indexOf(k) !== -1, isMine = mine.indexOf(k) !== -1;
+    t.classList.add(isRight ? "right" : isMine ? "wrong" : "dim");
+    if (isRight || isMine) { var m = el("span", "mark"); m.innerHTML = isRight ? ICON_OK : ICON_NO; var bx = t.querySelector(".box"); if (bx) bx.remove(); t.appendChild(m); }
+    if (ok && isMine && gained) t.appendChild(el("span", "gain", "+" + fmt(gained)));
+  });
+  $("submitBtn").disabled = true;
+  sfx(ok ? (S.game.streak >= 3 ? "streak" : "right") : "wrong");
+  paintTop();
+  armed = "";
+  paintPowers();
+  $("armedNote").textContent = "";
+}
+/** On a reload: answers this browser clicked that never reached the sheet are sent now (and count as answered). */
+function resumePending() {
+  var list = [];
+  try { list = JSON.parse(localStorage.getItem(pendKey()) || "[]") || []; } catch (e) { list = []; }
+  list.forEach(function (job) {
+    if (!job || job.attempt !== S.game.attempt || !S.questions[job.i] || !S.questions[job.i].choices || answered(job.i)) return;
+    var picks = (job.picks || []).map(function (n) { return n - 1; }), right = rightOf(job.i);
+    S.results[job.i] = { status: right && sameSet(picks, right) ? "correct" : "incorrect", picks: picks, right: right || [], explain: "" };
+    SAVE_Q.push(job);
+  });
+  keepPending();
+  flushSaves();
+}
+/** Waits for the answers on their way before fn (Start Over clears them on the sheet). */
+function whenSaved(fn) {
+  if (SAVE_Q.length || saving) toast(null, "Saving your answers first…", 2500);
+  afterSaves(fn);
+}
+function afterSaves(fn) {
+  if (!SAVE_Q.length && !saving) { fn(); return; }
+  var t = setInterval(function () { if (!SAVE_Q.length && !saving) { clearInterval(t); fn(); } }, 300);
+}
+
+/* the old way, for a sheet that sends no keys: wait for the sheet to check the answer */
+function sendAndWait(i, sentPicks, power) {
+  answering = true;
   [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
     t.disabled = true;
     if (sentPicks.indexOf(Number(t.getAttribute("data-k"))) !== -1) t.classList.add("waiting");
@@ -1526,20 +1669,8 @@ function gotAnswer(i, sentPicks, r) {
   answering = false; picked = [];   // (the tiles stay disabled until the next question)
   S.results[i] = r.result;
   S.game = r.game; S.grade = r.grade;
-  var ok = r.result.status === "correct", right = r.result.right || [], mine = r.result.picks || sentPicks;
-  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
-    var k = Number(t.getAttribute("data-k"));
-    t.classList.remove("waiting", "sel");
-    var isRight = right.indexOf(k) !== -1, isMine = mine.indexOf(k) !== -1;
-    t.classList.add(isRight ? "right" : isMine ? "wrong" : "dim");
-    if (isRight || isMine) { var m = el("span", "mark"); m.innerHTML = isRight ? ICON_OK : ICON_NO; var bx = t.querySelector(".box"); if (bx) bx.remove(); t.appendChild(m); }
-    if (ok && isMine && r.gained) t.appendChild(el("span", "gain", "+" + fmt(r.gained)));
-  });
-  sfx(ok ? (S.game.streak >= 3 ? "streak" : "right") : "wrong");
-  paintTop();
-  armed = "";
-  paintPowers();
-  $("armedNote").textContent = "";
+  var ok = r.result.status === "correct";
+  paintAnswer(ok, r.result.right || [], r.result.picks || sentPicks, r.gained);
   if (r.earned && POWER_INFO[r.earned]) setTimeout(function () { sfx("power"); toast(POWER_INFO[r.earned].svg.replace("<svg", '<svg fill="#8a3fd1"'), "New power-up: " + POWER_INFO[r.earned].name + "!", 3000); }, 500);
   showResult(ok, r);
   if (answeredCount() % 3 === 0 || S.game.done) loadBoard(true);
@@ -1554,7 +1685,7 @@ function showResult(ok, r) {
   if (ok && S.game.streak >= 2) lines.push(S.game.streak + " in a row!");
   if (!ok) lines.push(r.power === "saver" ? "Your streak saver kept your streak." : "The right answer is in green.");
   extra.appendChild(el("div", null, lines.join(" ")));
-  if (r.result.explain) { var ex = el("div"); ex.appendChild(el("b", null, "Why: ")); ex.appendChild(document.createTextNode(r.result.explain)); extra.appendChild(ex); }
+  if (r.result.explain) { var ex = el("div", "why"); ex.appendChild(el("b", null, "Why: ")); ex.appendChild(document.createTextNode(r.result.explain)); extra.appendChild(ex); }
   inner.appendChild(extra);
   var nb = el("button", null, S.game.done ? "See results" : "Next"); nb.type = "button"; nb.id = "nextBtn";
   nb.onclick = afterResult;
@@ -1606,7 +1737,7 @@ function showDone(fresh) {
     '<circle cx="80" cy="80" r="70" fill="none" stroke="' + (pct >= full ? "#13b866" : "#ffc83d") + '" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - pct / 100)) + '"/></svg>';
   var pc = el("div", "pct", pct + "%"); pc.appendChild(el("small", null, right + " of " + total + " right")); ring.appendChild(pc);
   box.appendChild(ring);
-  if (S.showGrade) box.appendChild(el("div", "gradeLine", "Grade: " + S.grade + " / " + S.maxPoints));
+  if (S.showGrade) { var gl = el("div", "gradeLine", SAVE_Q.length ? "Grade: saving your last answers…" : "Grade: " + S.grade + " / " + S.maxPoints); gl.id = "doneGrade"; box.appendChild(gl); }
   var best = S.game.best;
   if (best && best.pct > pct) box.appendChild(el("div", "bestLine", "Your best try was " + best.pct + "%. Your grade uses your best try."));
   else if (pct < full && done >= total) box.appendChild(el("div", "bestLine", full + "% or better gets full credit." + (canStartOver() ? " You can start over to try again. Your best try counts." : "")));
@@ -1626,6 +1757,12 @@ function showDone(fresh) {
   loadBoard(true, function () { drawBoard(bp, false); });
   box.appendChild(reviewList());
   if (fresh && done >= total) { sfx("finish"); if (pct >= full) confetti(); }
+}
+/** The last answers reached the sheet while the results screen was up: its grade, the explanations, the leaderboard. */
+function doneSaved() {
+  var gl = $("doneGrade"); if (gl) gl.textContent = "Grade: " + S.grade + " / " + S.maxPoints;
+  var rv = document.querySelector("#done details.review"); if (rv && !rv.open) rv.replaceWith(reviewList());
+  var bp = $("doneBoard"); if (bp) loadBoard(true, function () { drawBoard(bp, false); });
 }
 function reviewList() {
   var d = el("details", "review");
@@ -1657,7 +1794,7 @@ function reviewList() {
 function confirmStartOver() {
   var best = S.game.best, now = S.game.now, keep = Math.max(best ? best.pct : 0, now && now.total ? now.pct : 0);
   askConfirm("Start over? All of your answers will be cleared so you can try every question again. " +
-    (keep ? "Your best try so far (" + keep + "%) still counts for your grade." : "Your best try counts for your grade."), doStartOver, "Start Over");
+    (keep ? "Your best try so far (" + keep + "%) still counts for your grade." : "Your best try counts for your grade."), function () { whenSaved(doStartOver); }, "Start Over");
 }
 function doStartOver() {
   var btns = document.querySelectorAll("#done button, #lobby button"); [].forEach.call(btns, function (b) { b.disabled = true; });
@@ -1777,7 +1914,11 @@ function showSignIn(info, midway) {
   cpCard(box, info, { midway: midway, done: function (r) {
     if (!midway) { $("signin").hidden = true; start(); return; }
     var w = $("midSignIn"); if (w) w.remove();
-    if (S && r.email === S.email) { toast(null, "You're signed in again. Pick your answer again.", 3000); return; }
+    if (S && r.email === S.email) {
+      if (SAVE_Q.length) { toast(null, "You're signed in again. Saving your answers now.", 3000); flushSaves(); }
+      else toast(null, "You're signed in again. Pick your answer again.", 3000);
+      return;
+    }
     location.reload();   // someone else signed in: start over with their game
   } });
 }
@@ -1786,7 +1927,7 @@ function signedOutMidway() {
   showSignIn(signInInfo(S), true);
 }
 function signOutHere() {
-  if (answering) return;
+  if (answering || SAVE_Q.length) { toast(null, "Your answers are still saving. Try again in a few seconds.", 3000); return; }
   askConfirm(CP_SITE ? "Sign out of Class Pass on this device?" : "Sign out of this game on this browser?", function () {
     var title = S ? S.title : document.title;
     S = null;
@@ -1799,7 +1940,7 @@ function signOutHere() {
     });
   }, "Sign out");
 }
-window.addEventListener("beforeunload", function (e) { if (answering) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("beforeunload", function (e) { if (answering || SAVE_Q.length) { e.preventDefault(); e.returnValue = ""; } });
 
 function start() {
   if (CP_SITE) cpStep(3, "Opening your review game…"); else cpStep(0, "Loading your review game…");
