@@ -141,6 +141,8 @@
   .tg-grid { stroke:#e3e3e3; stroke-width:1; } .tg-axis { stroke:#555; stroke-width:1.5; }
   .tg-tick { font-size:13px; fill:#555; } .tg-empty { font-size:15px; fill:#888; font-style:italic; }
   .tg-dot { fill:#3c78d8; } .tg-fit { stroke:#9fbbea; stroke-width:3; }
+  svg .tg-dash { stroke-dasharray:9 7; }
+  svg .lg-line.tg-wide { stroke-width:9; stroke-opacity:.5; }
   html[data-theme="dark"] .tablezone { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] table.dtable th, html[data-theme="dark"] .tgraphhead { background:#000; border-color:#5f6670; }
   html[data-theme="dark"] table.dtable td { border-color:#5f6670; }
@@ -2113,6 +2115,17 @@ function tableBox(i) {
   mid.appendChild(ywrap); mid.appendChild(svg);
   var xin = tableInput(i, "x", "Type the x-axis label", saved.x);
   right.appendChild(title); right.appendChild(mid); right.appendChild(xin);
+  if (T.pairs) {   // "pairs":true: one colored line per pair of columns (Trial 1, Trial 2, ...), with a key
+    var key = el("ul", "labkey"); key.setAttribute("aria-label", "Key: which line is which");
+    pairNames(T).forEach(function (name, s) {
+      var li = el("li"), sw = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      sw.setAttribute("viewBox", "0 0 36 16"); sw.setAttribute("aria-hidden", "true"); sw.setAttribute("class", "lg-" + (s % 4));
+      sw.innerHTML = '<line class="lg-line' + (s ? " tg-dash" : " tg-wide") + '" x1="2" y1="8" x2="34" y2="8"/>' + labMark(s % 4, 18, 8, 5.5);
+      li.appendChild(sw); li.appendChild(document.createTextNode(name)); key.appendChild(li);
+    });
+    right.appendChild(key);
+    svg.setAttribute("aria-label", "Graph of your data: one line for each of " + pairNames(T).join(" and "));
+  }
   zone.appendChild(left); zone.appendChild(right);
   setTimeout(function () { drawTableGraph(i); }, 0);
   return zone;
@@ -2171,12 +2184,22 @@ function niceStep(range) {
   var raw = range / 5, mag = Math.pow(10, Math.floor(Math.log10(raw || 1))), f = raw / mag;
   return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
 }
+/** A pairs table's line names: the part of each pair's first column before a colon ("Trial 1: Scale A (N)" -> Trial 1). */
+function pairNames(T) {
+  var out = [];
+  for (var k = 0; k + 1 < T.cols.length && out.length < 4; k += 2) {
+    var c = String(T.cols[k] || ""), at = c.indexOf(":");
+    out.push((at > 0 ? c.slice(0, at) : "Columns " + (k + 1) + " and " + (k + 2)).trim().slice(0, 30));
+  }
+  return out;
+}
 function drawTableGraph(i) {
   if (S.questions[i].table.graph) { drawGraphQ(i); return; }
   if (S.questions[i].table.lab) { drawLab(i); return; }
   var svg = document.getElementById("tg" + i);
   if (!svg) return;
   var T = S.questions[i].table, cells = tableCells(i), n = 0, pts = [];
+  if (T.pairs) { drawPairsGraph(i, svg, T, cells); return; }
   T.rows.forEach(function (row) {
     var xy = row.slice(0, 2).map(function (c) {
       if (c !== null) return Number(c);
@@ -2217,6 +2240,44 @@ function drawTableGraph(i) {
   pts.forEach(function (p) { h.push('<circle class="tg-dot" cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="5"/>'); });
   if (pts.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
   svg.innerHTML = h.join("");
+}
+
+/** "pairs":true: columns 1+2, 3+4, ... are each one line (x = the pair's first column, y = its second), each a color and marker
+    shape of its own (the lab graph's). The 1st line is wide and see-through and the 2nd line onward dashed, on top of it, so lines that land on top of each other both show. */
+function drawPairsGraph(i, svg, T, cells) {
+  var names = pairNames(T), series = names.map(function () { return []; }), n = 0;
+  T.rows.forEach(function (row) {
+    var vals = row.map(function (c) {
+      if (c !== null) return Number(c);
+      var v = cells[n] ? cells[n].value.trim().replace(/,/g, "") : ""; n++;
+      return v === "" ? NaN : Number(v);
+    });
+    series.forEach(function (sr, s) { var x = vals[2 * s], y = vals[2 * s + 1]; if (isFinite(x) && isFinite(y)) sr.push([x, y]); });
+  });
+  var all = [].concat.apply([], series);
+  var xMax = Math.max.apply(null, all.map(function (p) { return p[0]; }).concat([1])), xMin = Math.min.apply(null, all.map(function (p) { return p[0]; }).concat([0]));
+  var yMax = Math.max.apply(null, all.map(function (p) { return p[1]; }).concat([1])), yMin = Math.min.apply(null, all.map(function (p) { return p[1]; }).concat([0]));
+  var xs = niceStep(xMax - xMin), ys = niceStep(yMax - yMin);
+  xMax = Math.ceil(xMax / xs) * xs; xMin = Math.floor(xMin / xs) * xs; yMax = Math.ceil(yMax / ys) * ys; yMin = Math.floor(yMin / ys) * ys;
+  var L = 56, R = 568, Tp = 16, B = 340;
+  function X(v) { return L + (v - xMin) / (xMax - xMin || 1) * (R - L); }
+  function Y(v) { return B - (v - yMin) / (yMax - yMin || 1) * (B - Tp); }
+  function fmt(v) { return Math.abs(v) >= 1000 || Number.isInteger(v) ? String(Math.round(v)) : String(Math.round(v * 100) / 100); }
+  var h = [], lines = [], marks = [];
+  for (var gy = yMin; gy <= yMax + ys / 2; gy += ys) {
+    h.push('<line class="tg-grid" x1="' + L + '" x2="' + R + '" y1="' + Y(gy) + '" y2="' + Y(gy) + '"/>');
+    h.push('<text class="tg-tick" x="' + (L - 8) + '" y="' + (Y(gy) + 4) + '" text-anchor="end">' + fmt(gy) + '</text>');
+  }
+  for (var gx = xMin; gx <= xMax + xs / 2; gx += xs) h.push('<text class="tg-tick" x="' + X(gx) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(gx) + '</text>');
+  h.push('<line class="tg-axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/><line class="tg-axis" x1="' + L + '" x2="' + L + '" y1="' + Tp + '" y2="' + B + '"/>');
+  series.forEach(function (pts, s) {
+    var c = s % 4;
+    pts = pts.slice().sort(function (a, b) { return a[0] - b[0]; });
+    if (pts.length > 1) lines.push('<polyline class="lg-line lg-' + c + (s ? " tg-dash" : " tg-wide") + '" points="' + pts.map(function (p) { return X(p[0]) + "," + Y(p[1]); }).join(" ") + '"/>');
+    pts.forEach(function (p) { marks.push('<g class="lg-' + c + '">' + labMark(c, X(p[0]), Y(p[1]), s ? 6 : 8) + '<title>' + labEsc(names[s]) + ": " + labEsc(fmt(p[0])) + ", " + labEsc(fmt(p[1])) + '</title></g>'); });
+  });
+  if (all.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  svg.innerHTML = h.concat(lines, marks).join("");
 }
 
 /* ---------- timed-trials lab table: a stopwatch, the data table, and a graph with one colored line per surface ----------
@@ -2582,7 +2643,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.21";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.27";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
