@@ -615,6 +615,8 @@
   </div>
 </div>
 
+<!-- The /exec page: the sheet puts the student's work in here (doGet), so the page draws with no second trip. Keep it on one line, empty. -->
+<script id="bootState" type="application/json"></script>
 <script>
 /** Student calls that carry this browser's sign-in token, and how many arguments come before it.
     Missing arguments are filled with null so the token always lands in the same place. */
@@ -859,9 +861,10 @@ function cpRun(fn, args, ok, fail) {
 }
 /* Now and then one answer from the sheet takes far longer than the rest (seen on 2026-09-30: classPass 26.8 s while the
    same sheet answered the probe, sent at the same moment, in 1.9 s, and every call before and after in 1 to 4 s).
-   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS is sent once more alongside, and whichever answers
-   first wins. Saves are never sent twice this way (they have their own retries). */
-var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 6000;
+   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS (plus up to 2 s, so a class doesn't all send at once)
+   is sent once more alongside, and whichever answers first wins. Saves are never sent twice this way (they have their own retries).
+   10 s, not 6: when a whole class opens at once, a 6 s answer is often just the line, and a second copy from everyone made it longer. */
+var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 10000;
 function cpFetchHedged(fn, args, ok, fail) {
   var sent = 1, failed = 0, over = false, timer = 0;
   function win(x) { if (over) return; over = true; clearTimeout(timer); ok(x); }
@@ -872,7 +875,7 @@ function cpFetchHedged(fn, args, ok, fail) {
     sent++;
     cpLog(fn + " is slow: asking once more alongside");
     cpFetch(fn, args, win, lose);
-  }, CP_HEDGE_MS);
+  }, CP_HEDGE_MS + Math.floor(Math.random() * 2000));
 }
 function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
 /** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
@@ -1203,9 +1206,11 @@ function cpPassBoot() {
   document.title = "Class Pass";
   var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
   if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
-  var info = null, waiting = [], failed = null, pre = null, left = false;
-  function withInfo(f) { if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
-  function getInfo() {
+  var info = null, waiting = [], failed = null, pre = null, left = false, asked = false;
+  function withInfo(f) { getInfo(); if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
+  function getInfo() {   // asks the sheet once, the first time anything needs it
+    if (asked) return;
+    asked = true;
     cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
            function (err) { failed = err; waiting.splice(0); if (!left) cpFail(err); });   // (already on the way to the assignment: no matter)
   }
@@ -1264,7 +1269,9 @@ function cpPassBoot() {
     if (page(rec.k)) return cpGo(page(rec.k), true);
     getInfo(); return open();
   }
-  getInfo();
+  // A school Chromebook almost always goes on to the plain link (the check below), which never needs classPass, so it asks only
+  // if it ends up signing in here: a class opening at once makes about half as many trips to the sheet. Elsewhere it asks now.
+  if (!CP_CROS) getInfo();
   if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
   cpStep(1, "Checking your school sign-in…");
   cpProbe(function (known) {
@@ -1597,30 +1604,34 @@ function safeArticle(html) {
   copy(doc.body, out);
   return out;
 }
-/** The article's pictures come one at a time (two at once) as the sheet sends them, then are shown from blob: addresses. */
+/** The article's pictures usually come with its text (pics[i].data, one trip); any others come one at a time (two at once)
+    as the sheet sends them. All are shown from blob: addresses. */
 var artPicQ = [], artPicBusy = 0;
 function loadArticlePics(root, pics) {
   Array.prototype.forEach.call(root.querySelectorAll("img[data-pic]"), function (img) {
     var i = Number(img.getAttribute("data-pic"));
     if (!pics[i]) { img.remove(); return; }
+    if (typeof pics[i].data === "string" && pics[i].data && artPicShow(img, pics[i])) return;
     artPicQ.push({ img: img, i: i });
   });
   artPicNext();
+}
+/** Shows one picture from the sheet's { mime, data (base64) }. false if it isn't a picture. */
+function artPicShow(img, r) {
+  if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") return false;   // never a page or a script
+  try {
+    var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+    for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
+    img.src = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+    return true;
+  } catch (e) { return false; }
 }
 function artPicNext() {
   while (artPicBusy < 2 && artPicQ.length) (function (job) {
     artPicBusy++;
     cpRetry(cpCall("getArticlePicture", [job.i]), function (r) {
       artPicBusy--;
-      var ok = false;
-      if (r && /^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) && typeof r.data === "string") {   // never a page or a script
-        try {
-          var bin = atob(r.data), bytes = new Uint8Array(bin.length);
-          for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
-          job.img.src = URL.createObjectURL(new Blob([bytes], { type: r.mime })); ok = true;
-        } catch (e) { ok = false; }
-      }
-      if (!ok) job.img.alt = "The picture didn't load. Reload the page to try again.";
+      if (!artPicShow(job.img, r)) job.img.alt = "The picture didn't load. Reload the page to try again.";
       artPicNext();
     }, function () { artPicBusy--; job.img.alt = "The picture didn't load. Reload the page to try again."; artPicNext(); });
   })(artPicQ.shift());
@@ -2648,7 +2659,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.27b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.28b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
@@ -3173,14 +3184,18 @@ function RETRY_FAST(call, ok, fail, onRetry, attempt) {
   });
 }
 
-/** Saves the newest checked answer for a question, one save at a time, in order. */
+/** Saves the newest checked answer for a question, one save at a time, in order.
+    If every quick retry fails (a dropped connection, or the sheet too busy), it keeps trying by itself (saveLater),
+    so the student never has to press Check again for the answer to reach the teacher. */
+var saveLater = {}, saveLaterN = {}, savedChecked = {};   // question index -> timer for the next try by itself, how many tries so far, and the last checked text the sheet saved
 function queueSave(i, val) {
   saveWant[i] = val;
+  clearTimeout(saveLater[i]); saveLater[i] = 0;
   if (saving[i]) return;               // the running save will pick up the newest text when it finishes
   saving[i] = true;
   var v = saveWant[i];
   withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
-    saving[i] = false;
+    saving[i] = false; saveLaterN[i] = 0; savedChecked[i] = v;
     draftSaved[i] = v;
     if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
     if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
@@ -3193,10 +3208,29 @@ function queueSave(i, val) {
     if (cpIsSignInError(err)) signedOutMidway();
     else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
     else if (err && err.message && /locked/i.test(err.message)) showError(err);
+    else if (isRetryable(err)) saveAgainLater(i);
   }, 0, function () {
     if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
   });
 }
+/** A save that gave up: try again by itself in 15 s, then 30, 45, and every minute after that (plus a little, so a class spreads out). */
+function saveAgainLater(i) {
+  var n = saveLaterN[i] = (saveLaterN[i] || 0) + 1;
+  clearTimeout(saveLater[i]);
+  saveLater[i] = setTimeout(function () { saveLater[i] = 0; saveNowIfWaiting(i); }, Math.min(60000, 15000 * n) + Math.floor(Math.random() * 8000));
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
+}
+/** The newest checked answer still hasn't reached the sheet: save it now. */
+function saveNowIfWaiting(i) {
+  if (!S || S.locked || saving[i] || saveWant[i] == null || saveWant[i] !== saved[i] || saveWant[i] === savedChecked[i]) return;
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked. Saving…", "#666");
+  queueSave(i, saveWant[i]);
+}
+function savesWaiting() { return Object.keys(saveLater).filter(function (k) { return saveLater[k]; }); }
+/** Back online (or back on this tab): every save that's waiting goes right away. */
+function saveWaitingNow() { savesWaiting().forEach(function (k) { clearTimeout(saveLater[k]); saveLater[k] = 0; saveNowIfWaiting(Number(k)); }); }
+window.addEventListener("online", saveWaitingNow);
+document.addEventListener("visibilitychange", function () { if (!document.hidden) saveWaitingNow(); });
 function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
 
 function updateProgress() {
@@ -3267,9 +3301,10 @@ function submitNow() {
   flushDrawings();   // a drawing that hasn't saved yet saves now
   // Anything typed but not checked yet gets checked and saved first, so no work is lost.
   S.questions.forEach(function (_, i) { if (answerOf(i) !== saved[i]) check(i, true); });
+  saveWaitingNow();   // and any checked answer still waiting to save
   var waited = 0;
   (function whenSaved() {
-    var busy = savesRunning() || Object.keys(pending).some(function (k) { return pending[k]; });
+    var busy = savesRunning() || savesWaiting().length || Object.keys(pending).some(function (k) { return pending[k]; });
     if (busy && waited < 90000) { waited += 500; fin.textContent = "Saving your answers…"; return setTimeout(whenSaved, 500); }
     fin.textContent = "I'm finished";
     doTurnIn(fin);
@@ -3342,13 +3377,21 @@ window.addEventListener("beforeunload", function (e) {
 function start() {
   // the loading screen's progress bar (cpStep): on the class website it's the last step of Class Pass
   if (CP_SITE) cpStep(3, "Opening your assignment…"); else cpStep(0, "Loading your self-check…");
-  var handed = cpTakeState();   // the Class Pass page already asked for it while signing in
+  var handed = cpTakeState() || bootState();   // the Class Pass page already asked for it while signing in, or the sheet sent it with this page
   if (handed) return gotState(handed);
   withRetry(function (ok, fail) { api.getState(ok, fail); }, gotState, function (err) {
     // The class website can't reach the sheet at all: most often the deployment isn't set to "Anyone" yet.
     if (CP_SITE && /^NETWORK/.test(String(err && err.message))) err = new Error(err.message + " If it still won't open, please tell your teacher.");
     showError(err);
   }, 0, function () { cpStepNote("Lots of students are opening this, so hang on."); });
+}
+/** The /exec page: the student's work as the sheet put it into this page (doGet), once; null on the class website, or when it isn't there. */
+function bootState() {
+  var b = document.getElementById("bootState"), s = null;
+  if (CP_SITE || !b || !b.textContent) return null;
+  try { s = JSON.parse(b.textContent); } catch (e) { s = null; }
+  b.textContent = "";   // only for the first draw: a later look (after signing in) asks the sheet
+  return s && typeof s === "object" && Array.isArray(s.questions) ? s : null;
 }
 function gotState(state) {
   if (state && state.needSignIn) { S = null; if (!cpNeedSignIn(state)) showSignIn(state, false); return; }

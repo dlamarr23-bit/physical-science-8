@@ -468,9 +468,10 @@ function cpRun(fn, args, ok, fail) {
 }
 /* Now and then one answer from the sheet takes far longer than the rest (seen on 2026-09-30: classPass 26.8 s while the
    same sheet answered the probe, sent at the same moment, in 1.9 s, and every call before and after in 1 to 4 s).
-   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS is sent once more alongside, and whichever answers
-   first wins. Saves are never sent twice this way (they have their own retries). */
-var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 6000;
+   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS (plus up to 2 s, so a class doesn't all send at once)
+   is sent once more alongside, and whichever answers first wins. Saves are never sent twice this way (they have their own retries).
+   10 s, not 6: when a whole class opens at once, a 6 s answer is often just the line, and a second copy from everyone made it longer. */
+var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 10000;
 function cpFetchHedged(fn, args, ok, fail) {
   var sent = 1, failed = 0, over = false, timer = 0;
   function win(x) { if (over) return; over = true; clearTimeout(timer); ok(x); }
@@ -481,7 +482,7 @@ function cpFetchHedged(fn, args, ok, fail) {
     sent++;
     cpLog(fn + " is slow: asking once more alongside");
     cpFetch(fn, args, win, lose);
-  }, CP_HEDGE_MS);
+  }, CP_HEDGE_MS + Math.floor(Math.random() * 2000));
 }
 function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
 /** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
@@ -812,9 +813,11 @@ function cpPassBoot() {
   document.title = "Class Pass";
   var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
   if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
-  var info = null, waiting = [], failed = null, pre = null, left = false;
-  function withInfo(f) { if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
-  function getInfo() {
+  var info = null, waiting = [], failed = null, pre = null, left = false, asked = false;
+  function withInfo(f) { getInfo(); if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
+  function getInfo() {   // asks the sheet once, the first time anything needs it
+    if (asked) return;
+    asked = true;
     cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
            function (err) { failed = err; waiting.splice(0); if (!left) cpFail(err); });   // (already on the way to the assignment: no matter)
   }
@@ -873,7 +876,9 @@ function cpPassBoot() {
     if (page(rec.k)) return cpGo(page(rec.k), true);
     getInfo(); return open();
   }
-  getInfo();
+  // A school Chromebook almost always goes on to the plain link (the check below), which never needs classPass, so it asks only
+  // if it ends up signing in here: a class opening at once makes about half as many trips to the sheet. Elsewhere it asks now.
+  if (!CP_CROS) getInfo();
   if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
   cpStep(1, "Checking your school sign-in…");
   cpProbe(function (known) {
