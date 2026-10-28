@@ -2117,7 +2117,11 @@ function drawTableGraph(i) {
   }
   for (var gx = xMin; gx <= xMax + xs / 2; gx += xs) h.push('<text class="tg-tick" x="' + X(gx) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(gx) + '</text>');
   h.push('<line class="tg-axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/><line class="tg-axis" x1="' + L + '" x2="' + L + '" y1="' + Tp + '" y2="' + B + '"/>');
-  if (pts.length >= 2) {   // best-fit (trend) line
+  if (T.origin && pts.length) {   // "origin":true: the best-fit line through 0, 0 (y = slope times x), from 0, 0 out to the last point
+    var oxx = 0, oxy = 0, xEnd = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
+    pts.forEach(function (p) { oxx += p[0] * p[0]; oxy += p[0] * p[1]; });
+    if (oxx) h.push('<line class="tg-fit" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(xEnd) + '" y2="' + Y(Math.max(yMin, Math.min(yMax, oxy / oxx * xEnd))) + '"/>');
+  } else if (pts.length >= 2) {   // best-fit (trend) line
     var sx = 0, sy = 0, sxx = 0, sxy = 0, m = pts.length;
     pts.forEach(function (p) { sx += p[0]; sy += p[1]; sxx += p[0] * p[0]; sxy += p[0] * p[1]; });
     var d = m * sxx - sx * sx;
@@ -2128,7 +2132,7 @@ function drawTableGraph(i) {
     }
   }
   pts.forEach(function (p) { h.push('<circle class="tg-dot" cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="5"/>'); });
-  if (pts.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  if (pts.length < (T.origin ? 1 : 2)) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
   svg.innerHTML = h.join("");
 }
 
@@ -2163,10 +2167,11 @@ function drawPairsGraph(i, svg, T, cells) {
   series.forEach(function (pts, s) {
     var c = s % 4;
     pts = pts.slice().sort(function (a, b) { return a[0] - b[0]; });
-    if (pts.length > 1) lines.push('<polyline class="lg-line lg-' + c + (s ? " tg-dash" : " tg-wide") + '" points="' + pts.map(function (p) { return X(p[0]) + "," + Y(p[1]); }).join(" ") + '"/>');
+    var path = (T.origin && pts.length ? [[0, 0]] : []).concat(pts);   // "origin":true: each line starts at 0, 0
+    if (path.length > 1) lines.push('<polyline class="lg-line lg-' + c + (s ? " tg-dash" : " tg-wide") + '" points="' + path.map(function (p) { return X(p[0]) + "," + Y(p[1]); }).join(" ") + '"/>');
     pts.forEach(function (p) { marks.push('<g class="lg-' + c + '">' + labMark(c, X(p[0]), Y(p[1]), s ? 6 : 8) + '<title>' + labEsc(names[s]) + ": " + labEsc(fmt(p[0])) + ", " + labEsc(fmt(p[1])) + '</title></g>'); });
   });
-  if (all.length < 2) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  if (all.length < (T.origin ? 1 : 2)) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
   svg.innerHTML = h.concat(lines, marks).join("");
 }
 
@@ -2533,7 +2538,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.27";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.27b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
