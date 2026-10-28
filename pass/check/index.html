@@ -190,6 +190,26 @@
             padding:9px 12px; font-size:14px; font-weight:600; }
   .remind[hidden] { display:none; }
   .remind button { font-size:13px; padding:4px 12px; }
+  /* short-answer questions (one or two labeled boxes, no picture): the answer box sits in the question's row, at the right */
+  .item:has(> .boxarea > .boxlist) { display:grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 36%); margin-bottom:8px; }
+  .item:has(> .boxarea > .boxlist) > .qtext { grid-column:1; display:flex; align-items:center; gap:0 2px; padding:8px 12px; }
+  .item:has(> .boxarea > .boxlist) > .qtext > .qnum { flex:none; }
+  .item:has(> .boxarea > .boxlist) > .boxarea { grid-column:2; border-top:0; border-left:3px solid #111; display:flex; align-items:center; background: var(--q); }
+  .item:has(> .boxarea > .boxlist) > .boxarea > .boxlist { width:100%; grid-template-columns:1fr; margin:0; padding:6px 8px !important; gap:4px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label { font-size:11px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child { font-size:0; }   /* one box: no label above it */
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child input.pbox { margin-top:0; }
+  .item:has(> .boxarea > .boxlist) .boxlist input.pbox { padding:5px 8px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar, .item:has(> .boxarea > .boxlist) > .remind { grid-column:1 / -1; }
+  .item:has(> .boxarea > .boxlist) > .fbbar { min-height:0; padding:4px 6px 4px 12px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar:has(.fb:empty):has(.meta:empty) { display:none; }   /* nothing to say yet: no black bar (Enter or clicking out checks) */
+  html[data-theme="dark"] .item:has(> .boxarea > .boxlist) > .boxarea { border-color:#5f6670; }
+  input.pbox.partial, .boxlist input.pbox.partial { background: var(--yellow); border-color:#bf9000; }
+  /* "Jump to" links in the sticky progress bar (2 or more sections) */
+  .jump { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; }
+  .jump a { color:#fff; background:#1b4587; border-radius:999px; padding:3px 12px; text-decoration:none; font-weight:700; }
+  .jump a:hover, .jump a:focus-visible { background:#133261; }
+  .strip { scroll-margin-top: 120px; }
   /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
   .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
   .signin h2 { font-size:18px; margin:0 0 6px; }
@@ -1327,7 +1347,7 @@ function render() {
   var sec = {}, secNo = {}; S.sections.forEach(function (s, k) { sec[s.before] = s; secNo[s.before] = k; });
   S.questions.forEach(function (q, i) {
     if (sec[i]) {
-      box.appendChild(el("div", "strip", sec[i].title));
+      var stripEl = el("div", "strip", sec[i].title); stripEl.id = "part" + (secNo[i] + 1); box.appendChild(stripEl);
       if (sec[i].img) {   // a picture right under the strip (Questions tab: Section picture)
         var sf = el("figure", "qimg secimg");
         var sim = el("img"); sim.alt = sec[i].imgCaption || ("Picture for " + sec[i].title); sim.loading = "lazy";
@@ -1445,6 +1465,19 @@ function render() {
   if (pv) pv.textContent = "Page " + PAGE_VERSION + (S.version ? " · Sheet " + S.version : " · Sheet older than 2026.10.01e");
   var fin = document.getElementById("finishBtn");
   fin.addEventListener("click", finish);
+  if (S.sections.length > 1) {   // "Jump to" links for each section, in the sticky progress bar
+    var jump = el("div", "jump"); jump.appendChild(el("span", null, "Jump to:"));
+    S.sections.forEach(function (sc, k) {
+      var t = String(sc.title || ""), c = t.indexOf(":"), name = c > 0 && c <= 20 ? t.slice(0, c) : "Section " + (k + 1);
+      var a = el("a", null, name.charAt(0) + name.slice(1).toLowerCase()); a.href = "#part" + (k + 1); a.target = "_self";
+      a.addEventListener("click", function (e) { e.preventDefault(); var t2 = document.getElementById("part" + (k + 1)); if (t2) t2.scrollIntoView({ behavior: "smooth", block: "start" }); });
+      jump.appendChild(a);
+    });
+    var top = el("a", null, "Top"); top.href = "#"; top.target = "_self";
+    top.addEventListener("click", function (e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    jump.appendChild(top);
+    document.getElementById("progress").appendChild(jump);
+  }
   updateFinish();
   updateProgress();
   setUpClose();
