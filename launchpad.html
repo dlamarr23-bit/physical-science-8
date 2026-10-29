@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Assignment Launchpad · Physical Science 8</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script src="/assets/icons.js" defer></script>
+<script src="/assets/app.js" defer></script>
+<script src="/assets/pass-menu.js" defer></script>
+<style>
+  /* the Launchpad's own colors: Donny's blue strips and buttons, lighter shades in dark mode */
+  :root{ --lp-strip:#c9daf8; --lp-btn:#1b4587; --lp-btnh:#133261; --lp-warn:#fff2cc; --lp-warnline:#bf9000; }
+  html[data-theme="dark"]{ --lp-strip:#1f3a66; --lp-btn:#3b6fd6; --lp-btnh:#2f5bb5; --lp-warn:#5a4a12; --lp-warnline:#c9a227; }
+  .lp h1{ font-size:1.9rem; margin:0 0 4px; }
+  .lp-sub{ color:var(--ink-soft); margin:0 0 18px; }
+  .lp-tools{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
+  .lp-tools input{ flex:1 1 240px; min-width:0; padding:9px 12px; border:2px solid var(--ink); border-radius:8px; font:inherit; font-size:15px; background:var(--card); color:var(--ink); }
+  .lp-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .lp-chip{ border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:5px 12px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .lp-chip.on{ background:var(--lp-btn); border-color:var(--lp-btn); color:#fff; }
+  .lp-strip{ background:var(--lp-strip); font-weight:700; font-size:16px; padding:9px 12px; margin:24px 0 10px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); }
+  .lp-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(290px, 100%), 1fr)); gap:12px; }
+  .lp-card{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .lp-card h2{ font-size:16px; margin:0; line-height:1.35; }
+  .lp-meta{ font-size:13px; color:var(--ink-soft); }
+  .lp-tag{ display:inline-block; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border:1.5px solid var(--line); border-radius:4px; padding:0 6px; margin-right:6px; color:var(--ink); }
+  .lp-btns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:4px; }
+  .lp-btn{ display:inline-block; padding:7px 11px; border-radius:6px; font:inherit; font-weight:700; font-size:13px; line-height:1.3; text-decoration:none; border:2px solid var(--lp-btn); background:var(--lp-btn); color:#fff; cursor:pointer; }
+  .lp-btn:hover, .lp-btn:focus-visible{ background:var(--lp-btnh); border-color:var(--lp-btnh); color:#fff; }
+  .lp-btn.alt{ background:transparent; color:var(--ink); border-color:var(--ink); }
+  .lp-btn.alt:hover, .lp-btn.alt:focus-visible{ background:var(--lp-strip); color:var(--ink); }
+  .lp-btn.quiet{ background:transparent; color:var(--ink-soft); border-color:transparent; padding-left:6px; padding-right:6px; text-decoration:underline; }
+  .lp-btn.quiet:hover, .lp-btn.quiet:focus-visible{ background:transparent; border-color:transparent; color:var(--ink); }
+  .lp-btn.big{ font-size:15px; padding:9px 16px; }
+  .lp-btn.danger{ background:transparent; color:#b3261e; border-color:#b3261e; }
+  html[data-theme="dark"] .lp-btn.danger{ color:#ff9b93; border-color:#ff9b93; }
+  .lp-btn:disabled{ opacity:.6; cursor:default; }
+  .lp-nolink{ background:var(--lp-warn); border-left:4px solid var(--lp-warnline); padding:6px 8px; font-size:13px; border-radius:4px; }
+  .lp-empty{ color:var(--ink-soft); font-style:italic; }
+  .lp-box{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:20px; max-width:560px; }
+  .lp-box p{ margin:0 0 14px; }
+  .lp-foot{ margin-top:30px; font-size:13px; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; }
+  /* the Add and Edit window (the Class Pass window's frame, with a form inside) */
+  .cp-dlg.lp-dlg{ width:520px; text-align:left; max-height:calc(100vh - 32px); overflow:auto; }
+  .lp-dlg label{ display:block; font-weight:700; font-size:14px; margin:12px 0 4px; }
+  .lp-dlg .lp-hint{ display:block; font-weight:400; font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .lp-dlg input{ width:100%; font:inherit; font-size:15px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  .lp-dlg input:focus{ outline:none; border-color:var(--lp-btn); box-shadow:0 0 0 3px var(--lp-strip); }
+  .lp-dlg .lp-two{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+  .lp-dlg .lp-btns{ margin-top:18px; justify-content:space-between; }
+  @media (max-width:480px){ .lp h1{ font-size:1.5rem; } .lp-dlg .lp-two{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+            <img class="mascot" src="/assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
+      <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
+    </a>
+    <nav class="inline-links" aria-label="Site">
+      <a href="/index.html">Home</a>
+      <a href="/flashcards.html">Review</a>
+      <a href="/sims.html">Sims</a>
+      <a href="/extra-credit.html">Extra Credit</a>
+      <a href="/glossary.html">Glossary</a>
+      <a href="/leaderboard.html" class="nav-board">Leaderboard</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="/energy-of-motion.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="/frames-of-reference.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="/speed-and-distance-time-graphs.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="/inertia-and-net-forces.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="/energy-transfer-via-friction.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="/mass-and-acceleration.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="/collisions-and-newtons-third-law.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/gravity-and-energy-related-to-position.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="/gravitational-potential-energy.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="/universal-law-of-gravity.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="/gravitational-potential-energy-to-kinetic-energy.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/electricity-and-magnetism.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="/magnetism.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="/electromagnetic-fields.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/waves-transmitting-energy-and-information.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="/intro-to-wave-properties.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="/light-waves.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="/waves-and-information-technology.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/thermal-energy-and-heat-flow.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="/energy-transfer-and-temperature.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="/changes-in-energy-at-the-molecular-level.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="/phase-changes-and-energy-transfer.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/chemical-energy-and-reactions.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="/molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="/physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="/conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="/synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<main class="container lp">
+  <h1>Assignment Launchpad</h1>
+  <p class="lp-sub">Each assignment's student link and its results sheet, newest first. Only you can see this page.</p>
+  <p class="cp-msg" id="lpStatus" role="status">Opening your list...</p>
+
+  <div class="lp-box" id="lpLocked" hidden>
+    <p>This page is only for Mr. LaMarr. Sign in with the teacher password to see the assignments.</p>
+    <button class="lp-btn big" type="button" id="lpSignIn">Teacher sign in</button>
+  </div>
+
+  <div id="lpMain" hidden>
+    <div class="lp-tools">
+      <input id="lpQ" type="search" placeholder="Search assignments" aria-label="Search assignments">
+      <button class="lp-btn big" type="button" id="lpAdd">+ Add assignment</button>
+    </div>
+    <div class="lp-chips" id="lpChips" role="group" aria-label="Filter by type"></div>
+    <div id="lpList"></div>
+    <div class="lp-foot">
+      <span>To add a new assignment: open its sheet, choose Self-Check &gt; Show student link, then click Add assignment and paste.</span>
+      <button class="lp-btn quiet" type="button" id="lpImport">Bring in a list from a file</button>
+      <input type="file" id="lpFile" accept=".html,.htm" hidden>
+    </div>
+  </div>
+</main>
+<script>
+/* The Assignment Launchpad (Donny, 2026-10-28): every assignment's student link and results sheet in one place,
+   for the teacher only.
+
+   This site is plain files anyone can open, so the list is not in this page. It is kept on the vocabulary site
+   (KV, /api/launchpad) and only comes to a browser signed in with the teacher password, through the Class Pass
+   bridge (PS8Pass.ask "launchpad" and "saveLaunchpad", see pass-menu.js and the vocabulary site's book-bridge.js).
+   Signed out, or a student, the page shows only the Teacher sign in button.
+
+   Adding: + Add assignment, then paste the student link (in the sheet: Self-Check > Show student link) and the
+   sheet's address; the sheet's ID is taken out of the address. Edit on a card changes or removes it.
+   "Bring in a list from a file" reads the ASSIGNMENTS list out of an older Launchpad file (the one-page
+   index.html, Donny's first version) and adds the ones not here yet. */
+document.addEventListener("DOMContentLoaded", function(){
+  "use strict";
+  var KINDS = ["Self-Check", "Reading", "Lab", "Video Check", "Review Game", "Escape Room"];
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var items = [], base = 0, loaded = false, loading = false, pick = "All";
+  var $ = function(id){ return document.getElementById(id); };
+
+  function el(tag, cls, text){ var e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+  function okLink(u){ return /^https:\/\/[^\s"'<>]+$/.test(String(u || "")) ? u : ""; }
+  // a sheet's ID from its whole address, or the ID itself
+  function sheetId(s){
+    s = String(s || "").trim();
+    var m = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/.exec(s);
+    if(m) return m[1];
+    return /^[A-Za-z0-9_-]{20,100}$/.test(s) ? s : null;
+  }
+  function today(){ var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function showDate(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    if(!m) return "";
+    return MONTHS[+m[2] - 1] + " " + (+m[3]) + (+m[1] !== new Date().getFullYear() ? ", " + m[1] : "");
+  }
+  function newId(){
+    var a = new Uint8Array(10), abc = "abcdefghijklmnopqrstuvwxyz0123456789";
+    crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function(x){ return abc[x % abc.length]; }).join("");
+  }
+
+  /* ---------- who is looking ---------- */
+  function status(text, bad){ var s = $("lpStatus"); s.className = "cp-msg" + (bad ? " bad" : ""); s.textContent = text || ""; }
+  function locked(){
+    items = []; base = 0; loaded = false;
+    $("lpMain").hidden = true;
+    $("lpLocked").hidden = false;
+    $("lpList").textContent = "";
+    status("");
+  }
+  function load(){
+    if(loading) return;
+    loading = true;
+    $("lpLocked").hidden = true;
+    status("Opening your list...");
+    window.PS8Pass.ask({type: "launchpad"}).then(function(d){
+      items = Array.isArray(d.items) ? d.items : [];
+      base = d.saved || 0;
+      loaded = true;
+      status("");
+      $("lpMain").hidden = false;
+      draw();
+    }, function(err){
+      if(err.status === 401) return locked();
+      status(err.message + " Reload the page to try again.", true);
+    }).then(function(){ loading = false; });
+  }
+  function look(v){ if(v && v.teacher){ if(!loaded) load(); } else locked(); }
+  $("lpSignIn").addEventListener("click", function(){ window.PS8Pass.teacherSignIn(); });
+  window.PS8Pass.onChange(look);
+  look(window.PS8Pass.view());
+
+  /* ---------- saving: the whole list goes each time ---------- */
+  function save(next){
+    return window.PS8Pass.ask({type: "saveLaunchpad", items: next, base: base}).then(function(d){
+      items = next;
+      base = d.saved || base;
+      draw();
+    });
+  }
+
+  /* ---------- the list ---------- */
+  $("lpQ").addEventListener("input", draw);
+  function chips(){
+    var kinds = [];
+    items.forEach(function(a){ if(a.kind && kinds.indexOf(a.kind) === -1) kinds.push(a.kind); });
+    if(pick !== "All" && kinds.indexOf(pick) === -1) pick = "All";
+    var box = $("lpChips");
+    box.textContent = "";
+    if(kinds.length < 2) return;
+    ["All"].concat(kinds).forEach(function(k){
+      var b = el("button", "lp-chip" + (k === pick ? " on" : ""), k);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(k === pick));
+      b.addEventListener("click", function(){ pick = k; draw(); });
+      box.appendChild(b);
+    });
+  }
+  function copyLink(link, b){
+    function done(){ b.textContent = "Copied"; setTimeout(function(){ b.textContent = "Copy link"; }, 1800); }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, function(){ window.prompt("Copy the student link:", link); });
+    else window.prompt("Copy the student link:", link);
+  }
+  function card(a){
+    var c = el("div", "lp-card");
+    c.appendChild(el("h2", null, a.title));
+    var m = el("div", "lp-meta");
+    if(a.kind) m.appendChild(el("span", "lp-tag", a.kind));
+    m.appendChild(document.createTextNode(showDate(a.date)));
+    c.appendChild(m);
+    var link = okLink(a.link);
+    if(!link) c.appendChild(el("div", "lp-nolink", "Student link not saved yet: in the sheet choose Self-Check > Show student link, then Edit here and paste it."));
+    var bt = el("div", "lp-btns");
+    if(link){
+      var o = el("a", "lp-btn", "Open assignment"); o.href = link; o.target = "_blank"; o.rel = "noopener"; bt.appendChild(o);
+      var cp = el("button", "lp-btn alt", "Copy link"); cp.type = "button";
+      cp.addEventListener("click", function(){ copyLink(link, cp); });
+      bt.appendChild(cp);
+    }
+    if(a.sheet){ var s = el("a", "lp-btn alt", "Results sheet"); s.href = "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(a.sheet) + "/edit"; s.target = "_blank"; s.rel = "noopener"; bt.appendChild(s); }
+    var ed = el("button", "lp-btn quiet", "Edit"); ed.type = "button";
+    ed.setAttribute("aria-label", "Edit " + a.title);
+    ed.addEventListener("click", function(){ form(a); });
+    bt.appendChild(ed);
+    c.appendChild(bt);
+    return c;
+  }
+  function draw(){
+    chips();
+    var q = $("lpQ").value.trim().toLowerCase(), list = $("lpList");
+    list.textContent = "";
+    if(!items.length){
+      list.appendChild(el("p", "lp-empty", "No assignments yet. Click Add assignment, or bring in your old Launchpad file below."));
+      return;
+    }
+    var rows = items.filter(function(a){
+      return (pick === "All" || a.kind === pick) && (!q || [a.title, a.kind, a.unit].join(" ").toLowerCase().indexOf(q) !== -1);
+    }).sort(function(x, y){ return (y.date || "").localeCompare(x.date || "") || x.title.localeCompare(y.title); });
+    if(!rows.length){ list.appendChild(el("p", "lp-empty", "No assignments match.")); return; }
+    var groups = {}, order = [];
+    rows.forEach(function(a){ var u = a.unit || (pick === "All" ? "All assignments" : pick); if(!groups[u]){ groups[u] = []; order.push(u); } groups[u].push(a); });
+    order.forEach(function(u){
+      list.appendChild(el("div", "lp-strip", u + " (" + groups[u].length + ")"));
+      var g = el("div", "lp-grid");
+      groups[u].forEach(function(a){ g.appendChild(card(a)); });
+      list.appendChild(g);
+    });
+  }
+
+  /* ---------- the Add and Edit window ---------- */
+  function datalist(id, values){
+    var dl = el("datalist"); dl.id = id;
+    values.forEach(function(v){ var o = el("option"); o.value = v; dl.appendChild(o); });
+    return dl;
+  }
+  function field(box, label, hint, input){
+    var l = el("label", null, label);
+    l.htmlFor = input.id;
+    if(hint) l.appendChild(el("span", "lp-hint", hint));
+    box.appendChild(l);
+    box.appendChild(input);
+    return input;
+  }
+  function input(id, type, value, placeholder){
+    var i = el("input"); i.id = id; i.type = type || "text"; i.value = value || "";
+    if(placeholder) i.placeholder = placeholder;
+    i.autocomplete = "off";
+    return i;
+  }
+  function form(a){
+    if(!loaded) return;
+    var editing = Boolean(a);
+    a = a || {};
+    var old = document.querySelector(".cp-dlg-back");
+    if(old) old.remove();
+    var back = el("div", "cp-dlg-back");
+    var box = el("form", "cp-dlg lp-dlg");
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.setAttribute("aria-labelledby", "lpDlgTitle");
+    box.noValidate = true;
+    var x = el("button", "cp-dlg-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Close");
+    box.appendChild(x);
+    var h = el("h2", "cp-dlg-title", editing ? "Edit assignment" : "Add an assignment"); h.id = "lpDlgTitle";
+    box.appendChild(h);
+
+    var kinds = KINDS.slice(), units = [];
+    items.forEach(function(it){
+      if(it.kind && kinds.indexOf(it.kind) === -1) kinds.push(it.kind);
+      if(it.unit && units.indexOf(it.unit) === -1) units.push(it.unit);
+    });
+    var fLink = field(box, "Student link", "In the sheet: Self-Check > Show student link, then copy it.", input("lpFLink", "url", a.link, "https://physical-science-8.pages.dev/pass/?app=..."));
+    var fSheet = field(box, "Results sheet", "Copy the sheet's address from the top of its browser tab.", input("lpFSheet", "url", a.sheet ? "https://docs.google.com/spreadsheets/d/" + a.sheet + "/edit" : "", "https://docs.google.com/spreadsheets/d/..."));
+    var fTitle = field(box, "Title", null, input("lpFTitle", "text", a.title, "e.g. Newton's Third Law Self-Check"));
+    fTitle.maxLength = 200;
+    var two = el("div", "lp-two");
+    var fKind = field(two, "Type", null, input("lpFKind", "text", a.kind || (editing ? "" : "Self-Check")));
+    fKind.setAttribute("list", "lpKinds"); fKind.maxLength = 40;
+    var fDate = field(two, "Date", null, input("lpFDate", "date", a.date || (editing ? "" : today())));
+    box.appendChild(two);
+    var fUnit = field(box, "Group", "Optional, e.g. Unit 1: Forces. Cards with the same group sit together.", input("lpFUnit", "text", a.unit));
+    fUnit.setAttribute("list", "lpUnits"); fUnit.maxLength = 60;
+    box.appendChild(datalist("lpKinds", kinds));
+    box.appendChild(datalist("lpUnits", units));
+
+    var msg = el("p", "cp-msg"); msg.setAttribute("role", "status");
+    box.appendChild(msg);
+    var bt = el("div", "lp-btns");
+    var go = el("button", "lp-btn big", editing ? "Save changes" : "Add to Launchpad"); go.type = "submit";
+    bt.appendChild(go);
+    var del = null;
+    if(editing){ del = el("button", "lp-btn danger", "Remove"); del.type = "button"; bt.appendChild(del); }
+    box.appendChild(bt);
+    back.appendChild(box);
+    document.body.appendChild(back);
+    (editing ? fTitle : fLink).focus();
+
+    // the sheet's address pasted in the wrong box: move it over
+    fLink.addEventListener("change", function(){
+      if(sheetId(fLink.value) && /docs\.google\.com/.test(fLink.value) && !fSheet.value.trim()){ fSheet.value = fLink.value.trim(); fLink.value = ""; fLink.focus(); }
+    });
+    function close(){ back.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e){ if(e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    x.addEventListener("click", close);
+    back.addEventListener("click", function(e){ if(e.target === back) close(); });
+    function bad(text, focus){ msg.className = "cp-msg bad"; msg.textContent = text; if(focus) focus.focus(); }
+    function send(next, word){
+      go.disabled = true; if(del) del.disabled = true;
+      msg.className = "cp-msg"; msg.textContent = word;
+      save(next).then(close, function(err){
+        go.disabled = false; if(del) del.disabled = false;
+        bad(err.message);
+      });
+    }
+    box.addEventListener("submit", function(e){
+      e.preventDefault();
+      var link = fLink.value.trim(), sheetText = fSheet.value.trim(), title = fTitle.value.trim();
+      if(link && !okLink(link)) return bad("The student link should start with https://", fLink);
+      if(link && /docs\.google\.com\/spreadsheets/.test(link)) return bad("That is a sheet's address. Paste it under Results sheet, and the student link above.", fLink);
+      var sheet = sheetText ? sheetId(sheetText) : "";
+      if(sheet === null) return bad("That does not look like a Google Sheet's address. Open the sheet and copy the address from the top of the tab.", fSheet);
+      if(!title) return bad("Give it a title.", fTitle);
+      if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
+      var it = { id: a.id || newId(), title: title, kind: fKind.value.trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
+      var next = editing ? items.map(function(o){ return o.id === a.id ? it : o; }) : items.concat([it]);
+      send(next, "Saving...");
+    });
+    if(del) del.addEventListener("click", function(){
+      if(!window.confirm('Remove "' + a.title + '" from the Launchpad? The sheet and its student link are not changed.')) return;
+      send(items.filter(function(o){ return o.id !== a.id; }), "Removing...");
+    });
+  }
+  $("lpAdd").addEventListener("click", function(){ form(null); });
+
+  /* ---------- bringing in an older Launchpad file ---------- */
+  // that file's dates are M/D in this school year (July to June)
+  function fromMD(md){
+    var m = /^(\d{1,2})\/(\d{1,2})$/.exec(String(md || "").trim());
+    if(!m) return "";
+    var now = new Date(), start = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    var mo = +m[1], d = +m[2];
+    if(mo < 1 || mo > 12 || d < 1 || d > 31) return "";
+    return (mo >= 7 ? start : start + 1) + "-" + ("0" + mo).slice(-2) + "-" + ("0" + d).slice(-2);
+  }
+  // each { title: "...", kind: "...", ... } in the file's ASSIGNMENTS list, read as words only (nothing in it runs)
+  function readList(text){
+    var found = /ASSIGNMENTS\s*=\s*\[/.exec(text);
+    if(!found) return [];
+    var start = found.index, end = text.indexOf("];", start);
+    var part = text.slice(start, end === -1 ? undefined : end), out = [];
+    (part.match(/\{[^{}]*\}/g) || []).forEach(function(obj){
+      var f = {}, re = /(\w+)\s*:\s*"((?:[^"\\]|\\.)*)"/g, m;
+      while((m = re.exec(obj))) f[m[1]] = m[2].replace(/\\(.)/g, "$1");
+      if(f.title) out.push({ id: newId(), title: f.title.slice(0, 200), kind: (f.kind || "").slice(0, 40), unit: (f.unit || "").slice(0, 60),
+        link: okLink(f.link), sheet: sheetId(f.sheet) || "", date: fromMD(f.last) });
+    });
+    return out;
+  }
+  $("lpImport").addEventListener("click", function(){ $("lpFile").value = ""; $("lpFile").click(); });
+  $("lpFile").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    if(!file || !loaded) return;
+    file.text().then(function(text){
+      var found = readList(text);
+      if(!found.length) return status("No assignments were found in " + file.name + ".", true);
+      var have = {};
+      items.forEach(function(a){ if(a.sheet) have["s" + a.sheet] = 1; if(a.link) have["l" + a.link] = 1; });
+      var add = found.filter(function(a){ return !(a.sheet && have["s" + a.sheet]) && !(a.link && have["l" + a.link]); });
+      if(!add.length) return status("Everything in " + file.name + " is already here.");
+      if(!window.confirm("Add " + add.length + " assignment" + (add.length === 1 ? "" : "s") + " from " + file.name + "?")) return;
+      status("Saving...");
+      save(items.concat(add)).then(function(){ status("Added " + add.length + " from " + file.name + "."); }, function(err){ status(err.message, true); });
+    }, function(){ status("That file could not be read.", true); });
+  });
+});
+</script>
+</body>
+</html>

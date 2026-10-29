@@ -6,7 +6,7 @@
    - a student: a round button with their first letter; the menu says who is signed in, links to the
      Leaderboard and Review, and signs out;
    - the teacher (the teacher password, the same one that edits flashcard sets): Mr. LaMarr's picture; the
-     menu adds Edit this page (page-text.js) and Host a game.
+     menu adds Edit this page (page-text.js), Assignment Launchpad (launchpad.html) and Host a game.
 
    How this page knows who is signed in: every page keeps the vocabulary site's bridge/ page in a hidden
    frame (its assets/book-bridge.js). That page tells this one who is signed in there, now and whenever it
@@ -288,6 +288,7 @@
       if(view.teacher && window.PS8Text && window.PS8Text.canEdit()){
         item("Edit this page", null, "cp-drop-edit").addEventListener("click", function(){ closeMenu(); window.PS8Text.edit(); });
       }
+      if(view.teacher) item("Assignment Launchpad", p + "launchpad.html");
       item("Leaderboard", p + "leaderboard.html");
       item("Review sets", p + "flashcards.html");
       if(view.teacher) item("Host a game", p + "flashcards.html?go=live");
