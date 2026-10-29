@@ -21,7 +21,10 @@
   .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
   h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
   .who { font-size: 13px; color:#555; margin-bottom: 8px; }
-  .intro { font-style: italic; color:#555; font-size: 14px; margin: 6px 0 10px; }
+  /* the directions: bold, in a blue box like the section strips; a line break typed in the Settings cell starts a new line here */
+  .intro { font-weight:700; color:#111; font-size: 14px; line-height:1.5; margin: 8px 0 12px; padding: 10px 12px;
+           background: var(--strip); border-top: 2px solid #111; border-bottom: 2px solid #111; white-space: pre-line; }
+  .intro:empty { display:none; }
   .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
              color:#111; text-decoration:none; font-weight:600; font-size:13px; background:#fff; }
   .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
@@ -314,12 +317,12 @@
   .pagever { text-align:center; font-size:11px; color:#999; margin-top:-14px; }
   html[data-theme="dark"] { color-scheme: dark; --green:#1f4d2e; --yellow:#5a4a12; --red:#5c2626; --strip:#1f3a66; --q:#2a2f38; }
   html[data-theme="dark"] body { background:#14171c; color:#e8eaed; }
-  html[data-theme="dark"] .who, html[data-theme="dark"] .intro { color:#b6bcc6; }
+  html[data-theme="dark"] .who { color:#b6bcc6; }
   html[data-theme="dark"] .links a { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
   html[data-theme="dark"] .progress { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] .bar { background:#14171c; border-color:#5f6670; }
   html[data-theme="dark"] .dot { border-color:#8a9099; }
-  html[data-theme="dark"] .strip { border-color:#8fb3ff; color:#eef3ff; }
+  html[data-theme="dark"] .strip, html[data-theme="dark"] .intro { border-color:#8fb3ff; color:#eef3ff; }
   html[data-theme="dark"] .item { background:#1d2128; border-color:#3a4049; }
   html[data-theme="dark"] .qtext { color:#f1f3f5; }
   html[data-theme="dark"] .qnum { background:#e8eaed; color:#14171c; }

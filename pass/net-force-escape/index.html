@@ -21,7 +21,10 @@
   .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
   h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
   .who { font-size: 13px; color:#555; margin-bottom: 8px; }
-  .intro { font-style: italic; color:#555; font-size: 14px; margin: 6px 0 10px; }
+  /* the directions: bold, in a blue box like the section strips; a line break typed in the Settings cell starts a new line here */
+  .intro { font-weight:700; color:#111; font-size: 14px; line-height:1.5; margin: 8px 0 12px; padding: 10px 12px;
+           background: var(--strip); border-top: 2px solid #111; border-bottom: 2px solid #111; white-space: pre-line; }
+  .intro:empty { display:none; }
   .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
              color:#111; text-decoration:none; font-weight:600; font-size:13px; background:#fff; }
   .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
