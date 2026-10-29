@@ -15,8 +15,8 @@
 <script src="/assets/pass-menu.js" defer></script>
 <style>
   /* the Launchpad's own colors: Donny's blue strips and buttons, lighter shades in dark mode */
-  :root{ --lp-strip:#c9daf8; --lp-btn:#1b4587; --lp-btnh:#133261; --lp-warn:#fff2cc; --lp-warnline:#bf9000; }
-  html[data-theme="dark"]{ --lp-strip:#1f3a66; --lp-btn:#3b6fd6; --lp-btnh:#2f5bb5; --lp-warn:#5a4a12; --lp-warnline:#c9a227; }
+  :root{ --lp-strip:#c9daf8; --lp-btn:#1b4587; --lp-btnh:#133261; --lp-warn:#fff2cc; --lp-warnline:#bf9000; --lp-need:#fce8e6; --lp-needline:#c5221f; --lp-ok:#2e7d32; }
+  html[data-theme="dark"]{ --lp-strip:#1f3a66; --lp-btn:#3b6fd6; --lp-btnh:#2f5bb5; --lp-warn:#5a4a12; --lp-warnline:#c9a227; --lp-need:#5c1f1f; --lp-needline:#f28b82; --lp-ok:#81c995; }
   .lp h1{ font-size:1.9rem; margin:0 0 4px; }
   .lp-sub{ color:var(--ink-soft); margin:0 0 18px; }
   .lp-tools{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
@@ -43,6 +43,16 @@
   .lp-btn:disabled{ opacity:.6; cursor:default; }
   .lp-nolink{ background:var(--lp-warn); border-left:4px solid var(--lp-warnline); padding:6px 8px; font-size:13px; border-radius:4px; }
   .lp-empty{ color:var(--ink-soft); font-style:italic; }
+  /* what each card says about its sheet's code */
+  .lp-code{ font-size:13px; color:var(--ink-soft); }
+  .lp-code.ok{ color:var(--lp-ok); font-weight:600; }
+  .lp-code.need{ background:var(--lp-need); border-left:4px solid var(--lp-needline); padding:6px 8px; border-radius:4px; color:var(--ink); }
+  .lp-code.info{ background:var(--lp-strip); border-left:4px solid var(--lp-btn); padding:6px 8px; border-radius:4px; color:var(--ink); }
+  .lp-chip.need{ border-color:var(--lp-needline); }
+  .lp-chip.need.on{ background:var(--lp-needline); border-color:var(--lp-needline); color:#fff; }
+  html[data-theme="dark"] .lp-chip.need.on{ color:#14171c; }
+  .lp-codesum{ font-size:13px; color:var(--ink-soft); margin:10px 0 0; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
+  .lp-codesum:empty{ display:none; }
   .lp-box{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:20px; max-width:560px; }
   .lp-box p{ margin:0 0 14px; }
   .lp-foot{ margin-top:30px; font-size:13px; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; }
@@ -117,6 +127,7 @@
       <button class="lp-btn big" type="button" id="lpAdd">+ Add assignment</button>
     </div>
     <div class="lp-chips" id="lpChips" role="group" aria-label="Filter by type"></div>
+    <p class="lp-codesum" id="lpCodeSum" role="status"></p>
     <div id="lpList"></div>
     <div class="lp-foot">
       <span>To add a new assignment: open its sheet, choose Self-Check &gt; Show student link, then click Add assignment and paste.</span>
@@ -137,7 +148,13 @@
    Adding: + Add assignment, then paste the student link (in the sheet: Self-Check > Show student link) and the
    sheet's address; the sheet's ID is taken out of the address. Edit on a card changes or removes it.
    "Bring in a list from a file" reads the ASSIGNMENTS list out of an older Launchpad file (the one-page
-   index.html, Donny's first version) and adds the ones not here yet. */
+   index.html, Donny's first version) and adds the ones not here yet.
+
+   Code check (Donny, 2026-10-28): each card with a student link asks its sheet which kind and code version it
+   runs (classPass, the same question the Class Pass page asks, straight to the sheet's /exec address).
+   /pass/versions.json has the newest release of each kind (class-pass\make-pass.ps1 makes it from the release
+   files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind, or than
+   another sheet here of the same kind, says "Code needs updating" and shows under the Needs update chip. */
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
   var KINDS = ["Self-Check", "Reading", "Lab", "Video Check", "Review Game", "Escape Room"];
@@ -187,6 +204,7 @@ document.addEventListener("DOMContentLoaded", function(){
       status("");
       $("lpMain").hidden = false;
       draw();
+      checkCodes(false);
     }, function(err){
       if(err.status === 401) return locked();
       status(err.message + " Reload the page to try again.", true);
@@ -203,20 +221,114 @@ document.addEventListener("DOMContentLoaded", function(){
       items = next;
       base = d.saved || base;
       draw();
+      checkCodes(false);
     });
+  }
+
+  /* ---------- is each sheet's code the newest? ---------- */
+  var NEED = "Needs update";
+  var codes = {}, newest = null, queue = [], running = 0, drawTimer = 0;
+  fetch("/pass/versions.json", {cache: "no-store"})
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(v){ newest = v && typeof v === "object" ? v : {}; }, function(){ newest = {}; })
+    .then(drawSoon);
+  function appId(link){ var m = /[?&]app=(AKfycb[\w-]{20,})/.exec(link || ""); return m ? m[1] : ""; }
+  // one sheet: {state: "done", kind, version}, "old" (code from before Class Pass) or "fail" (no answer)
+  function askSheet(id){
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 45000);
+    return fetch("https://script.google.com/macros/s/" + id + "/exec", {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify({fn: "classPass", args: [], token: ""}), signal: ctl ? ctl.signal : undefined})
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var out = null;
+        try { out = JSON.parse(text); } catch(e){ /* not an answer from the code */ }
+        if(!out) return {state: /doPost/.test(text) ? "old" : "fail"};
+        if(out.ok && out.result && out.result.version) return {state: "done", kind: String(out.result.kind || ""), version: String(out.result.version)};
+        return {state: /Unknown request/.test(String(out.error || "")) ? "old" : "fail"};
+      }, function(){ return {state: "fail"}; })
+      .then(function(r){ clearTimeout(timer); return r; });
+  }
+  // asks the sheets not asked yet (again: every sheet), six at a time
+  function checkCodes(again){
+    items.forEach(function(a){
+      var id = appId(a.link);
+      if(!id || (codes[id] && (!again || codes[id].state === "checking"))) return;
+      codes[id] = {state: "checking"};
+      queue.push(id);
+    });
+    pump();
+    drawSoon();
+  }
+  function pump(){
+    while(running < 6 && queue.length){
+      running++;
+      (function(id){
+        askSheet(id).then(function(r){ codes[id] = r; running--; pump(); drawSoon(); });
+      })(queue.shift());
+    }
+  }
+  function drawSoon(){ clearTimeout(drawTimer); drawTimer = setTimeout(function(){ if(loaded) draw(); }, 150); }
+  // the newest version of a kind: the newest release, or a newer one another sheet here already has
+  function best(kind){
+    var top = (newest && newest[kind]) || "";
+    Object.keys(codes).forEach(function(id){ var c = codes[id]; if(c.state === "done" && c.kind === kind && c.version > top) top = c.version; });
+    return top;
+  }
+  // what a card says about its sheet's code: null (no student link), or {cls, text, need}
+  function codeNote(a){
+    var id = appId(a.link), c = id && codes[id];
+    if(!c) return null;
+    var menu = c.kind === "video-check" || (!c.kind && /video/i.test(a.kind || "")) ? "Video Check" : "Self-Check";
+    var how = " In the sheet: " + menu + " > Check for skill updates.";
+    if(c.state === "checking") return {cls: "", text: "Checking its code..."};
+    if(c.state === "fail") return {cls: "", text: "Couldn't check its code: the sheet didn't answer (its deployment may not be open to Anyone)."};
+    if(c.state === "old") return {cls: "need", need: true, text: "Code needs updating: it is from before Class Pass." + how};
+    var top = best(c.kind), web = newest && newest[c.kind];
+    if(c.version < top) return {cls: "need", need: true, text: "Code needs updating: this sheet has " + c.version + ", the newest is " + top + "." + how};
+    if(web && c.version > web) return {cls: "info", text: "Code " + c.version + " is newer than the class website knows (" + web + "). Ask Claude to bring the website up to date."};
+    if(!web) return {cls: "", text: "Code version " + c.version + " (no skill updates for this kind yet)."};
+    return {cls: "ok", text: "✓ Code up to date (" + c.version + ")"};
+  }
+  function codeSummary(){
+    var box = $("lpCodeSum"), n = {checking: 0, need: 0, ok: 0, fail: 0, other: 0}, seen = {};
+    box.textContent = "";
+    items.forEach(function(a){
+      var id = appId(a.link), note = id && !seen[id] && codeNote(a);
+      if(!note) return;
+      seen[id] = 1;
+      var c = codes[id];
+      if(c.state === "checking") n.checking++; else if(c.state === "fail") n.fail++; else if(note.need) n.need++;
+      else if(note.cls) n.ok++; else n.other++;
+    });
+    if(!n.checking && !n.need && !n.ok && !n.fail && !n.other) return n;
+    var parts = [];
+    if(n.need) parts.push(n.need + " need" + (n.need === 1 ? "s" : "") + " a code update");
+    if(n.ok) parts.push(n.ok + " up to date");
+    if(n.other) parts.push(n.other + " with no skill updates for its kind");
+    if(n.fail) parts.push(n.fail + " couldn't be checked");
+    box.appendChild(el("span", null, n.checking ? "Checking each sheet's code (" + n.checking + " to go)..." + (parts.length ? " So far: " + parts.join(", ") + "." : "")
+      : "Code check: " + parts.join(", ") + "."));
+    if(!n.checking){
+      var again = el("button", "lp-btn quiet", "Check again"); again.type = "button";
+      again.addEventListener("click", function(){ checkCodes(true); });
+      box.appendChild(again);
+    }
+    return n;
   }
 
   /* ---------- the list ---------- */
   $("lpQ").addEventListener("input", draw);
-  function chips(){
+  function chips(needCount){
     var kinds = [];
     items.forEach(function(a){ if(a.kind && kinds.indexOf(a.kind) === -1) kinds.push(a.kind); });
-    if(pick !== "All" && kinds.indexOf(pick) === -1) pick = "All";
+    if(pick === NEED ? !needCount : (pick !== "All" && kinds.indexOf(pick) === -1)) pick = "All";
     var box = $("lpChips");
     box.textContent = "";
-    if(kinds.length < 2) return;
-    ["All"].concat(kinds).forEach(function(k){
-      var b = el("button", "lp-chip" + (k === pick ? " on" : ""), k);
+    var list = kinds.length > 1 ? ["All"].concat(kinds) : [];
+    if(needCount){ if(!list.length) list = ["All"]; list.push(NEED); }
+    list.forEach(function(k){
+      var b = el("button", "lp-chip" + (k === NEED ? " need" : "") + (k === pick ? " on" : ""), k === NEED ? NEED + " (" + needCount + ")" : k);
       b.type = "button";
       b.setAttribute("aria-pressed", String(k === pick));
       b.addEventListener("click", function(){ pick = k; draw(); });
@@ -235,6 +347,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(a.kind) m.appendChild(el("span", "lp-tag", a.kind));
     m.appendChild(document.createTextNode(showDate(a.date)));
     c.appendChild(m);
+    var note = codeNote(a);
+    if(note) c.appendChild(el("div", "lp-code" + (note.cls ? " " + note.cls : ""), note.text));
     var link = okLink(a.link);
     if(!link) c.appendChild(el("div", "lp-nolink", "Student link not saved yet: in the sheet choose Self-Check > Show student link, then Edit here and paste it."));
     var bt = el("div", "lp-btns");
@@ -253,7 +367,7 @@ document.addEventListener("DOMContentLoaded", function(){
     return c;
   }
   function draw(){
-    chips();
+    chips(codeSummary().need);
     var q = $("lpQ").value.trim().toLowerCase(), list = $("lpList");
     list.textContent = "";
     if(!items.length){
@@ -261,7 +375,8 @@ document.addEventListener("DOMContentLoaded", function(){
       return;
     }
     var rows = items.filter(function(a){
-      return (pick === "All" || a.kind === pick) && (!q || [a.title, a.kind, a.unit].join(" ").toLowerCase().indexOf(q) !== -1);
+      var inPick = pick === "All" || (pick === NEED ? Boolean((codeNote(a) || {}).need) : a.kind === pick);
+      return inPick && (!q || [a.title, a.kind, a.unit].join(" ").toLowerCase().indexOf(q) !== -1);
     }).sort(function(x, y){ return (y.date || "").localeCompare(x.date || "") || x.title.localeCompare(y.title); });
     if(!rows.length){ list.appendChild(el("p", "lp-empty", "No assignments match.")); return; }
     var groups = {}, order = [];
