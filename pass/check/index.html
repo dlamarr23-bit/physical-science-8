@@ -129,6 +129,8 @@
                 background:transparent; color:inherit; outline:none; }
   input.tcell:focus { box-shadow: inset 0 0 0 2px #3c78d8; background:#fff; }
   input.tcell.correct { background:var(--green); } input.tcell.incorrect { background:var(--red); }
+  input.tcell.partial { background:var(--yellow); }
+  .tablezone.nograph .tleft { flex:1 1 100%; }
   .tright { flex:1 1 360px; border-left:1px solid #111; display:flex; flex-direction:column; min-width:0; }
   .tgraphhead { background:#000; color:#fff; font-weight:700; text-align:center; padding:6px 8px; }
   input.tlabel { display:block; margin:8px auto; width:calc(100% - 24px); max-width:440px; padding:6px 8px; border:2px dashed #888; border-radius:6px; background:#fff;
@@ -150,6 +152,7 @@
   html[data-theme="dark"] table.dtable tbody tr:nth-child(even) td { background:#2a2f38; }
   html[data-theme="dark"] input.tcell:focus { background:#14171c; }
   html[data-theme="dark"] input.tcell.correct, html[data-theme="dark"] input.tlabel.correct { background:var(--green); }
+  html[data-theme="dark"] input.tcell.partial { background:var(--yellow); }
   html[data-theme="dark"] input.tcell.incorrect, html[data-theme="dark"] input.tlabel.incorrect { background:var(--red); }
   html[data-theme="dark"] .tright { border-color:#5f6670; }
   html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
@@ -255,7 +258,7 @@
                     padding:5px 12px; font-size:13px; font-weight:600; }
   a.helpbtn { font-family:inherit; line-height:normal; text-decoration:none; }
   button.themebtn svg, a.helpbtn svg { width:16px; height:16px; }
-      .meta.tone-warn { color:#b45f06; } .meta.tone-ok { color:#38761d; } .meta.tone-bad { color:#cc0000; } .meta.tone-muted { color:#666; }
+  .meta.tone-warn { color:#b45f06; } .meta.tone-ok { color:#38761d; } .meta.tone-bad { color:#cc0000; } .meta.tone-muted { color:#666; }
   .fbbar .meta.tone-warn { color:#f5b971; } .fbbar .meta.tone-ok { color:#8fd19e; } .fbbar .meta.tone-bad { color:#ff8a80; } .fbbar .meta.tone-muted { color:#a7adb7; }
   .pagever { text-align:center; font-size:11px; color:#999; margin-top:-14px; }
   html[data-theme="dark"] { color-scheme: dark; --green:#1f4d2e; --yellow:#5a4a12; --red:#5c2626; --strip:#1f3a66; --q:#2a2f38; }
@@ -332,7 +335,8 @@
 })();
 </script>
 <div class="wrap">
-<div class="topbar"><a class="helpbtn" id="helpBtn" href="https://physical-science-8.pages.dev/chromebook-help.html" target="_blank" rel="noopener" aria-label="Help (opens in a new tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</a><button type="button" class="themebtn" id="themeBtn"></button></div>  <div id="loading">Loading your self-check…</div>
+  <div class="topbar"><a class="helpbtn" id="helpBtn" href="https://physical-science-8.pages.dev/chromebook-help" target="_blank" rel="noopener" aria-label="Help: Chromebook tools, opens in a new tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</a><button type="button" class="themebtn" id="themeBtn"></button></div>
+  <div id="loading">Loading your self-check…</div>
   <div id="signin" hidden></div>
   <div id="app" hidden>
     <h1 id="title"></h1>
@@ -1630,7 +1634,8 @@ function tableCells(i) { return Array.prototype.slice.call(document.querySelecto
 function tableLabel(i, k) { return document.getElementById("tl" + i + "_" + k); }
 function tableAnswerOf(i) {
   var v = tableCells(i).map(function (c) { return c.value.trim(); });
-  var t = tableLabel(i, "t").value.trim(), x = tableLabel(i, "x").value.trim(), y = tableLabel(i, "y").value.trim();
+  function lab(k) { var f = tableLabel(i, k); return f ? f.value.trim() : ""; }   // (no label boxes under a "noGraph" table)
+  var t = lab("t"), x = lab("x"), y = lab("y");
   if (!t && !x && !y && !v.some(function (s) { return s; })) return "";
   return JSON.stringify({ v: v, t: t, x: x, y: y });
 }
@@ -1667,6 +1672,7 @@ function tableBox(i) {
     tb.appendChild(tr);
   });
   tbl.appendChild(tb); left.appendChild(tbl);
+  if (T.noGraph) { zone.className = "tablezone nograph"; zone.appendChild(left); return zone; }   // Table config "noGraph": just the table
   var right = el("div", "tright");
   right.appendChild(el("div", "tgraphhead", "Graph"));
   var title = tableInput(i, "t", "Type your graph's title", saved.t);
@@ -1694,7 +1700,7 @@ function wireTable(i) {
   fields.forEach(function (f) {
     if (f.classList.contains("tlabel")) blockPaste(f, i);
     f.addEventListener("input", function () {
-      f.classList.remove("correct", "incorrect");
+      f.classList.remove("correct", "incorrect", "partial");
       drawTableGraph(i);
       setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
       clearTimeout(draftTimer[i]);
@@ -1714,14 +1720,17 @@ function wireTable(i) {
 }
 function paintTable(i, res) {
   var parts = (res && res.parts) || [];
-  document.getElementById("a" + i).className = "tablezone" + (res && res.status !== "blank" ? " " + res.status : "");
-  tableCells(i).forEach(function (c) {
-    c.classList.remove("correct", "incorrect");
+  document.getElementById("a" + i).className = "tablezone" + (S.questions[i].table.noGraph ? " nograph" : "") + (res && res.status !== "blank" ? " " + res.status : "");
+  var cells = res && Array.isArray(res.cells) ? res.cells : null;   // a table that checks the math (Table config "calc"): each box has its own color
+  tableCells(i).forEach(function (c, k) {
+    c.classList.remove("correct", "incorrect", "partial");
+    if (cells) { var st = cells[k]; if (st === "correct" || st === "partial" || st === "incorrect") c.classList.add(st); return; }
     if (parts[0] === "correct") c.classList.add("correct");
     else if (parts[0] === "incorrect") c.classList.add(/^-?(\d+\.?\d*|\.\d+)$/.test(c.value.trim().replace(/,/g, "")) ? "correct" : "incorrect");
   });
   ["t", "x", "y"].forEach(function (k, j) {
     var f = tableLabel(i, k), m = parts[j + 1];
+    if (!f) return;   // a table with "noGraph" has no title or axis label boxes
     f.classList.remove("correct", "incorrect");
     if (m === "correct" || m === "incorrect") f.classList.add(m);
   });
@@ -1782,7 +1791,7 @@ function drawTableGraph(i) {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.29b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.29d";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

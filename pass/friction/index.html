@@ -129,6 +129,8 @@
                 background:transparent; color:inherit; outline:none; }
   input.tcell:focus { box-shadow: inset 0 0 0 2px #3c78d8; background:#fff; }
   input.tcell.correct { background:var(--green); } input.tcell.incorrect { background:var(--red); }
+  input.tcell.partial { background:var(--yellow); }
+  .tablezone.nograph .tleft { flex:1 1 100%; }
   .tright { flex:1 1 360px; border-left:1px solid #111; display:flex; flex-direction:column; min-width:0; }
   .tgraphhead { background:#000; color:#fff; font-weight:700; text-align:center; padding:6px 8px; }
   input.tlabel { display:block; margin:8px auto; width:calc(100% - 24px); max-width:440px; padding:6px 8px; border:2px dashed #888; border-radius:6px; background:#fff;
@@ -152,6 +154,7 @@
   html[data-theme="dark"] table.dtable tbody tr:nth-child(even) td { background:#2a2f38; }
   html[data-theme="dark"] input.tcell:focus { background:#14171c; }
   html[data-theme="dark"] input.tcell.correct, html[data-theme="dark"] input.tlabel.correct { background:var(--green); }
+  html[data-theme="dark"] input.tcell.partial { background:var(--yellow); }
   html[data-theme="dark"] input.tcell.incorrect, html[data-theme="dark"] input.tlabel.incorrect { background:var(--red); }
   html[data-theme="dark"] .tright { border-color:#5f6670; }
   /* timed-trials lab table (Table config {"lab": ...}): stopwatch, the data table with a box for every test, and a graph with one colored line per surface */
@@ -1521,6 +1524,8 @@ function timerButton(label, secs) {
 }
 function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
 function isUploadQ(i) { return !!S.questions[i].upload; }
+/** Not graded: a picture upload, or a graph with "labels": false (it only shows the student's data). */
+function isUngradedQ(i) { var q = S.questions[i]; return !!(q.upload || (q.table && q.table.graph && q.table.graph.labels === false)); }
 function boxInputs(i) { return Array.prototype.slice.call(document.querySelectorAll('input.pbox[data-q="' + i + '"]')); }
 /** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
 function answerOf(i) {
@@ -1897,6 +1902,7 @@ function render() {
     var btn = el("button", "secondary", "Check"); btn.id = "b" + i; btn.disabled = S.locked;
     fbt.appendChild(fb); fbt.appendChild(meta); row.appendChild(fbt); row.appendChild(btn);
     if (q.upload) btn.hidden = true;   // the upload box saves by itself
+    if (q.table && q.table.graph && q.table.graph.labels === false) row.style.display = "none";   // a graph that only shows the data: nothing to check
     item.appendChild(qt);
     if (i > 0 && S.questions[i - 1].upload && !q.upload) item.appendChild(reminderFor(i - 1, item));
     item.appendChild(ta); item.appendChild(row);
@@ -2082,7 +2088,8 @@ function tableLabel(i, k) { return document.getElementById("tl" + i + "_" + k); 
 function tableAnswerOf(i) {
   if (isGraphQ(i)) return graphAnswerOf(i);
   var v = tableCells(i).map(function (c) { return c.value.trim(); });
-  var t = tableLabel(i, "t").value.trim(), x = tableLabel(i, "x").value.trim(), y = tableLabel(i, "y").value.trim();
+  function lab(k) { var f = tableLabel(i, k); return f ? f.value.trim() : ""; }   // (no label boxes under a "noGraph" table)
+  var t = lab("t"), x = lab("x"), y = lab("y");
   if (!t && !x && !y && !v.some(function (s) { return s; })) return "";
   return JSON.stringify({ v: v, t: t, x: x, y: y });
 }
@@ -2119,6 +2126,7 @@ function tableBox(i) {
     tb.appendChild(tr);
   });
   tbl.appendChild(tb); left.appendChild(tbl);
+  if (T.noGraph) { zone.className = "tablezone nograph"; zone.appendChild(left); return zone; }   // Table config "noGraph": just the table
   var right = el("div", "tright");
   right.appendChild(el("div", "tgraphhead", "Graph"));
   var title = tableInput(i, "t", "Type your graph's title", saved.t);
@@ -2157,7 +2165,7 @@ function wireTable(i) {
   fields.forEach(function (f) {
     if (f.classList.contains("tlabel")) blockPaste(f, i);
     f.addEventListener("input", function () {
-      f.classList.remove("correct", "incorrect");
+      f.classList.remove("correct", "incorrect", "partial");
       drawTableGraph(i);
       setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
       clearTimeout(draftTimer[i]);
@@ -2178,9 +2186,11 @@ function wireTable(i) {
 function paintTable(i, res) {
   var parts = (res && res.parts) || [];
   if (isGraphQ(i)) { paintGraph(i, parts); return; }
-  document.getElementById("a" + i).className = (S.questions[i].table.lab ? "labzone" : "tablezone") + (res && res.status !== "blank" ? " " + res.status : "");
-  tableCells(i).forEach(function (c) {
-    c.classList.remove("correct", "incorrect");
+  document.getElementById("a" + i).className = (S.questions[i].table.lab ? "labzone" : "tablezone") + (S.questions[i].table.noGraph ? " nograph" : "") + (res && res.status !== "blank" ? " " + res.status : "");
+  var cells = res && Array.isArray(res.cells) ? res.cells : null;   // a table that checks the math (Table config "calc"): each box has its own color
+  tableCells(i).forEach(function (c, k) {
+    c.classList.remove("correct", "incorrect", "partial");
+    if (cells) { var st = cells[k]; if (st === "correct" || st === "partial" || st === "incorrect") c.classList.add(st); return; }
     if (parts[0] === "correct") c.classList.add("correct");
     else if (parts[0] === "incorrect") {
       var typed = c.value.trim();
@@ -2190,6 +2200,7 @@ function paintTable(i, res) {
   });
   ["t", "x", "y"].forEach(function (k, j) {
     var f = tableLabel(i, k), m = parts[j + 1];
+    if (!f) return;   // a table with "noGraph" has no title or axis label boxes
     f.classList.remove("correct", "incorrect");
     if (m === "correct" || m === "incorrect") f.classList.add(m);
   });
@@ -2526,22 +2537,30 @@ function isGraphQ(i) { var t = S.questions[i].table; return !!(t && t.graph); }
 function graphConf(i) {
   if (GRAPH_CONF[i]) return GRAPH_CONF[i];
   var G = S.questions[i].table.graph || {}, used = {};
-  var lines = (Array.isArray(G.lines) ? G.lines : []).slice(0, 4).map(function (L) {
+  var lines = (Array.isArray(G.lines) ? G.lines : []).slice(0, 8).map(function (L, k) {
     L = L && typeof L === "object" ? L : {};
     var from = Math.round(Number(L.from)), c = isFinite(from) && from >= 1 ? (from - 1) % 4 : 0;
-    while (used[c] && Object.keys(used).length < 4) c = (c + 1) % 4;   // the same color for the same question on every graph, unless two lines here share it
+    var cols = L.col != null && L.xcol != null && isFinite(Number(L.col)) && isFinite(Number(L.xcol));   // columns of a data table (2026.10.29c)
+    if (cols || k >= 4) c = k % 4;   // marker shape
+    else { while (used[c] && Object.keys(used).length < 4) c = (c + 1) % 4; }   // the same color for the same question on every graph, unless two lines here share it
     used[c] = true;
-    return { name: String(L.name == null ? "" : L.name).slice(0, 40), from: from, x: (Array.isArray(L.x) ? L.x : []).slice(0, 40).map(Number), top: L.top === true, c: c };
+    var o = { name: String(L.name == null ? "" : L.name).slice(0, 40), from: from, x: (Array.isArray(L.x) ? L.x : []).slice(0, 40).map(Number), top: L.top === true, c: c };
+    if (cols) { o.col = Math.round(Number(L.col)); o.xcol = Math.round(Number(L.xcol)); }
+    if (/^#[0-9a-f]{6}$/i.test(String(L.color || ""))) o.color = String(L.color);   // the line's own color (checked: never anything but #rrggbb)
+    return o;
   });
   var top = lines.some(function (L) { return L.top; }) && lines.some(function (L) { return !L.top; });
   if (!top) lines.forEach(function (L) { L.top = false; });
-  GRAPH_CONF[i] = { lines: lines, top: top, origin: G.origin !== false };   // every line starts at 0, 0 unless the sheet says "origin": false
+  GRAPH_CONF[i] = { lines: lines, top: top, origin: G.origin !== false, labels: G.labels !== false, title: G.labels !== false && G.title === true };   // every line starts at 0, 0 unless the sheet says "origin": false
   return GRAPH_CONF[i];
 }
 function graphAnswerOf(i) {
+  if (!graphConf(i).labels) return "";   // a graph that only shows the data saves nothing
   var x = tableLabel(i, "x").value.trim(), y = tableLabel(i, "y").value.trim(), t2 = tableLabel(i, "x2"), x2 = t2 ? t2.value.trim() : "";
-  if (!x && !y && !x2) return "";
+  var tt = tableLabel(i, "t"), t = tt ? tt.value.trim() : "";
+  if (!x && !y && !x2 && !t) return "";
   var a = { x: x, y: y };
+  if (graphConf(i).title) a.t = t;
   if (graphConf(i).top) a.x2 = x2;
   return JSON.stringify(a);
 }
@@ -2557,7 +2576,24 @@ function graphSource(qi) {
   var f = q.boxes && q.boxes.length ? boxInputs(qi) : q.table && !q.table.graph && !q.table.lab ? tableCells(qi) : [];
   return f.map(function (inp) { return graphNum(inp.value); });
 }
+/** One column of question qi's data table, row by row: the fixed number in that cell, or the number typed in its box (NaN if empty). */
+function graphColumn(qi, col) {
+  var q = S.questions[qi];
+  if (!q || !q.table || q.table.graph || q.table.lab) return [];
+  var boxes = tableCells(qi), n = 0, out = [];
+  q.table.rows.forEach(function (row) {
+    var v = NaN;
+    row.forEach(function (c, k) {
+      if (c === null) { if (k === col) v = graphNum(boxes[n] ? boxes[n].value : ""); n++; }
+      else if (k === col && typeof c === "number") v = c;
+    });
+    out.push(v);
+  });
+  return out;
+}
+function lineStyle(L) { return L.color ? ' style="--lg:' + L.color + '"' : ""; }
 function graphFroms(i) {
+  if (graphConf(i).lines.some(function (L) { return L.col != null; })) return "your data tables";
   var seen = {}, out = [];
   graphConf(i).lines.forEach(function (L) { if (!seen[L.from]) { seen[L.from] = true; out.push("question " + L.from); } });
   return out.join(" and ");
@@ -2566,19 +2602,22 @@ function graphBox(i) {
   var C = graphConf(i), saved = tableSaved(i);
   var zone = el("div", "graphzone"); zone.id = "a" + i;
   zone.appendChild(el("div", "tgraphhead", "Graph"));
-  if (C.top) zone.appendChild(tableInput(i, "x2", "Type the top axis label", saved.x2));
-  var mid = el("div", "tgraphmid"), ywrap = el("div", "tylab"), yin = tableInput(i, "y", "Type the y-axis label", saved.y);
-  ywrap.appendChild(yin);
+  if (C.title) zone.appendChild(tableInput(i, "t", "Type your graph's title", saved.t));   // Graph config "title": true
+  if (C.top && C.labels) zone.appendChild(tableInput(i, "x2", "Type the top axis label", saved.x2));
+  var mid = el("div", "tgraphmid"), ywrap = el("div", "tylab");
+  if (C.labels) ywrap.appendChild(tableInput(i, "y", "Type the y-axis label", saved.y));
+  else ywrap.style.width = "8px";
   var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 600 " + (C.top ? 400 : 380)); svg.setAttribute("class", "tgraph"); svg.id = "tg" + i;
   svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Graph of your numbers from " + graphFroms(i));
   mid.appendChild(ywrap); mid.appendChild(svg); zone.appendChild(mid);
-  zone.appendChild(tableInput(i, "x", C.top ? "Type the bottom axis label" : "Type the x-axis label", saved.x));
+  if (C.labels) zone.appendChild(tableInput(i, "x", C.top ? "Type the bottom axis label" : "Type the x-axis label", saved.x));
   if (C.lines.length > 1) {
     var key = el("ul", "labkey"); key.setAttribute("aria-label", "Key: which line is which");
     C.lines.forEach(function (L) {
       var li = el("li"), sw = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       sw.setAttribute("viewBox", "0 0 36 16"); sw.setAttribute("aria-hidden", "true"); sw.setAttribute("class", "lg-" + L.c);
+      if (L.color) sw.style.setProperty("--lg", L.color);
       sw.innerHTML = '<line class="lg-line" x1="2" y1="8" x2="34" y2="8"/>' + labMark(L.c, 18, 8, 5.5);
       li.appendChild(sw); li.appendChild(document.createTextNode(L.name + (C.top ? (L.top ? " (numbers along the top)" : " (numbers along the bottom)") : "")));
       key.appendChild(li);
@@ -2586,13 +2625,15 @@ function graphBox(i) {
     zone.appendChild(key);
   }
   zone.appendChild(el("div", "labnote", "The points come from your numbers in " + graphFroms(i) + ". Change a number there and the graph changes too." +
+    (C.lines.some(function (L) { return L.col != null; }) ? " Mass goes up the side and volume goes along the bottom." : "") +
     (C.origin ? " Every line starts at 0, 0." : "")));
   setTimeout(function () { drawGraphQ(i); }, 0);
   return zone;
 }
 function paintGraph(i, parts) {
   document.getElementById("a" + i).className = "graphzone";
-  ["x", "y", "x2"].forEach(function (k, j) {
+  var C = graphConf(i);   // the order the sheet grades them: x, y, then the top axis (if any), then the title (if any)
+  ["x", "y"].concat(C.top ? ["x2"] : []).concat(C.title ? ["t"] : []).forEach(function (k, j) {
     var f = tableLabel(i, k), m = parts[j];
     if (!f) return;
     f.classList.remove("correct", "incorrect");
@@ -2609,6 +2650,10 @@ function drawGraphQ(i) {
   var C = graphConf(i), H = C.top ? 400 : 380;
   var Lf = 70, R = 578, Tp = C.top ? 44 : 16, B = H - 40;
   var series = C.lines.map(function (L) {
+    if (L.col != null) {   // columns of a data table: one point per row
+      var cy = graphColumn(L.from - 1, L.col), cx = graphColumn(L.from - 1, L.xcol);
+      return { L: L, pts: cx.map(function (x, k) { return { x: x, y: cy[k] }; }).filter(function (p) { return isFinite(p.x) && isFinite(p.y); }).sort(function (a, b) { return a.x - b.x; }) };
+    }
     var ys = graphSource(L.from - 1);
     return { L: L, pts: L.x.map(function (x, k) { return { x: x, y: ys[k] }; }).filter(function (p) { return isFinite(p.x) && isFinite(p.y); }) };
   });
@@ -2618,6 +2663,7 @@ function drawGraphQ(i) {
   function axis(top) {   // an x number line: from 0 (or below) to past the biggest x of its lines
     var xs = [];
     C.lines.forEach(function (L) { if (L.top === top) L.x.forEach(function (v) { if (isFinite(v)) xs.push(v); }); });
+    series.forEach(function (s) { if (s.L.top === top && s.L.col != null) s.pts.forEach(function (p) { xs.push(p.x); }); });
     var hi = Math.max.apply(null, xs.concat([1])), lo = Math.min.apply(null, xs.concat([0])), st = niceStep(hi - lo);
     hi = Math.ceil(hi / st) * st; lo = Math.floor(lo / st) * st;
     var line = C.lines.filter(function (L) { return L.top === top; })[0];
@@ -2643,9 +2689,9 @@ function drawGraphQ(i) {
     if (!s.pts.length) return;
     any = true;
     var path = (C.origin ? [{ x: 0, y: 0 }] : []).concat(s.pts);   // from 0, 0 (no speed or no mass, no energy), then through the points
-    if (path.length > 1) lines.push('<polyline class="lg-line lg-' + c + '" points="' + path.map(function (p) { return A.X(p.x) + "," + Y(p.y); }).join(" ") + '"/>');
+    if (path.length > 1) lines.push('<polyline class="lg-line lg-' + c + '"' + lineStyle(s.L) + ' points="' + path.map(function (p) { return A.X(p.x) + "," + Y(p.y); }).join(" ") + '"/>');
     s.pts.forEach(function (p) {
-      marks.push('<g class="lg-' + c + '">' + labMark(c, A.X(p.x), Y(p.y), 6) + '<title>' + labEsc(s.L.name) + ": " + labEsc(graphFmt(p.x)) + ", " + labEsc(graphFmt(p.y)) + '</title></g>');
+      marks.push('<g class="lg-' + c + '"' + lineStyle(s.L) + '>' + labMark(c, A.X(p.x), Y(p.y), 6) + '<title>' + labEsc(s.L.name) + ": " + labEsc(graphFmt(p.x)) + ", " + labEsc(graphFmt(p.y)) + '</title></g>');
     });
   });
   h = h.concat(lines, marks);
@@ -2663,7 +2709,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.28b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.29d";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -3136,7 +3182,7 @@ function localGrade() {
   if (!S.credit) return S.grade;
   var earned = 0, n = 0;
   S.results.forEach(function (r, i) {
-    if (isUploadQ(i)) return;
+    if (isUngradedQ(i)) return;
     var q = S.questions[i], w = q.points == null ? 1 : q.points, c = S.credit[(r && r.status) || "blank"] || 0;
     if (q.points != null && r && r.status !== "blank" && typeof r.frac === "number") c = r.frac;   // a question worth Points earns the share of its ideas the answer shows
     n += w; earned += w * c;
@@ -3243,8 +3289,8 @@ function savesRunning() { return Object.keys(saving).some(function (k) { return 
 
 function updateProgress() {
   var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
-  S.results.forEach(function (r, i) { if (!isUploadQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads aren't graded
-  var n = Math.max(1, S.questions.filter(function (q) { return !q.upload; }).length);
+  S.results.forEach(function (r, i) { if (!isUngradedQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads (and show-only graphs) aren't graded
+  var n = Math.max(1, S.questions.filter(function (q, i) { return !isUngradedQ(i); }).length);
   document.getElementById("nG").textContent = c.correct;
   document.getElementById("nY").textContent = c.partial;
   document.getElementById("nR").textContent = c.incorrect;
