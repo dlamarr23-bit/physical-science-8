@@ -61,6 +61,9 @@
   .lp-dlg label{ display:block; font-weight:700; font-size:14px; margin:12px 0 4px; }
   .lp-dlg .lp-hint{ display:block; font-weight:400; font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
   .lp-dlg input{ width:100%; font:inherit; font-size:15px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
+  .lp-dlg select{ width:100%; font:inherit; font-size:15px; padding:9px 36px 9px 12px; border:1px solid var(--line); border-radius:10px; background-color:var(--card); color:var(--ink); cursor:pointer; }
+  .lp-dlg #lpFKindNew{ margin-top:6px; }
+  .lp-dlg select:focus{ outline:none; border-color:var(--lp-btn); box-shadow:0 0 0 3px var(--lp-strip); }
   .lp-dlg input:focus{ outline:none; border-color:var(--lp-btn); box-shadow:0 0 0 3px var(--lp-strip); }
   .lp-dlg .lp-two{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
   .lp-dlg .lp-btns{ margin-top:18px; justify-content:space-between; }
@@ -436,13 +439,26 @@ document.addEventListener("DOMContentLoaded", function(){
     var fTitle = field(box, "Title", null, input("lpFTitle", "text", a.title, "e.g. Newton's Third Law Self-Check"));
     fTitle.maxLength = 200;
     var two = el("div", "lp-two");
-    var fKind = field(two, "Type", null, input("lpFKind", "text", a.kind || (editing ? "" : "Self-Check")));
-    fKind.setAttribute("list", "lpKinds"); fKind.maxLength = 40;
+    // Type: a real drop-down (a text box with a suggestion list only showed the type already typed in it,
+    // so its arrow seemed to do nothing). "Other..." opens a box for a new type.
+    var fKind = el("select"); fKind.id = "lpFKind";
+    var kindNow = a.kind || (editing ? "" : "Self-Check");
+    if(!kindNow) fKind.appendChild(el("option", null, "(none)")).value = "";
+    kinds.forEach(function(k){ var o = el("option", null, k); o.value = k; fKind.appendChild(o); });
+    var otherOpt = el("option", null, "Other..."); otherOpt.value = "__other__"; fKind.appendChild(otherOpt);
+    fKind.value = kindNow;
+    field(two, "Type", null, fKind);
+    var fKindNew = input("lpFKindNew", "text", "", "New type, e.g. Quiz");
+    fKindNew.maxLength = 40; fKindNew.hidden = true; fKindNew.setAttribute("aria-label", "New type");
+    fKind.addEventListener("change", function(){
+      fKindNew.hidden = fKind.value !== "__other__";
+      if(!fKindNew.hidden) fKindNew.focus();
+    });
     var fDate = field(two, "Date", null, input("lpFDate", "date", a.date || (editing ? "" : today())));
     box.appendChild(two);
+    box.appendChild(fKindNew);   // full width, under the Type / Date row
     var fUnit = field(box, "Group", "Optional, e.g. Unit 1: Forces. Cards with the same group sit together.", input("lpFUnit", "text", a.unit));
     fUnit.setAttribute("list", "lpUnits"); fUnit.maxLength = 60;
-    box.appendChild(datalist("lpKinds", kinds));
     box.appendChild(datalist("lpUnits", units));
 
     var msg = el("p", "cp-msg"); msg.setAttribute("role", "status");
@@ -484,7 +500,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(sheet === null) return bad("That does not look like a Google Sheet's address. Open the sheet and copy the address from the top of the tab.", fSheet);
       if(!title) return bad("Give it a title.", fTitle);
       if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
-      var it = { id: a.id || newId(), title: title, kind: fKind.value.trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
+      var it = { id: a.id || newId(), title: title, kind: (fKind.value === "__other__" ? fKindNew.value : fKind.value).trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
       var next = editing ? items.map(function(o){ return o.id === a.id ? it : o; }) : items.concat([it]);
       send(next, "Saving...");
     });
