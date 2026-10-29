@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Chromebook Help · Physical Science 8</title>
+<meta name="description" content="Free Chromebook tools for students: read aloud, talk instead of type, translate, find a word, screenshots, updates and shortcuts">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon-192.png">
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+<link rel="stylesheet" href="./assets/style.css">
+<script>/* dark mode: ?theme= from an assignment page's Help button, else the one chosen in the Class Pass menu (pass-menu.js); set before the page draws */try{var m=/[?&]theme=(dark|light)\b/.exec(location.search),t=m?m[1]:localStorage.getItem("ps8-theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script src="./assets/icons.js" defer></script>
+<script src="./assets/page-text.js" defer></script>
+<script src="./assets/app.js" defer></script>
+<script src="./assets/pass-menu.js" defer></script>
+<style>
+  /* Chromebook Help (Donny, 2026-10-28): a hidden page (no link in the menus) that the Help button on the assignment
+     pages opens in a new tab. The words and pictures are the "Chromebook Helpers for Students" doc. */
+  .hp-jump{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .hp-jump a{ border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:6px 14px; font-size:14px; font-weight:600; text-decoration:none; }
+  .hp-jump a:hover, .hp-jump a:focus-visible{ border-color:var(--accent); background:var(--accent-tint); }
+  .hp section{ padding:28px 0 8px; border-top:1px solid var(--line); scroll-margin-top:84px; }
+  .hp section:first-child{ border-top:0; padding-top:8px; }
+  .hp h2{ margin:0 0 10px; }
+  .hp p, .hp li{ font-size:1.05rem; line-height:1.6; max-width:70ch; }
+  .hp ol, .hp ul{ padding-left:1.5em; margin:10px 0; }
+  .hp li{ margin:6px 0; }
+  .hp figure{ margin:18px 0; }
+  .hp figure img{ display:block; width:100%; max-width:860px; height:auto; border-radius:16px; }
+  .hp kbd{ display:inline-block; min-width:1.4em; text-align:center; background:#202124; color:#fff; border-radius:6px; padding:0 8px; margin:0 1px;
+           font-family:inherit; font-size:.92em; font-weight:600; line-height:1.55; box-shadow:0 2px 0 #000; white-space:nowrap; }
+  html[data-theme="dark"] .hp kbd{ background:#2b3040; box-shadow:0 2px 0 #000, 0 0 0 1px #4a5063; }
+  .hp .tip{ background:var(--accent-tint); border-left:4px solid var(--accent); border-radius:8px; padding:10px 14px; max-width:820px; }
+  .hp-table{ overflow-x:auto; max-width:860px; }
+  .hp table{ border-collapse:collapse; width:100%; font-size:1rem; }
+  .hp th, .hp td{ border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+  .hp thead th{ background:var(--paper-soft); }
+  .hp tbody tr:nth-child(even) td{ background:var(--row-alt); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html" style="text-decoration:none;">
+      <span class="dot"></span>
+            <img class="mascot" src="./assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
+      <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
+    </a>
+    <nav class="inline-links" aria-label="Site">
+      <a href="./index.html">Home</a>
+      <a href="./flashcards.html">Review</a>
+      <a href="./sims.html">Sims</a>
+      <a href="./extra-credit.html">Extra Credit</a>
+      <a href="./glossary.html">Glossary</a>
+      <a href="./leaderboard.html" class="nav-board">Leaderboard</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="./energy-of-motion.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="./frames-of-reference.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="./speed-and-distance-time-graphs.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="./inertia-and-net-forces.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="./energy-transfer-via-friction.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="./mass-and-acceleration.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="./collisions-and-newtons-third-law.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./gravity-and-energy-related-to-position.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="./gravitational-potential-energy.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="./universal-law-of-gravity.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="./gravitational-potential-energy-to-kinetic-energy.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./electricity-and-magnetism.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="./magnetism.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="./electromagnetic-fields.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./waves-transmitting-energy-and-information.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="./intro-to-wave-properties.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="./light-waves.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="./waves-and-information-technology.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./thermal-energy-and-heat-flow.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="./energy-transfer-and-temperature.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="./changes-in-energy-at-the-molecular-level.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="./phase-changes-and-energy-transfer.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="./chemical-energy-and-reactions.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="./molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<div class="hero hero-page">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Help</span>
+      <h1>Chromebook Helpers for Students</h1>
+      <p class="lede">Every helper here is free and already on your Chromebook. Have the page read to you, talk instead of type, translate, and find words fast.</p>
+      <nav class="hp-jump" aria-label="Jump to">
+        <a href="#start">Before you start</a>
+        <a href="#read-aloud">Read aloud</a>
+        <a href="#dictation">Talk instead of type</a>
+        <a href="#translate">Translate</a>
+        <a href="#find">Find a word</a>
+        <a href="#screenshot">Screenshot</a>
+        <a href="#updates">Updates</a>
+        <a href="#tricks">Quick tricks</a>
+        <a href="#stuck">Not working?</a>
+      </nav>
+    </div>
+  </div>
+</div>
+<main class="container hp">
+  <section id="start" aria-labelledby="hStart">
+    <h2 id="hStart">Before you start</h2>
+    <p>Learn three keys, how to right-click, and how to turn a helper on.</p>
+    <figure><img src="./assets/chromebook-help/keys.png" width="1000" height="420" alt="The Search key, ctrl, and alt on a Chromebook keyboard. The Search key is where Caps Lock is on other computers and shows a magnifying glass or a circle."></figure>
+    <p><b>Right-click:</b> tap the touchpad with two fingers, or hold <kbd>alt</kbd> and click.</p>
+    <figure><img src="./assets/chromebook-help/right-click.png" width="1000" height="320" loading="lazy" alt="Two ways to right-click: tap the touchpad with two fingers, or hold alt and click"></figure>
+    <p><b>Turn on a helper (one time only):</b></p>
+    <ol>
+      <li>Click the <b>time</b> in the bottom right corner of the screen.</li>
+      <li>Click the <b>gear</b> to open Settings.</li>
+      <li>Type the helper's name in the search box at the top: <b>select to speak</b> or <b>dictation</b>.</li>
+      <li>Click it, then flip the switch <b>on</b>. It stays on next time you sign in.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/turn-on.png" width="1000" height="400" loading="lazy" alt="Four steps to turn on a helper: click the time, click the gear, search for it, turn it on"></figure>
+  </section>
+
+  <section id="read-aloud" aria-labelledby="hRead">
+    <h2 id="hRead">Read aloud (Select-to-speak)</h2>
+    <p>The Chromebook reads words on the screen out loud: questions, hints, and articles.</p>
+    <ol>
+      <li>Turn on <b>Select-to-speak</b> (see <a href="#start">Before you start</a>).</li>
+      <li>Highlight the words: click at the start and drag to the end.</li>
+      <li>Hold <kbd>Search</kbd> and tap <kbd>S</kbd>.</li>
+      <li>To stop, press <kbd>ctrl</kbd>.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/read-aloud.png" width="1000" height="340" loading="lazy" alt="Highlight the words, press Search + S, listen. To stop, press ctrl."></figure>
+    <p class="tip"><b>Faster:</b> hold <kbd>Search</kbd> and click one line to hear just that line. Use headphones in class.</p>
+  </section>
+
+  <section id="dictation" aria-labelledby="hDict">
+    <h2 id="hDict">Talk instead of type (Dictation)</h2>
+    <p>The Chromebook types what you say into the answer box.</p>
+    <ol>
+      <li>Turn on <b>Dictation</b> (see <a href="#start">Before you start</a>).</li>
+      <li>Click in the answer box.</li>
+      <li>Hold <kbd>Search</kbd> and tap <kbd>D</kbd>, or click the <b>mic</b> next to the clock.</li>
+      <li>Talk. Say "period", "comma", or "question mark" to add those marks.</li>
+      <li>Press <kbd>Search</kbd> + <kbd>D</kbd> again to stop.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/dictation.png" width="1000" height="340" loading="lazy" alt="Click the answer box, press Search + D or click the mic next to the clock, then talk. Say period for a dot."></figure>
+    <p class="tip"><b>Check before you submit:</b> read what it typed and fix wrong words. The checker gets confused by misspelled words, so one wrong word can turn your answer red.</p>
+  </section>
+
+  <section id="translate" aria-labelledby="hTrans">
+    <h2 id="hTrans">Translate the page</h2>
+    <p>Chrome can show the page in your language. You still type answers in English, because the checker grades English words.</p>
+    <ol>
+      <li>Right-click an empty spot on the page.</li>
+      <li>Click <b>Translate to English</b>.</li>
+      <li>A small box opens at the top. Click its <b>3 dots</b>, then <b>Choose another language</b>.</li>
+      <li>Pick your language and click <b>Translate</b>.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/translate.png" width="1000" height="400" loading="lazy" alt="Right-click the page and click Translate to English, click the 3 dots and Choose another language, then pick your language and click Translate. Type answers in English."></figure>
+    <p class="tip"><b>To see English again:</b> click <b>English</b> in that small box.</p>
+  </section>
+
+  <section id="find" aria-labelledby="hFind">
+    <h2 id="hFind">Find a word (ctrl + F)</h2>
+    <p>Jump to every spot on the page that uses a word. Great for finding the part of the article a question asks about.</p>
+    <ol>
+      <li>Hold <kbd>ctrl</kbd> and tap <kbd>F</kbd>. A box opens at the top right.</li>
+      <li>Type the word.</li>
+      <li>Press <kbd>enter</kbd> to jump to the next one. The orange one is where you are.</li>
+      <li>Press <kbd>esc</kbd> to close the box.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/find.png" width="1000" height="320" loading="lazy" alt="Hold ctrl and tap F, type a word, and every match on the page lights up. Enter goes to the next one, esc closes the box."></figure>
+  </section>
+
+  <section id="screenshot" aria-labelledby="hShot">
+    <h2 id="hShot">Take a screenshot</h2>
+    <p>Save a picture of your screen to show your teacher a problem or keep your work.</p>
+    <ol>
+      <li><b>Whole screen:</b> hold <kbd>ctrl</kbd> and tap <kbd>Show windows</kbd> (the top row key with a box and two lines).</li>
+      <li><b>Part of the screen:</b> hold <kbd>ctrl</kbd> + <kbd>shift</kbd> and tap <kbd>Show windows</kbd>. Drag a box around what you want, then click <b>Capture</b>.</li>
+      <li>Find it in your <b>Downloads</b> folder, or paste it right away with <kbd>ctrl</kbd> + <kbd>V</kbd>.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/screenshot.png" width="1000" height="400" loading="lazy" alt="Whole screen, part of the screen, then find it in Downloads or paste it with ctrl + V"></figure>
+    <p class="tip"><b>Your keyboard has a screenshot key?</b> Press it to open the same tool.</p>
+  </section>
+
+  <section id="updates" aria-labelledby="hUpd">
+    <h2 id="hUpd">Check for updates</h2>
+    <p>Updates fix bugs and keep helpers working. Plug in your charger and save your work first.</p>
+    <ol>
+      <li>Click the <b>time</b> in the bottom right, then the <b>gear</b> to open Settings.</li>
+      <li>At the bottom left, click <b>About ChromeOS</b>.</li>
+      <li>Click <b>Check for updates</b>. If an update is found, it downloads by itself. No button? You are already up to date.</li>
+      <li>When it finishes, click <b>Restart</b> in the <b>Update device</b> box next to the clock.</li>
+    </ol>
+    <figure><img src="./assets/chromebook-help/updates.png" width="1000" height="400" loading="lazy" alt="Open Settings, About ChromeOS, Check for updates, Restart"></figure>
+    <p class="tip"><b>See a blue or orange "Restart to update" box?</b> Your school sent the update. Click it when you are at a good stopping point. Can't update? Tell your teacher.</p>
+  </section>
+
+  <section id="tricks" aria-labelledby="hTricks">
+    <h2 id="hTricks">More quick tricks</h2>
+    <p>Hold the first key, then tap the next one.</p>
+    <div class="hp-table">
+      <table>
+        <thead><tr><th scope="col">To do this</th><th scope="col">Press</th></tr></thead>
+        <tbody>
+          <tr><td>Make words bigger</td><td><kbd>ctrl</kbd> + <kbd>=</kbd> (the plus key)</td></tr>
+          <tr><td>Make words smaller</td><td><kbd>ctrl</kbd> + <kbd>-</kbd> (minus)</td></tr>
+          <tr><td>Back to normal size</td><td><kbd>ctrl</kbd> + <kbd>0</kbd> (zero)</td></tr>
+          <tr><td>Fix a word with a red squiggle under it</td><td>Right-click the word, then click the right spelling</td></tr>
+          <tr><td>Undo a mistake</td><td><kbd>ctrl</kbd> + <kbd>Z</kbd></td></tr>
+          <tr><td>Bring back a tab you closed</td><td><kbd>ctrl</kbd> + <kbd>shift</kbd> + <kbd>T</kbd></td></tr>
+          <tr><td>Put the article and questions side by side</td><td><kbd>alt</kbd> + <kbd>[</kbd> for left, <kbd>alt</kbd> + <kbd>]</kbd> for right</td></tr>
+          <tr><td>Turn CAPS LOCK on or off</td><td><kbd>alt</kbd> + <kbd>Search</kbd></td></tr>
+          <tr><td>Fix a stuck page</td><td><kbd>ctrl</kbd> + <kbd>R</kbd></td></tr>
+          <tr><td>See every shortcut</td><td><kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>/</kbd></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="stuck" aria-labelledby="hStuck">
+    <h2 id="hStuck">If something does not work</h2>
+    <ul>
+      <li><b>The switch is gray or missing:</b> the school controls that setting. Tell your teacher.</li>
+      <li><b>Search + S does nothing:</b> check that Select-to-speak is on, then highlight the words first.</li>
+      <li><b>No Translate in the menu:</b> right-click an empty spot, not a word or picture.</li>
+      <li><b>Still stuck:</b> take a screenshot with <kbd>ctrl</kbd> + <kbd>Show windows</kbd> (the top row key with a box and two lines) and show your teacher.</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  <div class="container">Physical Science 8 &middot; An interactive middle school science textbook: Units 1–6 &middot; Built for classroom use</div>
+</footer>
+</body>
+</html>

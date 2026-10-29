@@ -307,11 +307,12 @@
   .cp-again button { background:#1b4587; border-color:#1b4587; color:#fff; }
   .cp-detail { font-size:12px; font-weight:400; color:#777; margin-top:10px; }
   /* @@CLASSPASS-CSS-END */
-  /* ---------- light / dark mode (the moon/sun button at the top; remembered on this device) ---------- */
-  .topbar { display:flex; justify-content:flex-end; margin:0 0 -6px; }
-  button.themebtn { display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border:1.5px solid #bbb; border-radius:999px;
+  /* ---------- light / dark mode (the moon/sun button at the top; remembered on this device) and Help (Chromebook help, a new tab) ---------- */
+  .topbar { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 -6px; }
+  button.themebtn, a.helpbtn { display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border:1.5px solid #bbb; border-radius:999px;
                     padding:5px 12px; font-size:13px; font-weight:600; }
-  button.themebtn svg { width:16px; height:16px; }
+  a.helpbtn { font-family:inherit; line-height:normal; text-decoration:none; }
+  button.themebtn svg, a.helpbtn svg { width:16px; height:16px; }
   .meta.tone-warn { color:#b45f06; } .meta.tone-ok { color:#38761d; } .meta.tone-bad { color:#cc0000; } .meta.tone-muted { color:#666; }
   .fbbar .meta.tone-warn { color:#f5b971; } .fbbar .meta.tone-ok { color:#8fd19e; } .fbbar .meta.tone-bad { color:#ff8a80; } .fbbar .meta.tone-muted { color:#a7adb7; }
   .pagever { text-align:center; font-size:11px; color:#999; margin-top:-14px; }
@@ -338,7 +339,7 @@
   html[data-theme="dark"] .meta.tone-bad { color:#ff8a80; } html[data-theme="dark"] .meta, html[data-theme="dark"] .meta.tone-muted { color:#a7adb7; }
   html[data-theme="dark"] button { background:#e8eaed; color:#14171c; border-color:#e8eaed; }
   html[data-theme="dark"] button.secondary { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
-  html[data-theme="dark"] button.themebtn { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] button.themebtn, html[data-theme="dark"] a.helpbtn { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
   html[data-theme="dark"] .banner { background:#2a2f38; color:#f1f3f5; }
   html[data-theme="dark"] .banner.error { background:#8e1c1c; }
   html[data-theme="dark"] .boxlist input.pbox, html[data-theme="dark"] .boxwrap input.pbox { background:#14171c; color:#f1f3f5; border-color:#8fb3ff; }
@@ -393,7 +394,7 @@
     html.splitview, html.splitview body { height:100%; overflow:hidden; }
     html.splitview .wrap { position:relative; max-width:none; height:100vh; height:100dvh; display:flex; flex-direction:column; padding:6px 14px 10px; }
     html.splitview .topbar { position:absolute; top:8px; right:14px; margin:0; z-index:8; }
-    html.splitview .apphead { padding-right:130px; }
+    html.splitview .apphead { padding-right:215px; }
     html.splitview #app { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
     html.splitview .split { flex:1 1 auto; min-height:0; align-items:stretch; }
     html.splitview .artpane, html.splitview .qpane { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
@@ -558,7 +559,7 @@
 </div>
 </template>
 <div class="wrap">
-  <div class="topbar"><button type="button" class="themebtn" id="themeBtn"></button></div>
+  <div class="topbar"><a class="helpbtn" id="helpBtn" href="https://physical-science-8.pages.dev/chromebook-help" target="_blank" rel="noopener" aria-label="Help: Chromebook tools, opens in a new tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</a><button type="button" class="themebtn" id="themeBtn"></button></div>
   <div id="loading">Loading your self-check…</div>
   <div id="signin" hidden></div>
   <div id="app" hidden>
@@ -2665,9 +2666,13 @@ document.addEventListener("input", function (e) {
 var PAGE_VERSION = "2026.10.28b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
+// The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
+var HELP_URL = "https://physical-science-8.pages.dev/chromebook-help";
 function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
 function showThemeButton() {
   var b = document.getElementById("themeBtn"), next = currentTheme() === "dark" ? "light" : "dark";
+  var help = document.getElementById("helpBtn");
+  if (help) help.href = HELP_URL + "?theme=" + currentTheme();
   if (!b) return;
   b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + THEME_ICONS[next] + "</svg>";
   b.appendChild(document.createTextNode(next === "dark" ? "Dark mode" : "Light mode"));
