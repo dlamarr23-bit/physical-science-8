@@ -3,14 +3,16 @@
   "friction-article": "2026.10.30",
   "friction-sim-lab": "2026.10.30",
   "friction-speed-lab": "2026.10.30",
-  "net-force-escape-room": "2026.10.11b",
+  "net-force-escape-room": "2026.10.30",
   "reading-activity": "2026.10.30",
-  "video-check": "2026.10.07",
+  "review-game": "2026.10.30",
+  "video-check": "2026.10.30",
   "_optional": {
     "auto-grading-activity": {"needed":"2026.10.29f","notes":[["2026.10.30","new Settings rows that only do something on two-column pages. A one-column sheet doesn't need it."]]},
     "friction-article": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
     "friction-sim-lab": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
     "friction-speed-lab": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
-    "reading-activity": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]}
+    "reading-activity": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
+    "video-check": {"needed":"2026.10.07","notes":[["2026.10.30","the directions in a bold blue box, and faster opening when a whole class starts at once on Chromebooks. A sheet that works fine doesn't need it."]]}
   }
 }
