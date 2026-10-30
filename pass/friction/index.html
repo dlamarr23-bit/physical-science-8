@@ -1676,43 +1676,66 @@ function simUrlOk(u) {
   var m = /^https:\/\/([a-z0-9.-]+)(?::\d+)?(?:[\/?#]|$)/i.exec(u);
   return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
 }
-function hasSim() { return labSim() || !!simUrlOk(S && S.simUrl); }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
-/** What the left side is called. The sheet's Settings "Article button name" can name it (Directions, say, for a lab whose Doc holds the directions):
-    untrusted words from the sheet, so plain text only (always set with textContent), one line, 24 characters at most. "" = none set. */
-function artOwnName() {
-  var n = Array.from(String(S && S.artBtn != null ? S.artBtn : "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim());
+/** The simulations on the left, in button order: [{ url, name }]. The first is the sheet's Settings "Simulation link" (if allowed), else the page's own
+    simTpl; the second (2026.10.30) is Settings "Simulation 2 link", only if allowed. Their names come from Settings "Simulation button name" and
+    "Simulation 2 button name" (plain text, see cleanName). A sheet older than 2026.10.30 sends none of these, so its page looks as it always did. */
+function sims() {
+  var tpl = document.getElementById("simTpl"), out = [];
+  var u1 = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : ""), u2 = simUrlOk(S && S.sim2Url);   // the sheet's address if it is allowed, else the page's own
+  if (u1 && /^https:\/\//.test(u1)) out.push({ url: u1, name: cleanName(S && S.simBtn) });
+  if (u2) out.push({ url: u2, name: cleanName(S && S.sim2Btn) || "Simulation 2" });
+  if (out.length && !out[0].name) out[0].name = out.length > 1 ? "Simulation 1" : "Simulation";
+  return out;
+}
+function hasSim() { return sims().length > 0; }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
+/** A button name from the sheet's Settings tab ("Article button name", "Simulation button name", ...): untrusted words, so plain text only (always set
+    with textContent), one line, 24 characters at most. "" = none set. */
+function cleanName(v) {
+  var n = Array.from(String(v != null ? v : "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim());
   return n.slice(0, 24).join("").trim();
 }
+/** What the left side is called. The sheet's Settings "Article button name" can name it (Directions, say, for a lab whose Doc holds the directions). */
+function artOwnName() { return cleanName(S && S.artBtn); }
 function artName() { return artOwnName() || (labSim() ? "Directions" : "Article"); }
 function setUpSim() {
-  var tpl = document.getElementById("simTpl"), url = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : "");   // the sheet's address if it is allowed, else the page's own
-  if (!url || !/^https:\/\//.test(url)) return;
-  var pane = document.getElementById("artPane"), art = document.getElementById("article"), frame = null;
+  var list = sims();
+  if (!list.length) return;
+  var pane = document.getElementById("artPane"), art = document.getElementById("article");
   pane.classList.add("hassim");
-  var bar = el("div", "simbar"), bD = el("button", "simtab", artName()), bS = el("button", "simtab", "Simulation"), op = el("a", "simopen", "Open it in a new tab");
-  bD.type = bS.type = "button"; op.href = url; op.target = "_blank"; op.rel = "noopener";
-  bar.appendChild(bD); bar.appendChild(bS); bar.appendChild(op);
-  var box = el("div", "simframe"); box.hidden = true;
-  pane.insertBefore(bar, art); pane.appendChild(box);
-  function showWhich(sim) {
-    bD.setAttribute("aria-pressed", sim ? "false" : "true"); bS.setAttribute("aria-pressed", sim ? "true" : "false");
-    art.hidden = sim; box.hidden = !sim; pane.classList.toggle("simview", sim);
-    if (sim && !frame) {   // loaded the first time it's wanted, then kept
-      var fu = simBare(url);
-      frame = document.createElement("iframe"); frame.src = simThemed(fu); frame.title = "The ramp and friction simulation";
-      frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); frame.setAttribute("allow", "fullscreen"); frame.referrerPolicy = "no-referrer";
-      simFrame = frame; simOrigin = new URL(fu).origin; frame.addEventListener("load", tellSimTheme);
-      box.appendChild(frame);
+  var bar = el("div", "simbar"), bD = el("button", "simtab", artName()), op = el("a", "simopen", "Open it in a new tab");
+  bD.type = "button"; op.href = list[0].url; op.target = "_blank"; op.rel = "noopener";
+  bar.appendChild(bD);
+  var tabs = list.map(function (s) {   // a button and a box of its own for each simulation
+    var b = el("button", "simtab", s.name), box = el("div", "simframe");
+    b.type = "button"; box.hidden = true; bar.appendChild(b);
+    return { sim: s, btn: b, box: box, frame: null };
+  });
+  bar.appendChild(op);
+  pane.insertBefore(bar, art);
+  tabs.forEach(function (t) { pane.appendChild(t.box); });
+  function showWhich(k) {   // -1 = the article / directions, else that simulation
+    bD.setAttribute("aria-pressed", k < 0 ? "true" : "false");
+    tabs.forEach(function (t, i) { t.btn.setAttribute("aria-pressed", i === k ? "true" : "false"); t.box.hidden = i !== k; });
+    art.hidden = k >= 0; pane.classList.toggle("simview", k >= 0);
+    if (k >= 0) op.href = tabs[k].sim.url;
+    op.hidden = k < 0 && tabs.length > 1;   // with two simulations the link opens the one showing (none while the directions show); with one it always opens it
+    var t = tabs[k];
+    if (t && !t.frame) {   // loaded the first time it's wanted, then kept (switching never resets a simulation)
+      var fu = simBare(t.sim.url);
+      t.frame = document.createElement("iframe"); t.frame.src = simThemed(fu); t.frame.title = t.sim.name;
+      t.frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); t.frame.setAttribute("allow", "fullscreen"); t.frame.referrerPolicy = "no-referrer";
+      simFrames.push({ frame: t.frame, origin: new URL(fu).origin }); t.frame.addEventListener("load", tellSimTheme);
+      t.box.appendChild(t.frame);
     }
-    if (!sim) pane.scrollTop = 0;
+    if (k < 0) pane.scrollTop = 0;
   }
-  bD.onclick = function () { showWhich(false); };
-  bS.onclick = function () { showWhich(true); };
-  showWhich(false);
+  bD.onclick = function () { showWhich(-1); };
+  tabs.forEach(function (t, i) { t.btn.onclick = function () { showWhich(i); }; });
+  showWhich(-1);
 }
-/** The simulation matches this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
+/** The simulations match this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
     messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
-var simFrame = null, simOrigin = "";
+var simFrames = [];   // every simulation frame loaded so far: [{ frame, origin }]
 /** A sim's address on the class website's Sims page (physical-science-8.pages.dev/sims/<sim>, the address its Sims page shows) has the website's
     top bar over the sim. In the frame it is the sim alone (sim-library-87y.pages.dev/<sim>/); Open it in a new tab keeps the address as typed. */
 function simBare(url) {
@@ -1723,10 +1746,10 @@ function simThemed(url) {
   try { var u = new URL(url); if (/\.pages\.dev$/i.test(u.hostname)) u.searchParams.set("theme", currentTheme()); return u.href; } catch (e) { return url; }
 }
 function tellSimTheme() {
-  if (simFrame && simFrame.contentWindow) try { simFrame.contentWindow.postMessage({ simTheme: currentTheme() }, simOrigin); } catch (e) {}
+  simFrames.forEach(function (s) { if (s.frame && s.frame.contentWindow) try { s.frame.contentWindow.postMessage({ simTheme: currentTheme() }, s.origin); } catch (e) {} });
 }
 window.addEventListener("message", function (e) {
-  if (!simFrame || e.source !== simFrame.contentWindow || e.origin !== simOrigin) return;
+  if (!simFrames.some(function (s) { return s.frame && e.source === s.frame.contentWindow && e.origin === s.origin; })) return;   // only a simulation frame, from its own site
   var t = e.data && e.data.simTheme;
   if ((t === "dark" || t === "light") && t !== currentTheme()) setTheme(t);
 });
@@ -1782,7 +1805,8 @@ function setUpSplit() {
   setUpSplitDrag();
   if (hasSim() && !document.querySelector(".simbar")) setUpSim();
   var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
-  tabA.textContent = document.querySelector(".simbar") ? artName() + " and simulation" : artName();   // the phone tab: Article, Directions, or the Settings name
+  var nSims = document.querySelectorAll(".simbar .simtab").length - 1;
+  tabA.textContent = artName() + (nSims > 1 ? " and simulations" : nSims === 1 ? " and simulation" : "");   // the phone tab: Article, Directions, or the Settings name
   if (artOwnName()) document.getElementById("artPane").setAttribute("aria-label", artOwnName() + ". Scroll this side to read.");
   function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
     split.setAttribute("data-tab", which);
@@ -2722,7 +2746,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.29f";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.30";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
