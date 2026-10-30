@@ -5,5 +5,12 @@
   "friction-speed-lab": "2026.10.30",
   "net-force-escape-room": "2026.10.11b",
   "reading-activity": "2026.10.30",
-  "video-check": "2026.10.07"
+  "video-check": "2026.10.07",
+  "_optional": {
+    "auto-grading-activity": {"needed":"2026.10.29f","notes":[["2026.10.30","new Settings rows that only do something on two-column pages. A one-column sheet doesn't need it."]]},
+    "friction-article": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
+    "friction-sim-lab": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
+    "friction-speed-lab": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]},
+    "reading-activity": {"needed":"2026.10.29f","notes":[["2026.10.30","a second simulation and a name for every button on two-column pages. A sheet without a simulation doesn't need it."]]}
+  }
 }

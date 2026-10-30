@@ -15,8 +15,8 @@
 <script src="/assets/pass-menu.js" defer></script>
 <style>
   /* the Launchpad's own colors: Donny's blue strips and buttons, lighter shades in dark mode */
-  :root{ --lp-strip:#c9daf8; --lp-btn:#1b4587; --lp-btnh:#133261; --lp-warn:#fff2cc; --lp-warnline:#bf9000; --lp-need:#fce8e6; --lp-needline:#c5221f; --lp-ok:#2e7d32; }
-  html[data-theme="dark"]{ --lp-strip:#1f3a66; --lp-btn:#3b6fd6; --lp-btnh:#2f5bb5; --lp-warn:#5a4a12; --lp-warnline:#c9a227; --lp-need:#5c1f1f; --lp-needline:#f28b82; --lp-ok:#81c995; }
+  :root{ --lp-strip:#c9daf8; --lp-btn:#1b4587; --lp-btnh:#133261; --lp-warn:#fff2cc; --lp-warnline:#bf9000; --lp-need:#fce8e6; --lp-needline:#c5221f; --lp-ok:#2e7d32; --lp-opt:#eef0f2; --lp-optline:#8a9099; }
+  html[data-theme="dark"]{ --lp-strip:#1f3a66; --lp-btn:#3b6fd6; --lp-btnh:#2f5bb5; --lp-warn:#5a4a12; --lp-warnline:#c9a227; --lp-need:#5c1f1f; --lp-needline:#f28b82; --lp-ok:#81c995; --lp-opt:#2a2f36; --lp-optline:#8a9099; }
   .lp h1{ font-size:1.9rem; margin:0 0 4px; }
   .lp-sub{ color:var(--ink-soft); margin:0 0 18px; }
   .lp-tools{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
@@ -50,6 +50,7 @@
   .lp-code.ok{ color:var(--lp-ok); font-weight:600; }
   .lp-code.need{ background:var(--lp-need); border-left:4px solid var(--lp-needline); padding:6px 8px; border-radius:4px; color:var(--ink); }
   .lp-code.info{ background:var(--lp-strip); border-left:4px solid var(--lp-btn); padding:6px 8px; border-radius:4px; color:var(--ink); }
+  .lp-code.opt{ background:var(--lp-opt); border-left:4px solid var(--lp-optline); padding:6px 8px; border-radius:4px; color:var(--ink); }
   .lp-chip.need{ border-color:var(--lp-needline); }
   .lp-chip.need.on{ background:var(--lp-needline); border-color:var(--lp-needline); color:#fff; }
   html[data-theme="dark"] .lp-chip.need.on{ color:#14171c; }
@@ -196,9 +197,13 @@
 
    Code check (Donny, 2026-10-28): each card with a student link asks its sheet which kind and code version it
    runs (classPass, the same question the Class Pass page asks, straight to the sheet's /exec address).
-   /pass/versions.json has the newest release of each kind (class-pass\make-pass.ps1 makes it from the release
-   files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind, or than
-   another sheet here of the same kind, says "Code needs updating" and shows under the Needs update chip.
+   /pass/versions.json has the newest release of each kind (npm run build in the private class-tools repo makes it from
+   the release files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind says
+   "Code needs updating" and shows under the Needs update chip. Only versions.json says what is newest: a sheet with
+   code newer than any release says "This sheet has unreleased code" and leaves the other cards alone (Donny, 2026-10-30).
+   Optional releases (Donny, 2026-10-30): versions.json's "_optional" gives, for a kind whose newest release can be
+   skipped, the newest one a sheet needs ("needed") and what each newer one adds ("notes"). A sheet at or past "needed"
+   gets a gray "Optional update" note instead of red, and isn't counted under Needs update.
 
    Order (Donny, 2026-10-29): the list is kept in the order it shows, each topic's (Group's) cards together, the topics
    in the order they first come. Change order puts arrows on every topic and card and lets them be dragged (a card
@@ -360,13 +365,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   }
   function drawSoon(){ clearTimeout(drawTimer); drawTimer = setTimeout(function(){ if(loaded && !work) draw(); }, 150); }   // Change order shows no code notes
-  // the newest version of a kind: the newest release, or a newer one another sheet here already has
-  function best(kind){
-    var top = (newest && newest[kind]) || "";
-    Object.keys(codes).forEach(function(id){ var c = codes[id]; if(c.state === "done" && c.kind === kind && c.version > top) top = c.version; });
-    return top;
-  }
-  // what a card says about its sheet's code: null (no student link), or {cls, text, need}
+  // what a card says about its sheet's code: null (no student link), or {cls, text, need, opt}
   function codeNote(a){
     var id = appId(a.link), c = id && codes[id];
     if(!c) return null;
@@ -375,14 +374,20 @@ document.addEventListener("DOMContentLoaded", function(){
     if(c.state === "checking") return {cls: "", text: "Checking its code..."};
     if(c.state === "fail") return {cls: "", text: "Couldn't check its code: the sheet didn't answer (its deployment may not be open to Anyone)."};
     if(c.state === "old") return {cls: "need", need: true, text: "Code needs updating: it is from before Class Pass." + how};
-    var top = best(c.kind), web = newest && newest[c.kind];
-    if(c.version < top) return {cls: "need", need: true, text: "Code needs updating: this sheet has " + c.version + ", the newest is " + top + "." + how};
-    if(web && c.version > web) return {cls: "info", text: "Code " + c.version + " is newer than the class website knows (" + web + "). Ask Claude to bring the website up to date."};
+    var web = newest && typeof newest[c.kind] === "string" ? newest[c.kind] : "", opt = newest && newest._optional && newest._optional[c.kind];
+    if(web && c.version < web){
+      if(opt && c.version >= String(opt.needed || "")){   // only optional releases since this sheet's code
+        var adds = (opt.notes || []).filter(function(n){ return n[0] > c.version; }).map(function(n){ return n[1]; }).join(" ");
+        return {cls: "opt", opt: true, text: "Optional update " + web + (adds ? ": " + adds : ".") + " This sheet has " + c.version + ", fine to keep. To get it: " + menu + " > Check for skill updates."};
+      }
+      return {cls: "need", need: true, text: "Code needs updating: this sheet has " + c.version + ", the newest is " + web + "." + how};
+    }
+    if(web && c.version > web) return {cls: "info", text: "This sheet has unreleased code (" + c.version + "; the newest release is " + web + "). Ask Claude to release it, so every sheet and the class website get it."};
     if(!web) return {cls: "", text: "Code version " + c.version + " (no skill updates for this kind yet)."};
     return {cls: "ok", text: "✓ Code up to date (" + c.version + ")"};
   }
   function codeSummary(){
-    var box = $("lpCodeSum"), n = {checking: 0, need: 0, ok: 0, fail: 0, other: 0}, seen = {};
+    var box = $("lpCodeSum"), n = {checking: 0, need: 0, opt: 0, ok: 0, unrel: 0, fail: 0, other: 0}, seen = {};
     box.textContent = "";
     items.forEach(function(a){
       var id = appId(a.link), note = id && !seen[id] && codeNote(a);
@@ -390,12 +395,14 @@ document.addEventListener("DOMContentLoaded", function(){
       seen[id] = 1;
       var c = codes[id];
       if(c.state === "checking") n.checking++; else if(c.state === "fail") n.fail++; else if(note.need) n.need++;
-      else if(note.cls) n.ok++; else n.other++;
+      else if(note.opt) n.opt++; else if(note.cls === "info") n.unrel++; else if(note.cls) n.ok++; else n.other++;
     });
-    if(!n.checking && !n.need && !n.ok && !n.fail && !n.other) return n;
+    if(!n.checking && !n.need && !n.opt && !n.ok && !n.unrel && !n.fail && !n.other) return n;
     var parts = [];
     if(n.need) parts.push(n.need + " need" + (n.need === 1 ? "s" : "") + " a code update");
+    if(n.opt) parts.push(n.opt + " with an optional update");
     if(n.ok) parts.push(n.ok + " up to date");
+    if(n.unrel) parts.push(n.unrel + " with unreleased code");
     if(n.other) parts.push(n.other + " with no skill updates for its kind");
     if(n.fail) parts.push(n.fail + " couldn't be checked");
     box.appendChild(el("span", null, n.checking ? "Checking each sheet's code (" + n.checking + " to go)..." + (parts.length ? " So far: " + parts.join(", ") + "." : "")
