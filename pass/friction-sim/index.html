@@ -150,6 +150,8 @@
   svg .lg-line.tg-wide { stroke-width:9; stroke-opacity:.5; }
   html[data-theme="dark"] .tablezone { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] table.dtable th, html[data-theme="dark"] .tgraphhead { background:#000; border-color:#5f6670; }
+  /* a data table drawn as a colored line on a graph question wears that color on its header row (like each material in the simulation) */
+  table.dtable.tcolor th, html[data-theme="dark"] table.dtable.tcolor th { background:var(--tcol); border-color:var(--tcol); text-shadow:0 1px 2px rgba(0,0,0,.35); }
   html[data-theme="dark"] table.dtable td { border-color:#5f6670; }
   html[data-theme="dark"] table.dtable tbody tr:nth-child(even) td { background:#2a2f38; }
   html[data-theme="dark"] input.tcell:focus { background:#14171c; }
@@ -2043,10 +2045,21 @@ function tableSaved(i) {
   }
   return a && typeof a === "object" ? a : {};
 }
+/** The color of the graph line that draws question i's data table (a line with "col"/"xcol" and a "color"), or "". */
+function tableColor(i) {
+  var out = "";
+  S.questions.forEach(function (q, g) {
+    if (out || !q.table || !q.table.graph) return;
+    graphConf(g).lines.forEach(function (L) { if (!out && L.col != null && L.color && L.from - 1 === i) out = L.color; });
+  });
+  return out;
+}
 function tableBox(i) {
   var T = S.questions[i].table, saved = tableSaved(i), vals = Array.isArray(saved.v) ? saved.v : [], n = 0;
   var zone = el("div", "tablezone"); zone.id = "a" + i;
   var left = el("div", "tleft"), tbl = el("table", "dtable"), thead = el("thead"), hr = el("tr");
+  var tcol = tableColor(i);
+  if (tcol) { tbl.className = "dtable tcolor"; tbl.style.setProperty("--tcol", tcol); }   // the same color as its line on the graph
   T.cols.forEach(function (c) { hr.appendChild(el("th", null, c)); });
   thead.appendChild(hr); tbl.appendChild(thead);
   var tb = el("tbody");
@@ -2649,7 +2662,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.29d";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.10.29e";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
