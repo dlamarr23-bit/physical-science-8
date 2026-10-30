@@ -24,7 +24,9 @@
   .lp-chips{ display:flex; flex-wrap:wrap; gap:6px; }
   .lp-chip{ border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:5px 12px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
   .lp-chip.on{ background:var(--lp-btn); border-color:var(--lp-btn); color:#fff; }
-  .lp-strip{ background:var(--lp-strip); font-weight:700; font-size:16px; padding:9px 12px; margin:24px 0 10px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); }
+  .lp-strip{ background:var(--lp-strip); font-weight:700; font-size:16px; padding:9px 12px; margin:24px 0 10px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); display:flex; align-items:center; gap:8px; }
+  .lp-strip .lp-name{ flex:1 1 auto; min-width:0; }
+  .lp-sec{ display:flow-root; }
   .lp-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(290px, 100%), 1fr)); gap:12px; }
   .lp-card{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px; }
   .lp-card h2{ font-size:16px; margin:0; line-height:1.35; }
@@ -53,6 +55,36 @@
   html[data-theme="dark"] .lp-chip.need.on{ color:#14171c; }
   .lp-codesum{ font-size:13px; color:var(--ink-soft); margin:10px 0 0; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
   .lp-codesum:empty{ display:none; }
+  /* each sheet's grading settings, as its code reports them */
+  .lp-sets{ display:flex; flex-wrap:wrap; gap:6px; }
+  .lp-set{ font-size:12.5px; font-weight:600; border:1.5px solid var(--line); border-radius:999px; padding:2px 10px; color:var(--ink); }
+  .lp-set.on{ border-color:var(--lp-ok); color:var(--lp-ok); }
+  .lp-set.warn{ border-color:var(--lp-warnline); background:var(--lp-warn); }
+  .lp-sets-later{ font-size:12.5px; color:var(--ink-soft); }
+  /* Change order: arrows on each topic and card, or drag them; Save order and Cancel stay at the bottom of the window */
+  .lp-move{ display:inline-flex; gap:6px; flex:none; }
+  .lp-arrow{ min-width:36px; height:32px; padding:0 8px; border:2px solid var(--ink); border-radius:6px; background:var(--card); color:var(--ink); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+  .lp-arrow:hover, .lp-arrow:focus-visible{ background:var(--lp-strip); }
+  .lp-arrow:disabled{ opacity:.3; cursor:default; background:var(--card); }
+  .lp-grip{ color:var(--ink-soft); font-size:18px; line-height:1; flex:none; }
+  .lp-arranging .lp-strip, .lp-arranging .lp-card{ cursor:grab; user-select:none; }
+  .lp-arranging .to-top{ display:none; }   /* it sat on the Save order bar */
+  .lp-card.lp-mini{ gap:6px; }
+  .lp-card.lp-mini .lp-move{ margin-top:auto; padding-top:4px; }
+  .lp-dragging{ opacity:.4; }
+  .lp-folded .lp-grid{ display:none; }
+  .lp-folded .lp-strip{ margin:8px 0; }
+  .lp-card.lp-drop-before{ box-shadow:-6px 0 0 var(--lp-btn); }
+  .lp-card.lp-drop-after{ box-shadow:6px 0 0 var(--lp-btn); }
+  .lp-grid.lp-one .lp-card.lp-drop-before{ box-shadow:0 -6px 0 var(--lp-btn); }
+  .lp-grid.lp-one .lp-card.lp-drop-after{ box-shadow:0 6px 0 var(--lp-btn); }
+  .lp-sec.lp-drop-before > .lp-strip{ box-shadow:0 -8px 0 var(--lp-btn); }
+  .lp-sec.lp-drop-after{ box-shadow:0 8px 0 var(--lp-btn); }
+  .lp-arrange{ position:sticky; bottom:0; z-index:5; margin-top:20px; background:var(--card); border:2px solid var(--lp-btn); border-radius:8px; padding:10px 12px; display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; box-shadow:0 -4px 14px rgba(0,0,0,.12); }
+  .lp-arrange[hidden]{ display:none; }
+  .lp-arrange .lp-say{ flex:1 1 260px; font-size:14px; }
+  .lp-arrange .cp-msg{ margin:0; flex-basis:100%; }
+  .lp-arrange .cp-msg:empty{ display:none; }
   .lp-box{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:20px; max-width:560px; }
   .lp-box p{ margin:0 0 14px; }
   .lp-foot{ margin-top:30px; font-size:13px; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; }
@@ -116,7 +148,7 @@
 </div>
 <main class="container lp">
   <h1>Assignment Launchpad</h1>
-  <p class="lp-sub">Each assignment's student link and its results sheet, newest first. Only you can see this page.</p>
+  <p class="lp-sub">Each assignment's student link and its results sheet. Only you can see this page.</p>
   <p class="cp-msg" id="lpStatus" role="status">Opening your list...</p>
 
   <div class="lp-box" id="lpLocked" hidden>
@@ -128,11 +160,18 @@
     <div class="lp-tools">
       <input id="lpQ" type="search" placeholder="Search assignments" aria-label="Search assignments">
       <button class="lp-btn big" type="button" id="lpAdd">+ Add assignment</button>
+      <button class="lp-btn big alt" type="button" id="lpOrder">Change order</button>
     </div>
     <div class="lp-chips" id="lpChips" role="group" aria-label="Filter by type"></div>
     <p class="lp-codesum" id="lpCodeSum" role="status"></p>
     <div id="lpList"></div>
-    <div class="lp-foot">
+    <div class="lp-arrange" id="lpArrange" hidden>
+      <span class="lp-say">Drag topics and cards where you want them, or use the arrows. A card stays in its topic (to move it to another topic, change its Group with Edit).</span>
+      <button class="lp-btn big" type="button" id="lpOrderSave">Save order</button>
+      <button class="lp-btn big alt" type="button" id="lpOrderCancel">Cancel</button>
+      <p class="cp-msg" id="lpOrderMsg" role="status"></p>
+    </div>
+    <div class="lp-foot" id="lpFoot">
       <span>To add a new assignment: open its sheet, choose Self-Check &gt; Show student link, then click Add assignment and paste.</span>
       <button class="lp-btn quiet" type="button" id="lpImport">Bring in a list from a file</button>
       <input type="file" id="lpFile" accept=".html,.htm" hidden>
@@ -157,11 +196,19 @@
    runs (classPass, the same question the Class Pass page asks, straight to the sheet's /exec address).
    /pass/versions.json has the newest release of each kind (class-pass\make-pass.ps1 makes it from the release
    files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind, or than
-   another sheet here of the same kind, says "Code needs updating" and shows under the Needs update chip. */
+   another sheet here of the same kind, says "Code needs updating" and shows under the Needs update chip.
+
+   Order (Donny, 2026-10-29): the list is kept in the order it shows, each topic's (Group's) cards together, the topics
+   in the order they first come. Change order puts arrows on every topic and card and lets them be dragged (a card
+   only within its topic); Save order sends the whole list once. A new card goes first in its topic, a new topic first
+   on the page. A list last saved before this (ORDER_SINCE) opens newest first, as it used to show, until it is saved.
+   The same code question also brings each sheet's Automatic grades and Full credit at settings (Self-Check
+   2026.10.29f and later answer classPass("launchpad") with them); a card shows them when its sheet sends them. */
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
   var KINDS = ["Self-Check", "Reading", "Lab", "Video Check", "Review Game", "Escape Room"];
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var ORDER_SINCE = Date.UTC(2026, 9, 30, 3, 50);   // saved from here on (when this went live) = saved in the page's order
   var items = [], base = 0, loaded = false, loading = false, pick = "All";
   var $ = function(id){ return document.getElementById(id); };
 
@@ -186,10 +233,29 @@ document.addEventListener("DOMContentLoaded", function(){
     return Array.prototype.map.call(a, function(x){ return abc[x % abc.length]; }).join("");
   }
 
+  /* ---------- the order ---------- */
+  // the topics in the order they first come, with their cards: {order: [unit, ...], by: {unit: [card, ...]}}
+  function topics(list){
+    var by = {}, order = [];
+    list.forEach(function(a){ var u = a.unit || ""; if(!by[u]){ by[u] = []; order.push(u); } by[u].push(a); });
+    return {order: order, by: by};
+  }
+  function flat(t){ return [].concat.apply([], t.order.map(function(u){ return t.by[u]; })); }
+  function newestFirst(list){ return list.slice().sort(function(x, y){ return (y.date || "").localeCompare(x.date || "") || x.title.localeCompare(y.title); }); }
+  // a new card goes first in its topic, a new topic first on the page
+  function place(list, it){
+    var u = it.unit || "", at = 0;
+    for(var i = 0; i < list.length; i++) if((list[i].unit || "") === u){ at = i; break; }
+    var out = list.slice();
+    out.splice(at, 0, it);
+    return out;
+  }
+
   /* ---------- who is looking ---------- */
   function status(text, bad){ var s = $("lpStatus"); s.className = "cp-msg" + (bad ? " bad" : ""); s.textContent = text || ""; }
   function locked(){
     items = []; base = 0; loaded = false;
+    stopArranging();
     $("lpMain").hidden = true;
     $("lpLocked").hidden = false;
     $("lpList").textContent = "";
@@ -201,8 +267,9 @@ document.addEventListener("DOMContentLoaded", function(){
     $("lpLocked").hidden = true;
     status("Opening your list...");
     window.PS8Pass.ask({type: "launchpad"}).then(function(d){
-      items = Array.isArray(d.items) ? d.items : [];
+      var got = Array.isArray(d.items) ? d.items : [];
       base = d.saved || 0;
+      items = flat(topics(base < ORDER_SINCE ? newestFirst(got) : got));
       loaded = true;
       status("");
       $("lpMain").hidden = false;
@@ -236,18 +303,23 @@ document.addEventListener("DOMContentLoaded", function(){
     .then(function(v){ newest = v && typeof v === "object" ? v : {}; }, function(){ newest = {}; })
     .then(drawSoon);
   function appId(link){ var m = /[?&]app=(AKfycb[\w-]{20,})/.exec(link || ""); return m ? m[1] : ""; }
-  // one sheet: {state: "done", kind, version}, "old" (code from before Class Pass) or "fail" (no answer)
+  // one sheet: {state: "done", kind, version, sets}, "old" (code from before Class Pass) or "fail" (no answer).
+  // sets = its grading settings, or null from code that doesn't send them (older than 2026.10.29f, or Video Check)
   function askSheet(id){
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 45000);
     return fetch("https://script.google.com/macros/s/" + id + "/exec", {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
-        body: JSON.stringify({fn: "classPass", args: [], token: ""}), signal: ctl ? ctl.signal : undefined})
+        body: JSON.stringify({fn: "classPass", args: ["launchpad"], token: ""}), signal: ctl ? ctl.signal : undefined})
       .then(function(r){ return r.text(); })
       .then(function(text){
         var out = null;
         try { out = JSON.parse(text); } catch(e){ /* not an answer from the code */ }
         if(!out) return {state: /doPost/.test(text) ? "old" : "fail"};
-        if(out.ok && out.result && out.result.version) return {state: "done", kind: String(out.result.kind || ""), version: String(out.result.version)};
+        var r = out.ok && out.result;
+        if(r && r.version){
+          var sets = r.settings && typeof r.settings === "object" ? r.settings : null;
+          return {state: "done", kind: String(r.kind || ""), version: String(r.version), sets: sets};
+        }
         return {state: /Unknown request/.test(String(out.error || "")) ? "old" : "fail"};
       }, function(){ return {state: "fail"}; })
       .then(function(r){ clearTimeout(timer); return r; });
@@ -271,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function(){
       })(queue.shift());
     }
   }
-  function drawSoon(){ clearTimeout(drawTimer); drawTimer = setTimeout(function(){ if(loaded) draw(); }, 150); }
+  function drawSoon(){ clearTimeout(drawTimer); drawTimer = setTimeout(function(){ if(loaded && !work) draw(); }, 150); }   // Change order shows no code notes
   // the newest version of a kind: the newest release, or a newer one another sheet here already has
   function best(kind){
     var top = (newest && newest[kind]) || "";
@@ -343,13 +415,37 @@ document.addEventListener("DOMContentLoaded", function(){
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, function(){ window.prompt("Copy the student link:", link); });
     else window.prompt("Copy the student link:", link);
   }
-  function card(a){
-    var c = el("div", "lp-card");
-    c.appendChild(el("h2", null, a.title));
+  // the sheet's Automatic grades and Full credit at, as it reported them (null: nothing to show)
+  function setsLine(a){
+    var id = appId(a.link), c = id && codes[id];
+    if(!c || c.state !== "done") return null;
+    var s = c.sets;
+    if(!s) return c.kind === "video-check" ? null : el("div", "lp-sets-later", "Auto grade and full credit show here after this sheet's code update.");
+    var box = el("div", "lp-sets");
+    if(typeof s.autoGrades === "boolean"){
+      var p;
+      if(s.autoGrades && s.hourly === false){
+        p = el("span", "lp-set warn", "Auto grade: ON, but not running");
+        p.title = "Its hourly check is stopped, so nothing uploads. In the sheet: Self-Check > Set up / repair sheets.";
+      } else p = el("span", "lp-set" + (s.autoGrades ? " on" : ""), "Auto grade: " + (s.autoGrades ? "ON" : "OFF"));
+      box.appendChild(p);
+    }
+    var f = Number(s.fullCreditAt);
+    if(s.fullCreditAt != null && isFinite(f) && f > 0) box.appendChild(el("span", "lp-set", "Full credit at " + Math.round(f * 1000) / 10 + "%"));
+    return box.childNodes.length ? box : null;
+  }
+  function meta(a){
     var m = el("div", "lp-meta");
     if(a.kind) m.appendChild(el("span", "lp-tag", a.kind));
     m.appendChild(document.createTextNode(showDate(a.date)));
-    c.appendChild(m);
+    return m;
+  }
+  function card(a){
+    var c = el("div", "lp-card");
+    c.appendChild(el("h2", null, a.title));
+    c.appendChild(meta(a));
+    var sets = setsLine(a);
+    if(sets) c.appendChild(sets);
     var note = codeNote(a);
     if(note) c.appendChild(el("div", "lp-code" + (note.cls ? " " + note.cls : ""), note.text));
     var link = okLink(a.link);
@@ -369,10 +465,17 @@ document.addEventListener("DOMContentLoaded", function(){
     c.appendChild(bt);
     return c;
   }
+  function strip(name, count){
+    var s = el("div", "lp-strip");
+    s.appendChild(el("span", "lp-name", name + " (" + count + ")"));
+    return s;
+  }
   function draw(){
+    if(work) return drawArranging();
     chips(codeSummary().need);
     var q = $("lpQ").value.trim().toLowerCase(), list = $("lpList");
     list.textContent = "";
+    $("lpOrder").style.display = items.length < 2 ? "none" : "";
     if(!items.length){
       list.appendChild(el("p", "lp-empty", "No assignments yet. Click Add assignment, or bring in your old Launchpad file below."));
       return;
@@ -380,17 +483,198 @@ document.addEventListener("DOMContentLoaded", function(){
     var rows = items.filter(function(a){
       var inPick = pick === "All" || (pick === NEED ? Boolean((codeNote(a) || {}).need) : a.kind === pick);
       return inPick && (!q || [a.title, a.kind, a.unit].join(" ").toLowerCase().indexOf(q) !== -1);
-    }).sort(function(x, y){ return (y.date || "").localeCompare(x.date || "") || x.title.localeCompare(y.title); });
+    });
     if(!rows.length){ list.appendChild(el("p", "lp-empty", "No assignments match.")); return; }
-    var groups = {}, order = [];
-    rows.forEach(function(a){ var u = a.unit || (pick === "All" ? "All assignments" : pick); if(!groups[u]){ groups[u] = []; order.push(u); } groups[u].push(a); });
-    order.forEach(function(u){
-      list.appendChild(el("div", "lp-strip", u + " (" + groups[u].length + ")"));
+    var t = topics(rows);
+    t.order.forEach(function(u){
+      var sec = el("div", "lp-sec");
+      sec.appendChild(strip(u || (pick === "All" ? "All assignments" : pick), t.by[u].length));
       var g = el("div", "lp-grid");
-      groups[u].forEach(function(a){ g.appendChild(card(a)); });
-      list.appendChild(g);
+      t.by[u].forEach(function(a){ g.appendChild(card(a)); });
+      sec.appendChild(g);
+      list.appendChild(sec);
     });
   }
+
+  /* ---------- Change order ---------- */
+  var work = null, moved = false, drag = null, spot = null, refocus = "";   // work = the list being put in order
+  function arrow(text, label, off, key, go){
+    var b = el("button", "lp-arrow", text); b.type = "button";
+    b.setAttribute("aria-label", label); b.title = label;
+    b.disabled = off;
+    b.dataset.key = key;
+    b.addEventListener("click", function(){ refocus = key; go(); });
+    return b;
+  }
+  function drawArranging(){
+    var list = $("lpList"), t = topics(work);
+    list.textContent = "";
+    t.order.forEach(function(u, ti){
+      var name = u || "All assignments", cards = t.by[u];
+      var sec = el("div", "lp-sec"); sec.dataset.unit = u;
+      var s = strip(name, cards.length);
+      s.draggable = true;
+      s.insertBefore(el("span", "lp-grip", "⠿"), s.firstChild).setAttribute("aria-hidden", "true");
+      var mv = el("span", "lp-move");
+      mv.appendChild(arrow("▲ Up", "Move " + name + " up", ti === 0, "up:" + u, function(){ moveTopic(u, -1); }));
+      mv.appendChild(arrow("▼ Down", "Move " + name + " down", ti === t.order.length - 1, "down:" + u, function(){ moveTopic(u, 1); }));
+      s.appendChild(mv);
+      sec.appendChild(s);
+      var g = el("div", "lp-grid");
+      cards.forEach(function(a, ci){
+        var c = el("div", "lp-card lp-mini"); c.dataset.id = a.id;
+        c.draggable = true;
+        c.appendChild(el("h2", null, a.title));
+        c.appendChild(meta(a));
+        var cm = el("div", "lp-move");
+        cm.appendChild(arrow("◀", "Move " + a.title + " earlier", ci === 0, "before:" + a.id, function(){ moveCard(a.id, -1); }));
+        cm.appendChild(arrow("▶", "Move " + a.title + " later", ci === cards.length - 1, "after:" + a.id, function(){ moveCard(a.id, 1); }));
+        c.appendChild(cm);
+        g.appendChild(c);
+      });
+      sec.appendChild(g);
+      list.appendChild(sec);
+    });
+    // the arrow just clicked keeps the focus (or its partner, once its card or topic reaches the end)
+    if(refocus){
+      var b = list.querySelector('[data-key="' + CSS.escape(refocus) + '"]');
+      if(b && b.disabled) b = b.parentNode.querySelector(".lp-arrow:not(:disabled)");
+      if(b) b.focus();
+      refocus = "";
+    }
+  }
+  function moved1(next){ work = next; moved = true; $("lpOrderMsg").textContent = ""; draw(); }
+  function moveTopic(u, by){
+    var t = topics(work), i = t.order.indexOf(u), j = i + by;
+    if(i === -1 || j < 0 || j >= t.order.length) return;
+    t.order.splice(i, 1); t.order.splice(j, 0, u);
+    moved1(flat(t));
+  }
+  function moveCard(id, by){
+    var i = -1;
+    work.forEach(function(a, k){ if(a.id === id) i = k; });
+    var j = i + by;
+    if(i === -1 || j < 0 || j >= work.length || (work[j].unit || "") !== (work[i].unit || "")) return;
+    var next = work.slice(), a = next[i];
+    next[i] = next[j]; next[j] = a;
+    moved1(next);
+  }
+  function startArranging(){
+    if(!loaded || items.length < 2) return;
+    var old = document.querySelector(".cp-dlg-back");
+    if(old) old.remove();
+    work = items.slice(); moved = false;
+    document.body.classList.add("lp-arranging");
+    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpFoot"].forEach(function(id){ $(id).style.display = "none"; });
+    $("lpArrange").hidden = false;
+    $("lpOrderMsg").textContent = "";
+    draw();
+  }
+  function stopArranging(){
+    if(!work) return;
+    work = null; moved = false; drag = null;
+    document.body.classList.remove("lp-arranging");
+    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpFoot"].forEach(function(id){ $(id).style.display = ""; });
+    $("lpArrange").hidden = true;
+    if(loaded) draw();
+  }
+  $("lpOrder").addEventListener("click", startArranging);
+  $("lpOrderCancel").addEventListener("click", function(){
+    if(moved && !window.confirm("Leave without saving the new order?")) return;
+    stopArranging();
+  });
+  $("lpOrderSave").addEventListener("click", function(){
+    if(!moved){ stopArranging(); return; }
+    var go = $("lpOrderSave"), no = $("lpOrderCancel"), msg = $("lpOrderMsg");
+    go.disabled = no.disabled = true;
+    msg.className = "cp-msg"; msg.textContent = "Saving...";
+    save(work.slice()).then(function(){
+      stopArranging();
+      status("The new order is saved.");
+      setTimeout(function(){ if($("lpStatus").textContent === "The new order is saved.") status(""); }, 4000);
+    }, function(err){
+      msg.className = "cp-msg bad"; msg.textContent = err.message;
+    }).then(function(){ go.disabled = no.disabled = false; });
+  });
+  window.addEventListener("beforeunload", function(e){ if(work && moved){ e.preventDefault(); e.returnValue = ""; } });
+
+  // dragging: a card onto another card of its topic, a topic onto another topic (the cards fold away while a topic moves)
+  function marks(){ Array.prototype.forEach.call($("lpList").querySelectorAll(".lp-drop-before, .lp-drop-after"), function(n){ n.classList.remove("lp-drop-before", "lp-drop-after"); }); }
+  function whereTo(e){
+    var t = e.target && e.target.closest ? e.target : null;
+    if(!t || !drag) return null;
+    if(drag.id){
+      var c = t.closest(".lp-card"), sec = t.closest(".lp-sec");
+      if(!sec || sec.dataset.unit !== drag.unit) return null;
+      if(!c) return spot;   // between cards of its own topic: keep the last spot
+      if(c.dataset.id === drag.id) return null;
+      var r = c.getBoundingClientRect(), one = c.parentNode.classList.contains("lp-one");
+      return {node: c, before: one ? e.clientY < r.top + r.height / 2 : e.clientX < r.left + r.width / 2};
+    }
+    var s = t.closest(".lp-sec");
+    if(!s) return null;
+    if(s.dataset.unit === drag.unit) return null;
+    var b = s.getBoundingClientRect();
+    return {node: s, before: e.clientY < b.top + b.height / 2};
+  }
+  $("lpList").addEventListener("dragstart", function(e){
+    if(!work) return;
+    var c = e.target.closest && e.target.closest(".lp-card"), s = e.target.closest && e.target.closest(".lp-strip");
+    if(c) drag = {id: c.dataset.id, unit: c.closest(".lp-sec").dataset.unit, node: c};
+    else if(s) drag = {unit: s.parentNode.dataset.unit, node: s.parentNode};
+    else return;
+    spot = null;
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", drag.id || drag.unit || "topic"); } catch(err){ /* some browsers need data to drag */ }
+    drag.node.classList.add("lp-dragging");
+    // one column or several: which way "before" is
+    Array.prototype.forEach.call($("lpList").querySelectorAll(".lp-grid"), function(g){ g.classList.toggle("lp-one", getComputedStyle(g).gridTemplateColumns.split(" ").length < 2); });
+    if(!drag.id) setTimeout(function(){ if(drag) $("lpList").classList.add("lp-folded"); }, 0);
+  });
+  $("lpList").addEventListener("dragover", function(e){
+    if(!drag) return;
+    var to = whereTo(e);
+    if(!to) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if(spot && spot.node === to.node && spot.before === to.before) return;
+    marks();
+    spot = to;
+    to.node.classList.add(to.before ? "lp-drop-before" : "lp-drop-after");
+  });
+  $("lpList").addEventListener("dragleave", function(e){
+    if(drag && !$("lpList").contains(e.relatedTarget)){ marks(); spot = null; }
+  });
+  $("lpList").addEventListener("drop", function(e){
+    if(!drag) return;
+    e.preventDefault();
+    var to = whereTo(e) || spot, d = drag;
+    endDrag();
+    if(!to) return;
+    if(d.id){
+      var it = null, rest = work.filter(function(a){ if(a.id === d.id){ it = a; return false; } return true; });
+      var at = -1;
+      rest.forEach(function(a, k){ if(a.id === to.node.dataset.id) at = k; });
+      if(!it || at === -1) return;
+      rest.splice(to.before ? at : at + 1, 0, it);
+      refocus = "";
+      moved1(rest);
+    } else {
+      var t = topics(work), u = to.node.dataset.unit;
+      t.order.splice(t.order.indexOf(d.unit), 1);
+      var i = t.order.indexOf(u);
+      t.order.splice(to.before ? i : i + 1, 0, d.unit);
+      moved1(flat(t));
+    }
+  });
+  function endDrag(){
+    if(!drag) return;
+    drag.node.classList.remove("lp-dragging");
+    drag = null; spot = null;
+    marks();
+    $("lpList").classList.remove("lp-folded");
+  }
+  $("lpList").addEventListener("dragend", endDrag);
 
   /* ---------- the Add and Edit window ---------- */
   function datalist(id, values){
@@ -501,7 +785,9 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!title) return bad("Give it a title.", fTitle);
       if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
       var it = { id: a.id || newId(), title: title, kind: (fKind.value === "__other__" ? fKindNew.value : fKind.value).trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
-      var next = editing ? items.map(function(o){ return o.id === a.id ? it : o; }) : items.concat([it]);
+      // same topic: it keeps its place; a new card or a new topic for it: first in that topic
+      var next = editing && (a.unit || "") === it.unit ? items.map(function(o){ return o.id === a.id ? it : o; })
+        : place(items.filter(function(o){ return o.id !== a.id; }), it);
       send(next, "Saving...");
     });
     if(del) del.addEventListener("click", function(){
@@ -548,7 +834,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!add.length) return status("Everything in " + file.name + " is already here.");
       if(!window.confirm("Add " + add.length + " assignment" + (add.length === 1 ? "" : "s") + " from " + file.name + "?")) return;
       status("Saving...");
-      save(items.concat(add)).then(function(){ status("Added " + add.length + " from " + file.name + "."); }, function(err){ status(err.message, true); });
+      save(add.reduceRight(place, items)).then(function(){ status("Added " + add.length + " from " + file.name + "."); }, function(err){ status(err.message, true); });
     }, function(){ status("That file could not be read.", true); });
   });
 });
