@@ -189,6 +189,8 @@
 
    Adding: + Add assignment, then paste the student link (in the sheet: Self-Check > Show student link) and the
    sheet's address; the sheet's ID is taken out of the address. Edit on a card changes or removes it.
+   Duplicates (Donny, 2026-10-30): an assignment whose student link (its app) or results sheet is already on another
+   card can't be added or saved; a list that already has one shows "Duplicate entry" on each of the matching cards.
    "Bring in a list from a file" reads the ASSIGNMENTS list out of an older Launchpad file (the one-page
    index.html, Donny's first version) and adds the ones not here yet.
 
@@ -250,6 +252,20 @@ document.addEventListener("DOMContentLoaded", function(){
     out.splice(at, 0, it);
     return out;
   }
+  // the same assignment twice: the same student link (its app) or the same results sheet
+  function sameKeys(a){
+    var k = [], id = appId(a.link);
+    if(id) k.push("a" + id); else if(a.link) k.push("l" + String(a.link).trim());
+    if(a.sheet) k.push("s" + a.sheet);
+    return k;
+  }
+  // the other cards in list that are the same assignment as a
+  function twins(a, list){
+    var mine = sameKeys(a);
+    if(!mine.length) return [];
+    return list.filter(function(o){ return o !== a && o.id !== a.id && sameKeys(o).some(function(k){ return mine.indexOf(k) !== -1; }); });
+  }
+  function named(o){ return '"' + o.title + '"' + (o.unit ? " in " + o.unit : ""); }
 
   /* ---------- who is looking ---------- */
   function status(text, bad){ var s = $("lpStatus"); s.className = "cp-msg" + (bad ? " bad" : ""); s.textContent = text || ""; }
@@ -446,6 +462,9 @@ document.addEventListener("DOMContentLoaded", function(){
     c.appendChild(meta(a));
     var sets = setsLine(a);
     if(sets) c.appendChild(sets);
+    var dup = twins(a, items);
+    if(dup.length) c.appendChild(el("div", "lp-nolink lp-dup", "Duplicate entry: same " + (dup.some(function(o){ return o.sheet && o.sheet === a.sheet; }) ? "results sheet" : "student link") +
+      " as " + dup.map(named).join(", ") + ". Use Edit > Remove on one of them."));
     var note = codeNote(a);
     if(note) c.appendChild(el("div", "lp-code" + (note.cls ? " " + note.cls : ""), note.text));
     var link = okLink(a.link);
@@ -785,6 +804,14 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!title) return bad("Give it a title.", fTitle);
       if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
       var it = { id: a.id || newId(), title: title, kind: (fKind.value === "__other__" ? fKindNew.value : fKind.value).trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
+      // the same assignment can't go on twice
+      // (a card that was already a duplicate can still be edited; only a new match stops it)
+      var was = editing ? twins(a, items) : [];
+      var dup = twins(it, items).filter(function(o){ return was.indexOf(o) === -1; });
+      if(dup.length){
+        var bySheet = dup.some(function(o){ return o.sheet && o.sheet === sheet; });
+        return bad("This is already on the Launchpad as " + named(dup[0]) + " (same " + (bySheet ? "results sheet" : "student link") + "). Edit that card instead.", bySheet ? fSheet : fLink);
+      }
       // same topic: it keeps its place; a new card or a new topic for it: first in that topic
       var next = editing && (a.unit || "") === it.unit ? items.map(function(o){ return o.id === a.id ? it : o; })
         : place(items.filter(function(o){ return o.id !== a.id; }), it);
@@ -828,9 +855,8 @@ document.addEventListener("DOMContentLoaded", function(){
     file.text().then(function(text){
       var found = readList(text);
       if(!found.length) return status("No assignments were found in " + file.name + ".", true);
-      var have = {};
-      items.forEach(function(a){ if(a.sheet) have["s" + a.sheet] = 1; if(a.link) have["l" + a.link] = 1; });
-      var add = found.filter(function(a){ return !(a.sheet && have["s" + a.sheet]) && !(a.link && have["l" + a.link]); });
+      var add = [];
+      found.forEach(function(a){ if(!twins(a, items.concat(add)).length) add.push(a); });
       if(!add.length) return status("Everything in " + file.name + " is already here.");
       if(!window.confirm("Add " + add.length + " assignment" + (add.length === 1 ? "" : "s") + " from " + file.name + "?")) return;
       status("Saving...");
