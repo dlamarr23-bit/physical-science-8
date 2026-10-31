@@ -204,6 +204,8 @@
    Optional releases (Donny, 2026-10-30): versions.json's "_optional" gives, for a kind whose newest release can be
    skipped, the newest one a sheet needs ("needed") and what each newer one adds ("notes"). A sheet at or past "needed"
    gets a gray "Optional update" note instead of red, and isn't counted under Needs update.
+   Paste safety (Self-Check / Video Check 2026.10.30c): a sheet remembers its kind, and classPass says sheetKind when the code pasted
+   into it is for another kind: that card says "Wrong code pasted" in red.
 
    Order (Donny, 2026-10-29): the list is kept in the order it shows, each topic's (Group's) cards together, the topics
    in the order they first come. Change order puts arrows on every topic and card and lets them be dragged (a card
@@ -339,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function(){
         var r = out.ok && out.result;
         if(r && r.version){
           var sets = r.settings && typeof r.settings === "object" ? r.settings : null;
-          return {state: "done", kind: String(r.kind || ""), version: String(r.version), sets: sets};
+          return {state: "done", kind: String(r.kind || ""), version: String(r.version), sets: sets, sheetKind: String(r.sheetKind || "")};
         }
         return {state: /Unknown request/.test(String(out.error || "")) ? "old" : "fail"};
       }, function(){ return {state: "fail"}; })
@@ -365,6 +367,11 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   }
   function drawSoon(){ clearTimeout(drawTimer); drawTimer = setTimeout(function(){ if(loaded && !work) draw(); }, 150); }   // Change order shows no code notes
+  // a kind's name for people, the same as KIND_NAMES_ in the sheets' code ("a Review Game")
+  var KIND_NAMES = { "auto-grading-activity": "Self-Check (one column)", "reading-activity": "Reading page (two columns)", "friction-article": "Friction Article",
+    "friction-speed-lab": "Friction and Speed Lab", "friction-sim-lab": "Friction Simulation Lab", "review-game": "Review Game",
+    "net-force-escape-room": "Escape Room", "video-check": "Video Check" };
+  function aKind(k){ var n = KIND_NAMES[k] || k; return (/^[AEIOU]/i.test(n) ? "an " : "a ") + n; }
   // what a card says about its sheet's code: null (no student link), or {cls, text, need, opt}
   function codeNote(a){
     var id = appId(a.link), c = id && codes[id];
@@ -374,6 +381,9 @@ document.addEventListener("DOMContentLoaded", function(){
     if(c.state === "checking") return {cls: "", text: "Checking its code..."};
     if(c.state === "fail") return {cls: "", text: "Couldn't check its code: the sheet didn't answer (its deployment may not be open to Anyone)."};
     if(c.state === "old") return {cls: "need", need: true, text: "Code needs updating: it is from before Class Pass." + how};
+    // Paste safety (Self-Check 2026.10.30c): code for another kind pasted into this sheet; the sheet's menu and student page have stopped
+    if(c.sheetKind && c.sheetKind !== c.kind) return {cls: "need", need: true, text: "Wrong code pasted: this sheet is " + aKind(c.sheetKind) + ", but its code is for " + aKind(c.kind) +
+      ". Students can't use it until it's fixed. In the sheet: Extensions > Apps Script, undo the paste (Ctrl+Z), Save, then make a New version."};
     var web = newest && typeof newest[c.kind] === "string" ? newest[c.kind] : "", opt = newest && newest._optional && newest._optional[c.kind];
     if(web && c.version < web){
       if(opt && c.version >= String(opt.needed || "")){   // only optional releases since this sheet's code

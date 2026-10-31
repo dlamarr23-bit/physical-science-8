@@ -1,5 +1,14 @@
-video-check v2026.10.30b
+video-check v2026.10.30c
 
+Optional update: paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it.
+
+• Paste safety: this sheet remembers what kind of assignment it is (from the first time you run Video Check > Set up / repair sheets with this code).
+  If code for a different kind is ever pasted in, the Video Check menu shows only a warning (for example "This sheet is a Review Game, but this code is for a Self-Check (one column). Undo the paste."),
+  and Set up, grade uploads and the student page stop until you undo the paste. To change a sheet's kind on purpose, use the menu's "Make this sheet ..." item.
+• Check for skill updates shows which kind of sheet the code is for, in large text, so you can see you're copying the right code.
+• Your Assignment Launchpad card says "Wrong code pasted" if that ever happens.
+
+Also from 2026.10.30b, if this sheet skipped it:
 • Check for skill updates now also finds new versions on the class website, so an update reaches this sheet as soon as it is published, with no files needed in the Drive folder. Your Drive folder Claude Skill Updates still works too, and the update window says where each version came from.
 • The copy on the website has no questions or answer keys (the website is public). Your questions live in your Questions tab, so nothing changes for you. If a sheet's Questions tab were ever empty, the window would tell you to run Video Check > Set up / repair sheets first.
 - Your questions, answer keys, settings and student work are not touched.
@@ -8,5 +17,5 @@ Also from 2026.10.30, if this sheet skipped it:
 • The directions under the title (Settings tab "Instructions") show in a bold blue box. A line break you type in the cell (Ctrl+Enter) starts a new line.
 • When a whole class opens the video at once on Chromebooks, the page makes fewer trips to the sheet, so it opens faster.
 
-After you paste the new Code.gs and Index and create the New version (Deploy > Manage deployments > pencil > New version > Deploy). No Set up needed.
-Nothing already in the sheet changes, and no new permission is needed.
+After you paste the new Code.gs and Index and create the New version (Deploy > Manage deployments > pencil > New version > Deploy), run Video Check > Set up / repair sheets once.
+That is when the sheet remembers its kind; it also adds any Settings rows the sheet doesn't have yet. Nothing already in the sheet changes, and no new permission is needed.

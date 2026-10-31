@@ -1,10 +1,20 @@
 {
-  "auto-grading-activity": "2026.10.30b",
-  "friction-article": "2026.10.30b",
-  "friction-sim-lab": "2026.10.30b",
-  "friction-speed-lab": "2026.10.30b",
-  "net-force-escape-room": "2026.10.30b",
-  "reading-activity": "2026.10.30b",
-  "review-game": "2026.10.30b",
-  "video-check": "2026.10.30b"
+  "auto-grading-activity": "2026.10.30c",
+  "friction-article": "2026.10.30c",
+  "friction-sim-lab": "2026.10.30c",
+  "friction-speed-lab": "2026.10.30c",
+  "net-force-escape-room": "2026.10.30c",
+  "reading-activity": "2026.10.30c",
+  "review-game": "2026.10.30c",
+  "video-check": "2026.10.30c",
+  "_optional": {
+    "auto-grading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "friction-article": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "friction-sim-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "friction-speed-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "net-force-escape-room": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "reading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "review-game": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
+    "video-check": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]}
+  }
 }

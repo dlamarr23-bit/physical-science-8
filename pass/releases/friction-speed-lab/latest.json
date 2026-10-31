@@ -1,7 +1,7 @@
 {
   "kind": "friction-speed-lab",
-  "version": "2026.10.30b",
-  "optional": "",
+  "version": "2026.10.30c",
+  "optional": "paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

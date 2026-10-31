@@ -238,7 +238,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "net-force-escape-room";   // a one-off Self-Check with its own page (self-check\custom\net-force-escape-room\)
-var SKILL_VERSION = "2026.10.30b";
+var SKILL_VERSION = "2026.10.30c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1860,6 +1860,8 @@ var VIA_POST_ = false;           // true while doPost runs: those requests count
 
 /** { email, via }: via is "google" (school account signed in first) or "code" (emailed code or Sign in with Google). */
 function whoIs_(token) {
+  // PASTE SAFETY: code for another kind of sheet never reads or saves a student's work
+  if (wrongKind_()) throw new Error("This assignment is being updated right now. Please tell your teacher, and try again later.");
   // A request to doPost is identified only by its token, never by the browser's Google sign-in, so another
   // website can't make a signed-in student's browser save answers for them.
   var email = VIA_POST_ ? "" : String(Session.getActiveUser().getEmail() || "").toLowerCase();
@@ -1887,6 +1889,7 @@ function classPass(ask) {
   loadConfig_();
   var out = { classPass: 1, kind: SKILL_NAME, version: SKILL_VERSION, title: ASSIGNMENT_TITLE, domain: studentDomain_(readRoster_()),
               googleClient: googleClient_(), code: !!ALLOW_SIGNIN_CODE, minutes: SIGNIN_CODE_MINUTES };
+  if (wrongKind_()) out.sheetKind = sheetKind_();   // PASTE SAFETY: the Launchpad shows "wrong code" (the student page stops in whoIs_)
   if (ask === "launchpad") {
     var hourly = false;
     try { hourly = autoTriggers_().length > 0; } catch (e) {}
@@ -3349,6 +3352,7 @@ function missingText_(m) {
 }
 
 function onOpen() {
+  if (wrongKind_()) return wrongKindMenu_("Self-Check");
   if (isGame_()) return gameMenu_();
   SpreadsheetApp.getUi().createMenu("Self-Check")
     .addItem("Set up / repair sheets", "setupSheets")
@@ -3422,14 +3426,69 @@ function forgetCopiedLink_() {
   if (was && was !== SpreadsheetApp.getActiveSpreadsheet().getId()) { props_().deleteProperty("WEBAPP_URL"); props_().deleteProperty("UPLOAD_FOLDER"); }
 }
 
-/** First line of every menu step: throws when called from the web app, before any work. */
-function menuOnly_() { SpreadsheetApp.getUi(); }
+/** First line of every menu step: throws when called from the web app, before any work, and stops when this code is for another kind of
+    sheet (see PASTE SAFETY). */
+function menuOnly_() {
+  var ui = SpreadsheetApp.getUi();
+  if (wrongKind_()) { ui.alert("Wrong code for this sheet", wrongKindText_(), ui.ButtonSet.OK); throw new Error("Stopped: this code is for " + aKind_(SKILL_NAME) + "."); }
+}
+
+// ============================== PASTE SAFETY (2026.10.30c) ==============================
+// The first Set up / repair sheets remembers what kind of sheet this is (script property SHEET_KIND = SKILL_NAME; Video Check uses the same
+// property and names). If code for another kind is pasted in later (a Lab's code into a Review Game sheet, say), the menu shows only a warning,
+// and Set up, every other menu step, the hourly grade upload and the student page refuse to run until the right code is pasted back, or the
+// teacher switches the sheet's kind on purpose (Make this sheet ..., e.g. a one-column sheet becoming a two-column reading page).
+// A sheet that never ran Set up on this code has no SHEET_KIND yet, so nothing is checked (older sheets work as before).
+var KIND_NAMES_ = { "auto-grading-activity": "Self-Check (one column)", "reading-activity": "Reading page (two columns)", "friction-article": "Friction Article",
+  "friction-speed-lab": "Friction and Speed Lab", "friction-sim-lab": "Friction Simulation Lab", "review-game": "Review Game",
+  "net-force-escape-room": "Escape Room", "video-check": "Video Check" };
+function kindName_(k) { return KIND_NAMES_[k] || String(k || "an unknown kind"); }
+function aKind_(k) { var n = kindName_(k); return (/^[AEIOU]/i.test(n) ? "an " : "a ") + n; }
+var SHEET_KIND_;   // this run's copy of SHEET_KIND
+function sheetKind_() {
+  if (SHEET_KIND_ === undefined) { try { SHEET_KIND_ = String(props_().getProperty("SHEET_KIND") || ""); } catch (e) { SHEET_KIND_ = ""; } }
+  return SHEET_KIND_;
+}
+function wrongKind_() { var k = sheetKind_(); return !!k && k !== SKILL_NAME; }
+function wrongKindText_() {
+  return "This sheet is " + aKind_(sheetKind_()) + ", but this code is for " + aKind_(SKILL_NAME) + ". Undo the paste.\n\n" +
+    "Extensions > Apps Script: in the file you pasted into, press Ctrl+Z until the old code is back, then Save. If you already made a New version, " +
+    "make another one (Deploy > Manage deployments > pencil > New version > Deploy). Until then the menu, the hourly grade upload and the student page stay stopped.\n\n" +
+    "Meant to change what kind of sheet this is? Use \"Make this sheet " + aKind_(SKILL_NAME) + "\" in this menu.";
+}
+/** The menu while the code doesn't match the sheet: only the warning and the deliberate switch. */
+function wrongKindMenu_(menuName) {
+  SpreadsheetApp.getUi().createMenu(menuName)
+    .addItem("⚠ Wrong code pasted: read this", "showWrongKind")
+    .addItem("Make this sheet " + aKind_(SKILL_NAME), "makeSheetThisKind")
+    .addToUi();
+  try { SpreadsheetApp.getActiveSpreadsheet().toast("This sheet is " + aKind_(sheetKind_()) + ", but this code is for " + aKind_(SKILL_NAME) + ". Undo the paste.", "Wrong code", 30); } catch (e) {}
+}
+/** Menu (wrong code): what happened and how to fix it. */
+function showWrongKind() {
+  var ui = SpreadsheetApp.getUi();
+  ui.alert("Wrong code for this sheet", wrongKind_() ? wrongKindText_() : "This code matches this sheet (" + kindName_(SKILL_NAME) + "). Reload the sheet.", ui.ButtonSet.OK);
+}
+/** Menu (wrong code): the teacher means it. This sheet becomes the code's kind; then Set up / repair sheets as usual. */
+function makeSheetThisKind() {
+  var ui = SpreadsheetApp.getUi();
+  if (!wrongKind_()) { ui.alert("This sheet is already " + aKind_(SKILL_NAME) + ". Reload the sheet."); return; }
+  var ok = ui.alert("Make this sheet " + aKind_(SKILL_NAME) + "?",
+    "Only if you meant to change what kind of assignment this is (for example, a one-column Self-Check becoming a two-column reading page).\n\n" +
+    "It is " + aKind_(sheetKind_()) + " now. Its questions, settings and student work stay. If you pasted the wrong code by accident, choose No and undo the paste instead.",
+    ui.ButtonSet.YES_NO);
+  if (ok !== ui.Button.YES) return;
+  props_().setProperty("SHEET_KIND", SKILL_NAME);
+  SHEET_KIND_ = SKILL_NAME;
+  ui.alert("This sheet is now " + aKind_(SKILL_NAME) + ". Reload the sheet, run Set up / repair sheets, and make a New version (Deploy > Manage deployments > pencil > New version > Deploy).");
+}
 
 function setupSheets() {
   menuOnly_();
   clearConfigCache_();
   forgetCopiedLink_();
   props_().setProperty("SSID", SpreadsheetApp.getActiveSpreadsheet().getId());
+  if (!sheetKind_()) { props_().setProperty("SHEET_KIND", SKILL_NAME); SHEET_KIND_ = SKILL_NAME; }   // PASTE SAFETY: remembered from now on
   var added = missingPieces_();
   CONFIG_LOADED_ = true;            // use the starter values while creating new tabs
   seedConfigTabs_();
@@ -3871,6 +3930,7 @@ function autoSummary_(list) {
 function autoUploadGrades(e) {
   // Only this sheet's own hourly timer may run it (the web app lets anyone call a function by name).
   if (!e || !e.triggerUid || !autoTriggers_().some(function (t) { return String(t.getUniqueId()) === String(e.triggerUid); })) return;
+  if (wrongKind_()) return;   // PASTE SAFETY: code for another kind of sheet never uploads grades
   try {
     var st0 = openSS_() && openSS_().getSheetByName(SH_SETTINGS);
     if (addMissingSettings_(st0)) clearConfigCache_();   // code updated without Set up / repair: add the new rows (the timer was on, so automatic grades stay on)
@@ -4092,7 +4152,8 @@ function checkForSkillUpdates() {
     "h2{font-size:17px;margin:0 0 8px}.v{background:#c9daf8;padding:8px 10px;border-radius:6px;margin-bottom:10px}" +
     "pre{white-space:pre-wrap;background:#f3f3f3;border:1px solid #bbb;padding:8px;max-height:150px;overflow:auto;font-family:inherit;font-size:13px}" +
     "ol{padding-left:20px;margin:6px 0}li{margin:4px 0}button{font-family:inherit;font-weight:700;border:2px solid #111;border-radius:6px;background:#111;color:#fff;padding:6px 12px;cursor:pointer;margin:2px 0}" +
-    "textarea{position:absolute;left:-9999px}.ok{color:#38761d;font-weight:600}</style>";
+    "textarea{position:absolute;left:-9999px}.ok{color:#38761d;font-weight:600}.kind{font-size:24px;font-weight:700;margin:0 0 4px}.kindw{font-size:12px;color:#555}</style>" +
+    "<div class='kindw'>This sheet and this code are for</div><div class='kind'>" + htmlEsc_(kindName_(SKILL_NAME)) + "</div>";   // PASTE SAFETY: which kind, in large text
   function text(label) { var f = rel.files[label]; try { return f ? f.text() : ""; } catch (e) { return ""; } }
   function copyBtn(id, label) {
     if (label === "Code.gs" && noQs) return "<b>First: Self-Check &gt; Set up / repair sheets.</b> This sheet's questions are only in its code (its Questions tab is empty), " +
@@ -4123,7 +4184,7 @@ function checkForSkillUpdates() {
       "<textarea id='gs'>" + htmlEsc_(text("Code.gs")) + "</textarea><textarea id='ix'>" + htmlEsc_(text("Index.html")) + "</textarea>" + copyJs;
     ui.showModalDialog(HtmlService.createHtmlOutput(style + "<h2 class='ok'>You're up to date.</h2><div class='v'>This sheet: version " +
       htmlEsc_(SKILL_VERSION) + " (" + htmlEsc_(SKILL_NAME) + ")<br>Newest release: version " + htmlEsc_(rel.version) + " (" + htmlEsc_(from) + ")</div>" + again)
-      .setWidth(same ? 520 : 420).setHeight(same ? 400 : 170), "Check for skill updates");
+      .setWidth(same ? 520 : 420).setHeight(same ? 450 : 230), "Check for skill updates");
     return;
   }
   var notes = text("What changed.txt"), gs = noQs ? "" : text("Code.gs"), idx = text("Index.html");
@@ -4138,7 +4199,7 @@ function checkForSkillUpdates() {
     "<li>Reload this sheet, then Self-Check &gt; <b>Set up / repair sheets</b>. Approve if Google asks.</li></ol>" +
     "Your questions, answer keys, settings and student work stay; they live in the tabs, not the code." +
     "<textarea id='gs'>" + htmlEsc_(gs) + "</textarea><textarea id='ix'>" + htmlEsc_(idx) + "</textarea>" + copyJs;
-  ui.showModalDialog(HtmlService.createHtmlOutput(body).setWidth(560).setHeight(560), "Check for skill updates");
+  ui.showModalDialog(HtmlService.createHtmlOutput(body).setWidth(560).setHeight(610), "Check for skill updates");
 }
 
 /** Try an answer against the key without being a student. */
