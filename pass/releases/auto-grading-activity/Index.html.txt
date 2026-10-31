@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_blank">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Poppins loads without holding up the page or its script (media="print" until it arrives; Arial until then) -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+  :root { --green:#d9ead3; --yellow:#fff2cc; --red:#f4cccc; --strip:#c9daf8; --q:#d9d9d9; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f3f3f3; font-family:Poppins, Arial, sans-serif; color:#111; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
+  h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
+  .who { font-size: 13px; color:#555; margin-bottom: 8px; }
+  /* the directions: bold, in a blue box like the section strips; a line break typed in the Settings cell starts a new line here */
+  .intro { font-weight:700; color:#111; font-size: 14px; line-height:1.5; margin: 8px 0 12px; padding: 10px 12px;
+           background: var(--strip); border-top: 2px solid #111; border-bottom: 2px solid #111; white-space: pre-line; }
+  .intro:empty { display:none; }
+  .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
+             color:#111; text-decoration:none; font-weight:600; font-size:13px; background:#fff; }
+  .progress { position: sticky; top: 0; z-index: 5; background:#fff; border:2px solid #111; border-radius:8px;
+              padding: 10px 12px; margin: 14px 0; display:flex; flex-wrap:wrap; gap: 10px 16px; align-items:center; font-size:14px; font-weight:600; }
+  .bar { flex: 1 1 220px; height: 14px; display:flex; border:1px solid #111; border-radius: 7px; overflow:hidden; background:#fff; }
+  .bar span { height:100%; transition: width .3s; }
+  .chip { display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:12px; height:12px; border:1px solid #111; border-radius:3px; display:inline-block; }
+  .grade { margin-left:auto; font-size:16px; }
+  .strip { background: var(--strip); font-weight:700; font-size: 17px; padding: 10px 12px; margin: 26px 0 12px;
+           border-top: 2px solid #111; border-bottom: 2px solid #111; }
+  .item { margin: 0 0 18px; border: 1px solid #bbb; background:#fff; }
+  .qtext { background: var(--q); font-weight:700; font-size: 15px; padding: 10px 12px; line-height:1.45; }
+  .qimg { margin: 10px 0 2px; }
+  .qimg img { display:block; max-width:100%; max-height:420px; border:2px solid #111; border-radius:4px; background:#fff; cursor: zoom-in; }
+  .qimg figcaption { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:4px; }
+  .qlinks { margin-top: 8px; }
+  a.simbtn { display:inline-block; margin: 0 8px 8px 0; padding: 9px 16px; border:2px solid #1b4587; border-radius: 6px;
+             background:#1b4587; color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
+  a.simbtn:hover, a.simbtn:focus { background:#133261; border-color:#133261; }
+  .seclinks { margin: -4px 0 14px; }
+  .secimg { margin: -4px 0 14px; }
+  html[data-theme="dark"] .secimg figcaption { color:#b6bcc6; }
+  /* timers (timer:N, or a button that links to a web timer): built into the page */
+  .timer { display:flex; flex-wrap:wrap; align-items:center; gap:6px 16px; width:fit-content; max-width:100%; margin: 0 8px 8px 0;
+           background:#fff; color:#111; border:2px solid #1b4587; border-radius:8px; padding: 8px 14px 10px; font-weight:400; }
+  .timertitle { flex-basis:100%; font-size:13px; font-weight:700; color:#1b4587; }
+  .timernum { font-size:44px; font-weight:700; line-height:1; min-width:118px; text-align:center; font-variant-numeric: tabular-nums; }
+  .timerrow { display:flex; gap:8px; }
+  .timer.running .timernum { color:#1b4587; }
+  .timer.done { background: var(--red); border-color:#cc0000; }
+  .timer.done .timernum { font-size:30px; }  .qnum { display:inline-block; background:#111; color:#fff; border-radius:4px; padding:0 7px; margin-right:6px; font-size:13px; }
+  /* a typed answer starts one line tall and grows as the student writes (field-sizing; fitAnswer() does the same where a browser lacks it) */
+  textarea { display:block; width:100%; min-height: calc(1.5em + 26px); border:0; border-top:3px solid #111; border-bottom:3px solid #111;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; line-height:1.5; padding:10px 12px; resize: none; overflow-y:auto; outline:none; background:#fff;
+             transition: background .25s; field-sizing: content; }
+  textarea:focus { box-shadow: inset 0 0 0 2px #3c78d8; }
+  textarea.correct { background: var(--green); } textarea.partial { background: var(--yellow); } textarea.incorrect { background: var(--red); }
+  /* the black bar under each answer: the feedback (and the save status under it) on the left, the Check button on the right */
+  .fbbar { display:flex; align-items:center; gap:10px; background:#000; color:#fff; padding: 6px 8px 6px 12px; min-height: 44px; }
+  .fbtext { flex:1 1 auto; min-width:0; }
+  .fb { font-style: italic; font-size: 14px; line-height:1.45; }
+  .fbbar button { flex:none; padding: 5px 14px; }
+  .meta { font-size: 12px; color:#666; }
+  .fbbar .meta { margin-top:2px; } .fbbar .meta:empty { display:none; }
+  button { font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:14px; border:2px solid #111; border-radius:6px;
+           background:#111; color:#fff; padding: 7px 16px; cursor:pointer; }
+  button.secondary { background:#fff; color:#111; }
+  button:disabled { opacity:.5; cursor: default; }
+  .finish { text-align:center; margin: 30px 0; }
+  .finish button { font-size: 16px; padding: 12px 26px; }
+  .banner { background:#111; color:#fff; padding:10px 12px; border-radius:6px; font-size:14px; margin: 10px 0; }
+  .error { background:#cc0000; }
+  /* type-in boxes placed on a picture */
+  .boxfig { margin: 10px 0 2px; }
+  .boxwrap { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  .boxwrap img { display:block; max-width:100%; height:auto; border:2px solid #111; border-radius:4px; background:#fff; }
+  .boxwrap input.pbox { position:absolute; margin:0; padding:0 4px; border:2px solid #3c78d8; border-radius:4px; background:#fff;
+             font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:clamp(10px, 1.9vw, 15px); line-height:1.1;
+             text-align:center; color:#111; outline:none; transition: background .25s; }
+  .boxwrap input.pbox:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  input.pbox.correct { background: var(--green); border-color:#38761d; }
+  input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
+  .boxlist { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 10px; line-height:1.3; }
+  .boxlist label { font-size: 13px; font-weight:600; }
+  .boxlist input.pbox { display:block; width:100%; margin-top:3px; padding:7px 8px; border:2px solid #111; border-radius:4px;
+             font-family:Poppins, Arial, sans-serif; font-size:15px; background:#fff; outline:none; }
+  .boxlist input.pbox.correct { background: var(--green); border-color:#38761d; }   /* after the list rule above, so each box in a list colors itself too */
+  .boxlist input.pbox.incorrect { background: var(--red); border-color:#cc0000; }
+  .boxhint { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:6px; }
+  .boxarea { border-top:3px solid #111; }
+  .boxarea.correct { box-shadow: inset 6px 0 0 #38761d; } .boxarea.partial { box-shadow: inset 6px 0 0 #bf9000; } .boxarea.incorrect { box-shadow: inset 6px 0 0 #cc0000; }
+  #loading { padding: 60px 0; text-align:center; font-weight:600; }
+  /* "I'm finished" pop-up (built into the page so it doesn't show the browser's "An embedded page says..." box) */
+  .modal { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal[hidden] { display:none; }
+  .modal-card { background:#fff; border:2px solid #111; border-radius:8px; max-width:420px; width:100%; padding:20px; }
+  .modal-card p { margin:0 0 18px; font-size:16px; font-weight:600; line-height:1.45; }
+  .modal-btns { display:flex; justify-content:flex-end; gap:10px; }
+  /* End of the quarter: "This assignment is closed" pop-up and the CLOSED bar (view only) */
+  .closedbar { background:#111; color:#fff; border-radius:6px; padding:10px 12px; font-size:14px; font-weight:600; margin:10px 0;
+               display:flex; gap:10px; align-items:center; }
+  .closedbar[hidden] { display:none; }
+  .closedbar .tag { background:#cc0000; border-radius:4px; padding:1px 8px; font-size:12px; letter-spacing:.06em; flex:none; }
+  .modal-card.closed { max-width:440px; padding:0; overflow:hidden; }
+  .closed .modal-head { background:var(--strip); border-bottom:2px solid #111; padding:12px 20px; font-weight:700; font-size:18px;
+                        display:flex; align-items:center; gap:10px; }
+  .closed .modal-head svg { width:26px; height:26px; flex:none; }
+  .closed .modal-body { padding:18px 20px 20px; }
+  .closed .modal-body p { margin:0 0 12px; font-size:15px; font-weight:400; line-height:1.5; }
+  .closed .modal-body p.lead { font-weight:600; font-size:16px; }
+  .closed .modal-body p.small { font-size:13px; color:#555; font-style:italic; }
+  .item.viewonly textarea, .item.viewonly input.pbox { color:#111; opacity:.8; cursor:default; }
+  /* data table + graph questions (Answer type "table") */
+  .tablezone { display:flex; flex-wrap:wrap; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
+  .tleft { flex:0 0 auto; max-width:100%; overflow-x:auto; }
+  table.dtable { width:auto; min-width:100%; border-collapse:collapse; font-size:15px; }
+  table.dtable th { background:#000; color:#fff; font-weight:700; padding:6px 8px; border:1px solid #111; white-space:normal; line-height:1.2; }
+  table.dtable td { border:1px solid #111; padding:0; text-align:center; font-weight:600; height:30px; }
+  table.dtable tbody tr:nth-child(even) td { background:#d9d9d9; }
+  input.tcell { width:100%; height:30px; border:0; margin:0; padding:2px 6px; text-align:center; font-family:Poppins, Arial, sans-serif; font-size:15px; font-weight:600;
+                background:transparent; color:inherit; outline:none; }
+  input.tcell:focus { box-shadow: inset 0 0 0 2px #3c78d8; background:#fff; }
+  input.tcell.correct { background:var(--green); } input.tcell.incorrect { background:var(--red); }
+  input.tcell.partial { background:var(--yellow); }
+  .tablezone.nograph .tleft { flex:1 1 100%; }
+  .tright { flex:1 1 360px; border-left:1px solid #111; display:flex; flex-direction:column; min-width:0; }
+  .tgraphhead { background:#000; color:#fff; font-weight:700; text-align:center; padding:6px 8px; }
+  input.tlabel { display:block; margin:8px auto; width:calc(100% - 24px); max-width:440px; padding:6px 8px; border:2px dashed #888; border-radius:6px; background:#fff;
+                 font-family:Poppins, Arial, sans-serif; font-size:15px; font-weight:600; text-align:center; color:#111; outline:none; }
+  input.tlabel:focus { border-style:solid; border-color:#3c78d8; }
+  input.tlabel.correct { background:var(--green); border-color:#38761d; border-style:solid; } input.tlabel.incorrect { background:var(--red); border-color:#cc0000; border-style:solid; }
+  .tgraphmid { display:flex; align-items:stretch; min-width:0; }
+  .tylab { width:44px; flex:none; position:relative; }
+  .tylab input.tlabel { position:absolute; left:50%; top:50%; width:240px; max-width:none; margin:0; transform: translate(-50%, -50%) rotate(-90deg); }
+  @media (max-width: 640px) { .tgraphmid { flex-direction:column; } .tylab { width:auto; }
+    .tylab input.tlabel { position:static; transform:none; width:calc(100% - 24px); margin:0 auto 4px; } }
+  svg.tgraph { flex:1; min-width:0; width:100%; height:auto; display:block; font-family:Poppins, Arial, sans-serif; }
+  .tg-grid { stroke:#e3e3e3; stroke-width:1; } .tg-axis { stroke:#555; stroke-width:1.5; }
+  .tg-tick { font-size:13px; fill:#555; } .tg-empty { font-size:15px; fill:#888; font-style:italic; }
+  .tg-dot { fill:#3c78d8; } .tg-fit { stroke:#9fbbea; stroke-width:3; }
+  html[data-theme="dark"] .tablezone { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable th, html[data-theme="dark"] .tgraphhead { background:#000; border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable td { border-color:#5f6670; }
+  html[data-theme="dark"] table.dtable tbody tr:nth-child(even) td { background:#2a2f38; }
+  html[data-theme="dark"] input.tcell:focus { background:#14171c; }
+  html[data-theme="dark"] input.tcell.correct, html[data-theme="dark"] input.tlabel.correct { background:var(--green); }
+  html[data-theme="dark"] input.tcell.partial { background:var(--yellow); }
+  html[data-theme="dark"] input.tcell.incorrect, html[data-theme="dark"] input.tlabel.incorrect { background:var(--red); }
+  html[data-theme="dark"] .tright { border-color:#5f6670; }
+  html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
+  html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
+  /* drawing pad questions (Answer type "draw") */
+  .drawpad { border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px 12px; background:#fff; transition: background .25s; }
+  .drawpad.correct { background: var(--green); }
+  .padbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-bottom:8px; }
+  .padgroup { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+  button.padbtn { width:38px; height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:#fff; color:#111;
+                  border:1.5px solid #bbb; border-radius:8px; }
+  button.padbtn svg { width:20px; height:20px; }
+  button.padbtn.on { background:#1b4587; border-color:#1b4587; color:#fff; }
+  button.padbtn:disabled { opacity:.35; }
+  .padsizewrap { font-size:12px; font-weight:600; gap:6px; }
+  .padsize { width:110px; accent-color:#1b4587; }
+  .padcolors { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px; }
+  button.padcolor { width:26px; height:26px; padding:0; border-radius:50%; border:1.5px solid #999; }
+  button.padcolor.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
+  .padpick { width:34px; height:26px; padding:0; border:1.5px solid #999; border-radius:4px; background:#fff; cursor:pointer; }
+  .padwrap { position:relative; line-height:0; }
+  canvas.padcanvas { display:block; width:100%; height:auto; aspect-ratio: 1000 / 650; border:2px solid #111; border-radius:6px; background:#fff;
+                     touch-action:none; cursor:crosshair; }
+  .drawpad.viewonly canvas.padcanvas { cursor:default; }
+  input.padtext { position:absolute; z-index:2; margin:0; min-width:180px; padding:2px 6px; border:2px dashed #1b4587; border-radius:4px; background:rgba(255,255,255,.9);
+                  font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:16px; line-height:1.3; outline:none; }
+  /* picture upload questions (Answer type "upload") */
+  .dropzone { border-top:3px solid #111; border-bottom:3px solid #111; padding:12px; background:#fff; outline:none; transition: background .25s; }
+  .dropzone:focus { box-shadow: inset 0 0 0 3px #3c78d8; }
+  .dropzone.over { background:#e8f0fe; box-shadow: inset 0 0 0 3px #1b4587; }
+  .dropzone.correct { background: var(--green); }
+  .dropzone .dzbox { border:2px dashed #555; border-radius:8px; padding:18px 12px; text-align:center; cursor:pointer; background:rgba(255,255,255,.6); }
+  .dropzone .dzbox b { display:block; font-size:16px; margin-bottom:4px; }
+  .dropzone .dzbox span { display:block; font-size:13px; color:#444; margin-bottom:10px; }
+  .dropzone .dzprev { display:block; max-width:100%; max-height:360px; margin:0 auto 10px; border:2px solid #111; border-radius:4px; background:#fff; }
+  .dropzone .dzprev[hidden] { display:none; }
+  .dropzone button.dzpick { background:#1b4587; border-color:#1b4587; }
+  .dropzone.viewonly .dzbox { cursor:default; }
+  .remind { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; background:var(--yellow); border-top:2px solid #bf9000;
+            padding:9px 12px; font-size:14px; font-weight:600; }
+  .remind[hidden] { display:none; }
+  .remind button { font-size:13px; padding:4px 12px; }
+  /* short-answer questions (one or two labeled boxes, no picture): the answer box sits in the question's row, at the right */
+  .item:has(> .boxarea > .boxlist) { display:grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 36%); margin-bottom:8px; }
+  .item:has(> .boxarea > .boxlist) > .qtext { grid-column:1; display:flex; align-items:center; gap:0 2px; padding:8px 12px; }
+  .item:has(> .boxarea > .boxlist) > .qtext > .qnum { flex:none; }
+  .item:has(> .boxarea > .boxlist) > .boxarea { grid-column:2; border-top:0; border-left:3px solid #111; display:flex; align-items:center; background: var(--q); }
+  .item:has(> .boxarea > .boxlist) > .boxarea > .boxlist { width:100%; grid-template-columns:1fr; margin:0; padding:6px 8px !important; gap:4px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label { font-size:11px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child { font-size:0; }   /* one box: no label above it */
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child input.pbox { margin-top:0; }
+  .item:has(> .boxarea > .boxlist) .boxlist input.pbox { padding:5px 8px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar, .item:has(> .boxarea > .boxlist) > .remind { grid-column:1 / -1; }
+  .item:has(> .boxarea > .boxlist) > .fbbar { min-height:0; padding:4px 6px 4px 12px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar:has(.fb:empty):has(.meta:empty) { display:none; }   /* nothing to say yet: no black bar (Enter or clicking out checks) */
+  html[data-theme="dark"] .item:has(> .boxarea > .boxlist) > .boxarea { border-color:#5f6670; }
+  input.pbox.partial, .boxlist input.pbox.partial { background: var(--yellow); border-color:#bf9000; }
+  /* "Jump to" links in the sticky progress bar (2 or more sections) */
+  .jump { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; }
+  .jump a { color:#fff; background:#1b4587; border-radius:999px; padding:3px 12px; text-decoration:none; font-weight:700; }
+  .jump a:hover, .jump a:focus-visible { background:#133261; }
+  .strip { scroll-margin-top: 120px; }
+  /* @@CLASSPASS-CSS-BEGIN: Class Pass (the same in every page; change it in class-pass/classpass.css, then run class-pass/make-pass.ps1) */
+  .signin { background:#fff; border:2px solid #111; border-radius:8px; padding:16px; margin:14px 0; }
+  .signin h2 { font-size:18px; margin:0 0 6px; }
+  .signin p { font-size:14px; line-height:1.5; margin:6px 0 12px; }
+  .signin label { display:block; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .signin input { display:block; width:100%; max-width:360px; margin-top:4px; padding:8px 10px; border:2px solid #111; border-radius:6px;
+                  font-family:Poppins, Arial, sans-serif; font-size:16px; background:#fff; outline:none; }
+  .signin input:focus { box-shadow: 0 0 0 3px rgba(60,120,216,.45); }
+  .signin input.si-code { max-width:200px; font-size:22px; letter-spacing:4px; }
+  .si-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+  .si-status { font-weight:600; min-height:1.5em; }
+  .si-status.bad { color:#cc0000; }
+  .si-alt { font-size:13px; color:#555; font-style:italic; border-top:1px solid #ddd; padding-top:10px; margin-bottom:0 !important; }
+  .si-or { font-size:13px; font-weight:600; color:#555; border-top:1px solid #ddd; padding-top:12px; margin-top:16px !important; }
+  button.linkbtn { background:none; border:0; border-radius:0; padding:0; color:#1b4587; text-decoration:underline; font-weight:600; font-size:inherit; }
+  button.si-google, a.si-pass { display:inline-flex; align-items:center; gap:10px; background:#fff; color:#111; border:2px solid #111; border-radius:6px;
+                                font-family:Poppins, Arial, sans-serif; font-weight:700; font-size:15px; padding:9px 18px; text-decoration:none; cursor:pointer; }
+  button.si-google svg { width:20px; height:20px; flex:none; }
+  a.si-pass { background:#1b4587; border-color:#1b4587; color:#fff; }
+  .cp-brand { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff; background:#1b4587;
+              border-radius:4px; padding:2px 8px; margin:8px 0 2px; }
+  .probewait { margin-top:14px; font-weight:400; font-size:14px; }
+  /* the loading screen's progress bar (cpStep) */
+  .cp-load { max-width:400px; margin:0 auto; font-family:Poppins, Arial, sans-serif; text-align:center; }
+  .cp-step { font-size:16px; font-weight:600; color:#111; line-height:1.4; }
+  .cp-bar { position:relative; height:6px; margin:14px auto 0; border-radius:3px; background:#d5deeb; overflow:hidden; }
+  .cp-bar span { position:absolute; left:0; top:0; bottom:0; width:0; border-radius:3px; background:#1b4587; transition:width .5s linear; overflow:hidden; }
+  .cp-bar span::after { content:""; position:absolute; top:0; bottom:0; left:0; width:60%;
+                        background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0)); animation:cp-sheen 1.3s linear infinite; }
+  @keyframes cp-sheen { from { transform:translateX(-100%); } to { transform:translateX(170%); } }
+  @media (prefers-reduced-motion: reduce) { .cp-bar span { transition:none; } .cp-bar span::after { animation:none; display:none; } }
+  .cp-slow { font-size:14px; font-weight:400; color:#555; margin-top:12px; min-height:1.5em; }
+  .cp-again { margin-top:10px; }
+  .cp-again button { background:#1b4587; border-color:#1b4587; color:#fff; }
+  .cp-detail { font-size:12px; font-weight:400; color:#777; margin-top:10px; }
+  /* @@CLASSPASS-CSS-END */
+  /* ---------- light / dark mode (the moon/sun button at the top; remembered on this device) and Help (Chromebook help, a new tab) ---------- */
+  .topbar { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 -6px; }
+  button.themebtn, a.helpbtn { display:inline-flex; align-items:center; gap:6px; background:#fff; color:#111; border:1.5px solid #bbb; border-radius:999px;
+                    padding:5px 12px; font-size:13px; font-weight:600; }
+  a.helpbtn { font-family:inherit; line-height:normal; text-decoration:none; }
+  button.themebtn svg, a.helpbtn svg { width:16px; height:16px; }
+  .meta.tone-warn { color:#b45f06; } .meta.tone-ok { color:#38761d; } .meta.tone-bad { color:#cc0000; } .meta.tone-muted { color:#666; }
+  .fbbar .meta.tone-warn { color:#f5b971; } .fbbar .meta.tone-ok { color:#8fd19e; } .fbbar .meta.tone-bad { color:#ff8a80; } .fbbar .meta.tone-muted { color:#a7adb7; }
+  .pagever { text-align:center; font-size:11px; color:#999; margin-top:-14px; }
+  html[data-theme="dark"] { color-scheme: dark; --green:#1f4d2e; --yellow:#5a4a12; --red:#5c2626; --strip:#1f3a66; --q:#2a2f38; }
+  html[data-theme="dark"] body { background:#14171c; color:#e8eaed; }
+  html[data-theme="dark"] .who { color:#b6bcc6; }
+  html[data-theme="dark"] .links a { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .progress { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .bar { background:#14171c; border-color:#5f6670; }
+  html[data-theme="dark"] .dot { border-color:#8a9099; }
+  html[data-theme="dark"] .strip, html[data-theme="dark"] .intro { border-color:#8fb3ff; color:#eef3ff; }
+  html[data-theme="dark"] .item { background:#1d2128; border-color:#3a4049; }
+  html[data-theme="dark"] .qtext { color:#f1f3f5; }
+  html[data-theme="dark"] .qnum { background:#e8eaed; color:#14171c; }
+  .qpts { display:inline-block; border:1.5px solid #111; border-radius:4px; padding:0 6px; margin-right:6px; font-size:12px; font-weight:600; background:#fff; color:#111; white-space:nowrap; }
+  html[data-theme="dark"] .qpts { background:#14171c; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] .qimg figcaption, html[data-theme="dark"] .boxhint { color:#b6bcc6; }
+  html[data-theme="dark"] textarea { background:#14171c; color:#f1f3f5; border-color:#5f6670; }
+  html[data-theme="dark"] textarea.correct { background:var(--green); } html[data-theme="dark"] textarea.partial { background:var(--yellow); }
+  html[data-theme="dark"] textarea.incorrect { background:var(--red); }
+  html[data-theme="dark"] textarea::placeholder { color:#8a9099; }
+  html[data-theme="dark"] .fbbar { background:#000; color:#f1f3f5; border-top:1px solid #2a2f38; }
+  html[data-theme="dark"] .meta.tone-warn { color:#f5b971; } html[data-theme="dark"] .meta.tone-ok { color:#8fd19e; }
+  html[data-theme="dark"] .meta.tone-bad { color:#ff8a80; } html[data-theme="dark"] .meta, html[data-theme="dark"] .meta.tone-muted { color:#a7adb7; }
+  html[data-theme="dark"] button { background:#e8eaed; color:#14171c; border-color:#e8eaed; }
+  html[data-theme="dark"] button.secondary { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] button.themebtn, html[data-theme="dark"] a.helpbtn { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .banner { background:#2a2f38; color:#f1f3f5; }
+  html[data-theme="dark"] .banner.error { background:#8e1c1c; }
+  html[data-theme="dark"] .boxlist input.pbox, html[data-theme="dark"] .boxwrap input.pbox { background:#14171c; color:#f1f3f5; border-color:#8fb3ff; }
+  html[data-theme="dark"] input.pbox.correct { background:var(--green); border-color:#8fd19e; }
+  html[data-theme="dark"] input.pbox.incorrect { background:var(--red); border-color:#ff8a80; }
+  html[data-theme="dark"] .boxarea { border-color:#5f6670; }
+  html[data-theme="dark"] .modal-card { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .closed .modal-head { border-color:#5f6670; color:#eef3ff; }
+  html[data-theme="dark"] .closed .modal-head svg { stroke:#eef3ff; }
+  html[data-theme="dark"] .closed .modal-body p.small { color:#a7adb7; }
+  html[data-theme="dark"] .closedbar { background:#000; }
+  html[data-theme="dark"] .item.viewonly textarea, html[data-theme="dark"] .item.viewonly input.pbox { color:#f1f3f5; }
+  html[data-theme="dark"] .drawpad, html[data-theme="dark"] .dropzone { background:#1d2128; border-color:#5f6670; }
+  html[data-theme="dark"] .drawpad.correct, html[data-theme="dark"] .dropzone.correct { background:var(--green); }
+  html[data-theme="dark"] button.padbtn { background:#14171c; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] button.padbtn.on { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] button.padcolor { border-color:#8a9099; }
+  html[data-theme="dark"] button.padcolor.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
+  html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
+  html[data-theme="dark"] .dropzone .dzbox { background:rgba(0,0,0,.2); border-color:#8a9099; }
+  html[data-theme="dark"] .dropzone .dzbox span { color:#b6bcc6; }
+  html[data-theme="dark"] .dropzone.over { background:#203050; }
+  html[data-theme="dark"] .dropzone button.dzpick, html[data-theme="dark"] .cp-again button, html[data-theme="dark"] a.si-pass { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] a.simbtn { background:#3b6fd6; border-color:#3b6fd6; }
+  html[data-theme="dark"] .timer { background:#1d2128; border-color:#5f6670; } html[data-theme="dark"] .timernum { color:#f1f3f5; }
+  html[data-theme="dark"] .timer.done { background:var(--red); } html[data-theme="dark"] .timertitle, html[data-theme="dark"] .timer.running .timernum { color:#8fb3ff; }
+  html[data-theme="dark"] .remind { color:#fff3cd; border-color:#c9a227; }
+  html[data-theme="dark"] .signin { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] .signin input { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] .si-alt, html[data-theme="dark"] .si-or, html[data-theme="dark"] .cp-slow, html[data-theme="dark"] .cp-detail { color:#a7adb7; border-color:#3a4049; }
+  html[data-theme="dark"] .si-status.bad { color:#ff8a80; }
+  html[data-theme="dark"] button.linkbtn { background:none; border:0; color:#8fb3ff; }
+  html[data-theme="dark"] button.si-google { background:#fff; color:#111; border-color:#fff; }
+  html[data-theme="dark"] .cp-step, html[data-theme="dark"] #loading { color:#e8eaed; }
+  html[data-theme="dark"] .cp-bar { background:#2a2f38; }
+  html[data-theme="dark"] .cp-bar span { background:#6f9bff; }
+  html[data-theme="dark"] .pagever { color:#6b717b; }
+</style>
+</head>
+<body>
+<script>
+/* Light / dark mode: the student's choice on this device, else the device's own setting. Set before anything draws. */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem("selfcheck-theme"); } catch (e) { t = null; }
+  if (t !== "dark" && t !== "light") { try { t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { t = "light"; } }
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
+<div class="wrap">
+  <div class="topbar"><a class="helpbtn" id="helpBtn" href="https://physical-science-8.pages.dev/chromebook-help" target="_blank" rel="noopener" aria-label="Help: Chromebook tools, opens in a new tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</a><button type="button" class="themebtn" id="themeBtn"></button></div>
+  <div id="loading">Loading your self-check…</div>
+  <div id="signin" hidden></div>
+  <div id="app" hidden>
+    <h1 id="title"></h1>
+    <div class="who" id="who"></div>
+    <div class="intro" id="intro"></div>
+    <div class="closedbar" id="closedBar" hidden><span class="tag">CLOSED</span><span id="closedBarText"></span></div>
+    <div class="links" id="links"></div>
+    <div id="msg"></div>
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"><span id="bG" style="background:var(--green)"></span><span id="bY" style="background:var(--yellow)"></span><span id="bR" style="background:var(--red)"></span></div>
+      <span class="chip"><i class="dot" style="background:var(--green)"></i><b id="nG">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--yellow)"></i><b id="nY">0</b></span>
+      <span class="chip"><i class="dot" style="background:var(--red)"></i><b id="nR">0</b></span>
+      <span class="chip"><i class="dot"></i><b id="nB">0</b> left</span>
+      <span class="grade" id="grade"></span>
+    </div>
+    <div id="items"></div>
+    <div class="finish">
+      <button id="finishBtn">I'm finished</button>
+      <div class="meta" id="finishMeta" style="margin-top:8px"></div>
+    </div>
+    <div class="pagever" id="pageVer"></div>
+  </div>
+</div>
+<div class="modal" id="closedBox" hidden role="dialog" aria-modal="true" aria-labelledby="closedTitle">
+  <div class="modal-card closed">
+    <div class="modal-head" id="closedTitle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      This assignment is closed
+    </div>
+    <div class="modal-body">
+      <p class="lead" id="closedLead"></p>
+      <p>You can still look at your answers and feedback, but you can't change them or earn more credit.</p>
+      <p>Spend your time on this quarter's assignments instead.</p>
+      <p class="small">Think this is a mistake? Talk to your teacher.</p>
+      <div class="modal-btns"><button id="closedOk">View my work</button></div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmText">
+  <div class="modal-card">
+    <p id="confirmText"></p>
+    <div class="modal-btns"><button class="secondary" id="confirmNo">Cancel</button><button id="confirmYes">Submit</button></div>
+  </div>
+</div>
+
+<!-- The /exec page: the sheet puts the student's work in here (doGet), so the page draws with no second trip. Keep it on one line, empty. -->
+<script id="bootState" type="application/json"></script>
+<script>
+/** Student calls that carry this browser's sign-in token, and how many arguments come before it.
+    Missing arguments are filled with null so the token always lands in the same place. */
+var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1,
+                   uploadPicture: 3, getMyUpload: 1 };
+
+/* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
+   Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
+   Google account is signed in before the school one (Google won't even open the web app there), or one with
+   no Google account at all. The student signs in with Google (on the Class Pass page, where they can pick
+   their school account) or, only if the teacher allows it in the Settings tab, with a 6-digit code emailed to
+   their school address. Either one keeps that browser signed in to that assignment for 14 days.
+
+   THE SAME BLOCK is in Video Check's and Self-Check's Index.html and in the Class Pass page on the class
+   website. Change it only in class-pass/classpass.js, then run class-pass/make-pass.ps1, which copies it into
+   every page (the tests fail if a copy is different).
+
+   Where it runs (window.CLASS_PASS_PAGE, set by the page):
+     (not set) "exec": the web app's own page, script.google.com/.../exec. Google usually says who it is.
+     "pass": the Class Pass page, /pass/?app=<deployment ID>, the link students get. It checks out of sight
+             whether Google will open the web app itself (school Chromebooks go straight there) and signs
+             everyone else in, then opens the assignment's page under /pass/.
+     "app":  an assignment's page on the class website (/pass/video/, /pass/check/). It talks to the sheet
+             with fetch (see doPost in Code.gs), so no Google sign-in rides along and nothing can mix up.
+
+   ONE SIGN-IN FOR EVERY ASSIGNMENT: each sheet keeps its own sign-ins, so a pass from one sheet means nothing
+   to another. Instead, the device remembers which school account signed in with Google (classpass-me), and
+   the next assignment asks Google for that account quietly (prompt=none): no box, just a quick trip through
+   Google. That sheet checks Google's answer itself. An emailed code is only ever good for its own sheet.
+
+   The host page sets CP_HOST before anything here runs:
+     { tokenKey: where the /exec page keeps its sign-in, tokenArgs: { fn: arguments before the token },
+       clear(title): empty the page and return the element to put a sign-in card in } */
+var CP_WHERE = window.CLASS_PASS_PAGE || "exec";
+var CP_SITE = CP_WHERE !== "exec";   // on the class website: every call to the sheet goes through fetch
+var CP_DAYS = 14;
+var CP_KINDS = { "video-check": "video", "auto-grading-activity": "check",   // what the sheet says it is: its page under /pass/
+                 "net-force-escape-room": "net-force-escape",              // (one-off pages: self-check/custom/, built by make-pass.ps1)
+                 "reading-activity": "reading",                            // a side-by-side reading page whose article comes from a Google Doc
+                 "friction-article": "friction",
+                 "friction-speed-lab": "friction-lab",
+                 "review-game": "review",                                   // a Wayground-style review game: multiple choice, one try each, points and a leaderboard
+                 "friction-sim-lab": "friction-sim" };                      // the same lab with the ramp simulation live on the left (Directions / Simulation buttons)                    // the friction and speed lab: handout on the left, stopwatch + data table + graph, rubric-scored conclusion
+var CP_PREFETCH = ["video", "check"];   // the pages the Class Pass page fetches ahead (not the one-offs: they're big and rare)
+var CP_BACK = CP_WHERE === "pass" ? cpTakeGoogleReturn() : null;          // just back from Google's sign-in page
+var CP_APP = CP_SITE ? (new URLSearchParams(location.search).get("app") || (CP_BACK && CP_BACK.app) || "") : "";
+var CP_EXEC = /^AKfycb[\w-]{20,}$/.test(CP_APP) ? "https://script.google.com/macros/s/" + CP_APP + "/exec" : "";
+
+function cpEl(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function cpBtn(label, cls, onClick) { var b = cpEl("button", cls || "", label); b.type = "button"; if (onClick) b.addEventListener("click", onClick); return b; }
+function cpIsSignInError(err) { return /SIGNIN/.test(String((err && err.message) || err || "")); }
+function cpSignInText(err) { return String((err && err.message) || err || "").replace(/^[\s\S]*?SIGNIN:\s*/, "").replace(/^(BUSY|NETWORK): /, ""); }
+/** Leaves this page. replace = the Back button skips it (so it can't send the student straight back). */
+function cpGo(url, replace) {
+  if (window.__classPassGo) return window.__classPassGo(url, replace);   // local tests only
+  if (replace) location.replace(url); else location.assign(url);
+}
+/** The Class Pass page for this assignment, from an assignment's page on the class website. */
+function cpPassUrl(extra) { return new URL("../?app=" + encodeURIComponent(CP_APP) + (extra || ""), location.href).href; }
+/** A Class Pass link that skips the out-of-sight check (?signin=1): the /exec page already knows Google can't say who this is. */
+function cpSignInLink(u) { u = String(u || ""); return /[?&]signin=1(&|#|$)/.test(u) ? u : u + (u.indexOf("?") === -1 ? "?" : "&") + "signin=1"; }
+/** A message in place of the loading screen (a problem, or a choice to make): no progress bar. */
+function cpStatus(text) { var ld = document.getElementById("loading"); if (ld) { cpStepStop(); ld.hidden = false; ld.textContent = text; } }
+/** What the browser's console shows (DevTools > Console), to find a slow step: seconds since this page started loading. */
+function cpLog(what) { try { console.info("Class Pass " + (performance.now() / 1000).toFixed(1) + " s: " + what); } catch (e) {} }
+
+/* ---------- the loading screen: a thin progress bar with the step in words ----------
+   Every wait before the assignment is on the page says which step it's on:
+     Step 1 of 3: Checking your school sign-in…  the out-of-sight check (the Class Pass page)
+     Step 2 of 3: Signing you in…               Google's answer, checked by the sheet
+     Step 3 of 3: Opening your assignment…      the Class Pass page, then the assignment's page
+   The /exec page shows the bar with no step number. After CP_SLOW_MS on one step it adds "Still working", after
+   CP_STUCK_MS a Try again button (reloads the page) and, in small print, what it's waiting for. A step's clock carries
+   on to the next page in the same tab (sessionStorage classpass-step), so a slow step can't hide behind a page change. */
+var CP_STEPS = 3, CP_SLOW_MS = 10000, CP_STUCK_MS = 25000, CP_STEP_CARRY_MS = 30000;
+var cpStepNow = null, cpStepTimer = 0, cpCalls = {}, cpCallN = 0;
+/** n = the step (1 to 3; 0 = no number), text = what's happening. The same step again only changes the words. */
+function cpStep(n, text) {
+  var ld = document.getElementById("loading");
+  if (!ld) return;
+  var box = document.getElementById("cpLoad");
+  if (!box || !ld.contains(box)) {
+    ld.textContent = ""; cpStepNow = null;
+    box = cpEl("div", "cp-load"); box.id = "cpLoad";
+    var line = cpEl("div", "cp-step"), bar = cpEl("div", "cp-bar"), slow = cpEl("div", "cp-slow"), again = cpEl("div", "cp-again");
+    line.setAttribute("aria-live", "polite"); slow.setAttribute("aria-live", "polite");   // (not the small print: it counts seconds)
+    bar.setAttribute("aria-hidden", "true"); bar.appendChild(cpEl("span"));
+    again.hidden = true;
+    again.appendChild(cpBtn("Try again", "", function () { cpStepForget(); location.reload(); }));
+    again.appendChild(cpEl("div", "cp-detail"));
+    box.appendChild(line); box.appendChild(bar); box.appendChild(slow); box.appendChild(again);
+    ld.appendChild(box);
+  }
+  ld.hidden = false;
+  cpSetText(box.querySelector(".cp-step"), (n ? "Step " + n + " of " + CP_STEPS + ": " : "") + text);
+  if (cpStepNow && cpStepNow.n === n) return;
+  var now = Date.now(), at = now, kept = null;
+  try { kept = JSON.parse(sessionStorage.getItem("classpass-step") || "null"); } catch (e) { kept = null; }
+  if (!cpStepNow && kept && kept.n === n && kept.a === CP_APP && now - kept.at >= 0 && now - kept.at < CP_STEP_CARRY_MS) at = kept.at;   // carried on from the last page
+  cpStepNow = { n: n, at: at, note: "" };
+  try { sessionStorage.setItem("classpass-step", JSON.stringify({ n: n, a: CP_APP, at: at })); } catch (e) {}
+  box.querySelector(".cp-again").hidden = true;
+  cpLog("step " + n + ", " + text + (at < now ? " (" + ((now - at) / 1000).toFixed(1) + " s so far)" : ""));
+  clearInterval(cpStepTimer);
+  cpStepTimer = setInterval(cpStepTick, 500);
+  cpStepTick();
+}
+/** A line under the bar for this step (a retry, a busy sheet). */
+function cpStepNote(text) { if (cpStepNow) { cpStepNow.note = text || ""; cpStepTick(); } }
+function cpStepTick() {
+  var ld = document.getElementById("loading"), box = document.getElementById("cpLoad");
+  if (!cpStepNow || !ld || !box || ld.hidden || !ld.contains(box)) return cpStepStop();   // the card or the assignment took its place
+  var t = Date.now() - cpStepNow.at, n = cpStepNow.n, from = n ? (n - 1) / CP_STEPS : 0, part = n ? 1 / CP_STEPS : 1;
+  // this step's share of the bar, filling toward its end (and a little slower the longer it takes)
+  box.querySelector(".cp-bar span").style.width = (100 * (from + part * (0.1 + 0.8 * (1 - Math.exp(-t / 8000))))).toFixed(1) + "%";
+  cpSetText(box.querySelector(".cp-slow"), [t >= CP_SLOW_MS ? "Still working, this can take a moment." : "", cpStepNow.note].filter(Boolean).join(" "));
+  var again = box.querySelector(".cp-again");
+  if (t >= CP_STUCK_MS) {
+    if (again.hidden) { again.hidden = false; cpLog("still on step " + n + " after " + Math.round(t / 1000) + " s. " + cpWaitingFor(t)); }
+    again.querySelector(".cp-detail").textContent = cpWaitingFor(t);
+  }
+}
+/** For the small print under Try again: the step, its time, and what it's waiting on. */
+function cpWaitingFor(t) {
+  var now = Date.now(), list = Object.keys(cpCalls).map(function (k) { return cpCalls[k].fn + " " + Math.round((now - cpCalls[k].at) / 1000) + " s"; });
+  return "Step " + (cpStepNow ? cpStepNow.n : 0) + ", " + Math.round(t / 1000) + " s. " + (list.length ? "Waiting for the sheet: " + list.join(", ") + "." : "Not waiting for the sheet.");
+}
+/** Changes the words only when they change (a screen reader reads a live line again on every change). */
+function cpSetText(e, s) { if (e.textContent !== s) e.textContent = s; }
+function cpStepStop() { clearInterval(cpStepTimer); cpStepTimer = 0; if (cpStepNow) { cpStepNow = null; cpStepForget(); } }
+function cpStepForget() { try { sessionStorage.removeItem("classpass-step"); } catch (e) {} }
+/* On the class website, whatever a sheet sends is untrusted: a ?app= link can name ANY web app, and a script that ran on
+   this site could read every Class Pass sign-in on the device. So its text only ever goes in as text, and its links
+   and pictures only as web addresses (never javascript: or data:). */
+/** A link (a simulation button, say): http(s) only, or "". */
+function cpLinkUrl(u) { u = String(u == null ? "" : u).trim(); return /^https?:\/\/[^\s"'<>\\]+$/i.test(u) ? u : ""; }
+/** A picture to show or open: https, or a picture this page made from the sheet's answer (blob:, image types only). */
+function cpImgUrl(u) { u = String(u == null ? "" : u).trim(); return /^https:\/\/[^\s"'<>\\]+$/i.test(u) || /^blob:/.test(u) ? u : ""; }
+/** The page under /pass/ for what a sheet says it is, or "". */
+function cpPageFor(kind) { return Object.prototype.hasOwnProperty.call(CP_KINDS, String(kind)) ? CP_KINDS[kind] : ""; }
+
+/* ---------- what this device keeps (localStorage; memory only if the browser blocks it) ---------- */
+var cpMem = {};
+function cpGet(k) {
+  var v = null;
+  try { v = localStorage.getItem(k); } catch (e) { v = null; }
+  return v != null ? v : (cpMem.hasOwnProperty(k) ? cpMem[k] : null);
+}
+function cpPut(k, v) {
+  if (v == null) delete cpMem[k]; else cpMem[k] = String(v);
+  try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) { /* kept for this visit only */ }
+}
+function cpJSON(k) { try { return JSON.parse(cpGet(k) || "null"); } catch (e) { return null; } }
+
+/** On the class website: this assignment's sign-in, { t: token, e: email, k: what the sheet is, x: when it runs out }, or null. */
+function cpPass() {
+  var k = "classpass:" + CP_APP, r = cpJSON(k);
+  if (!r) {   // signed in on the old Video Check front door (/video/) before Class Pass: keep that sign-in
+    var old = cpGet("videocheck-signin:" + CP_APP);
+    if (old && /^[0-9a-f]{64}$/.test(old)) {
+      r = { t: old, e: "", k: "video-check", x: Date.now() + CP_DAYS * 86400000 };
+      cpPut(k, JSON.stringify(r));
+      cpPut("videocheck-signin:" + CP_APP, null);
+    }
+  }
+  return r && typeof r.t === "string" && r.t && !(r.x && r.x < Date.now()) ? r : null;
+}
+/** This browser's sign-in token for this assignment, or "". */
+function cpToken() {
+  if (!CP_SITE) return cpGet(CP_HOST.tokenKey) || "";
+  var r = cpPass();
+  return r ? r.t : "";
+}
+function cpSetToken(t, email, kind) {
+  if (!CP_SITE) { cpPut(CP_HOST.tokenKey, t || null); return; }
+  var k = "classpass:" + CP_APP, old = cpJSON(k) || {};
+  if (!t) { cpPut(k, null); return; }
+  cpPut(k, JSON.stringify({ t: t, e: email || old.e || "", k: kind || old.k || "", x: Date.now() + CP_DAYS * 86400000 }));
+}
+/** The school account last signed in with Class Pass on this device (for 14 days): { e: email, g: with Google, at } or null. */
+function cpMe() { var m = cpJSON("classpass-me"); return m && m.e && Date.now() - m.at < CP_DAYS * 86400000 ? m : null; }
+function cpRemember(email, google) { if (CP_SITE && /^[^@\s"<>]+@[^@\s"<>]+\.[a-z]{2,}$/i.test(String(email || ""))) cpPut("classpass-me", JSON.stringify({ e: String(email).toLowerCase(), g: !!google, at: Date.now() })); }
+/** "Not you? Sign out": ends this assignment's sign-in on the sheet, and forgets every Class Pass sign-in on this device.
+    done() runs once the sheet has answered (or after 4 s), so leaving the page can't cut the request off. */
+function cpSignOut(done) {
+  var over = false;
+  function end() { if (over) return; over = true; if (done) done(); }
+  cpRun("signOut", [], end, end);   // sends the token now, before it's forgotten below
+  setTimeout(end, 4000);
+  if (!CP_SITE) { cpSetToken(""); cpPut(cpCodeKey(), null); return; }
+  var keys = [];
+  try { for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i)); } catch (e) {}
+  keys.concat(Object.keys(cpMem)).forEach(function (k) {
+    if (/^(classpass[:\-]|videocheck-signin|videocheck-code-sent)/.test(String(k))) cpPut(k, null);
+  });
+}
+
+/* ---------- talking to the sheet ---------- */
+/** From the class website: {fn, args, token} as text/plain (so the browser sends no CORS check first) to doPost. */
+function cpFetch(fn, args, ok, fail) {
+  fetch(CP_EXEC, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                   body: JSON.stringify({ fn: fn, args: args, token: cpToken() }) })   // the server puts the token in place
+    .then(function (r) {
+      if (!r.ok) throw new Error("NETWORK: The assignment's sheet didn't answer (" + r.status + "). Wait a minute and try again.");
+      return r.text();
+    })
+    .then(function (text) {
+      var out = null;
+      try { out = JSON.parse(text); } catch (e) { out = null; }
+      if (!out) {
+        if (/doPost/.test(text)) throw new Error("This assignment isn't ready for Class Pass yet. Please tell your teacher: its sheet needs the newest version.");
+        throw new Error("NETWORK: The assignment's sheet sent something unexpected. Wait a minute and try again.");
+      }
+      return out;
+    })
+    .then(function (out) {
+      if (out.ok) { if (ok) ok(out.result); }
+      else fail(new Error(out.error || "Something went wrong. Reload the page."));
+    }, function (err) {
+      var m = String((err && err.message) || "");
+      fail(/^NETWORK|isn't ready/.test(m) ? err : new Error("NETWORK: Couldn't reach the assignment's sheet. Check your internet connection."));
+    });
+}
+/** Every call to the sheet. On the /exec page the token goes in as the last argument (missing ones are null).
+    Calls on their way are listed in cpCalls (for the loading screen's small print) and timed in the console. */
+function cpRun(fn, args, ok, fail) {
+  fail = fail || function () {};
+  var id = ++cpCallN, t0 = Date.now();
+  cpCalls[id] = { fn: fn, at: t0 };
+  function done(f, how) {
+    return function (x) {
+      delete cpCalls[id];
+      if (cpStepNow) cpLog(fn + " " + how + " in " + ((Date.now() - t0) / 1000).toFixed(1) + " s");   // only while a loading screen shows
+      if (f) f(x);
+    };
+  }
+  if (CP_SITE) return cpFetchHedged(fn, (args || []).slice(), done(ok, "answered"), done(fail, "failed"));
+  var a = (args || []).slice(), n = CP_HOST.tokenArgs || {};
+  if (n.hasOwnProperty(fn)) { while (a.length < n[fn]) a.push(null); a.push(cpToken()); }
+  var r = google.script.run.withSuccessHandler(done(ok, "answered")).withFailureHandler(done(fail, "failed"));
+  r[fn].apply(r, a);
+}
+/* Now and then one answer from the sheet takes far longer than the rest (seen on 2026-09-30: classPass 26.8 s while the
+   same sheet answered the probe, sent at the same moment, in 1.9 s, and every call before and after in 1 to 4 s).
+   So a call that is safe to repeat and hasn't answered in CP_HEDGE_MS (plus up to 2 s, so a class doesn't all send at once)
+   is sent once more alongside, and whichever answers first wins. Saves are never sent twice this way (they have their own retries).
+   10 s, not 6: when a whole class opens at once, a 6 s answer is often just the line, and a second copy from everyone made it longer. */
+var CP_HEDGE = { classPass: 1, getStudentState: 1, signInWithGoogle: 1 }, CP_HEDGE_MS = 10000;
+function cpFetchHedged(fn, args, ok, fail) {
+  var sent = 1, failed = 0, over = false, timer = 0;
+  function win(x) { if (over) return; over = true; clearTimeout(timer); ok(x); }
+  function lose(e) { failed++; if (over || failed < sent) return; over = true; clearTimeout(timer); fail(e); }   // only when every try failed
+  cpFetch(fn, args, win, lose);
+  if (CP_HEDGE[fn]) timer = setTimeout(function () {
+    if (over) return;
+    sent++;
+    cpLog(fn + " is slow: asking once more alongside");
+    cpFetch(fn, args, win, lose);
+  }, CP_HEDGE_MS + Math.floor(Math.random() * 2000));
+}
+function cpCall(fn, args) { return function (ok, fail) { cpRun(fn, args || [], ok, fail); }; }
+/** A busy server or a blip: try again quietly a few times. Sign-in answers are final. */
+var CP_RETRY = [1500, 3500, 7000, 12000];
+function cpRetry(c, ok, fail, attempt) {
+  attempt = attempt || 0;
+  c(ok, function (err) {
+    var m = String((err && err.message) || err || "");
+    if (attempt < CP_RETRY.length && !/SIGNIN|Unknown request|isn't ready|NOT OPEN|NOT YET|Unknown picture/.test(m)) {
+      cpLog("trying again: " + m);
+      cpStepNote("The assignment's sheet didn't answer. Trying again…");   // on a loading screen only
+      setTimeout(function () { cpRetry(c, ok, fail, attempt + 1); }, CP_RETRY[attempt] + Math.floor(Math.random() * 1500));
+    } else fail(err);
+  });
+}
+
+/* ---------- the sign-in card ---------- */
+/* A code on its way is remembered on this device for its lifetime, so a student who leaves to read their email
+   (on a phone this often reloads the page) comes back to the box for the code, not to "Email me a code". */
+function cpCodeKey() { return CP_SITE ? "classpass-code:" + CP_APP : CP_HOST.tokenKey + ":code"; }
+function cpPending(set) {
+  if (set === null) { cpPut(cpCodeKey(), null); return null; }
+  if (set) { cpPut(cpCodeKey(), JSON.stringify(set)); return set; }
+  var p = cpJSON(cpCodeKey());
+  return p && p.email && Date.now() - p.at < p.minutes * 60000 ? p : null;
+}
+var cpCardOpen = false, cpEmail = "";
+var CP_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.2 5.6c4.2-3.9 7.1-9.6 7.1-17.1z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.3-8.7 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>';
+
+/**
+ * The Class Pass card, put into box. info comes from the sheet: { title, domain, googleClient, code, minutes, passLink, kind }.
+ * opt: { midway: the page already shows work (a sign-in ran out while working), note: a message to show, done(r): signed in, r = { token, email } }.
+ * Sign in with Google is on the Class Pass page, and (in a new tab) on an assignment's page midway. The /exec page links to Class Pass.
+ */
+function cpCard(box, info, opt) {
+  opt = opt || {};
+  cpCardOpen = true;
+  cpStepStop();   // the card takes the loading screen's place; whatever comes after it starts its own clock
+  var midway = !!opt.midway, codeOk = info.code !== false;   // sheets older than Class Pass always allow the code
+  var google = info.googleClient && (CP_WHERE === "pass" || (CP_WHERE === "app" && midway)) ? info.googleClient : "";
+  var passLink = CP_WHERE === "exec" && /^https:\/\//.test(info.passLink || "") ? cpSignInLink(info.passLink) : "";
+  if (CP_WHERE === "pass") cpPrefetch();   // the assignment's page, ready for when this sign-in is done
+  var card = cpEl("div", "signin"), pa = null; card.id = "cpCard";
+  card.appendChild(cpEl("h2", null, midway ? "Sign in again to keep saving" : "Sign in with Class Pass"));
+  card.appendChild(cpEl("p", null, midway
+    ? "Your sign-in on this device ran out. Your answers are still on this page. Sign in again, then press Check on any answer that didn't save."
+    : CP_WHERE === "exec"
+      ? "This browser isn't signed in to your school Google account first, so this page can't tell who you are."
+      : "Class Pass signs you in with your school account" + (info.title ? " to open " + info.title : "") + ". You'll stay signed in on this device for " + CP_DAYS + " days."));
+  var status = cpEl("p", "si-status"); status.setAttribute("aria-live", "polite");
+  function say(text, bad) { status.textContent = text || ""; status.className = "si-status" + (bad ? " bad" : ""); }
+
+  if (google) {
+    var gBtn = cpBtn("", "si-google", function () {
+      if (CP_WHERE === "pass") return cpGoogle(google, { tab: !!opt.tab }, say);
+      // midway on an assignment's page: sign in on a new tab, so nothing typed here is lost
+      cpTabSignIn(say, function (r) { if (opt.done) opt.done(r, card); });
+    });
+    gBtn.innerHTML = CP_G;
+    gBtn.appendChild(document.createTextNode("Sign in with Google"));
+    card.appendChild(gBtn);
+    card.appendChild(cpEl("p", null, "Pick your school account" + (info.domain ? " (it ends in @" + info.domain + ")" : "") + ". If it isn't in the list, choose Use another account."));
+  }
+  if (passLink && !midway) {
+    pa = cpEl("a", "si-pass", "Open with Class Pass");
+    pa.href = passLink; pa.target = "_top"; pa.rel = "noopener";
+    card.appendChild(pa);
+    card.appendChild(cpEl("p", null, "Class Pass lets you sign in with your school Google account on any device."));
+  }
+
+  var step1 = null, step2 = null, em = null, code = null, sendBtn, haveBtn, goBtn, againBtn, otherBtn, sentTo;
+  if (codeOk) {
+    if (google || (passLink && !midway)) card.appendChild(cpEl("p", "si-or", "Or get a 6-digit code at your school email (it comes from your teacher's email):"));
+    else card.appendChild(cpEl("p", null, "We'll email a 6-digit code to your school address. It comes from your teacher's email."));
+    step1 = cpEl("form"); step1.noValidate = true;
+    var l1 = cpEl("label", null, "Your school email");
+    em = cpEl("input"); em.type = "text"; em.inputMode = "email"; em.autocomplete = "email"; em.spellcheck = false;
+    em.setAttribute("autocapitalize", "none"); em.placeholder = "yourname@" + (info.domain || "school.org"); em.value = cpEmail;
+    l1.appendChild(em); step1.appendChild(l1);
+    sendBtn = cpEl("button", null, "Email me a code"); sendBtn.type = "submit";
+    haveBtn = cpBtn("I already have a code", "secondary");
+    var b1 = cpEl("div", "si-buttons"); b1.appendChild(sendBtn); b1.appendChild(haveBtn); step1.appendChild(b1);
+    step2 = cpEl("form"); step2.noValidate = true; step2.hidden = true;
+    sentTo = cpEl("p");
+    var l2 = cpEl("label", null, "6-digit code");
+    code = cpEl("input", "si-code"); code.type = "text"; code.inputMode = "numeric"; code.autocomplete = "one-time-code"; code.maxLength = 7;
+    l2.appendChild(code);
+    goBtn = cpEl("button", null, "Sign in"); goBtn.type = "submit";
+    againBtn = cpBtn("Send a new code", "secondary"); otherBtn = cpBtn("Use a different email", "secondary");
+    var b2 = cpEl("div", "si-buttons"); b2.appendChild(goBtn); b2.appendChild(againBtn); b2.appendChild(otherBtn);
+    step2.appendChild(sentTo); step2.appendChild(l2); step2.appendChild(b2);
+    card.appendChild(step1); card.appendChild(step2);
+  } else if (!google && !passLink) {
+    card.appendChild(cpEl("p", null, "Signing in on this page isn't turned on for this assignment. Open it from the link in Google Classroom, or ask your teacher."));
+  }
+  if (passLink && midway) {
+    var pm = cpEl("p", "si-alt");
+    pm.appendChild(document.createTextNode("Or open this assignment with "));
+    var pl = cpEl("a", null, "Class Pass"); pl.href = passLink; pl.target = "_blank"; pl.rel = "noopener";
+    pm.appendChild(pl); pm.appendChild(document.createTextNode(" in a new tab (answers that didn't save here need to be typed there again)."));
+    card.appendChild(pm);
+  }
+  card.appendChild(status);
+  if (CP_WHERE === "exec") card.appendChild(cpEl("p", "si-alt", "Or open a private window, sign in to your school account at accounts.google.com, then open this link again."));
+  box.appendChild(card);
+  if (!codeOk) { if (opt.note) say(opt.note, true); if (pa) pa.focus(); return card; }
+
+  function busy(on) { [sendBtn, haveBtn, goBtn, againBtn, otherBtn].forEach(function (b) { b.disabled = on; }); }
+  function showStep2(email, minutes) {
+    cpEmail = email;
+    step1.hidden = true; step2.hidden = false;
+    sentTo.textContent = "We emailed a code to " + email + ". Open your school email, then type the code here. It works for " + minutes + " minutes.";
+    code.value = ""; code.focus();
+  }
+  function send(to) {
+    busy(true); say("Sending a code…");
+    // Safe to repeat if the answer gets lost: asking again within 45 s gets "sent" back, with no second email.
+    cpRetry(cpCall("sendSignInCode", [to]), function (r) {
+      busy(false);
+      cpPending({ email: r.email, at: Date.now(), minutes: r.minutes });
+      showStep2(r.email, r.minutes); say("");
+    }, function (err) { busy(false); say(cpSignInText(err), true); });
+  }
+  step1.addEventListener("submit", function (e) { e.preventDefault(); if (em.value.trim()) send(em.value); else say("Type your school email first.", true); });
+  haveBtn.addEventListener("click", function () {
+    var p = cpPending(), typed = em.value.trim();
+    if (!typed && !p) { say("Type your school email first, then press I already have a code.", true); return; }
+    var e = typed || p.email;
+    if (e.indexOf("@") === -1 && info.domain) e += "@" + info.domain;
+    showStep2(e.toLowerCase(), info.minutes || 10); say("");
+  });
+  againBtn.addEventListener("click", function () { send(cpEmail); });
+  otherBtn.addEventListener("click", function () { step2.hidden = true; step1.hidden = false; say(""); em.value = cpEmail; em.focus(); });
+  step2.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (code.value.replace(/\D/g, "").length !== 6) { say("The code has 6 digits.", true); return; }
+    busy(true); say("Checking your code…");
+    // Safe to repeat: the same right code again within 2 minutes gets the same sign-in back.
+    cpRetry(cpCall("verifySignInCode", [cpEmail, code.value]), function (r) {
+      cpSetToken(r.token, r.email, info.kind);
+      cpRemember(r.email, false);
+      cpPending(null);
+      cpCardOpen = false;
+      if (opt.done) opt.done(r, card);
+    }, function (err) { busy(false); say(cpSignInText(err), true); code.select(); });
+  });
+  var pend = midway ? null : cpPending();
+  if (pend) showStep2(pend.email, pend.minutes);   // back from reading the email: straight to the box for the code
+  if (opt.note) say(opt.note, true);
+  if (pa && !pend) pa.focus();   // the /exec page: Open with Class Pass is the one thing to do
+  else if (!google) (step1.hidden ? code : em).focus();
+  return card;
+}
+
+/** Midway on an assignment's page: sign in with Google on a new tab. When it's done there, this tab carries on. */
+function cpTabSignIn(say, done) {
+  var before = cpToken(), w = null, timer = 0;
+  try { w = window.open(cpPassUrl("&signin=1&tab=1"), "_blank"); } catch (e) { w = null; }
+  if (!w) { say("Your browser blocked the new tab. Allow pop-ups for this page, or reload the page to sign in (answers that didn't save need to be typed again).", true); return; }
+  say("Finish signing in on the new tab. This page carries on by itself when you're done.");
+  function check() {
+    var r = cpPass();
+    if (!r || r.t === before) return;
+    clearInterval(timer); window.removeEventListener("storage", check);
+    cpCardOpen = false;
+    if (done) done({ token: r.t, email: r.e });
+  }
+  timer = setInterval(check, 1500);
+  window.addEventListener("storage", check);
+}
+
+/* ---------- Sign in with Google (the Class Pass page only) ----------
+   Google's own sign-in page, so the student can pick their school account even when another account is signed in
+   first. It sends the browser back here with an ID token after the # (never to any server), and the sheet checks
+   that token with Google before signing this browser in. The nonce ties the answer to this tab. */
+function cpGoogle(client, opt, say) {
+  opt = opt || {};
+  var nonce = "";
+  try {
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    // The nonce ends with the deployment this sign-in is for. Google puts it inside the signed ID token, and each sheet
+    // refuses a token made for a different deployment, so a link to some other web app can't collect a student's
+    // Google sign-in and use it at a real assignment.
+    nonce = Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("") + "." + CP_APP;
+    sessionStorage.setItem("classpass-google", JSON.stringify({ n: nonce, s: !!opt.silent, t: !!opt.tab, a: CP_APP }));
+  } catch (e) { nonce = ""; }
+  if (!nonce) { if (say) say("This browser blocks a step Google sign-in needs (a private window can do that). Try a regular window.", true); return false; }
+  // Google only returns to the exact address registered with the client ID: .../pass/ (never .../pass/index.html)
+  var p = { client_id: client, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ""), response_type: "id_token",
+            scope: "openid email", nonce: nonce, state: CP_APP, hd: "*" };
+  if (opt.silent) { p.prompt = "none"; p.login_hint = opt.hint; }   // no box: Google answers at once, or says it needs the student
+  else p.prompt = "select_account";
+  cpGo("https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams(p).toString());
+  return true;
+}
+/** Back from Google's sign-in page? Its answer is after the # in the address. Returns { app, idToken, error } and takes
+    the answer out of the address bar and the history, or returns null. */
+function cpTakeGoogleReturn() {
+  var h = location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
+  if (!h || !(h.get("id_token") || h.get("error"))) return null;
+  var out = { app: String(h.get("state") || ""), idToken: h.get("id_token") || "", error: h.get("error") || "" };
+  var app = new URLSearchParams(location.search).get("app") || out.app;
+  try { history.replaceState(null, "", location.pathname + (/^AKfycb[\w-]{20,}$/.test(app) ? "?app=" + app : "")); } catch (e) {}
+  return out;
+}
+function cpClaims(t) {
+  try {
+    var p = String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (p.length % 4) p += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(p))));
+  } catch (e) { return null; }
+}
+/** done(note, r, how): r = { token, email } when signed in; note = what to tell the student otherwise ("" = nothing:
+    the quiet try just needs the student to pick). how = { s: quiet try, t: sign in for another tab }. */
+function cpFinishGoogle(back, kind, done) {
+  var want = null;
+  try { want = JSON.parse(sessionStorage.getItem("classpass-google") || "null"); sessionStorage.removeItem("classpass-google"); } catch (e) { want = null; }
+  if (!want) {   // started on the old Video Check front door (/video/) just before it moved here
+    try { var old = sessionStorage.getItem("videocheck-google-nonce"); if (old) want = { n: old }; sessionStorage.removeItem("videocheck-google-nonce"); } catch (e) {}
+  }
+  want = want || {};
+  if (back.error) {
+    if (want.s) return done("", null, want);
+    return done(back.error === "access_denied" ? "Google sign-in was canceled. Press Sign in with Google to try again."
+              : "Google sign-in didn't work here (" + back.error + "). Try again, or ask your teacher.", null, want);
+  }
+  var claims = back.idToken ? cpClaims(back.idToken) : null;
+  if (!claims || !want.n || claims.nonce !== want.n || (want.a && want.a !== CP_APP)) return done("That Google sign-in didn't start on this page. Press Sign in with Google again.", null, want);
+  cpStep(2, "Signing you in…");
+  cpRetry(cpCall("signInWithGoogle", [back.idToken]), function (r) {
+    cpSetToken(r.token, r.email, cpPageFor(r.kind) ? r.kind : kind);
+    cpRemember(r.email, true);
+    done("", r, want);
+  }, function (err) { done(cpSignInText(err), null, want); });
+}
+/** The quiet Google try happens at most once a minute in a tab, so a sheet that keeps refusing can't cause a loop. */
+function cpMayTryQuietly() {
+  try {
+    var last = Number(sessionStorage.getItem("classpass-quiet:" + CP_APP)) || 0;
+    if (Date.now() - last < 60000) return false;
+    sessionStorage.setItem("classpass-quiet:" + CP_APP, String(Date.now()));
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- the out-of-sight check (the Class Pass page) ----------
+   Loads the web app itself in a hidden frame. Its tiny probe page (doGet with ?probe=1) tells this page whether
+   Google said who is signed in. Google's error page says nothing, so no answer in time means "sign in here". */
+var CP_CROS = /\bCrOS\b/.test(navigator.userAgent);
+// The probe page loads inside Google's page, so its answer usually comes before that page's load event: elsewhere
+// 1.5 s after the load is plenty (it was 4 s). Chromebooks wait longer: at school it's almost always "yes", and a slow
+// start on Google's side shouldn't send a whole class to the sign-in card.
+var CP_PROBE_MAX_MS = 15000, CP_PROBE_AFTER_LOAD_MS = CP_CROS ? 8000 : 1500, CP_PROBE_SKIP_MS = 5000;
+function cpProbe(done) {
+  var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
+  function end(known) {
+    if (over) return;
+    over = true;
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    window.removeEventListener("message", onMsg);
+    f.remove();
+    var sk = document.getElementById("probeSkip"); if (sk) sk.remove();
+    cpLog("the school sign-in check: " + (known === 1 ? "Google knows the student" : known === 0 ? "Google doesn't know the student" : "no answer (Google's error page, or too slow)"));
+    done(known);
+  }
+  function onMsg(e) {
+    // (The probe's message is named videoCheckProbe for every app: sheets from before Class Pass send that name.)
+    if (!e.data || typeof e.data !== "object" || !("videoCheckProbe" in e.data)) return;
+    if (!/^https:\/\/[\w-]+\.googleusercontent\.com$/.test(e.origin) && e.origin !== location.origin) return;
+    if (!fromProbe(e.source)) return;   // only the hidden frame's own page (Google puts it a frame or two inside)
+    end(e.data.videoCheckProbe === 1 ? 1 : 0);
+  }
+  function fromProbe(w) {
+    try {
+      for (var i = 0; w && i < 8; i++) { if (w === f.contentWindow) return true; if (w === w.parent) return false; w = w.parent; }
+    } catch (err) {}
+    return false;
+  }
+  window.addEventListener("message", onMsg);
+  f.title = "Checking your school sign-in";
+  f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:absolute;left:-9999px;top:0;width:10px;height:10px;border:0";
+  f.addEventListener("load", function () { clearTimeout(t2); t2 = setTimeout(function () { end(null); }, CP_PROBE_AFTER_LOAD_MS); });
+  f.src = window.CLASS_PASS_PROBE_URL ? window.CLASS_PASS_PROBE_URL(CP_APP, location.origin)   // local tests only
+        : CP_EXEC + "?probe=1&from=" + encodeURIComponent(location.origin);
+  document.body.appendChild(f);
+  t1 = setTimeout(function () { end(null); }, CP_PROBE_MAX_MS);
+  t3 = setTimeout(function () {   // taking a while (a slow start on Google's side): let the student skip ahead to signing in
+    var ld = document.getElementById("cpLoad") || document.getElementById("loading"), b = cpBtn("Sign in with Class Pass instead", "secondary", function () { end(null); });
+    var box = cpEl("div", "probewait", "Taking a while? ");
+    box.id = "probeSkip"; box.appendChild(b); if (ld) ld.appendChild(box);
+  }, CP_PROBE_SKIP_MS);
+}
+
+/** What the sheet says about itself: { kind, title, domain, googleClient, code, minutes }. A Video Check sheet from
+    before Class Pass (2026.09.29 or older) doesn't know this question, so its sign-in card's details are used. */
+function cpInfo(ok, fail) {
+  cpRetry(cpCall("classPass"), function (i) { ok(i); }, function (err) {
+    if (!/Unknown request/.test(String((err && err.message) || err))) return fail(err);
+    cpRetry(cpCall("getStudentState"), function (s) {
+      ok({ kind: "video-check", title: s.title || "", domain: s.domain || "", googleClient: s.googleClient || "", code: true, minutes: s.minutes || 10 });
+    }, fail);
+  });
+}
+function cpFail(err) {
+  var m = String((err && err.message) || err || "Something went wrong. Reload the page.").replace(/^(BUSY|NETWORK): /, "");
+  if (/^NETWORK/.test(String((err && err.message) || ""))) m += " If it keeps happening, please tell your teacher.";
+  cpStatus(m);
+  var app = document.getElementById("app"); if (app) app.hidden = true;
+}
+
+/**
+ * The Class Pass page (/pass/?app=<deployment ID>), start to finish:
+ *   1. Just back from Google: finish that sign-in.
+ *   2. Already signed in to this assignment on this device: open it.
+ *   3. This device signed in with Class Pass before (or ?signin=1): skip the check; ask Google quietly for the
+ *      account it used, or show the card.
+ *   4. Otherwise the out-of-sight check: Google knows the student (school Chromebooks): the plain /exec link.
+ *      Not: the card.
+ * Meanwhile it asks the sheet what it is (Video Check or Self-Check), which picks the page that opens, and it
+ * prefetches both assignment pages. With a Google sign-in the sheet sends the assignment too (2026.09.30 on); after
+ * any other sign-in it asks for it (getStudentState). Either way it hands the answer to the assignment's page
+ * (cpKeepState), which then draws without asking again.
+ * ?tab=1: opened by an assignment's page to sign in again. It signs in, then sends the student back to that tab.
+ */
+function cpPassBoot() {
+  document.title = "Class Pass";
+  var q = new URLSearchParams(location.search), tab = q.get("tab") === "1";
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  var info = null, waiting = [], failed = null, pre = null, left = false, asked = false;
+  function withInfo(f) { getInfo(); if (info) f(info); else if (failed) cpFail(failed); else waiting.push(f); }
+  function getInfo() {   // asks the sheet once, the first time anything needs it
+    if (asked) return;
+    asked = true;
+    cpInfo(function (i) { info = i; waiting.splice(0).forEach(function (f) { f(i); }); },
+           function (err) { failed = err; waiting.splice(0); if (!left) cpFail(err); });   // (already on the way to the assignment: no matter)
+  }
+  function page(kind) { return cpPageFor(kind) ? new URL(cpPageFor(kind) + "/?app=" + encodeURIComponent(CP_APP), location.href).href : ""; }
+  function preload() {   // just signed in: ask for the assignment now (once, no retries), for its page
+    if (tab || pre) return;
+    var p = pre = { over: false, state: null, then: [] };
+    function end(s) { if (p.over) return; p.over = true; p.state = s; p.then.splice(0).forEach(function (f) { f(); }); }
+    cpRun("getStudentState", [], function (s) { end(s && typeof s === "object" && !s.needSignIn ? s : null); }, function () { end(null); });
+    setTimeout(function () { end(null); }, CP_PRELOAD_MS);   // too slow: the assignment's page asks for itself
+  }
+  function open(r) {   // signed in: the assignment's own page under /pass/, or back to the tab that asked
+    if (!tab) cpStep(3, "Opening your assignment…");
+    // A sheet from 2026.09.30 on sends the assignment with its Google sign-in (r.state): no second trip to the sheet.
+    if (!tab && !pre && r && r.state && typeof r.state === "object" && !r.state.needSignIn) pre = { over: true, state: r.state, then: [] };
+    preload();
+    function onward(kind) {
+      var rec = cpPass();
+      if (rec && rec.k !== kind) cpSetToken(rec.t, rec.e, kind);
+      if (tab) return cpSignedInTab();
+      var url = page(kind);
+      if (!url) return cpFail("This assignment can't open with Class Pass yet. Please tell your teacher.");
+      function go() { left = true; if (pre && pre.state) cpKeepState(pre.state); cpGo(url, true); }
+      if (pre && !pre.over) pre.then.push(go); else go();
+    }
+    // It also says what it is (r.kind), so this doesn't wait for classPass (one slow answer held students here).
+    if (r && cpPageFor(r.kind)) return onward(r.kind);
+    withInfo(function (i) { onward(i.kind); });
+  }
+  function card(note) {
+    withInfo(function (i) { cpCard(CP_HOST.clear(i.title), i, { tab: tab, note: note, done: open }); });
+  }
+  function signIn(note) {   // a quiet Google try for the account this device used before, else the card
+    cpPrefetch();
+    cpStep(2, "Signing you in…");
+    withInfo(function (i) {
+      var me = cpMe();
+      if (!note && me && me.g && i.googleClient && cpMayTryQuietly()) {
+        if (cpGoogle(i.googleClient, { silent: true, hint: me.e, tab: tab })) return;
+      }
+      card(note);
+    });
+  }
+  if (CP_BACK) {
+    cpStep(2, "Signing you in…");
+    cpPrefetch();
+    getInfo();
+    return cpFinishGoogle(CP_BACK, "", function (note, r, how) {
+      if (how && how.t) tab = true;
+      if (r) open(r); else card(note);
+    });
+  }
+  var rec = tab ? null : cpPass();   // ?tab=1: the sign-in here just ran out, so it doesn't count
+  if (rec) {
+    cpStep(3, "Opening your assignment…");
+    if (page(rec.k)) return cpGo(page(rec.k), true);
+    getInfo(); return open();
+  }
+  // A school Chromebook almost always goes on to the plain link (the check below), which never needs classPass, so it asks only
+  // if it ends up signing in here: a class opening at once makes about half as many trips to the sheet. Elsewhere it asks now.
+  if (!CP_CROS) getInfo();
+  if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
+  cpStep(1, "Checking your school sign-in…");
+  cpProbe(function (known) {
+    if (known === 1) return cpGo(CP_EXEC, true);
+    if (known === 0 && CP_CROS) {
+      // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
+      // But if this device was just sent on the same way and is back, the assignment may not have opened: let the student choose.
+      var wk = "classpass-went:" + CP_APP, last = Number(cpGet(wk)) || 0;
+      if (Date.now() - last > 600000) { cpPut(wk, String(Date.now())); return cpGo(CP_EXEC, true); }
+      cpPut(wk, null);
+      var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+      c.appendChild(cpEl("h2", null, "Open the assignment"));
+      c.appendChild(cpEl("p", null, "If it didn't open a minute ago (Google said \"Sorry, unable to open the file\"), sign in with Class Pass instead."));
+      var row = cpEl("div", "si-buttons");
+      row.appendChild(cpBtn("Open the assignment", "", function () { cpPut(wk, String(Date.now())); cpGo(CP_EXEC, true); }));
+      row.appendChild(cpBtn("Sign in with Class Pass", "secondary", function () { signIn(""); }));
+      c.appendChild(row); box.appendChild(c);
+      return;
+    }
+    signIn("");
+  });
+}
+/** ?tab=1 is done: the assignment's own tab carries on by itself (it watches for the new sign-in). */
+function cpSignedInTab() {
+  var box = CP_HOST.clear(""), c = cpEl("div", "signin");
+  c.appendChild(cpEl("h2", null, "You're signed in"));
+  c.appendChild(cpEl("p", null, "Go back to your assignment's tab. Your answers are still there, and it keeps saving now."));
+  var row = cpEl("div", "si-buttons");
+  row.appendChild(cpBtn("Close this tab", "", function () { try { window.close(); } catch (e) {} }));
+  c.appendChild(row); box.appendChild(c);
+}
+
+/** The Class Pass page: fetch both assignment pages (their exact addresses) into the browser's cache now, so the one
+    that opens after signing in is already here. Chrome keeps a prefetched page for 5 minutes. */
+function cpPrefetch() {
+  if (CP_WHERE !== "pass" || !CP_EXEC || cpPrefetch.done) return;
+  cpPrefetch.done = true;
+  CP_PREFETCH.forEach(function (page) {
+    var l = document.createElement("link");
+    l.rel = "prefetch"; l.href = new URL(page + "/?app=" + encodeURIComponent(CP_APP), location.href).href;
+    document.head.appendChild(l);
+  });
+}
+
+/* ---------- the assignment, handed from the Class Pass page to the assignment's page ----------
+   Right after signing in, the Class Pass page asks the sheet for the assignment (getStudentState, cpPassBoot's
+   preload) and leaves the answer in this tab's sessionStorage (classpass-state). The assignment's page uses it only
+   for the same assignment, the same sign-in, under CP_HANDOFF_MS old, and only once; otherwise it asks the sheet. */
+var CP_PRELOAD_MS = 15000, CP_HANDOFF_MS = 60000;
+function cpKeepState(s) {
+  var r = cpPass();
+  if (!r) return;
+  try { sessionStorage.setItem("classpass-state", JSON.stringify({ a: CP_APP, t: r.t.slice(-16), at: Date.now(), s: s })); } catch (e) {}   // too big: the page asks
+}
+/** On an assignment's page: the assignment as the Class Pass page just got it, or null. */
+function cpTakeState() {
+  if (CP_WHERE !== "app") return null;
+  var h = null, r = cpPass(), age;
+  try { h = JSON.parse(sessionStorage.getItem("classpass-state") || "null"); sessionStorage.removeItem("classpass-state"); } catch (e) { h = null; }
+  if (!h || !r || h.a !== CP_APP || h.t !== r.t.slice(-16)) return null;
+  age = Date.now() - Number(h.at);
+  if (!(age >= 0 && age < CP_HANDOFF_MS) || !h.s || typeof h.s !== "object" || h.s.needSignIn) return null;
+  cpLog("the assignment came with the sign-in (" + (age / 1000).toFixed(1) + " s old)");
+  return h.s;
+}
+
+/** An assignment's page on the class website: signed in to it on this device? Then start(). If not, the Class Pass page. */
+function cpAppBoot(start) {
+  if (!CP_EXEC) return cpFail("This link is missing part of its address. Open it again from Google Classroom.");
+  if (!cpToken()) return cpGo(cpPassUrl(""), true);
+  start();
+}
+/** The sheet says this device isn't signed in (or its sign-in ran out) and nothing is on the page yet. true = handled
+    here (off to the Class Pass page); false = the host shows the card (the /exec page).
+    state = the sheet's answer: on the /exec page, with a Class Pass link, it tries to go straight to Class Pass
+    (?signin=1, no out-of-sight check). Google's frame only lets a page leave after a tap, so the card with its
+    Open with Class Pass button usually stays. */
+function cpNeedSignIn(state) {
+  cpSetToken("");
+  if (CP_WHERE === "exec") {
+    var link = state && /^https:\/\//.test(state.passLink || "") ? cpSignInLink(state.passLink) : "";
+    if (link && window.__classPassGo) window.__classPassGo(link, true);   // local tests only
+    else if (link) try { window.top.location.replace(link); } catch (e) { cpLog("Google's frame kept this page here (" + e.name + ")"); }
+    return false;
+  }
+  if (CP_WHERE !== "app") return false;
+  cpGo(cpPassUrl("&signin=1"), true);
+  return true;
+}
+
+/* ---------- pictures ----------
+   On the class website a Google Drive picture comes through the sheet (getPicture): Drive only shows a picture shared
+   with the district to a browser whose FIRST Google account is a school one. Two at a time, each once. */
+var cpPics = {}, cpPicQ = [], cpPicBusy = 0;
+function cpPicture(img, src, idx) {
+  if (!CP_SITE || !/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (cpPics[idx]) { img.src = cpPics[idx]; return; }
+  cpPicQ.push({ img: img, src: src, idx: idx });
+  cpPicNext();
+}
+function cpPicNext() {
+  while (cpPicBusy < 2 && cpPicQ.length) (function (job) {
+    if (cpPics[job.idx]) { job.img.src = cpPics[job.idx]; return; }
+    cpPicBusy++;
+    cpRetry(cpCall("getPicture", [job.idx]), function (r) {
+      cpPicBusy--;
+      if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") {   // never a page or a script
+        job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return;
+      }
+      try {
+        var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        cpPics[job.idx] = URL.createObjectURL(new Blob([bytes], { type: r.mime }));   // a blob: address also opens in a new tab
+      } catch (e) { job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return; }
+      job.img.src = cpPics[job.idx];
+      cpPicNext();
+    }, function (err) {
+      cpPicBusy--;
+      if (/Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
+      else job.img.alt = "The picture didn't load. Reload the page to try again.";
+      cpPicNext();
+    });
+  })(cpPicQ.shift());
+}
+/* ============================== (@@CLASSPASS-END) ============================== */
+
+/* ---------- Class Pass hooks (see CLASS PASS above) ----------
+   On the class website (Class Pass), this page runs as /pass/check/ and talks to the sheet with fetch. */
+var CP_HOST = {
+  tokenKey: "selfcheck-signin",   // the /exec page's own sign-in (the class website keeps one per assignment: classpass:<id>)
+  tokenArgs: TOKEN_ARGS,
+  /** Empties the page for a sign-in card: the assignment itself stays hidden until someone is signed in. */
+  clear: function (title) {
+    document.getElementById("loading").hidden = true;
+    document.getElementById("app").hidden = true;
+    var box = document.getElementById("signin");
+    box.hidden = false; box.innerHTML = "";
+    if (title) { document.title = title; box.appendChild(el("h1", null, title)); }
+    return box;
+  }
+};
+
+/* The page talks to the server through `api`: google.script.run on the /exec page, fetch on the class website
+   (both through cpRun, which adds this browser's sign-in). The preview file swaps in a mock. */
+var api = window.MOCK_API || {
+  run: function (fn, args, ok, fail) { cpRun(fn, args, ok, fail || showError); },
+  getState: function (ok, fail) { this.run("getStudentState", [], ok, fail); },
+  grade:    function (i, a, ok, fail) { this.run("gradeAnswer", [i, a], ok, fail); },
+  check:    function (i, a, ok, fail) { this.run("checkAnswer", [i, a], ok, fail); },
+  turnIn:   function (ok, fail) { this.run("turnIn", [], ok, fail); },
+  saveDraft: function (i, t, ok, fail) { this.run("saveDraft", [i, t], ok, fail); },
+  upload:   function (i, data, mime, ok, fail) { this.run("uploadPicture", [i, data, mime], ok, fail); },
+  myUpload: function (i, ok, fail) { this.run("getMyUpload", [i], ok, fail); }
+};
+
+var S = null;              // state from server
+var saved = [];            // last answer text the server has for each question
+var pending = {};          // question index -> true while a check is in flight
+var draftSaved = [];       // last text the server has for each box (checked OR autosaved)
+var draftTimer = {};       // question index -> autosave timer
+var saving = {};           // question index -> true while a background save is running
+var saveWant = {};         // question index -> newest checked text waiting to be saved
+var AUTOSAVE_MS = 8000;    // autosave this long after the student stops typing
+
+function simButton(l) {
+  var secs = timerSecs(l.url) || timerLinkSecs(l);   // timer:N, or a link to a web timer ("Open a 20-second timer"): built in
+  if (secs) return timerButton(l.label || "Show the timer", secs);
+  var a = el("a", "simbtn", l.label || "Open link"), u = cpLinkUrl(l.url);   // web addresses only (see cpLinkUrl)
+  if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener"; }
+  return a;
+}
+
+/** A button that only opens a web timer (its text or Google search says "20-second timer", "2 minute timer"):
+    its length in seconds, so the page shows its own countdown instead of opening a tab. 0 = an ordinary link. */
+function timerLinkSecs(l) {
+  var q = "";
+  try { var u = new URL(String(l.url || "")); if (/(^|\.)google\.[a-z.]+$/.test(u.hostname) && u.pathname === "/search") q = u.searchParams.get("q") || ""; } catch (e) {}
+  var re = /(\d+(?:\.\d+)?)\s*-?\s*(seconds?|secs?|minutes?|mins?)\s*-?\s*(?:count\s*-?\s*down\s*)?timer\b/i, m = re.exec(q) || re.exec(String(l.label || ""));
+  if (!m) return 0;
+  var s = Math.round(parseFloat(m[1]) * (/^m/i.test(m[2]) ? 60 : 1));
+  return s >= 1 && s <= 86400 ? s : 0;
+}
+/** "timer:120" -> 120 (1 to 86400 seconds), else 0. */
+function timerSecs(u) {
+  var m = /^timer\s*:\s*(\d+)$/i.exec(String(u || "").trim());
+  return m && +m[1] >= 1 && +m[1] <= 86400 ? +m[1] : 0;
+}
+function timerText(s) {
+  var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
+}
+/** The title over an embedded timer: the button text without "Open a" ("Open a 20-second timer" -> "20-second timer"). */
+function timerTitle(label, secs) {
+  var t = String(label || "").trim().replace(/^(open|show|start|use|run)\s+(a|an|the|your)?\s*/i, "");
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : timerText(secs) + " timer";
+}
+/** A timer button (timer:N, or a link to a web timer) becomes a countdown built into the page, always showing:
+    its title, large numbers, Start / Pause and Reset, three beeps at 0. Nothing opens in a new tab. */
+function timerButton(label, secs) {
+  var panel = el("div", "timer"); panel.setAttribute("role", "group"); panel.setAttribute("aria-label", timerTitle(label, secs));
+  var num = el("div", "timernum", timerText(secs)); num.setAttribute("role", "timer");
+  var go = el("button", null, "Start"), reset = el("button", "secondary", "Reset");
+  go.type = reset.type = "button";
+  var row = el("div", "timerrow"); row.appendChild(go); row.appendChild(reset);
+  panel.appendChild(el("div", "timertitle", timerTitle(label, secs))); panel.appendChild(num); panel.appendChild(row);
+  var left = secs * 1000, endAt = 0, tick = 0, audio = null;
+  function show() {
+    num.textContent = left <= 0 ? "Time's up!" : timerText(Math.ceil(left / 1000));
+    panel.className = "timer" + (left <= 0 ? " done" : tick ? " running" : "");
+    go.textContent = tick ? "Pause" : (left < secs * 1000 && left > 0 ? "Resume" : "Start");
+    go.disabled = left <= 0;
+  }
+  function stop() { clearInterval(tick); tick = 0; }
+  function step() {
+    left = endAt - Date.now();
+    if (left <= 0) { left = 0; stop(); beep(); }
+    show();
+  }
+  function beep() {
+    try {
+      if (!audio) return;
+      [0, 0.35, 0.7].forEach(function (t) {
+        var o = audio.createOscillator(), g = audio.createGain(), at = audio.currentTime + t;
+        o.type = "sine"; o.frequency.value = 880; o.connect(g); g.connect(audio.destination);
+        g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.4, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
+        o.start(at); o.stop(at + 0.27);
+      });
+    } catch (e) {}
+  }
+  go.addEventListener("click", function () {
+    if (tick) { step(); stop(); show(); return; }   // Pause
+    if (left <= 0) return;
+    try {   // the tap lets the page make the beep later
+      if (!audio) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); }
+      if (audio && audio.resume) audio.resume();
+    } catch (e) {}
+    endAt = Date.now() + left; tick = setInterval(step, 250); show();
+  });
+  reset.addEventListener("click", function () { stop(); left = secs * 1000; show(); });
+  show();
+  return panel;
+}
+function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
+function isUploadQ(i) { return !!S.questions[i].upload; }
+function boxInputs(i) { return Array.prototype.slice.call(document.querySelectorAll('input.pbox[data-q="' + i + '"]')); }
+/** The text saved for a question. Picture boxes are joined as  box1 | box2 | box3 */
+function answerOf(i) {
+  if (isUploadQ(i)) return saved[i] || "";   // a picture's saved link (uploads don't type)
+  if (isTableQ(i)) return tableAnswerOf(i);
+  if (!isBoxQ(i)) return document.getElementById("a" + i).value.trim();
+  var parts = boxInputs(i).map(function (b) { return b.value.replace(/\|/g, "/").trim(); });
+  return parts.some(function (p) { return p; }) ? parts.join(" | ") : "";
+}
+function blockPaste(field, i) {
+  if (!S.blockPaste) return;
+  var stop = function (e) { e.preventDefault(); setMeta(i, "Pasting is turned off. Type your answer in your own words.", "#cc0000"); };
+  field.addEventListener("paste", stop);
+  field.addEventListener("drop", stop);
+  field.addEventListener("beforeinput", function (e) { if (/insertFrom(Paste|Drop)/.test(e.inputType || "")) stop(e); });
+}
+
+/** Shrinks a picture box's text so longer answers still fit. */
+function fitBox(inp) {
+  if (!inp.parentNode || !inp.parentNode.classList.contains("boxwrap")) return;
+  inp.style.fontSize = "";
+  var size = parseFloat(getComputedStyle(inp).fontSize);
+  while (inp.scrollWidth > inp.clientWidth + 1 && size > 6) { size -= 0.5; inp.style.fontSize = size + "px"; }
+}
+
+/** "Question number style" setting: the first 1 in the pattern becomes the question's number
+    ("Q1" -> Q7, "Question 1" -> Question 7, "1)" -> 7)). No 1 in the pattern = number added at the end. */
+function qLabel(n) {
+  var p = String(S && S.numberStyle != null ? S.numberStyle : "1").trim() || "1";
+  var at = p.indexOf("1");
+  return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
+}
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function showError(err) {
+  var text = String((err && err.message) ? err.message : err).replace(/^(BUSY|NETWORK|SIGNIN): /, "");
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner error", text));
+  document.getElementById("loading").textContent = text || "Something went wrong. Reload the page.";
+}
+function note(text) {   // a short black message at the top of the page
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner", text));
+  window.scrollTo(0, 0);
+}
+
+function render() {
+  document.getElementById("loading").hidden = true;
+  document.getElementById("signin").hidden = true;
+  document.getElementById("app").hidden = false;
+  document.title = S.title;
+  document.getElementById("title").textContent = S.title;
+  var who = document.getElementById("who");
+  who.textContent = "Signed in as " + S.name + ". Your work saves automatically.";
+  if (S.via === "code") {   // signed in with Class Pass: let a different student sign out on a shared device
+    who.appendChild(document.createTextNode(" Not you? "));
+    var so = el("button", "linkbtn", "Sign out"); so.type = "button"; so.addEventListener("click", signOutHere);
+    who.appendChild(so);
+  }
+  document.getElementById("intro").textContent = S.intro;
+  var L = document.getElementById("links");
+  (S.links || []).forEach(function (l) { L.appendChild(simButton(l)); });
+  L.hidden = !(S.links && S.links.length);
+
+  var box = document.getElementById("items");
+  var sec = {}, secNo = {}; S.sections.forEach(function (s, k) { sec[s.before] = s; secNo[s.before] = k; });
+  S.questions.forEach(function (q, i) {
+    if (sec[i]) {
+      var stripEl = el("div", "strip", sec[i].title); stripEl.id = "part" + (secNo[i] + 1); box.appendChild(stripEl);
+      if (sec[i].img) {   // a picture right under the strip (Questions tab: Section picture)
+        var sf = el("figure", "qimg secimg");
+        var sim = el("img"); sim.alt = sec[i].imgCaption || ("Picture for " + sec[i].title); sim.loading = "lazy";
+        cpPicture(sim, sec[i].img, "s" + secNo[i]);
+        sim.addEventListener("click", function () { var u = cpImgUrl(this.src); if (u) window.open(u, "_blank", "noopener"); });
+        sf.appendChild(sim);
+        if (sec[i].imgCaption) sf.appendChild(el("figcaption", null, sec[i].imgCaption));
+        box.appendChild(sf);
+      }
+      if (sec[i].links && sec[i].links.length) {
+        var sl = el("div", "seclinks");
+        sec[i].links.forEach(function (l) { sl.appendChild(simButton(l)); });
+        box.appendChild(sl);
+      }
+    }
+    var item = el("div", "item");
+    var qt = el("div", "qtext");
+    qt.appendChild(el("span", "qnum", qLabel(i + 1)));
+    if (q.points && S.showPoints) qt.appendChild(el("span", "qpts", (Math.round(q.points * 100) / 100) + (q.points === 1 ? " point" : " points")));
+    qt.appendChild(document.createTextNode(q.text));
+    if (q.img && !(q.boxes && q.boxes.length) && !q.draw) {
+      var fig = el("figure", "qimg");
+      var im = el("img"); im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
+      cpPicture(im, q.img, i);
+      im.addEventListener("click", function () { var u = cpImgUrl(im.src); if (u) window.open(u, "_blank", "noopener"); });
+      fig.appendChild(im);
+      if (q.imgCaption) fig.appendChild(el("figcaption", null, q.imgCaption));
+      qt.appendChild(fig);
+    }
+    if (q.links && q.links.length) {
+      var ql = el("div", "qlinks");
+      q.links.forEach(function (l) { ql.appendChild(simButton(l)); });
+      qt.appendChild(ql);
+    }
+    var ta;
+    if (q.table) {
+      ta = tableBox(i);
+    } else if (q.draw) {
+      ta = drawBox(i);
+    } else if (q.upload) {
+      ta = uploadBox(i);
+    } else if (q.boxes && q.boxes.length) {
+      // Picture-box question: one small input per blank, placed on the picture.
+      ta = el("div", "boxarea"); ta.id = "a" + i;
+      var prev = String(S.answers[i] || "").split("|").map(function (p) { return p.trim(); });
+      var holder;
+      if (q.img) {
+        holder = el("figure", "boxfig qimg");
+        holder.style.margin = "10px 12px";
+        var wrap = el("div", "boxwrap");
+        var pim = el("img"); pim.alt = q.imgCaption || ("Diagram for question " + (i + 1));
+        pim.addEventListener("load", function () { boxInputs(i).forEach(fitBox); });
+        cpPicture(pim, q.img, i);
+        wrap.appendChild(pim);
+        holder.appendChild(wrap);
+        if (q.imgCaption) holder.appendChild(el("figcaption", null, q.imgCaption));
+      } else {
+        holder = el("div", "boxlist"); holder.style.padding = "0 12px 10px";
+      }
+      q.boxes.forEach(function (b, k) {
+        var inp = el("input", "pbox"); inp.type = "text"; inp.maxLength = 80;
+        inp.setAttribute("data-q", i); inp.setAttribute("aria-label", b.label);
+        inp.value = prev[k] || ""; inp.disabled = S.locked; inp.autocomplete = "off";
+        if (q.img) {
+          inp.style.left = b.x + "%"; inp.style.top = b.y + "%"; inp.style.width = b.w + "%"; inp.style.height = b.h + "%";
+          if (S.boxHint) inp.placeholder = S.boxHint;   // Settings "Picture box hint text" (blank, or an older sheet: none)
+          wrap.appendChild(inp);
+        } else {
+          var lab = el("label", null, b.label); lab.appendChild(inp); holder.appendChild(lab);
+        }
+      });
+      ta.appendChild(holder);
+    } else {
+      ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…"; ta.rows = 1; growAnswer(ta);
+      ta.disabled = S.locked;
+    }
+    var fb = el("div", "fb"); fb.id = "f" + i;
+    var row = el("div", "fbbar"), fbt = el("div", "fbtext");   // the black bar: feedback and the save status on the left, Check on the right
+    var meta = el("div", "meta"); meta.id = "m" + i;
+    var btn = el("button", "secondary", "Check"); btn.id = "b" + i; btn.disabled = S.locked;
+    fbt.appendChild(fb); fbt.appendChild(meta); row.appendChild(fbt); row.appendChild(btn);
+    if (q.upload) btn.hidden = true;   // the upload box saves by itself
+    item.appendChild(qt);
+    if (i > 0 && S.questions[i - 1].upload && !q.upload) item.appendChild(reminderFor(i - 1, item));
+    item.appendChild(ta); item.appendChild(row);
+    box.appendChild(item);
+
+    saved[i] = (S.checkedAnswers ? S.checkedAnswers[i] : S.answers[i]) || "";
+    draftSaved[i] = S.answers[i] || "";
+    if (S.unchecked && S.unchecked[i]) setMeta(i, "Saved as a draft. Press Check for feedback.", "#b45f06");
+    paint(i, S.results[i]);
+    if (q.draw) { if (saved[i]) loadDrawing(i); return; }
+    if (q.table) { btn.addEventListener("click", function () { check(i, true); }); wireTable(i); return; }
+    if (q.upload) { if (saved[i]) showMyUpload(i); return; }
+    btn.addEventListener("click", function () { check(i, true); });
+    var fields = isBoxQ(i) ? boxInputs(i) : [ta];
+    fields.forEach(function (f) {
+      blockPaste(f, i);
+      f.addEventListener("blur", function () {
+        // Picture boxes: check once the student leaves the whole diagram (Tab between boxes doesn't check yet).
+        setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+      });
+      if (isBoxQ(i)) f.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); check(i, true); } });
+      if (isBoxQ(i)) { setTimeout(function () { fitBox(f); }, 0); window.addEventListener("resize", function () { fitBox(f); }); }
+      f.addEventListener("input", function () {
+        if (isBoxQ(i)) { f.className = "pbox"; fitBox(f); }   // clear this box's color while it's being changed
+        setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+        clearTimeout(draftTimer[i]);
+        draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+      });
+    });
+  });
+
+  var pv = document.getElementById("pageVer");
+  if (pv) pv.textContent = "Page " + PAGE_VERSION + (S.version ? " · Sheet " + S.version : " · Sheet older than 2026.10.01e");
+  var fin = document.getElementById("finishBtn");
+  fin.addEventListener("click", finish);
+  if (S.sections.length > 1) {   // "Jump to" links for each section, in the sticky progress bar
+    var jump = el("div", "jump"); jump.appendChild(el("span", null, "Jump to:"));
+    S.sections.forEach(function (sc, k) {
+      var t = String(sc.title || ""), c = t.indexOf(":"), name = c > 0 && c <= 20 ? t.slice(0, c) : "Section " + (k + 1);
+      var a = el("a", null, name.charAt(0) + name.slice(1).toLowerCase()); a.href = "#part" + (k + 1); a.target = "_self";
+      a.addEventListener("click", function (e) { e.preventDefault(); var t2 = document.getElementById("part" + (k + 1)); if (t2) t2.scrollIntoView({ behavior: "smooth", block: "start" }); });
+      jump.appendChild(a);
+    });
+    var top = el("a", null, "Top"); top.href = "#"; top.target = "_self";
+    top.addEventListener("click", function (e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    jump.appendChild(top);
+    document.getElementById("progress").appendChild(jump);
+  }
+  updateFinish();
+  updateProgress();
+  setUpClose();
+}
+
+/* ---------- picture upload questions (Answer type "upload" in the Questions tab) ----------
+   Drag a picture onto the box, click the box and paste (Ctrl+V, e.g. a screenshot or a Keep drawing copied with
+   Copy image), or press Choose a picture. The picture is shrunk here (longest side UPLOAD_MAX_PX, JPEG) and sent to
+   the sheet, which saves it in your Drive. Not graded. */
+var UPLOAD_MAX_PX = 1600, uploading = {};
+function uploadBox(i) {
+  var zone = el("div", "dropzone"); zone.id = "a" + i; zone.tabIndex = 0;
+  zone.setAttribute("role", "group"); zone.setAttribute("aria-label", "Picture for question " + (i + 1));
+  var prev = el("img", "dzprev"); prev.id = "p" + i; prev.alt = "Your picture for question " + (i + 1); prev.hidden = true;
+  var dz = el("div", "dzbox");
+  dz.appendChild(el("b", null, "Add your picture here"));
+  dz.appendChild(el("span", null, "Drag a picture onto this box, or click this box and press Ctrl+V to paste it. A photo or a screenshot works."));
+  var pick = el("button", "dzpick", "Choose a picture"); pick.type = "button"; pick.id = "u" + i; pick.disabled = S.locked;
+  var file = el("input"); file.type = "file"; file.accept = "image/*"; file.hidden = true;
+  dz.appendChild(pick); dz.appendChild(file);
+  zone.appendChild(prev); zone.appendChild(dz);
+  pick.addEventListener("click", function (e) { e.stopPropagation(); if (!S.locked) file.click(); });
+  file.addEventListener("change", function () { if (file.files && file.files[0]) sendPicture(i, file.files[0]); file.value = ""; });
+  dz.addEventListener("click", function () { zone.focus(); if (!S.locked) setMeta(i, "Now press Ctrl+V to paste your picture, or drag one here.", "#666"); });
+  ["dragenter", "dragover"].forEach(function (t) { zone.addEventListener(t, function (e) { e.preventDefault(); if (!S.locked) zone.classList.add("over"); }); });
+  ["dragleave", "dragend"].forEach(function (t) { zone.addEventListener(t, function () { zone.classList.remove("over"); }); });
+  zone.addEventListener("drop", function (e) {
+    e.preventDefault(); zone.classList.remove("over");
+    if (S.locked) return;
+    var f = pictureFrom(e.dataTransfer);
+    if (f) sendPicture(i, f); else setMeta(i, "That wasn't a picture. Drag in a picture file, or use Choose a picture.", "#cc0000");
+  });
+  zone.addEventListener("paste", function (e) {
+    e.preventDefault();
+    if (S.locked) return;
+    var f = pictureFrom(e.clipboardData);
+    if (f) sendPicture(i, f);
+    else setMeta(i, "There's no picture to paste. Copy a picture first (a screenshot, or right-click a picture > Copy image), then press Ctrl+V here.", "#cc0000");
+  });
+  return zone;
+}
+/** The first picture in a drop or a paste, or null. */
+function pictureFrom(dt) {
+  if (!dt) return null;
+  var k, list = dt.files || [];
+  for (k = 0; k < list.length; k++) if (/^image\//.test(list[k].type)) return list[k];
+  var items = dt.items || [];
+  for (k = 0; k < items.length; k++) if (items[k].kind === "file" && /^image\//.test(items[k].type)) { var f = items[k].getAsFile(); if (f) return f; }
+  return null;
+}
+/** A picture file -> { data (base64 JPEG), mime, url (for the preview) }, longest side UPLOAD_MAX_PX. */
+function shrinkPicture(file, done, fail) {
+  var src = URL.createObjectURL(file), img = new Image();
+  img.onload = function () {
+    try {
+      var w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, UPLOAD_MAX_PX / Math.max(w, h, 1));
+      var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+      var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);   // see-through PNGs get a white background
+      g.drawImage(img, 0, 0, c.width, c.height);
+      var url = c.toDataURL("image/jpeg", 0.85);
+      URL.revokeObjectURL(src);
+      done({ data: url.split(",")[1], mime: "image/jpeg", url: url });
+    } catch (e) { URL.revokeObjectURL(src); fail(); }
+  };
+  img.onerror = function () { URL.revokeObjectURL(src); fail(); };
+  img.src = src;
+}
+function sendPicture(i, file) {
+  if (S.locked || uploading[i]) return;
+  if (!/^image\//.test(file.type || "")) { setMeta(i, "That file isn't a picture. Use a photo or a screenshot (JPG or PNG).", "#cc0000"); return; }
+  setMeta(i, "Getting your picture ready…", "#666");
+  shrinkPicture(file, function (pic) {
+    var prev = document.getElementById("p" + i), oldSrc = prev.src, hadOld = !prev.hidden;
+    prev.src = pic.url; prev.hidden = false;
+    uploading[i] = true; saving["u" + i] = true;   // I'm finished and leaving the page wait for it
+    var pick = document.getElementById("u" + i); pick.disabled = true;
+    setMeta(i, "Uploading your picture…", "#666");
+    withRetry(function (ok, fail) { api.upload(i, pic.data, pic.mime, ok, fail); }, function (resp) {
+      uploading[i] = false; saving["u" + i] = false; pick.disabled = S.locked;
+      saved[i] = draftSaved[i] = resp.url || "uploaded";
+      paint(i, resp.result);
+      if (typeof resp.grade === "number") S.grade = resp.grade;
+      pick.textContent = "Choose a different picture"; markHasPicture(i);
+      updateProgress(); updateReminders();
+      setMeta(i, "Picture saved " + stamp() + ". To change it, add a different one.", "#38761d");
+    }, function (err) {
+      uploading[i] = false; saving["u" + i] = false; pick.disabled = S.locked;
+      if (hadOld) prev.src = oldSrc; else prev.hidden = true;
+      if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, then add your picture again.", "#cc0000"); return; }
+      if (closedMidway(err)) { setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
+      setMeta(i, String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") ||
+                 "Your picture didn't upload. Wait a minute and try again.", "#cc0000");
+    }, 0, function () { setMeta(i, "Uploading your picture… (lots of students saving, so hang on)", "#666"); });
+  }, function () {
+    setMeta(i, "This picture can't be opened here. Take a screenshot of it, or save it as a JPG or PNG, then try again.", "#cc0000");
+  });
+}
+/** After a reload: show the picture the student already added (it's only in your Drive, so it comes through the sheet). */
+function showMyUpload(i) {
+  var pick = document.getElementById("u" + i); pick.textContent = "Choose a different picture"; markHasPicture(i);
+  if (!api.myUpload) return;
+  setMeta(i, "Loading your picture…", "#666");
+  api.myUpload(i, function (r) {
+    var prev = document.getElementById("p" + i);
+    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { setMeta(i, "Your picture is saved.", "#38761d"); return; }
+    try {
+      var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+      for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+      prev.src = URL.createObjectURL(new Blob([bytes], { type: r.mime })); prev.hidden = false;
+      setMeta(i, "Your picture is saved. To change it, add a different one.", "#38761d");
+    } catch (e) { setMeta(i, "Your picture is saved.", "#38761d"); }
+  }, function () { setMeta(i, "Your picture is saved. (It couldn't be shown right now.)", "#38761d"); });
+}
+function hasUpload(i) { return !!saved[i] || !!(pads[i] && pads[i].ink); }
+function markHasPicture(i) { var b = document.querySelector("#a" + i + " .dzbox b"); if (b) b.textContent = "Picture added. Want to use a different one?"; }
+function missingUploads() { var out = []; S.questions.forEach(function (q, i) { if (q.upload && !hasUpload(i)) out.push(i); }); return out; }
+function goToUpload(i) {
+  var z = document.getElementById("a" + i);
+  if (!z) return;
+  z.scrollIntoView({ behavior: "smooth", block: "center" });
+  setTimeout(function () { try { z.focus({ preventScroll: true }); } catch (e) {} }, 400);
+}
+/** The question right after an upload question reminds the student (once they click into it) if the picture is missing. */
+function reminderFor(up, item) {
+  var r = el("div", "remind"); r.hidden = true; r.setAttribute("data-up", up); r.setAttribute("role", "status");
+  r.appendChild(el("span", null, "Reminder: you haven't " + (S.questions[up].draw ? "made your drawing" : "added your picture") + " for question " + (up + 1) + " yet."));
+  var go = el("button", "secondary", "Go to question " + (up + 1)); go.type = "button";
+  go.addEventListener("click", function () { goToUpload(up); });
+  r.appendChild(go);
+  item.addEventListener("focusin", function () { if (!S.locked && !hasUpload(up)) { r.hidden = false; r.setAttribute("data-shown", "1"); } });
+  return r;
+}
+function updateReminders() {
+  document.querySelectorAll(".remind").forEach(function (r) {
+    var up = Number(r.getAttribute("data-up"));
+    r.hidden = hasUpload(up) || !r.getAttribute("data-shown");
+  });
+}
+
+/* ---------- data table + graph questions (Answer type "table") ----------
+   The table on the left (fixed cells are text, the rest are number boxes), the graph on the right, drawn as the
+   student types (dots plus a best-fit line), with boxes for the graph title (above), the y-axis label (left, turned
+   sideways) and the x-axis label (below). Saved as one answer: {"v":[...the boxes...],"t":title,"x":x label,"y":y label}. */
+function isTableQ(i) { return !!S.questions[i].table; }
+function tableFields(i) { return Array.prototype.slice.call(document.querySelectorAll('[data-tq="' + i + '"]')); }
+function tableCells(i) { return Array.prototype.slice.call(document.querySelectorAll('input.tcell[data-tq="' + i + '"]')); }
+function tableLabel(i, k) { return document.getElementById("tl" + i + "_" + k); }
+function tableAnswerOf(i) {
+  var v = tableCells(i).map(function (c) { return c.value.trim(); });
+  function lab(k) { var f = tableLabel(i, k); return f ? f.value.trim() : ""; }   // (no label boxes under a "noGraph" table)
+  var t = lab("t"), x = lab("x"), y = lab("y");
+  if (!t && !x && !y && !v.some(function (s) { return s; })) return "";
+  return JSON.stringify({ v: v, t: t, x: x, y: y });
+}
+function tableSaved(i) {
+  var a = null;
+  try { a = JSON.parse(S.answers[i] || "null"); } catch (e) { a = null; }
+  if (Array.isArray(a)) {   // saved by a sheet before 2026.10.01f: the whole second column
+    var old = a, v = [];
+    S.questions[i].table.rows.forEach(function (row, r) { row.forEach(function (c, k) { if (c === null) v.push(k === 1 && old[r] != null ? String(old[r]) : ""); }); });
+    a = { v: v };
+  }
+  return a && typeof a === "object" ? a : {};
+}
+function tableBox(i) {
+  var T = S.questions[i].table, saved = tableSaved(i), vals = Array.isArray(saved.v) ? saved.v : [], n = 0;
+  var zone = el("div", "tablezone"); zone.id = "a" + i;
+  var left = el("div", "tleft"), tbl = el("table", "dtable"), thead = el("thead"), hr = el("tr");
+  T.cols.forEach(function (c) { hr.appendChild(el("th", null, c)); });
+  thead.appendChild(hr); tbl.appendChild(thead);
+  var tb = el("tbody");
+  T.rows.forEach(function (row, r) {
+    var tr = el("tr");
+    row.forEach(function (c, k) {
+      var td = el("td");
+      if (c === null) {
+        var inp = el("input", "tcell"); inp.type = "text"; inp.inputMode = "decimal"; inp.autocomplete = "off"; inp.maxLength = 12;
+        inp.setAttribute("data-tq", i); inp.setAttribute("data-n", n);
+        inp.setAttribute("aria-label", T.cols[k] + " for " + T.cols[0] + " " + row[0]);
+        inp.value = vals[n] != null ? String(vals[n]) : ""; inp.disabled = S.locked;
+        td.appendChild(inp); n++;
+      } else td.textContent = String(c);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb); left.appendChild(tbl);
+  if (T.noGraph) { zone.className = "tablezone nograph"; zone.appendChild(left); return zone; }   // Table config "noGraph": just the table
+  var right = el("div", "tright");
+  right.appendChild(el("div", "tgraphhead", "Graph"));
+  var title = tableInput(i, "t", "Type your graph's title", saved.t);
+  var mid = el("div", "tgraphmid"), ywrap = el("div", "tylab"), yin = tableInput(i, "y", "Type the y-axis label", saved.y);
+  ywrap.appendChild(yin);
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 600 380"); svg.setAttribute("class", "tgraph"); svg.id = "tg" + i;
+  svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Graph of your data");
+  mid.appendChild(ywrap); mid.appendChild(svg);
+  var xin = tableInput(i, "x", "Type the x-axis label", saved.x);
+  right.appendChild(title); right.appendChild(mid); right.appendChild(xin);
+  zone.appendChild(left); zone.appendChild(right);
+  setTimeout(function () { drawTableGraph(i); }, 0);
+  return zone;
+}
+function tableInput(i, k, ph, val) {
+  var inp = el("input", "tlabel tlabel-" + k); inp.type = "text"; inp.id = "tl" + i + "_" + k; inp.maxLength = k === "t" ? 120 : 80;
+  inp.placeholder = ph; inp.autocomplete = "off"; inp.setAttribute("data-tq", i); inp.setAttribute("aria-label", ph);
+  inp.value = val || ""; inp.disabled = S.locked;
+  return inp;
+}
+/** Hooks up a table question's boxes (called from render, once the table is on the page). */
+function wireTable(i) {
+  var fields = tableFields(i);
+  fields.forEach(function (f) {
+    if (f.classList.contains("tlabel")) blockPaste(f, i);
+    f.addEventListener("input", function () {
+      f.classList.remove("correct", "incorrect", "partial");
+      drawTableGraph(i);
+      setMeta(i, answerOf(i) !== saved[i] ? "Not checked yet" : "", "#b45f06");
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS);
+    });
+    f.addEventListener("blur", function () {
+      // checked once the student leaves the whole table and graph (moving between boxes doesn't check yet)
+      setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
+    });
+    f.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      var k = fields.indexOf(f);
+      if (k < fields.length - 1) fields[k + 1].focus(); else check(i, true);
+    });
+  });
+}
+function paintTable(i, res) {
+  var parts = (res && res.parts) || [];
+  document.getElementById("a" + i).className = "tablezone" + (S.questions[i].table.noGraph ? " nograph" : "") + (res && res.status !== "blank" ? " " + res.status : "");
+  var cells = res && Array.isArray(res.cells) ? res.cells : null;   // a table that checks the math (Table config "calc"): each box has its own color
+  tableCells(i).forEach(function (c, k) {
+    c.classList.remove("correct", "incorrect", "partial");
+    if (cells) { var st = cells[k]; if (st === "correct" || st === "partial" || st === "incorrect") c.classList.add(st); return; }
+    if (parts[0] === "correct") c.classList.add("correct");
+    else if (parts[0] === "incorrect") c.classList.add(/^-?(\d+\.?\d*|\.\d+)$/.test(c.value.trim().replace(/,/g, "")) ? "correct" : "incorrect");
+  });
+  ["t", "x", "y"].forEach(function (k, j) {
+    var f = tableLabel(i, k), m = parts[j + 1];
+    if (!f) return;   // a table with "noGraph" has no title or axis label boxes
+    f.classList.remove("correct", "incorrect");
+    if (m === "correct" || m === "incorrect") f.classList.add(m);
+  });
+}
+/** Nice round steps for the axes. */
+function niceStep(range) {
+  var raw = range / 5, mag = Math.pow(10, Math.floor(Math.log10(raw || 1))), f = raw / mag;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+}
+function drawTableGraph(i) {
+  var svg = document.getElementById("tg" + i);
+  if (!svg) return;
+  var T = S.questions[i].table, cells = tableCells(i), n = 0, pts = [];
+  T.rows.forEach(function (row) {
+    var xy = row.slice(0, 2).map(function (c) {
+      if (c !== null) return Number(c);
+      var v = cells[n] ? cells[n].value.trim().replace(/,/g, "") : ""; n++;
+      return v === "" ? NaN : Number(v);
+    });
+    if (row.length > 2) row.slice(2).forEach(function (c) { if (c === null) n++; });
+    if (isFinite(xy[0]) && isFinite(xy[1])) pts.push(xy);
+  });
+  var xsAll = T.rows.map(function (r) { return Number(r[0]); }).filter(isFinite);
+  var xMax = Math.max.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [1]));
+  var xMin = Math.min.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [0]));
+  var yMax = Math.max.apply(null, pts.map(function (p) { return p[1]; }).concat([1]));
+  var yMin = Math.min.apply(null, pts.map(function (p) { return p[1]; }).concat([0]));
+  var xs = niceStep(xMax - xMin), ys = niceStep(yMax - yMin);
+  xMax = Math.ceil(xMax / xs) * xs; xMin = Math.floor(xMin / xs) * xs; yMax = Math.ceil(yMax / ys) * ys; yMin = Math.floor(yMin / ys) * ys;
+  var L = 56, R = 568, Tp = 16, B = 340;
+  function X(v) { return L + (v - xMin) / (xMax - xMin || 1) * (R - L); }
+  function Y(v) { return B - (v - yMin) / (yMax - yMin || 1) * (B - Tp); }
+  function fmt(v) { return Math.abs(v) >= 1000 || Number.isInteger(v) ? String(Math.round(v)) : String(Math.round(v * 100) / 100); }
+  var h = [];
+  for (var gy = yMin; gy <= yMax + ys / 2; gy += ys) {
+    h.push('<line class="tg-grid" x1="' + L + '" x2="' + R + '" y1="' + Y(gy) + '" y2="' + Y(gy) + '"/>');
+    h.push('<text class="tg-tick" x="' + (L - 8) + '" y="' + (Y(gy) + 4) + '" text-anchor="end">' + fmt(gy) + '</text>');
+  }
+  for (var gx = xMin; gx <= xMax + xs / 2; gx += xs) h.push('<text class="tg-tick" x="' + X(gx) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(gx) + '</text>');
+  h.push('<line class="tg-axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/><line class="tg-axis" x1="' + L + '" x2="' + L + '" y1="' + Tp + '" y2="' + B + '"/>');
+  if (T.origin && pts.length) {   // "origin":true: the best-fit line through 0, 0 (y = slope times x), from 0, 0 out to the last point
+    var oxx = 0, oxy = 0, xEnd = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
+    pts.forEach(function (p) { oxx += p[0] * p[0]; oxy += p[0] * p[1]; });
+    if (oxx) h.push('<line class="tg-fit" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(xEnd) + '" y2="' + Y(Math.max(yMin, Math.min(yMax, oxy / oxx * xEnd))) + '"/>');
+  } else if (pts.length >= 2) {   // best-fit (trend) line
+    var sx = 0, sy = 0, sxx = 0, sxy = 0, m = pts.length;
+    pts.forEach(function (p) { sx += p[0]; sy += p[1]; sxx += p[0] * p[0]; sxy += p[0] * p[1]; });
+    var d = m * sxx - sx * sx;
+    if (d) {
+      var slope = (m * sxy - sx * sy) / d, b0 = (sy - slope * sx) / m, x0 = Math.min.apply(null, pts.map(function (p) { return p[0]; })), x1 = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
+      var clampY = function (v) { return Math.max(yMin, Math.min(yMax, v)); };
+      h.push('<line class="tg-fit" x1="' + X(x0) + '" y1="' + Y(clampY(slope * x0 + b0)) + '" x2="' + X(x1) + '" y2="' + Y(clampY(slope * x1 + b0)) + '"/>');
+    }
+  }
+  pts.forEach(function (p) { h.push('<circle class="tg-dot" cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="5"/>'); });
+  if (pts.length < (T.origin ? 1 : 2)) h.push('<text class="tg-empty" x="' + ((L + R) / 2) + '" y="' + ((Tp + B) / 2) + '" text-anchor="middle">Your points appear here as you fill in the table.</text>');
+  svg.innerHTML = h.join("");
+}
+
+/* ---------- light / dark mode ---------- */
+var PAGE_VERSION = "2026.10.30b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
+                    light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
+// The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
+var HELP_URL = "https://physical-science-8.pages.dev/chromebook-help";
+function currentTheme() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+function showThemeButton() {
+  var b = document.getElementById("themeBtn"), next = currentTheme() === "dark" ? "light" : "dark";
+  var help = document.getElementById("helpBtn");
+  if (help) help.href = HELP_URL + "?theme=" + currentTheme();
+  if (!b) return;
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + THEME_ICONS[next] + "</svg>";
+  b.appendChild(document.createTextNode(next === "dark" ? "Dark mode" : "Light mode"));
+  b.setAttribute("aria-label", "Switch to " + next + " mode");
+}
+(function () {
+  var b = document.getElementById("themeBtn");
+  if (!b) return;
+  showThemeButton();
+  b.addEventListener("click", function () {
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("selfcheck-theme", next); } catch (e) {}
+    showThemeButton();
+  });
+})();
+
+/* ---------- drawing pad questions (Answer type "draw" in the Questions tab) ----------
+   Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors, a size slider, undo,
+   redo and clear. The drawing saves itself (as a PNG, through the same uploadPicture call as a picture upload)
+   PAD_SAVE_MS after the student stops drawing, and comes back on the pad when the page is opened again. */
+/** A drawing question's background picture, as an image the pad can save (never a cross-site one, which would block saving).
+    A Drive picture comes through the sheet (getPicture); another https picture only if its site allows it. done(img or null). */
+function padBackground(i, src, done) {
+  function fromData(mime, data) { var im = new Image(); im.onload = function () { done(im); }; im.onerror = function () { done(null); }; im.src = "data:" + mime + ";base64," + data; }
+  if (/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) {
+    if (!api.run) return done(null);
+    api.run("getPicture", [i], function (r) {
+      if (r && /^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) && typeof r.data === "string") fromData(r.mime, r.data); else done(null);
+    }, function () { done(null); });
+    return;
+  }
+  var u = cpImgUrl(src);
+  if (!u || /^blob:/.test(u)) return done(null);
+  var im = new Image(); im.crossOrigin = "anonymous"; im.onload = function () { done(im); }; im.onerror = function () { done(null); }; im.src = u;
+}
+function padMeta(i, t, c) { if (document.getElementById("m" + i)) setMeta(i, t, c); }   // the pad is built before its status line
+var PAD_BG_W = 1380;   // a pad with a background picture is this many pixels wide (its height follows the picture)
+var PAD_W = 1000, PAD_H = 650, PAD_UNDO = 15, PAD_SAVE_MS = 2500, pads = {};
+var PAD_COLORS = ["#1f2430", "#ffffff", "#8a8f98", "#e03131", "#f76707", "#fcc419", "#94d82d", "#2f9e44", "#15aabf",
+                  "#1c7ed6", "#4263eb", "#7048e8", "#ae3ec9", "#f06595", "#8b5a2b", "#e0b07a", "#ffd8a8", "#a5d8ff"];
+var PAD_TOOLS = [
+  ["pen", "Pen", '<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>'],
+  ["marker", "Highlighter", '<path d="M9 15l-3 5h5l2-3"/><path d="M9 15l7-11 4 3-7 11z"/>'],
+  ["spray", "Spray", '<rect x="8" y="9" width="7" height="12" rx="1.5"/><path d="M10 9V6h3v3"/><circle cx="18" cy="4" r=".6"/><circle cx="20" cy="7" r=".6"/><circle cx="17" cy="7.5" r=".6"/>'],
+  ["eraser", "Eraser", '<path d="M8 20h12"/><path d="M4 15l9-9 6 6-7 7H8z"/><path d="M9 10l6 6"/>'],
+  ["fill", "Fill", '<path d="M4 12l7-7 8 8-7 7z"/><path d="M20 15c0 1.5 1 2.5 1 3.5a1.5 1.5 0 0 1-3 0c0-1 1-2 2-3.5z"/>'],
+  ["line", "Line", '<path d="M5 19L19 5"/>'],
+  ["arrow", "Arrow (forces)", '<path d="M4 20L20 4"/><path d="M11 4h9v9"/>'],
+  ["rect", "Rectangle", '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
+  ["oval", "Oval", '<ellipse cx="12" cy="12" rx="8" ry="6"/>'],
+  ["text", "Label (type words)", '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>']
+];
+function padIcon(svg) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + svg + '</svg>'; }
+function padBtn(title, svg, onClick) {
+  var b = el("button", "padbtn"); b.type = "button"; b.title = title; b.setAttribute("aria-label", title);
+  b.innerHTML = padIcon(svg);
+  b.addEventListener("click", onClick);
+  return b;
+}
+function drawBox(i) {
+  var zone = el("div", "drawpad"); zone.id = "a" + i;
+  var P = pads[i] = { w: PAD_W, h: PAD_H, bg: null, bgPat: null, bgWait: false, loadAfter: false, tool: "pen", color: PAD_COLORS[0], size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0 };
+  var bar = el("div", "padbar"), tools = el("div", "padgroup");
+  PAD_TOOLS.forEach(function (t) {
+    var b = padBtn(t[1], t[2], function () { P.tool = t[0]; tools.querySelectorAll(".padbtn").forEach(function (x) { x.classList.toggle("on", x === b); }); commitText(i); });
+    b.setAttribute("data-tool", t[0]); if (t[0] === "pen") b.classList.add("on");
+    tools.appendChild(b);
+  });
+  var size = el("input", "padsize"); size.type = "range"; size.min = 2; size.max = 40; size.value = P.size; size.setAttribute("aria-label", "Size");
+  size.addEventListener("input", function () { P.size = Number(size.value); });
+  var sizeWrap = el("label", "padgroup padsizewrap"); sizeWrap.appendChild(el("span", "padsizelab", "Size")); sizeWrap.appendChild(size);
+  var acts = el("div", "padgroup");
+  P.undoBtn = padBtn("Undo", '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', function () { padUndo(i); });
+  P.redoBtn = padBtn("Redo", '<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', function () { padRedo(i); });
+  var clr = padBtn("Clear the whole drawing", '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>', function () {
+    if (S.locked || !P.ink) return;
+    askConfirm("Clear your whole drawing? (Undo brings it back.)", function () { padClear(i); }, "Clear", "Cancel");
+  });
+  acts.appendChild(P.undoBtn); acts.appendChild(P.redoBtn); acts.appendChild(clr);
+  bar.appendChild(tools); bar.appendChild(sizeWrap); bar.appendChild(acts);
+  var colors = el("div", "padcolors");
+  PAD_COLORS.forEach(function (c, k) {
+    var b = el("button", "padcolor" + (k === 0 ? " on" : "")); b.type = "button"; b.style.background = c; b.title = "Color " + (k + 1); b.setAttribute("aria-label", "Color " + c);
+    b.addEventListener("click", function () { P.color = c; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.toggle("on", x === b); }); });
+    colors.appendChild(b);
+  });
+  var pick = el("input", "padpick"); pick.type = "color"; pick.value = "#1f2430"; pick.title = "Pick any color"; pick.setAttribute("aria-label", "Pick any color");
+  pick.addEventListener("input", function () { P.color = pick.value; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.remove("on"); }); });
+  colors.appendChild(pick);
+  var wrap = el("div", "padwrap"), cv = el("canvas", "padcanvas"); cv.width = P.w; cv.height = P.h;
+  cv.setAttribute("aria-label", "Drawing area for question " + (i + 1)); cv.setAttribute("role", "img");
+  wrap.appendChild(cv);
+  zone.appendChild(bar); zone.appendChild(colors); zone.appendChild(wrap);
+  P.cv = cv; P.cx = cv.getContext("2d", { willReadFrequently: true }); P.wrap = wrap;
+  P.cx.fillStyle = "#fff"; P.cx.fillRect(0, 0, P.w, P.h);
+  var bgSrc = S.questions[i].img;
+  if (bgSrc) {   // the question's picture (Questions tab: Picture) is the paper students draw on
+    P.bgWait = true;
+    padMeta(i, "Loading the picture to draw on…", "#666");
+    padBackground(i, bgSrc, function (im) {
+      P.bgWait = false;
+      if (im && im.naturalWidth) {
+        var w = PAD_BG_W, h = Math.max(100, Math.round(PAD_BG_W * im.naturalHeight / im.naturalWidth));
+        P.w = cv.width = w; P.h = cv.height = h; cv.style.aspectRatio = w + " / " + h;
+        P.cx.fillStyle = "#fff"; P.cx.fillRect(0, 0, w, h); P.cx.drawImage(im, 0, 0, w, h);
+        var bc = document.createElement("canvas"); bc.width = w; bc.height = h; bc.getContext("2d").drawImage(cv, 0, 0);
+        P.bg = bc; P.bgPat = P.cx.createPattern(bc, "no-repeat");   // the eraser paints the picture back, not white
+        P.undo = []; P.redo = []; padButtons(i);
+        padMeta(i, "", "");
+      } else {   // couldn't put it on the pad: show it above the pad instead
+        var fig = el("figure", "qimg"), pim = el("img"); pim.alt = "Picture for question " + (i + 1);
+        cpPicture(pim, bgSrc, i); fig.appendChild(pim); zone.insertBefore(fig, wrap);
+        padMeta(i, "", "");
+      }
+      if (P.loadAfter) { P.loadAfter = false; loadDrawing(i); }
+    });
+  }
+  padButtons(i);
+  function pt(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * P.w / r.width, y: (e.clientY - r.top) * P.h / r.height }; }
+  cv.addEventListener("pointerdown", function (e) {
+    if (S.locked || e.button > 0 || P.bgWait) return;
+    e.preventDefault();
+    if (P.tool === "text") return;   // labels start on click (below), after the pointer is let go
+    var p = pt(e);
+    commitText(i);
+    padPush(i);
+    if (P.tool === "fill") { padFill(P, p); padChanged(i); return; }
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    P.down = true; P.start = P.last = p; P.points = [p];
+    P.shot = P.cx.getImageData(0, 0, P.w, P.h);
+    if (P.tool === "spray") { padSpray(P, p); P.spray = setInterval(function () { padSpray(P, P.last); }, 30); }
+    else padStroke(P, p);
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!P.down) return;
+    var p = pt(e); P.last = p;
+    if (P.tool === "spray") return;
+    P.points.push(p); padStroke(P, p);
+  });
+  function up() {
+    if (!P.down) return;
+    P.down = false; clearInterval(P.spray); P.shot = null;
+    padChanged(i);
+  }
+  cv.addEventListener("click", function (e) {
+    if (S.locked || P.tool !== "text") return;
+    var had = !!P.text;
+    commitText(i);
+    if (!had) startText(i, pt(e));   // a click while a label is open just finishes that label
+  });
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up); cv.addEventListener("lostpointercapture", up);
+  return zone;
+}
+/** Draws the current stroke or shape from the picture taken when it started, so shapes stretch and the highlighter stays even. */
+function padStroke(P, p) {
+  var g = P.cx, t = P.tool, s = P.start;
+  g.putImageData(P.shot, 0, 0);
+  g.save();
+  g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = P.size;
+  g.strokeStyle = g.fillStyle = t === "eraser" ? (P.bgPat || "#ffffff") : P.color;
+  if (t === "marker") { g.globalAlpha = 0.35; g.lineWidth = P.size * 3; g.lineCap = "butt"; }
+  if (t === "eraser") g.lineWidth = P.size * 3;
+  if (t === "pen" || t === "marker" || t === "eraser") {
+    var pts = P.points;
+    g.beginPath(); g.moveTo(pts[0].x, pts[0].y);
+    if (pts.length === 1) g.lineTo(pts[0].x + 0.01, pts[0].y);
+    for (var k = 1; k < pts.length; k++) g.lineTo(pts[k].x, pts[k].y);
+    g.stroke();
+  } else if (t === "line" || t === "arrow") {
+    g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(p.x, p.y); g.stroke();
+    if (t === "arrow") {
+      var a = Math.atan2(p.y - s.y, p.x - s.x), h = Math.max(14, P.size * 3.2);
+      g.beginPath(); g.moveTo(p.x, p.y);
+      g.lineTo(p.x - h * Math.cos(a - 0.45), p.y - h * Math.sin(a - 0.45));
+      g.lineTo(p.x - h * Math.cos(a + 0.45), p.y - h * Math.sin(a + 0.45));
+      g.closePath(); g.fill();
+    }
+  } else if (t === "rect") {
+    g.strokeRect(Math.min(s.x, p.x), Math.min(s.y, p.y), Math.abs(p.x - s.x), Math.abs(p.y - s.y));
+  } else if (t === "oval") {
+    g.beginPath();
+    g.ellipse((s.x + p.x) / 2, (s.y + p.y) / 2, Math.abs(p.x - s.x) / 2 + 0.5, Math.abs(p.y - s.y) / 2 + 0.5, 0, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.restore();
+}
+function padSpray(P, p) {
+  var g = P.cx, r = P.size * 2.5;
+  P.shot = null;   // spray adds dots; nothing to redraw
+  g.fillStyle = P.color;
+  for (var k = 0; k < 18; k++) {
+    var a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * r;
+    g.fillRect(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 1.6, 1.6);
+  }
+}
+/** Paint bucket: fills the touching area of about the same color. */
+function padFill(P, p) {
+  var x0 = Math.floor(p.x), y0 = Math.floor(p.y);
+  if (x0 < 0 || y0 < 0 || x0 >= P.w || y0 >= P.h) return;
+  var img = P.cx.getImageData(0, 0, P.w, P.h), d = img.data, at = (y0 * P.w + x0) * 4;
+  var r0 = d[at], g0 = d[at + 1], b0 = d[at + 2];
+  var c = P.color.replace("#", ""), fr = parseInt(c.substr(0, 2), 16), fg = parseInt(c.substr(2, 2), 16), fb = parseInt(c.substr(4, 2), 16);
+  if (Math.abs(fr - r0) + Math.abs(fg - g0) + Math.abs(fb - b0) < 8) return;
+  var tol = 90, seen = new Uint8Array(P.w * P.h), stack = [x0, y0];
+  function same(k) { return Math.abs(d[k] - r0) + Math.abs(d[k + 1] - g0) + Math.abs(d[k + 2] - b0) <= tol; }
+  while (stack.length) {
+    var y = stack.pop(), x = stack.pop(), n = y * P.w + x;
+    while (x > 0 && !seen[n - 1] && same((n - 1) * 4)) { x--; n--; }
+    var upOpen = false, downOpen = false;
+    while (x < P.w && !seen[n] && same(n * 4)) {
+      seen[n] = 1; d[n * 4] = fr; d[n * 4 + 1] = fg; d[n * 4 + 2] = fb; d[n * 4 + 3] = 255;
+      if (y > 0) { var u = n - P.w; if (!seen[u] && same(u * 4)) { if (!upOpen) { stack.push(x, y - 1); upOpen = true; } } else upOpen = false; }
+      if (y < P.h - 1) { var w = n + P.w; if (!seen[w] && same(w * 4)) { if (!downOpen) { stack.push(x, y + 1); downOpen = true; } } else downOpen = false; }
+      x++; n++;
+    }
+  }
+  P.cx.putImageData(img, 0, 0);
+}
+/* Labels: click the pad with the Label tool, type, then press Enter (or click somewhere else). */
+function startText(i, p) {
+  var P = pads[i], box = el("input", "padtext"); box.type = "text"; box.maxLength = 60; box.placeholder = "Type a label, then Enter";
+  var fs = Math.round(14 + P.size * 1.4);
+  box.style.left = (100 * p.x / P.w) + "%"; box.style.top = (100 * p.y / P.h) + "%";
+  box.style.color = P.color === "#ffffff" ? "#1f2430" : P.color;
+  P.text = { box: box, p: p, fs: fs, color: P.color };
+  P.wrap.appendChild(box);
+  var made = Date.now();
+  box.focus();
+  box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); commitText(i); } if (e.key === "Escape") { box.value = ""; commitText(i); } });
+  box.addEventListener("blur", function () {
+    if (Date.now() - made < 400) { setTimeout(function () { if (P.text && P.text.box === box) box.focus(); }, 0); return; }   // the click that opened it
+    setTimeout(function () { if (P.text && P.text.box === box) commitText(i); }, 0);
+  });
+}
+function commitText(i) {
+  var P = pads[i];
+  if (!P || !P.text) return;
+  var t = P.text, words = t.box.value.trim();
+  P.text = null; t.box.remove();
+  if (!words) return;
+  padPush(i);
+  var g = P.cx;
+  g.save(); g.fillStyle = t.color; g.textBaseline = "top";
+  g.font = "600 " + t.fs + "px Poppins, Arial, sans-serif";
+  g.fillText(words, t.p.x, t.p.y - t.fs * 0.15);
+  g.restore();
+  padChanged(i);
+}
+function padPush(i) {
+  var P = pads[i];
+  P.undo.push({ img: P.cx.getImageData(0, 0, P.w, P.h), ink: P.ink });
+  if (P.undo.length > PAD_UNDO) P.undo.shift();
+  P.redo = [];
+  padButtons(i);
+}
+function padUndo(i) {
+  var P = pads[i];
+  if (S.locked || !P.undo.length) return;
+  commitText(i);
+  P.redo.push({ img: P.cx.getImageData(0, 0, P.w, P.h), ink: P.ink });
+  var h = P.undo.pop(); P.cx.putImageData(h.img, 0, 0); P.ink = h.ink;
+  padChanged(i, true);
+}
+function padRedo(i) {
+  var P = pads[i];
+  if (S.locked || !P.redo.length) return;
+  P.undo.push({ img: P.cx.getImageData(0, 0, P.w, P.h), ink: P.ink });
+  var h = P.redo.pop(); P.cx.putImageData(h.img, 0, 0); P.ink = h.ink;
+  padChanged(i, true);
+}
+function padClear(i) {
+  var P = pads[i];
+  padPush(i);
+  P.cx.fillStyle = "#fff"; P.cx.fillRect(0, 0, P.w, P.h);
+  if (P.bg) P.cx.drawImage(P.bg, 0, 0);   // back to the blank picture
+  P.ink = false;
+  padChanged(i, true);
+}
+function padButtons(i) { var P = pads[i]; if (!P.undoBtn) return; P.undoBtn.disabled = S.locked || !P.undo.length; P.redoBtn.disabled = S.locked || !P.redo.length; }
+/** Something changed on the pad: save it a moment after the student stops. */
+function padChanged(i, keepInk) {
+  var P = pads[i];
+  if (!keepInk) P.ink = true;
+  P.dirty = true;
+  padButtons(i);
+  clearTimeout(P.timer);
+  if (!P.ink) { setMeta(i, saved[i] ? "Your pad is empty. Your last saved drawing stays until you draw something new." : "", "#b45f06"); P.dirty = false; return; }
+  setMeta(i, "Not saved yet…", "#b45f06");
+  P.timer = setTimeout(function () { saveDrawing(i); }, PAD_SAVE_MS);
+  updateReminders();
+}
+function saveDrawing(i) {
+  var P = pads[i];
+  clearTimeout(P.timer);
+  if (S.locked || !P.ink || !P.dirty) return;
+  if (uploading[i]) { P.timer = setTimeout(function () { saveDrawing(i); }, 1000); return; }
+  var url = P.cv.toDataURL("image/png"), mime = "image/png";
+  if (url.length > 2500000) { url = P.cv.toDataURL("image/jpeg", 0.9); mime = "image/jpeg"; }
+  P.dirty = false;
+  uploading[i] = true; saving["u" + i] = true;
+  setMeta(i, "Saving your drawing…", "#666");
+  withRetry(function (ok, fail) { api.upload(i, url.split(",")[1], mime, ok, fail); }, function (resp) {
+    uploading[i] = false; saving["u" + i] = false;
+    saved[i] = draftSaved[i] = resp.url || "drawn";
+    paint(i, resp.result);
+    if (typeof resp.grade === "number") S.grade = resp.grade;
+    updateProgress(); updateReminders();
+    if (!P.dirty) setMeta(i, "Drawing saved " + stamp() + ".", "#38761d");
+  }, function (err) {
+    uploading[i] = false; saving["u" + i] = false; P.dirty = true;
+    if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, and your drawing saves by itself.", "#cc0000"); return; }
+    if (closedMidway(err)) { setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
+    setMeta(i, (String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") || "Your drawing didn't save.") + " It tries again when you draw more.", "#cc0000");
+  }, 0, function () { setMeta(i, "Saving your drawing… (lots of students saving, so hang on)", "#666"); });
+}
+/** After a reload: put the saved drawing back on the pad so the student can keep working on it. */
+function loadDrawing(i) {
+  if (!api.myUpload) return;
+  if (pads[i] && pads[i].bgWait) { pads[i].loadAfter = true; return; }   // after the picture is on the pad
+  setMeta(i, "Loading your drawing…", "#666");
+  api.myUpload(i, function (r) {
+    var P = pads[i];
+    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { setMeta(i, "Your drawing is saved.", "#38761d"); return; }
+    var img = new Image();
+    img.onload = function () {
+      if (P.ink) return;   // the student already started drawing again
+      P.cx.drawImage(img, 0, 0, P.w, P.h); P.ink = true;
+      setMeta(i, "Your drawing is saved. Keep drawing to change it.", "#38761d");
+    };
+    img.onerror = function () { setMeta(i, "Your drawing is saved.", "#38761d"); };
+    img.src = "data:" + r.mime + ";base64," + r.data;
+  }, function () { setMeta(i, "Your drawing is saved. (It couldn't be shown right now.)", "#38761d"); });
+}
+/** I'm finished: save any drawing that hasn't been saved yet. */
+function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k)); }); }
+
+/* ---------- end of the quarter (view only) ---------- */
+function isClosedNow() { return !!(S && S.close && S.close.closed); }
+/** Closed already: view-only page + pop-up. Closing later while the page is open: switch over at that moment. */
+function setUpClose() {
+  var c = S.close;
+  if (!c) return;
+  if (c.closed) { showClosed(); return; }
+  var wait = c.at - (S.now || Date.now()) + 1000;   // the sheet's clock, not this device's
+  if (wait > 0 && wait < 86400000) setTimeout(function () { c.closed = true; showClosed(); }, wait);
+}
+function showClosed() {
+  var c = S.close;
+  S.locked = true;
+  S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
+  document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
+  if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
+  document.getElementById("closedBarText").textContent = c.note;
+  document.getElementById("closedBar").hidden = false;
+  updateFinish(); updateProgress();
+  showClosedPopup();
+}
+function showClosedPopup() {
+  var box = document.getElementById("closedBox"), ok = document.getElementById("closedOk");
+  document.getElementById("closedLead").textContent = S.close.quarter + " ended on " + S.close.ended + ".";
+  box.hidden = false; ok.focus();
+  function close() { box.hidden = true; ok.onclick = box.onclick = null; document.removeEventListener("keydown", key); }
+  function key(e) { if (e.key === "Escape" || e.key === "Enter") close(); }
+  ok.onclick = close;
+  box.onclick = function (e) { if (e.target === box) close(); };
+  document.addEventListener("keydown", key);
+}
+/** A check or save the sheet refused because the quarter ended (the page was opened before closing time). */
+function closedMidway(err) {
+  if (!(S && S.close && /ended/i.test(String(err && err.message)))) return false;
+  if (!S.close.closed) { S.close.closed = true; showClosed(); }
+  return true;
+}
+
+/** Typed answers start one line tall and grow as the student writes. CSS field-sizing does it (Chrome); this does the same in a browser without it. */
+var GROW_CSS = (function () { try { return !!(window.CSS && CSS.supports("field-sizing", "content")); } catch (e) { return false; } })();
+function fitAnswer(ta) {
+  if (GROW_CSS || !ta.scrollHeight) return;   // 0 while its side of the page is hidden: it fits when shown, focused or typed in
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight + 6) + "px";   // + the 3 px top and bottom borders (border-box)
+}
+function growAnswer(ta) {
+  ta.setAttribute("data-grow", "1");
+  if (GROW_CSS) return;
+  ta.addEventListener("input", function () { fitAnswer(ta); });
+  ta.addEventListener("focus", function () { fitAnswer(ta); });
+  setTimeout(function () { fitAnswer(ta); }, 0);
+}
+window.addEventListener("resize", function () { if (!GROW_CSS) Array.prototype.forEach.call(document.querySelectorAll("textarea[data-grow]"), fitAnswer); });
+
+function setMeta(i, text, color) {
+  var m = document.getElementById("m" + i);
+  m.textContent = text;
+  var tone = { "#b45f06": "warn", "#38761d": "ok", "#cc0000": "bad" }[String(color || "").toLowerCase()] || "muted";
+  m.className = "meta tone-" + tone;   // colors for light and dark mode are in the CSS
+}
+
+function autosave(i) {
+  if (isUploadQ(i)) return;
+  var val = answerOf(i);
+  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
+  if (!api.saveDraft) return;
+  api.saveDraft(i, val, function (resp) {
+    if (resp && resp.saved) {
+      draftSaved[i] = val;
+      if (answerOf(i) === val && val !== saved[i]) {
+        setMeta(i, "Draft saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Press Check for feedback.", "#b45f06");
+      }
+    } else if (!(resp && resp.locked)) {
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);   // server busy: try again shortly
+    }
+  }, function (err) {
+    if (cpIsSignInError(err)) { signedOutMidway(); return; }
+    // Quietly try again later; Check still saves right away.
+    clearTimeout(draftTimer[i]);
+    draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+  });
+}
+
+function paint(i, res) {
+  var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
+  if (isTableQ(i)) {
+    paintTable(i, res);
+  } else if (isUploadQ(i)) {
+    ta.className = (S.questions[i].draw ? "drawpad" : "dropzone") + (res && res.status === "correct" ? " correct" : "") + (S.locked ? " viewonly" : "");
+  } else if (isBoxQ(i)) {
+    ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
+    boxInputs(i).forEach(function (b, k) {
+      var m = res && res.parts ? res.parts[k] : "";
+      b.className = "pbox" + (m && m !== "blank" ? " " + m : "");
+    });
+  } else {
+    ta.className = res && res.status !== "blank" ? res.status : "";
+  }
+  fb.textContent = res ? res.message : "";
+  S.results[i] = res;
+}
+
+/** Busy server or a blip: try again quietly a few times before telling the student. */
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) {
+  var m = String((err && err.message) || err || "");
+  return !/SIGNIN|sign in|locked|turned this in|Unknown question|Unknown request|doesn't have any questions|isn't ready/i.test(m);
+}
+function withRetry(call, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  call(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      var wait = RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500);   // spread students out
+      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, wait);
+    } else fail(err);
+  });
+}
+
+/** Running grade from the colors on the page (same formula as the server). */
+function localGrade() {
+  if (!S.credit) return S.grade;
+  var earned = 0, n = 0;
+  S.results.forEach(function (r, i) {
+    if (isUploadQ(i)) return;
+    var q = S.questions[i], w = q.points == null ? 1 : q.points, c = S.credit[(r && r.status) || "blank"] || 0;
+    if (q.points != null && r && r.status !== "blank" && typeof r.frac === "number") c = r.frac;   // a question worth Points earns the share of its ideas the answer shows
+    n += w; earned += w * c;
+  });
+  if (!n) return 0;
+  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
+  return Math.round(pts / S.roundTo) * S.roundTo;
+}
+function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+
+/**
+ * Check = two steps.
+ *  1. FAST: ask the server to grade only (no waiting in line) and show the color + hint.
+ *  2. BACKGROUND: save to the spreadsheet, retrying quietly if the server is busy.
+ */
+function check(i, force) {
+  if (isUploadQ(i)) return;   // pictures save through the upload box
+  var val = answerOf(i);
+  if (S.locked || pending[i]) return;
+  if (!force && val === saved[i]) return;
+  pending[i] = true;
+  clearTimeout(draftTimer[i]);
+  var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
+  setMeta(i, "Checking…"); btn.disabled = true;
+  var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
+                            : function (ok, fail) { api.check(i, val, ok, fail); };
+  RETRY_FAST(gradeCall, function (resp) {
+    pending[i] = false; btn.disabled = false;
+    saved[i] = val;
+    paint(i, resp.result);
+    S.grade = localGrade();
+    updateProgress();
+    if (answerOf(i) !== val) { setMeta(i, "Not checked yet", "#b45f06"); }
+    else setMeta(i, "Checked. Saving…", "#666");
+    queueSave(i, val);
+  }, function (err) {
+    pending[i] = false; btn.disabled = false;
+    setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); });
+}
+/** Grading retries quickly (it doesn't wait in line, so a retry usually works at once). */
+function RETRY_FAST(call, ok, fail, onRetry, attempt) {
+  attempt = attempt || 0;
+  var delays = [600, 1500, 3000, 6000];
+  call(ok, function (err) {
+    if (attempt < delays.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { RETRY_FAST(call, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
+    } else fail(err);
+  });
+}
+
+/** Saves the newest checked answer for a question, one save at a time, in order.
+    If every quick retry fails (a dropped connection, or the sheet too busy), it keeps trying by itself (saveLater),
+    so the student never has to press Check again for the answer to reach the teacher. */
+var saveLater = {}, saveLaterN = {}, savedChecked = {};   // question index -> timer for the next try by itself, how many tries so far, and the last checked text the sheet saved
+function queueSave(i, val) {
+  saveWant[i] = val;
+  clearTimeout(saveLater[i]); saveLater[i] = 0;
+  if (saving[i]) return;               // the running save will pick up the newest text when it finishes
+  saving[i] = true;
+  var v = saveWant[i];
+  withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
+    saving[i] = false; saveLaterN[i] = 0; savedChecked[i] = v;
+    draftSaved[i] = v;
+    if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
+    if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
+    updateProgress();
+    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
+    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    saving[i] = false;
+    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+    else if (isRetryable(err)) saveAgainLater(i);
+  }, 0, function () {
+    if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
+  });
+}
+/** A save that gave up: try again by itself in 15 s, then 30, 45, and every minute after that (plus a little, so a class spreads out). */
+function saveAgainLater(i) {
+  var n = saveLaterN[i] = (saveLaterN[i] || 0) + 1;
+  clearTimeout(saveLater[i]);
+  saveLater[i] = setTimeout(function () { saveLater[i] = 0; saveNowIfWaiting(i); }, Math.min(60000, 15000 * n) + Math.floor(Math.random() * 8000));
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
+}
+/** The newest checked answer still hasn't reached the sheet: save it now. */
+function saveNowIfWaiting(i) {
+  if (!S || S.locked || saving[i] || saveWant[i] == null || saveWant[i] !== saved[i] || saveWant[i] === savedChecked[i]) return;
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked. Saving…", "#666");
+  queueSave(i, saveWant[i]);
+}
+function savesWaiting() { return Object.keys(saveLater).filter(function (k) { return saveLater[k]; }); }
+/** Back online (or back on this tab): every save that's waiting goes right away. */
+function saveWaitingNow() { savesWaiting().forEach(function (k) { clearTimeout(saveLater[k]); saveLater[k] = 0; saveNowIfWaiting(Number(k)); }); }
+window.addEventListener("online", saveWaitingNow);
+document.addEventListener("visibilitychange", function () { if (!document.hidden) saveWaitingNow(); });
+function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
+
+function updateProgress() {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
+  S.results.forEach(function (r, i) { if (!isUploadQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads aren't graded
+  var n = Math.max(1, S.questions.filter(function (q) { return !q.upload; }).length);
+  document.getElementById("nG").textContent = c.correct;
+  document.getElementById("nY").textContent = c.partial;
+  document.getElementById("nR").textContent = c.incorrect;
+  document.getElementById("nB").textContent = c.blank;
+  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
+  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
+  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
+  document.getElementById("grade").textContent = S.showGrade ? ((isClosedNow() ? "Final grade: " : "Grade: ") + S.grade + " / " + S.maxPoints) : "";
+}
+
+function updateFinish() {
+  var meta = document.getElementById("finishMeta"), fin = document.getElementById("finishBtn");
+  if (isClosedNow()) {
+    fin.textContent = "Closed"; fin.disabled = true;
+    meta.textContent = "This assignment closed when " + S.close.quarter + " ended." +
+      (S.turnedIn ? " You turned it in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) + "." : "");
+  } else if (S.turnedIn) {
+    meta.textContent = "Turned in " + new Date(S.turnedIn).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" }) +
+      (S.locked ? ". Your answers are locked." : ". You can still improve answers: your teacher sees your latest work.") +
+      " Don't forget to click Mark as done in Google Classroom.";
+    fin.textContent = S.locked ? "Turned in" : "Turn in again";
+    fin.disabled = S.locked;
+  } else {
+    meta.textContent = "Click when you've answered everything. Then click Mark as done in Google Classroom.";
+  }
+}
+
+var FINISH_MESSAGE = "This will submit your assignment. Click Mark as done in Google Classroom.";
+
+/* In-page OK/Cancel box (replaces the browser's built-in confirm box, which adds "An embedded page at ... says"). */
+function askConfirm(text, onYes, yesLabel, noLabel, onNo) {
+  var box = document.getElementById("confirmBox"), yes = document.getElementById("confirmYes"), no = document.getElementById("confirmNo");
+  document.getElementById("confirmText").textContent = text;
+  yes.textContent = yesLabel || "Submit";
+  no.textContent = noLabel || "Cancel";
+  box.hidden = false; yes.focus();
+  function close(go) {
+    box.hidden = true; yes.onclick = no.onclick = box.onclick = null; document.removeEventListener("keydown", key);
+    if (go) onYes(); else if (onNo) onNo();
+  }
+  function key(e) { if (e.key === "Escape") close(false); }
+  yes.onclick = function () { close(true); };
+  no.onclick = function () { close(false); };
+  box.onclick = function (e) { if (e.target === box) close(false); };
+  document.addEventListener("keydown", key);
+}
+
+function finish() {
+  var missing = missingUploads();
+  if (missing.length) {
+    var which = missing.map(function (k) { return k + 1; }), many = which.length > 1;
+    var thing = missing.every(function (k) { return S.questions[k].draw; }) ? "drawing" : missing.some(function (k) { return S.questions[k].draw; }) ? "drawing or picture" : "picture";
+    askConfirm("You haven't made your " + thing + " for question" + (many ? "s " + which.join(" and ") : " " + which[0]) + " yet. " +
+               "Go back and add " + (many ? "them" : "it") + ", or submit without " + (many ? "them" : "it") + ". (Then click Mark as done in Google Classroom.)",
+               submitNow, "Submit anyway", "Go back", function () { goToUpload(missing[0]); });
+    return;
+  }
+  askConfirm(FINISH_MESSAGE, submitNow);
+}
+function submitNow() {
+  var fin = document.getElementById("finishBtn"); fin.disabled = true;
+  flushDrawings();   // a drawing that hasn't saved yet saves now
+  // Anything typed but not checked yet gets checked and saved first, so no work is lost.
+  S.questions.forEach(function (_, i) { if (answerOf(i) !== saved[i]) check(i, true); });
+  saveWaitingNow();   // and any checked answer still waiting to save
+  var waited = 0;
+  (function whenSaved() {
+    var busy = savesRunning() || savesWaiting().length || Object.keys(pending).some(function (k) { return pending[k]; });
+    if (busy && waited < 90000) { waited += 500; fin.textContent = "Saving your answers…"; return setTimeout(whenSaved, 500); }
+    fin.textContent = "I'm finished";
+    doTurnIn(fin);
+  })();
+}
+function doTurnIn(fin) {
+  withRetry(function (ok, fail) { api.turnIn(ok, fail); }, function (resp) {
+    S.turnedIn = resp.turnedIn; S.grade = resp.grade;
+    if (resp.locked) {
+      S.locked = true;
+      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input").forEach(function (x) { x.disabled = true; });
+    }
+    fin.disabled = S.locked;
+    updateFinish(); updateProgress();
+  }, function (err) { fin.disabled = false; if (cpIsSignInError(err)) signedOutMidway(); else if (!closedMidway(err)) showError(err); });
+}
+
+/* ---------- signing in (Class Pass) ---------- */
+function signInInfo(s) { return { title: s.title, domain: s.domain, googleClient: s.googleClient, code: s.code, minutes: s.minutes, passLink: s.passLink }; }
+/** The Class Pass card: before the assignment is on the page (a whole-page card), or midway (a sign-in ran out while working). */
+function showSignIn(info, midway) {
+  var box;
+  if (midway) { box = el("div"); var app = document.getElementById("app"); app.insertBefore(box, app.firstChild); window.scrollTo(0, 0); }
+  else box = CP_HOST.clear(info.title);
+  cpCard(box, info, { midway: midway, done: function (r, card) {
+    if (!midway) { document.getElementById("signin").hidden = true; start(); return; }
+    if (S && r.email === S.email) {
+      if (card) card.remove();
+      note("You're signed in again. Press Check on any answer that didn't save.");
+      return;
+    }
+    // Someone else signed in on a page showing another student's work: don't mix the two.
+    S.locked = true;
+    document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, #finishBtn").forEach(function (x) { x.disabled = true; });
+    if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
+  } });
+}
+/** A check or save found this browser signed out (the sign-in ran out or was removed). */
+function signedOutMidway() {
+  if (cpCardOpen || !S) return;
+  showSignIn(signInInfo(S), true);
+}
+/** "Not you? Sign out" (only shown for Class Pass sign-ins). */
+function signOutHere() {
+  if (savesRunning()) { note("Your answers are still saving. Try again in a few seconds."); return; }
+  askConfirm(CP_SITE ? "Sign out of Class Pass on this device?" : "Sign out of this page on this browser?", function () {
+    var title = S ? S.title : document.title;
+    S = null;
+    var box = CP_HOST.clear(title);
+    var msg = el("div", "banner", "Signing out…");
+    box.appendChild(msg);
+    cpSignOut(function () {
+      if (CP_SITE) return cpGo(cpPassUrl("&signin=1"), true);   // the next student can sign in right away
+      msg.textContent = "You're signed out on this browser. Reload the page to sign in again.";
+    });
+  }, "Sign out");
+}
+
+window.addEventListener("beforeunload", function (e) {
+  if (!S || !S.questions) return;
+  // Only warn if something typed hasn't reached the server yet (autosave covers the rest).
+  var dirty = savesRunning() || S.questions.some(function (_, i) { return answerOf(i) !== draftSaved[i] || (pads[i] && pads[i].dirty); });
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+function start() {
+  // the loading screen's progress bar (cpStep): on the class website it's the last step of Class Pass
+  if (CP_SITE) cpStep(3, "Opening your assignment…"); else cpStep(0, "Loading your self-check…");
+  var handed = cpTakeState() || bootState();   // the Class Pass page already asked for it while signing in, or the sheet sent it with this page
+  if (handed) return gotState(handed);
+  withRetry(function (ok, fail) { api.getState(ok, fail); }, gotState, function (err) {
+    // The class website can't reach the sheet at all: most often the deployment isn't set to "Anyone" yet.
+    if (CP_SITE && /^NETWORK/.test(String(err && err.message))) err = new Error(err.message + " If it still won't open, please tell your teacher.");
+    showError(err);
+  }, 0, function () { cpStepNote("Lots of students are opening this, so hang on."); });
+}
+/** The /exec page: the student's work as the sheet put it into this page (doGet), once; null on the class website, or when it isn't there. */
+function bootState() {
+  var b = document.getElementById("bootState"), s = null;
+  if (CP_SITE || !b || !b.textContent) return null;
+  try { s = JSON.parse(b.textContent); } catch (e) { s = null; }
+  b.textContent = "";   // only for the first draw: a later look (after signing in) asks the sheet
+  return s && typeof s === "object" && Array.isArray(s.questions) ? s : null;
+}
+function gotState(state) {
+  if (state && state.needSignIn) { S = null; if (!cpNeedSignIn(state)) showSignIn(state, false); return; }
+  S = state; render();
+}
+if (window.MOCK_API) start();
+else if (CP_SITE) cpAppBoot(start);   // on the class website: signed in to this assignment on this device? else Class Pass
+else start();
+</script>
+</body>
+</html>

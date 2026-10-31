@@ -1,0 +1,2784 @@
+/**
+ * VIDEO CHECK: "<ASSIGNMENT TITLE>"
+ * ---------------------------------------------------------------------------
+ * Edpuzzle-style video lessons that live in YOUR Google account. Students open
+ * one link from Google Classroom. The video stops at each question; they answer
+ * and get green / yellow / red feedback right away. They can rewatch any part
+ * and fix any answer until the due date, and grades go to Classroom by
+ * themselves after each class's due date, including students who never
+ * finished (they get credit for what they did).
+ *
+ * LIVE LESSONS (like Edpuzzle Live): open the live lesson screen on the
+ * projector (Video Check > Live lesson > Open the live lesson screen). The
+ * video stops at each question on YOUR screen, and the question pops up on
+ * every device in that period. You see how many have answered, show the
+ * results, then press Continue. While "Wait for the live lesson" is checked in
+ * the Settings tab, students can't watch on their own until you end the live
+ * lesson for their period. Then it opens for them to rewatch and fix answers.
+ *
+ * Built on the Self-Check web app: same Questions + Settings tabs, same menu
+ * steps, same Classroom grade upload, same answer-key key words.
+ *
+ * ONE-TIME SETUP (about 10 minutes)
+ *   1. Create a new Google Sheet (e.g. "Balanced Forces Video RESULTS").
+ *   2. Extensions > Apps Script. Replace Code.gs with this file.
+ *      File (+) > HTML > name it exactly  Index  and paste Index.html into it.
+ *   3. Left sidebar: Services (+) > Google Classroom API > Add.
+ *   4. Save, then reload the spreadsheet. A "Video Check" menu appears.
+ *      Run  Video Check > Set up / repair sheets  and approve the permissions
+ *      (only you ever approve; students are never asked).
+ *   5. In Apps Script: Deploy > New deployment > type: Web app
+ *        Execute as:      Me
+ *        Who has access:  Anyone
+ *      Deploy, and copy the Web app URL (ends in /exec).
+ *      Why "Anyone": Google refuses to open ANY web app (whatever the access
+ *      setting) in a browser where a personal or family Google account is
+ *      signed in before the school one, before this script even runs. So the
+ *      link students get opens CLASS PASS on the class website first (see
+ *      CLASS PASS below). It checks out of sight whether Google will open
+ *      this web app for them. If it will (school Chromebooks), they go right
+ *      in, recognized as today. If it won't, Class Pass asks them to sign in
+ *      with their school account instead of showing Google's error, and runs
+ *      the video on the class website. Its requests carry no Google sign-in,
+ *      which is why the access must be "Anyone". Students are still recognized
+ *      by their school account on Chromebooks, and only students on the Roster
+ *      tab can sign in anywhere else.
+ *   6. Back in the Sheet: Video Check > 1. Link Google Classroom classes
+ *      (every period getting this video), then
+ *      Video Check > 2. Create the assignment in each class (paste the /exec
+ *      URL when asked, then pick the Classroom topic). In Classroom, set each
+ *      class's due date and Assign.
+ *   7. Grades: Video Check > Automatic grades after the due date > Turn on.
+ *      Or upload any time with step 3.
+ *
+ * EDITING QUESTIONS, TIMES, CHOICES, ANSWER KEYS, THE VIDEO LINK AND SETTINGS:
+ * use the Questions and Settings tabs. No code changes, no redeploy. Run
+ * Video Check > Recalculate all grades to re-color answers already submitted.
+ * (The values in the STARTER block below only fill those tabs the first time.)
+ *
+ * AFTER EDITING THIS CODE (rare): Deploy > Manage deployments > (pencil) >
+ * Version: New version > Deploy. That keeps the same student link.
+ */
+
+// @@STARTER-BEGIN (assignment-specific content: title, intro, video, settings, ITEMS)
+// ============================== STARTER SETTINGS ==============================
+// Copied into the Settings tab the first time you run "Set up / repair sheets".
+// After that, change them in the Settings tab, not here.
+var ASSIGNMENT_TITLE = "Balanced and Unbalanced Forces: Video Check";
+var INTRO = "Watch the video. It stops at each question: answer it, press Check, then Continue. " +
+            "Green = right, yellow = partly right, red = try again. You can rewatch any part and fix any answer until the due date. " +
+            "Your work saves automatically. Answer written questions in full sentences, in your own words.";
+var VIDEO_URL   = "https://www.youtube.com/watch?v=YyJSlcIbd-s";   // YouTube (public or unlisted), a Google Drive video file link, or a direct .mp4 link
+var VIDEO_START = "";    // optional, m:ss. Skips an intro.
+var VIDEO_END   = "";    // optional, m:ss. Stops before the ending.
+var PREVENT_SKIPPING = true;   // true = students can't jump past the furthest point they've watched (rewinding is always fine)
+var WAIT_FOR_LIVE    = true;   // true = a period can't watch on its own until you end its live lesson
+var MIN_ANSWER_LENGTH = 25;    // a written answer shorter than this can never show green
+
+// ---------- Grade out of 10 ----------
+var CREDIT = { correct: 1.0, partial: 0.6, incorrect: 0.1, blank: 0 };
+var MC_FULL_CREDIT_ON_RETRY = false;  // false = a multiple-choice question fixed on a later try is yellow (partial credit)
+var FULL_CREDIT_AT = 0.85;
+var MAX_POINTS     = 10;
+var ROUND_TO       = 0.5;
+var SHOW_GRADE_TO_STUDENTS = true;
+var LOCK_AFTER_TURN_IN     = false;
+var UPLOAD_ZERO_FOR_MISSING = false;
+var BLOCK_PASTE            = true;
+var QUESTION_NUMBER_STYLE  = "1";
+// ---------- Automatic grade upload (turn on with Video Check > Automatic grades after the due date) ----------
+var AUTO_RETURN_GRADES = true;
+var AUTO_UPDATE_DAYS   = 7;
+
+// ============================== STARTER QUESTIONS + ANSWER KEY ==============================
+// Copied into the Questions tab the first time you run "Set up / repair sheets".
+// After that, edit the Questions tab instead (one row per question).
+//   "at"       when the video stops for this question, m:ss. Leave it out to ask it after the video ends.
+//   "type"     "mc" (multiple choice), "open" (typed answer), or "note" (a pause with a message, nothing to answer)
+//   "q"        the question text
+//   "choices"  multiple choice only. Put * in front of each right answer. Two or more * = "choose all that apply".
+//   "hint"     multiple choice only: shown after a wrong answer. Don't give the answer away.
+//   "criteria" open only: the same key-word answer key as Self-Check. No criteria = any answer long enough is green.
+//   "img", "imgCaption"  optional picture (Drive share link or https image)
+var ITEMS = [];   // website releases carry no starter questions or answer keys: this sheet's questions live in its Questions tab
+
+// @@STARTER-END
+
+// ============================== VERSION ==============================
+// Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
+// SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
+var SKILL_NAME = "video-check";
+var SKILL_VERSION = "2026.10.30b";
+var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
+var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
+
+// ============================== SHEET NAMES / COLORS ==============================
+var SH_LIVE = "Live Results", SH_SUMMARY = "Question Summary", SH_ROSTER = "Roster",
+    SH_LOG = "Answer Log", SH_STATE = "_data (do not edit)",
+    SH_QUESTIONS = "Questions", SH_SETTINGS = "Settings", SH_UPLOADS = "Grade Uploads";
+var FILL = { correct: "#d9ead3", partial: "#fff2cc", incorrect: "#f4cccc", blank: "#ffffff" };
+var LIVE_FIXED = ["Period", "Student", "Email", "Status", "Last activity", "Grade",
+                  "Green", "Yellow", "Red", "Blank", "Checks", "Watched"];
+var LIVE_EMAIL_COL = 3;
+var FIRST_Q_COL = LIVE_FIXED.length + 1;
+var ROSTER_HEADERS = ["Period", "Name", "Email", "Classroom user ID", "Course ID"];
+var SUMMARY_HEADERS = ["Question", "Pause at", "Prompt", "Green", "Yellow", "Red", "Blank", "% green (all periods)"];
+var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// ============================== LIVE CONFIG (Questions + Settings tabs) ==============================
+var SETTING_DEFS = [
+  // [label in the Settings tab, variable, type, explanation]
+  ["Assignment title", "ASSIGNMENT_TITLE", "text", "Shown at the top of the student page and used as the Classroom assignment title."],
+  ["Instructions", "INTRO", "text", "The italic directions under the title."],
+  ["Video link", "VIDEO_URL", "text", "A YouTube link (public or unlisted), a Google Drive video link, or a direct link to an .mp4 file. Drive videos play with no ads and never get taken down: upload an .mp4 to your Drive, click Share > Copy link, and paste it here (students don't need access to the file; the app plays it for them). Drive videos can be up to 500 MB. They stream (they start after the first few MB), but a smaller file starts sooner and uses less data on every device: save long videos at 720p, about 900 kbps, with Web Optimized checked in HandBrake (a 25-minute video is then about 190 MB)."],
+  ["Start video at", "VIDEO_START", "time", "Optional. Type minutes:seconds (like 0:15) to skip the start of the video. Leave blank to start at the beginning."],
+  ["End video at", "VIDEO_END", "time", "Optional. Type minutes:seconds (like 4:30) to stop the video early. Leave blank to play to the end."],
+  ["Prevent skipping ahead", "PREVENT_SKIPPING", "bool", "Checked = students can't jump past the furthest point they've watched. Rewinding is always allowed, and every question they've already reached stays open to fix without rewatching anything."],
+  ["Wait for the live lesson", "WAIT_FOR_LIVE", "bool", "Checked = students in a period can't watch on their own until you end that period's live lesson (or open it with Video Check > Live lesson > Let a period watch on its own now). Unchecked = anyone can watch any time."],
+  ["Minimum characters for green", "MIN_ANSWER_LENGTH", "number", "A written answer shorter than this can't turn green, even with all the key words (it stays yellow)."],
+  ["Credit for green", "CREDIT.correct", "number", "Share of one question's credit. 1 = full."],
+  ["Credit for yellow", "CREDIT.partial", "number", "e.g. 0.6"],
+  ["Credit for red", "CREDIT.incorrect", "number", "e.g. 0.1 (a little credit for trying)"],
+  ["Full credit for multiple choice fixed on a later try", "MC_FULL_CREDIT_ON_RETRY", "bool", "Unchecked = a multiple-choice question answered right only after a wrong try turns yellow (yellow credit), so guessing every choice doesn't earn full credit. Checked = it turns green."],
+  ["Full credit at", "FULL_CREDIT_AT", "percent", "Earning this much of the possible credit = full points. 85% means mostly green with some yellow gets full credit."],
+  ["Points possible", "MAX_POINTS", "number", "Grade is out of this many points. Set BEFORE step 2 (Classroom uses it when the assignment is created)."],
+  ["Round grades to nearest", "ROUND_TO", "number", "0.5 = half points, 1 = whole points."],
+  ["Show running grade to students", "SHOW_GRADE_TO_STUDENTS", "bool", "Checked = students see 'Grade: x / 10' at the top."],
+  ["Lock answers after I'm finished", "LOCK_AFTER_TURN_IN", "bool", "Checked = no more changes after a student clicks I'm finished."],
+  ["Give 0 to students who never started", "UPLOAD_ZERO_FOR_MISSING", "bool", "Checked = upload 0 for students with no answers. Unchecked = leave their grade blank."],
+  ["Automatic upload returns grades", "AUTO_RETURN_GRADES", "bool", "Only used when automatic grades are turned on. Checked = grades are posted AND returned, so students see them. Unchecked = draft grades you review and return yourself."],
+  ["Days to keep updating grades after due date", "AUTO_UPDATE_DAYS", "number", "After the first automatic upload, grades are re-sent once a day for this many days so late or fixed work counts. 0 = upload once only."],
+  ["Block pasting into answers", "BLOCK_PASTE", "bool", "Checked = students can't paste or drag text into written answers, so they have to type in their own words."],
+  ["Question number style", "QUESTION_NUMBER_STYLE", "label", "Type how question 1 should look on the student page, e.g. 1.  Q1  Question 1  #1  1)  Every question follows the same pattern."],
+  ["Class Pass Google client ID", "GOOGLE_CLIENT_ID", "text", "Leave blank. Class Pass (the student sign-in on devices where Google won't open this video) signs students in with Google using its own built-in client ID. Only if Google ever deletes that client (it does after about 6 months with no sign-ins): make a new one in Google Cloud and paste its client ID here (it ends in .apps.googleusercontent.com). Type off to hide the Sign in with Google button."],
+  ["Allow emailed sign-in code", "ALLOW_SIGNIN_CODE", "bool", "Unchecked = Class Pass signs students in with Google only: the code box is hidden and this sheet refuses code requests. Checked = students can also get a 6-digit code emailed to their school address from your Gmail (for when Google sign-in is blocked for students)."]
+];
+// Settings rows that were renamed: an older sheet's row is renamed in place by Set up / repair sheets (its value stays).
+var SETTING_RENAMED_ = { "google sign-in client id": "class pass google client id" };
+var Q_COLS = { at: "Pause at (m:ss)", type: "Type", q: "Question",
+               choices: "Choices (one per line, * = right answer)", hint: "Hint when wrong (multiple choice)",
+               img: "Picture (Drive or https link)", cap: "Picture caption" };
+var TYPE_NAMES = { mc: "Multiple choice", open: "Open-ended", note: "Note" };
+var IDEA_COLS = 4;   // idea (hint + key words) column pairs added to a new Questions tab
+var CONFIG_LOADED_ = false, CONFIG_WARNINGS_ = [];
+
+// ---------- Speed: short-term cache so a whole class can check at once ----------
+var CFG_CACHE_SECS = 60, ROSTER_CACHE_SECS = 600, LIVE_CACHE_SECS = 21600;
+function cache_() { try { return CacheService.getScriptCache(); } catch (e) { return null; } }
+// Values this run already read in one trip (prefetchCache_). Globals start fresh on every run.
+var CACHE_MEMO_ = {};
+function prefetchCache_(keys) {
+  var c = cache_();
+  if (!c) return;
+  try { var got = c.getAll(keys) || {}; keys.forEach(function (k) { CACHE_MEMO_[k] = got[k] == null ? null : got[k]; }); } catch (e) {}
+}
+function cacheRaw_(k) {
+  if (CACHE_MEMO_.hasOwnProperty(k)) return CACHE_MEMO_[k];
+  var c = cache_();
+  if (!c) return null;
+  try { return c.get(k); } catch (e) { return null; }
+}
+function cacheGet_(k) { var v = cacheRaw_(k); try { return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function cachePut_(k, v, secs) {
+  var c = cache_(); if (!c) return;
+  try { var s = JSON.stringify(v); if (s.length < 95000) { c.put(k, s, secs); CACHE_MEMO_[k] = s; } } catch (e) {}
+}
+function cacheDel_(keys) {
+  if (keys.length > 100) { for (var i = 0; i < keys.length; i += 100) cacheDel_(keys.slice(i, i + 100)); return; } keys.forEach(function (k) { delete CACHE_MEMO_[k]; }); var c = cache_(); if (c) try { c.removeAll(keys); } catch (e) {} }
+function clearConfigCache_() { cacheDel_(["cfg:settings", "cfg:questions", "roster", "live"]); }
+
+function getGlobal_(name) {
+  var p = name.split(".");
+  return p.length === 2 ? globalThis[p[0]][p[1]] : globalThis[name];
+}
+function setGlobal_(name, v) {
+  var p = name.split(".");
+  if (p.length === 2) globalThis[p[0]][p[1]] = v; else globalThis[name] = v;
+}
+function isDate_(v) { return Object.prototype.toString.call(v) === "[object Date]"; }
+
+/** Reads the Settings + Questions tabs into the variables the rest of the script uses. */
+function loadConfig_() {
+  if (CONFIG_LOADED_) return;
+  CONFIG_LOADED_ = true;
+  // Only open the spreadsheet when the cache is empty: live-lesson polls run this every few seconds per student.
+  var ssOpen = null;
+  function ss() { return ssOpen || (ssOpen = openSS_()); }
+  var setVals = cacheGet_("cfg:settings");
+  if (!setVals) {
+    var st = ss() && ss().getSheetByName(SH_SETTINGS);
+    setVals = [];
+    if (st && st.getLastRow() > 1) {
+      var rg = st.getRange(2, 1, st.getLastRow() - 1, 2), v = rg.getValues(), dv = rg.getDisplayValues();
+      // [label, value, what the cell shows, did Sheets turn it into a date/time]
+      setVals = v.map(function (r, i) { return [r[0], isDate_(r[1]) ? "" : r[1], dv[i][1], isDate_(r[1])]; });
+    }
+    cachePut_("cfg:settings", setVals, CFG_CACHE_SECS);
+  }
+  if (setVals.length) {
+    var m = {};
+    setVals.forEach(function (r) { m[String(r[0]).trim().toLowerCase()] = r; });
+    Object.keys(SETTING_RENAMED_).forEach(function (o) { if (!m[SETTING_RENAMED_[o]] && m[o]) m[SETTING_RENAMED_[o]] = m[o]; });
+    SETTING_DEFS.forEach(function (d) {
+      var r = m[d[0].toLowerCase()];
+      if (!r) return;
+      var v = r[1];
+      if (d[2] === "time") {   // blank = none, so clearing the cell really clears it
+        var sec = parseTime_(r[3] ? "~" + r[2] : (v === "" || v == null ? r[2] : v));
+        if (sec != null && isNaN(sec)) { CONFIG_WARNINGS_.push("Settings: \"" + d[0] + "\" should look like 1:05 (minutes:seconds)."); sec = null; }
+        setGlobal_(d[1], sec == null ? "" : sec);
+        return;
+      }
+      if (v === "" || v == null) return;
+      if (d[2] === "text" || d[2] === "label") setGlobal_(d[1], String(v).trim());
+      else if (d[2] === "bool") setGlobal_(d[1], v === true || /^(true|yes|y|1|x)$/i.test(String(v).trim()));
+      else {
+        var n = typeof v === "number" ? v : parseFloat(String(v).replace("%", ""));
+        if (typeof v !== "number" && String(v).indexOf("%") !== -1) n = n / 100;
+        if (d[2] === "percent" && n > 1) n = n / 100;      // typed 85 instead of 85%
+        if (!isNaN(n)) setGlobal_(d[1], n); else CONFIG_WARNINGS_.push("Settings: \"" + d[0] + "\" isn't a number.");
+      }
+    });
+  }
+  var qVals = cacheGet_("cfg:questions");
+  if (!qVals) {
+    var qs = ss() && ss().getSheetByName(SH_QUESTIONS);
+    qVals = [];
+    if (qs && qs.getLastRow() > 1) {
+      var dr = qs.getDataRange(), raw = dr.getValues(), disp = dr.getDisplayValues();
+      var atCol = headIndex_(disp[0], Q_COLS.at, /^(pause at|time|stop at)/);
+      // Sheets turns a typed 1:05 into a clock time. Mark those cells with ~ so the time is read the way it was typed.
+      qVals = disp.map(function (row, ri) {
+        return row.map(function (x, ci) { return ci === atCol && ri > 0 && isDate_(raw[ri][ci]) ? "~" + x : x; });
+      });
+    }
+    cachePut_("cfg:questions", qVals, CFG_CACHE_SECS);
+  }
+  if (qVals.length > 1) {
+    var parsed = parseQuestions_(qVals);
+    CONFIG_WARNINGS_ = CONFIG_WARNINGS_.concat(parsed.warnings);
+    if (!parsed.items.length) throw new Error("This assignment doesn't have any questions yet. Please tell your teacher.");
+    ITEMS = parsed.items;
+  } else {
+    ITEMS = ITEMS.map(normalizeItem_);
+  }
+}
+
+function headIndex_(headRow, label, pattern) {
+  var head = headRow.map(function (h) { return String(h).trim().toLowerCase(); });
+  var i = head.indexOf(label.toLowerCase());
+  if (i === -1 && pattern) for (var k = 0; k < head.length; k++) if (pattern.test(head[k])) return k;
+  return i;
+}
+
+/**
+ * "1:05" -> 65 seconds. Also 65, 1:05.5, 0:01:05, 1m05s, "1 min 5 sec".
+ * A leading ~ means Sheets had turned the typed text into a clock time (shown as
+ * 1:05:00), so "h:mm:00" is read back as the m:ss that was typed.
+ * Returns null for blank and NaN when it can't be read.
+ */
+function parseTime_(v) {
+  if (v === "" || v == null) return null;
+  if (typeof v === "number") return isFinite(v) && v >= 0 ? v : NaN;
+  var s = String(v).trim().toLowerCase(), fromClock = false;
+  if (s.charAt(0) === "~") { fromClock = true; s = s.slice(1).trim(); }
+  if (!s) return null;
+  var m;
+  if (fromClock && (m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?\s*(am|pm)?$/.exec(s))) {
+    var h = Number(m[1]), mi = Number(m[2]), se = m[3] ? Number(m[3]) : 0;
+    if (m[4] === "pm" && h < 12) h += 12;
+    if (m[4] === "am" && h === 12) h = 0;
+    return se === 0 ? h * 60 + mi : h * 3600 + mi * 60 + se;
+  }
+  if (/^\d+(\.\d+)?$/.test(s)) return Number(s);
+  if ((m = /^(\d+):(\d{1,2}(?:\.\d+)?)$/.exec(s))) return Number(m[1]) * 60 + Number(m[2]);
+  if ((m = /^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/.exec(s))) return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  if ((m = /^(?:(\d+)\s*m(?:in(?:ute)?s?)?)?\s*(?:(\d+(?:\.\d+)?)\s*s(?:ec(?:ond)?s?)?)?$/.exec(s)) && (m[1] || m[2])) {
+    return Number(m[1] || 0) * 60 + Number(m[2] || 0);
+  }
+  return NaN;
+}
+function formatTime_(sec) {
+  if (sec == null || sec === "" || isNaN(sec)) return "";
+  sec = Math.max(0, Math.round(Number(sec)));
+  var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  var ss = (s < 10 ? "0" : "") + s;
+  return h ? h + ":" + (m < 10 ? "0" : "") + m + ":" + ss : m + ":" + ss;
+}
+
+/** Any question (starter block or Questions tab) -> {at, t, type, q, choices:[{text,correct}], hint, img, imgCaption, criteria}. */
+function normalizeItem_(it) {
+  var choices = (it.choices || []).map(function (c) {
+    if (c && typeof c === "object") return { text: String(c.text || "").trim(), correct: !!c.correct };
+    var s = String(c == null ? "" : c).trim(), ok = s.charAt(0) === "*";
+    return { text: (ok ? s.slice(1) : s).trim(), correct: ok };
+  }).filter(function (c) { return c.text; });
+  var ty = String(it.type || "").trim().toLowerCase(), type;
+  if (/^(mc|multiple|choice|m$|checkbox)/.test(ty)) type = "mc";
+  else if (/^(note|n$|info|message|pause)/.test(ty)) type = "note";
+  else if (/^(open|o$|short|text|written|free|typed)/.test(ty)) type = "open";
+  else type = choices.length ? "mc" : "open";
+  var t = it.t != null && it.t !== "" ? Number(it.t) : parseTime_(it.at);
+  var out = { at: "", t: null, type: type, q: String(it.q || "").trim(), choices: type === "mc" ? choices : [],
+              hint: String(it.hint || "").trim(), img: it.img || "", imgCaption: it.imgCaption || "",
+              criteria: type === "open" ? (it.criteria || []) : [] };
+  if (t != null && !isNaN(t)) { out.t = Math.round(t * 10) / 10; out.at = formatTime_(out.t); }
+  else if (t != null) out.badTime = String(it.at).replace(/^~/, "");
+  if (it.links) out.links = it.links;
+  return out;
+}
+
+function parseQuestions_(rows) {
+  var headRow = rows[0];
+  function col(label, pattern) { return headIndex_(headRow, label, pattern); }
+  var c = {
+    at: col(Q_COLS.at, /^(pause at|time|stop at)/), type: col(Q_COLS.type), q: col(Q_COLS.q),
+    choices: col(Q_COLS.choices, /^choices/), hint: col(Q_COLS.hint, /^hint when wrong/),
+    img: col(Q_COLS.img, /^picture \(/), cap: col(Q_COLS.cap)
+  };
+  var ideas = [];
+  for (var n = 1; n <= 20; n++) {
+    var h = col("Idea " + n + " hint"), k = col("Idea " + n + " key words");
+    if (h === -1 && k === -1) continue;
+    ideas.push({ n: n, hint: h, keys: k });
+  }
+  var items = [], warnings = [], lastT = -1;
+  if (c.q === -1) return { items: [], warnings: ["Questions tab: the \"" + Q_COLS.q + "\" column header is missing."] };
+  function cell(r, i) { return i === -1 ? "" : String(r[i] == null ? "" : r[i]).trim(); }
+  for (var ri = 1; ri < rows.length; ri++) {
+    var r = rows[ri], rowNo = ri + 1;
+    var q = cell(r, c.q);
+    if (!q) continue;
+    var ch = cell(r, c.choices), lines = ch ? ch.split(/\r?\n/) : [];
+    if (lines.length === 1 && lines[0].indexOf("|") !== -1) lines = lines[0].split("|");
+    var raw = { at: cell(r, c.at), type: cell(r, c.type), q: q, choices: lines, hint: cell(r, c.hint),
+                img: cell(r, c.img), imgCaption: cell(r, c.cap), criteria: [] };
+    var label = "Row " + rowNo;
+    ideas.forEach(function (idea) {
+      var keys = cell(r, idea.keys), hint = cell(r, idea.hint);
+      if (!keys) {
+        if (hint) warnings.push(label + ": Idea " + idea.n + " has a hint but no key words, so it's ignored.");
+        return;
+      }
+      var need = parseKeyWords_(keys);
+      if (!need.length) return;
+      raw.criteria.push({ nudge: hint || "Reread the question and add the missing idea.", need: need });
+    });
+    var it = normalizeItem_(raw);
+    if (it.badTime) warnings.push(label + ": couldn't read the time \"" + it.badTime + "\". Type it as minutes:seconds, like 1:05. For now it's asked after the video ends.");
+    if (raw.type && !/^(mc|multiple|choice|m$|checkbox|note|n$|info|message|pause|open|o$|short|text|written|free|typed)/i.test(raw.type)) {
+      warnings.push(label + ": the Type \"" + raw.type + "\" isn't one of Multiple choice, Open-ended, Note. It was read as " + TYPE_NAMES[it.type] + ".");
+    }
+    if (it.type === "mc") {
+      var right = it.choices.filter(function (x) { return x.correct; }).length;
+      if (it.choices.length < 2) warnings.push(label + ": a multiple-choice question needs at least 2 choices (one per line in the Choices cell).");
+      if (!right) warnings.push(label + ": no choice is marked right. Put * in front of the right answer, like  *Balanced forces");
+      if (it.criteria.length) warnings.push(label + ": key words are only used for Open-ended questions, so they're ignored here.");
+    } else if (lines.length && ch) {
+      warnings.push(label + ": choices are only used for Multiple choice questions, so they're ignored here (Type is " + TYPE_NAMES[it.type] + ").");
+    }
+    if (it.type === "open" && !it.criteria.length) warnings.push(label + " has no key words, so any written answer at least the minimum length counts as green.");
+    if (it.t != null) {
+      if (it.t < lastT) warnings.push(label + " (" + it.at + ") is earlier in the video than the row above it. Put rows in time order so the question numbers match the video.");
+      lastT = Math.max(lastT, it.t);
+    }
+    items.push(it);
+  }
+  return { items: items, warnings: warnings };
+}
+
+/** "vector, arrow + same, equal" -> [["vector","arrow"],["same","equal"]] */
+function parseKeyWords_(text) {
+  return String(text).split("+").map(function (g) {
+    // "NOT stack, tower" = none of these words allowed. Capital NOT only (same as Self-Check), so a
+    // lowercase phrase like "not balanced, still" stays an ordinary key word.
+    var neg = /^\s*NOT\s+/.test(g);
+    if (neg) g = g.replace(/^\s*NOT\s+/, "");
+    var terms = g.split(/[,;\n]/).map(function (t) { return normalize_(t).trim(); }).filter(function (t) { return t; });
+    return terms.length && neg ? ["!"].concat(terms) : terms;
+  }).filter(function (g) { return g.length; });
+}
+function keyWordsText_(need) {
+  return need.map(function (g) { return g[0] === "!" ? "NOT " + g.slice(1).join(", ") : g.join(", "); }).join(" + ");
+}
+
+/** Questions that are graded (everything except notes), in order. */
+function gq_() {
+  var out = [];
+  for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].type !== "note") out.push(i);
+  return out;
+}
+/** Question number shown to students and in the sheets (notes aren't numbered). 0 for a note. */
+function qNum_(idx) {
+  var n = 0;
+  for (var i = 0; i <= idx && i < ITEMS.length; i++) if (ITEMS[i].type !== "note") n++;
+  return ITEMS[idx] && ITEMS[idx].type !== "note" ? n : 0;
+}
+
+/** Fills brand-new Settings / Questions tabs from the starter values in this file. */
+function seedConfigTabs_() {
+  var ss = openSS_();
+  var st = ss.getSheetByName(SH_SETTINGS);
+  function settingCell_(d) {
+    var v = getGlobal_(d[1]);
+    return d[2] === "time" ? formatTime_(parseTime_(v)) : v;
+  }
+  function formatSettingCell_(cell, d, value) {
+    if (d[2] === "bool") cell.insertCheckboxes();
+    if (d[2] === "percent") cell.setNumberFormat("0%");
+    if (d[2] === "label" || d[2] === "time") { cell.setNumberFormat("@"); cell.setValue(value); }  // plain text: keeps "1:05" and "1." exactly as typed
+  }
+  if (!st || st.getLastRow() < 2) {
+    st = st || ss.insertSheet(SH_SETTINGS);
+    var rows = [["Setting", "Value", "What it does"]].concat(SETTING_DEFS.map(function (d) { return [d[0], settingCell_(d), d[3]]; }));
+    st.getRange(1, 1, rows.length, 3).setValues(rows).setFontFamily("Poppins").setVerticalAlignment("top");
+    st.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#c9daf8");
+    st.getRange(2, 1, rows.length - 1, 1).setFontWeight("bold");
+    SETTING_DEFS.forEach(function (d, i) { formatSettingCell_(st.getRange(i + 2, 2), d, rows[i + 1][1]); });
+    st.setColumnWidth(1, 260); st.setColumnWidth(2, 380); st.setColumnWidth(3, 520);
+    st.getRange(1, 1, rows.length, 3).setWrap(true);
+    st.setFrozenRows(1);
+  } else {
+    // Existing Settings tab: add any settings that are newer than the tab, and refresh the "What it does"
+    // help text (column C is ours). The values you typed in column B are never changed.
+    var have = {}, help = st.getRange(2, 1, st.getLastRow() - 1, 3).getValues();
+    help.forEach(function (r, i) {
+      var key = String(r[0]).trim().toLowerCase();
+      if (SETTING_RENAMED_[key]) {   // a row under its older name: rename it, keep its value
+        key = SETTING_RENAMED_[key];
+        SETTING_DEFS.forEach(function (d) { if (d[0].toLowerCase() === key) st.getRange(i + 2, 1).setValue(d[0]); });
+      }
+      have[key] = true;
+      SETTING_DEFS.forEach(function (d) { if (d[0].toLowerCase() === key && r[2] !== d[3]) st.getRange(i + 2, 3).setValue(d[3]); });
+    });
+    SETTING_DEFS.forEach(function (d) {
+      if (have[d[0].toLowerCase()]) return;
+      var r = st.getLastRow() + 1, val = settingCell_(d);
+      st.getRange(r, 1, 1, 3).setValues([[d[0], val, d[3]]]).setFontFamily("Poppins").setVerticalAlignment("top").setWrap(true);
+      st.getRange(r, 1).setFontWeight("bold");
+      formatSettingCell_(st.getRange(r, 2), d, val);
+    });
+  }
+  var qs = ss.getSheetByName(SH_QUESTIONS);
+  if (!qs || qs.getLastRow() < 2) {
+    qs = qs || ss.insertSheet(SH_QUESTIONS, 0);
+    var items = ITEMS.map(normalizeItem_);
+    var ideaCount = IDEA_COLS;
+    items.forEach(function (it) { ideaCount = Math.max(ideaCount, it.criteria.length); });
+    var head = [Q_COLS.at, Q_COLS.type, Q_COLS.q, Q_COLS.choices, Q_COLS.hint, Q_COLS.img, Q_COLS.cap];
+    for (var n = 1; n <= ideaCount; n++) head.push("Idea " + n + " hint", "Idea " + n + " key words");
+    var out = [head];
+    items.forEach(function (it) {
+      var row = [it.at, TYPE_NAMES[it.type], it.q,
+                 it.choices.map(function (x) { return (x.correct ? "*" : "") + x.text; }).join("\n"),
+                 it.hint, it.img || "", it.imgCaption || ""];
+      for (var n = 0; n < ideaCount; n++) {
+        var cr = it.criteria[n];
+        row.push(cr ? cr.nudge : "", cr ? keyWordsText_(cr.need) : "");
+      }
+      out.push(row);
+    });
+    qs.getRange(1, 1, qs.getMaxRows(), 1).setNumberFormat("@");   // times stay as typed (1:05), not clock times
+    qs.getRange(1, 1, out.length, head.length).setValues(out).setWrap(true).setVerticalAlignment("top").setFontFamily("Poppins");
+    qs.getRange(1, 1, 1, head.length).setFontWeight("bold").setBackground("#c9daf8");
+    qs.setFrozenRows(1); qs.setFrozenColumns(0);
+    var widths = [110, 140, 420, 280, 260, 200, 160];
+    widths.forEach(function (w, i) { qs.setColumnWidth(i + 1, w); });
+    for (var j = 0; j < ideaCount; j++) { qs.setColumnWidth(8 + j * 2, 280); qs.setColumnWidth(9 + j * 2, 240); }
+    for (j = 0; j < ideaCount; j++) qs.getRange(1, 9 + j * 2, out.length, 1).setBackground("#fff2cc");
+    qs.getRange(1, 1, 1, head.length).setBackground("#c9daf8");
+    try {
+      var rule = SpreadsheetApp.newDataValidation().requireValueInList([TYPE_NAMES.mc, TYPE_NAMES.open, TYPE_NAMES.note], true).setAllowInvalid(true).build();
+      qs.getRange(2, 2, Math.max(1, qs.getMaxRows() - 1), 1).setDataValidation(rule);
+    } catch (e) { /* dropdown is a convenience only */ }
+    var notes = head.map(function (h) {
+      if (h === Q_COLS.at) return "When the video stops for this question, as minutes:seconds (1:05). Leave blank to ask it after the video ends.\nKeep rows in time order.";
+      if (h === Q_COLS.type) return "Multiple choice, Open-ended, or Note (a pause with a message and nothing to answer).";
+      if (h === Q_COLS.choices) return "Multiple choice only. One choice per line (Ctrl+Enter makes a new line in a cell).\nPut * in front of each right answer:\n*Balanced forces\nUnbalanced forces\nTwo or more * = choose all that apply.";
+      if (h === Q_COLS.hint) return "Multiple choice only: shown after a wrong answer. Coach, don't give the answer away.";
+      if (h === Q_COLS.img) return "Upload the picture to Google Drive, Share > Hart District: anyone with the link, then paste the link here.";
+      if (/key words$/.test(h)) return "Open-ended only. Words that show this idea. Commas mean OR:  zero, balanced\nA + means AND:  vector, arrow + same, equal  (needs one word from each side).\nWord starts count: accelerat matches accelerate/acceleration.\nStart a group with NOT to forbid words:  chip + NOT stack, tower\nLeave every key-word cell blank for a question where any thoughtful answer counts.";
+      if (/hint$/.test(h)) return "Open-ended only: what students see when this idea is missing from their answer.";
+      return "";
+    });
+    qs.getRange(1, 1, 1, head.length).setNotes([notes]);
+  }
+}
+
+/** Menu: list anything in the Questions / Settings tabs that won't work as expected. */
+function checkQuestionsTab() {
+  menuOnly_();
+  clearConfigCache_();
+  CONFIG_LOADED_ = false; CONFIG_WARNINGS_ = [];
+  loadConfig_();
+  var v = videoInfo_(), mc = 0, open = 0, notes = 0, timed = 0;
+  ITEMS.forEach(function (it) { if (it.type === "mc") mc++; else if (it.type === "open") open++; else notes++; if (it.t != null) timed++; });
+  var warn = CONFIG_WARNINGS_.slice();
+  if (v.error) warn.unshift(v.error);
+  if (v.warn) warn.unshift(v.warn);
+  if (v.id) cacheDel_(["vid:" + v.id]);   // look the Drive file up fresh next time
+  SpreadsheetApp.getUi().alert("Video: " + (v.kind === "youtube" ? "YouTube " + v.id : v.kind === "drive" ? "Google Drive file \"" + v.name + "\" (" + Math.round(v.size / 1048576) + " MB)" : v.kind === "file" ? v.url : "none") +
+    (v.start ? ", starts at " + formatTime_(v.start) : "") + (v.end ? ", ends at " + formatTime_(v.end) : "") + "\n" +
+    "Found " + mc + " multiple choice, " + open + " open-ended, " + notes + " notes (" + timed + " pause in the video, " + (ITEMS.length - timed) + " after it ends).\n\n" +
+    (warn.length ? "Check these:\n• " + warn.join("\n• ") : "No problems found."));
+}
+
+/** Friendly reminder when the Questions or Settings tab is edited. */
+function onEdit(e) {
+  try {
+    var n = e.range.getSheet().getName();
+    if (n === SH_QUESTIONS || n === SH_SETTINGS) {
+      clearConfigCache_();
+      e.source.toast("Saved. Students get this the next time they load the page or check an answer. " +
+                     "To re-color answers already submitted, run Video Check > Recalculate all grades.", "Video Check", 6);
+    }
+  } catch (err) { /* never block editing */ }
+}
+
+// ============================== THE VIDEO ==============================
+/** {kind: "youtube", id} or {kind: "file", url}, plus start/end in seconds. kind "none" with an error when it can't be used. */
+function videoInfo_() {
+  var u = String(VIDEO_URL || "").trim();
+  var start = parseTime_(VIDEO_START), end = parseTime_(VIDEO_END);
+  start = start > 0 ? start : 0; end = end > 0 ? end : 0;
+  if (end && end <= start) end = 0;
+  var m = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/i.exec(u);
+  if (m) return { kind: "youtube", id: m[1], start: start, end: end };
+  if (/^[\w-]{11}$/.test(u)) return { kind: "youtube", id: u, start: start, end: end };
+  if (/drive\.google\.com|docs\.google\.com/i.test(u)) {
+    var dm = /(?:\/file\/d\/|[?&]id=)([\w-]{20,})/.exec(u);
+    if (!dm) return { kind: "none", start: start, end: end, error: "That Google Drive link doesn't point to a single video file. In Drive, right-click the video > Share > Copy link, and paste that in the Settings tab (Video link)." };
+    var meta = driveVideoMeta_(dm[1]);
+    if (meta.error) return { kind: "none", start: start, end: end, error: meta.error };
+    return { kind: "drive", id: dm[1], mime: meta.mime, size: meta.size, name: meta.name,
+             rev: meta.rev || 0, chunks: Math.max(1, Math.ceil(meta.size / VIDEO_CHUNK_BYTES)), start: start, end: end, warn: meta.warn || "" };
+  }
+  if (/^https:\/\/\S+$/i.test(u)) return { kind: "file", url: u, start: start, end: end };
+  return { kind: "none", start: start, end: end, error: u ? "The video link in the Settings tab isn't a YouTube link or an https link to a video file." : "There's no video link yet. Paste one in the Settings tab (Video link)." };
+}
+
+// ============================== DRIVE VIDEOS ==============================
+// A Drive video is sent to the page in pieces by this script (running as the teacher), then played in the
+// page's own player. So it can pause at questions, shows no ads, and students never need access to the file.
+var VIDEO_CHUNK_BYTES = 3 * 1024 * 1024;   // about 3 MB per piece
+var VIDEO_MAX_BYTES = 500 * 1024 * 1024;   // bigger files are refused (a device that can't stream loads the whole video)
+var VIDEO_WARN_BYTES = 250 * 1024 * 1024;
+
+/** {mime, size, name} for a Drive video, or {error}. Remembered for a few minutes so it isn't looked up on every call. */
+function driveVideoMeta_(id) {
+  var hit = cacheGet_("vid:" + id);
+  if (hit) return hit;
+  var out;
+  try {
+    var f = DriveApp.getFileById(id);
+    var mime = String(f.getMimeType() || ""), size = Number(f.getSize()) || 0;
+    if (!/^video\//i.test(mime)) out = { error: "The Drive file \"" + f.getName() + "\" isn't a video (it's " + (mime || "an unknown type") + "). Upload an .mp4 video file to Drive and paste its link." };
+    else if (!size) out = { error: "The Drive video \"" + f.getName() + "\" is still processing or is empty. Wait a minute, then run Check the Questions tab for problems again." };
+    else if (size > VIDEO_MAX_BYTES) out = { error: "The Drive video \"" + f.getName() + "\" is " + Math.round(size / 1048576) + " MB. The limit is " + Math.round(VIDEO_MAX_BYTES / 1048576) + " MB. Save a smaller copy with HandBrake (720p, about 900 kbps, .mp4) and use that." };
+    else {
+      out = { mime: mime, size: size, name: f.getName(), rev: f.getLastUpdated().getTime() };
+      var w = [];
+      if (size > VIDEO_WARN_BYTES) w.push("The Drive video is " + Math.round(size / 1048576) + " MB. It will work (videos stream), but a smaller copy (HandBrake, 720p, about 900 kbps, Web Optimized) starts sooner and uses less data on every student's device.");
+      if (!/^video\/(mp4|webm)$/i.test(mime)) w.push("The Drive video is a " + mime + " file. Chromebooks and most browsers play .mp4 best, so if it won't play, convert it to .mp4.");
+      if (w.length) out.warn = w.join(" ");
+    }
+  } catch (e) {
+    out = { error: "The app can't open the Drive video in the Settings tab (" + e.message + "). Make sure the file is in YOUR Drive (or shared with you) and the link is right." };
+  }
+  cachePut_("vid:" + id, out, out.error ? 30 : 600);
+  return out;
+}
+
+/** The video details the page needs (never more than this). */
+function videoForClient_(v) {
+  return { kind: v.kind, id: v.id || "", url: v.url || "", start: v.start, end: v.end, error: v.error || "",
+           mime: v.mime || "", size: v.size || 0, chunks: v.chunks || 0, rev: v.rev || 0,
+           chunkBytes: v.kind === "drive" ? VIDEO_CHUNK_BYTES : 0 };
+}
+
+/** One piece of the Drive video, as base64. Only the video in the Settings tab, and only for someone signed in. */
+function getVideoChunk(n, token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  if (access_(email, readRoster_()).mode === "wait") throw new Error("NOT OPEN: This video isn't open for you yet.");
+  perHour_("chunk", email, 900);   // a 25-minute video is about 60 pieces
+  perHour_("chunk6h", email, 1800, 21600);   // and a longer window, since this uses your daily URL-fetch quota
+  var v = videoInfo_();
+  if (v.kind !== "drive") throw new Error("The video isn't a Drive video anymore. Reload the page.");
+  n = Number(n);
+  if (!(n >= 0 && n < v.chunks)) throw new Error("Unknown part of the video.");
+  var from = n * VIDEO_CHUNK_BYTES, to = Math.min(v.size, from + VIDEO_CHUNK_BYTES) - 1, bytes = null;
+  try {
+    var r = UrlFetchApp.fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(v.id) + "?alt=media&supportsAllDrives=true", {
+      headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken(), Range: "bytes=" + from + "-" + to },
+      muteHttpExceptions: true
+    });
+    var code = r.getResponseCode();
+    if (code === 206) bytes = r.getContent();
+    else if (code === 200) bytes = r.getContent().slice(from, to + 1);   // Drive ignored the range: cut it here
+    else throw new Error("Drive answered " + code);
+  } catch (e) {
+    // Backup for small files: read the whole file and cut out the piece.
+    if (v.size > 45 * 1024 * 1024) throw new Error("BUSY: Couldn't read the video from Drive right now (" + e.message + ").");
+    bytes = DriveApp.getFileById(v.id).getBlob().getBytes().slice(from, to + 1);
+  }
+  return { n: n, data: Utilities.base64Encode(bytes) };
+}
+
+// ============================== WEB APP ==============================
+function doGet(e) {
+  if (e && e.parameter && e.parameter.probe) return probePage_(e.parameter.from);
+  try { loadConfig_(); } catch (err) { /* page shows the error after it loads */ }
+  return HtmlService.createHtmlOutputFromFile("Index")
+    .setTitle(ASSIGNMENT_TITLE)
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
+
+function isTeacher_(email) {
+  var me = "";
+  try { me = String(Session.getEffectiveUser().getEmail() || "").toLowerCase(); } catch (e) {}
+  return !!email && email === me;
+}
+
+/**
+ * What a student can do right now:
+ *   self = watch on their own, live = their period's live lesson is on, wait = not open yet.
+ */
+function access_(email, roster) {
+  if (isTeacher_(email)) return { mode: "self", teacher: true };
+  var p = roster[email], L = liveInfo_();
+  if (L.live && p && String(p.period) === String(L.live.period)) return { mode: "live", live: L.live };
+  if (!WAIT_FOR_LIVE || !L.linked) return { mode: "self" };
+  if (!p) return { mode: "wait", message: "You're not on the class list for this video yet. Ask your teacher to refresh the roster, then reload this page." };
+  if (L.done[String(p.period)]) return { mode: "self" };
+  return { mode: "wait", message: "Your class is going to watch this video together first. After the live lesson, it opens here so you can rewatch it and fix your answers." };
+}
+
+function assertCanAnswer_(email, idx, roster) {
+  var acc = access_(email, roster);
+  if (acc.mode === "wait") throw new Error("NOT OPEN: This video isn't open for you yet. " + (acc.message || ""));
+  if (acc.mode === "live" && (acc.live.opened || []).indexOf(idx) === -1) throw new Error("NOT OPEN: Your teacher hasn't shown this question yet.");
+  if (ITEMS[idx].type === "note") throw new Error("Unknown question.");
+  return acc;
+}
+
+/** Everything the page needs to draw itself + the student's saved work. No answer key.
+ *  If we can't tell who the student is, the page gets { needSignIn } and shows the code sign-in. */
+function getStudentState(token) {
+  loadConfig_();
+  var who = whoIs_(token);
+  if (!who.email) return signInState_();
+  var email = who.email;
+  var roster = readRoster_();
+  var acc = access_(email, roster);
+  var base = { mode: acc.mode, teacher: !!acc.teacher, message: acc.message || "",
+               title: ASSIGNMENT_TITLE, intro: INTRO, name: roster[email] ? roster[email].name : email,
+               email: email, via: who.via, domain: studentDomain_(roster), googleClient: googleClient_(),
+               code: !!ALLOW_SIGNIN_CODE, minutes: SIGNIN_CODE_MINUTES, passLink: who.via === "code" ? passLink_() : "",
+               numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE) };
+  if (acc.mode === "wait") return base;
+  var rec = readRecord_(email) || newRecord_();
+  var results = [];
+  for (var i = 0; i < ITEMS.length; i++) results.push(feedbackFor_(i, rec.answers[i], rec.tries[i]));
+  var drafts = rec.drafts || [], shown = [], unchecked = [];
+  for (var j = 0; j < ITEMS.length; j++) {
+    var hasDraft = drafts[j] != null && drafts[j] !== rec.answers[j];
+    shown.push(hasDraft ? drafts[j] : (rec.answers[j] || ""));
+    unchecked.push(hasDraft);
+  }
+  var v = videoInfo_(), endSec = v.end || rec.dur || 0;
+  // Questions the video hasn't reached yet go to the page as placeholders only (no text, no choices).
+  base.questions = questionsForClient_(false, ITEMS.map(function (_, i) { return reachedQ_(i, rec, acc, endSec); }));
+  base.answers = shown; base.checkedAnswers = rec.answers; base.unchecked = unchecked; base.results = results;
+  base.tries = rec.tries;
+  base.turnedIn = rec.turnedIn || "";
+  base.locked = !!(LOCK_AFTER_TURN_IN && rec.turnedIn);
+  base.showGrade = SHOW_GRADE_TO_STUDENTS;
+  base.grade = gradeFor_(statusesOf_(results)); base.maxPoints = MAX_POINTS;
+  base.minLength = MIN_ANSWER_LENGTH;
+  base.blockPaste = !!BLOCK_PASTE;
+  base.credit = CREDIT; base.fullCreditAt = FULL_CREDIT_AT; base.roundTo = ROUND_TO;
+  base.watched = rec.watched || 0;
+  base.dur = rec.dur || 0;   // lets the page tell, on a reload, that the whole video was already watched
+  if (acc.mode === "live") base.live = { id: acc.live.id, q: acc.live.q, opened: acc.live.opened || [] };
+  else {
+    base.video = videoForClient_(v);
+    base.preventSkip = !!PREVENT_SKIPPING && !acc.teacher;
+  }
+  return base;
+}
+
+/** How early (seconds) the page may fetch a question before its pause time, so it pops up without a wait. */
+var REVEAL_EARLY_SECS = 12;
+
+/**
+ * Has this student reached question i? A question stays hidden until it comes up in the video
+ * (watched up to its time, or the end for after-video questions), the teacher opens it in a live
+ * lesson, or the student has already answered it. The teacher's own preview follows the same rule.
+ */
+function reachedQ_(i, rec, acc, endSec) {
+  var it = ITEMS[i];
+  if (!it) return false;
+  if (rec.answers[i] || (rec.drafts && rec.drafts[i])) return true;
+  if (acc.mode === "live" && acc.live && (acc.live.opened || []).indexOf(i) !== -1) return true;
+  var w = rec.watched || 0;
+  if (it.t == null) return endSec > 0 && w >= endSec - 2;
+  return w >= it.t - 1;
+}
+
+/**
+ * What students receive for each question. The right answers go to the teacher's live screen only.
+ * visible (optional): false for a question the student hasn't reached, which is sent as a placeholder
+ * with its number and time only.
+ */
+function questionsForClient_(forTeacher, visible) {
+  return ITEMS.map(function (it, i) {
+    if (visible && !visible[i]) return { type: it.type, num: qNum_(i), t: it.t, at: it.at, hidden: true };
+    var right = [];
+    it.choices.forEach(function (c, k) { if (c.correct) right.push(k); });
+    var q = { type: it.type, num: qNum_(i), text: it.q, t: it.t, at: it.at,
+              img: imageUrl_(it.img), imgCaption: it.imgCaption || "",
+              choices: it.choices.map(function (c) { return c.text; }), multi: right.length > 1,
+              nRight: it.type === "mc" ? right.length : 0 };   // "Choose 2 answers." (the count, never which ones)
+    if (forTeacher) { q.correct = right; q.keyIdeas = it.criteria.length; }
+    return q;
+  });
+}
+
+/** Turns a Google Drive share link into a direct image address; other https links pass through. */
+function imageUrl_(u) {
+  u = String(u || "").trim();
+  if (!u) return "";
+  var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|thumbnail\?id=)([\w-]{20,})/.exec(u);
+  if (m) return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w1600";
+  return /^https:\/\//.test(u) ? u : "";
+}
+
+// ============================== WHO IS THIS STUDENT? (CLASS PASS) ==============================
+// Google tells this script who the student is only when their SCHOOL account is the first Google account
+// signed in to the browser (always true on school Chromebooks). Anywhere else the student signs in with
+// CLASS PASS (the student link, see CLASS PASS below): "Sign in with Google", or, only while the Settings
+// tab allows it, their school email and the 6-digit code emailed to it. Either one signs that browser in for
+// SIGNIN_DAYS. Only students on the Roster tab can sign in this way. (The same as the Self-Check template's.)
+var SIGNIN_CODE_MINUTES = 10;    // an emailed code works this long
+var SIGNIN_TRIES = 5;            // wrong tries allowed per code
+var SIGNIN_CODES_PER_HOUR = 5;   // codes one student can be sent per hour
+var SIGNIN_DAYS = 14;            // a sign-in keeps that browser signed in this long
+// "Sign in with Google" on the Class Pass page: Google's own account list, so a student picks their school
+// account even when another account is signed in first. The client is Class Pass's own (Google Cloud project
+// "Video Check sign-in", Audience: Internal). GOOGLE_CLIENT_ID (Settings tab "Class Pass Google client ID")
+// replaces it only if Google ever deletes it; "off" hides the button.
+var CLASS_PASS_CLIENT_ID = "3149691222-tatln28vl1l2e57nprt4t4lco0d9q5p1.apps.googleusercontent.com";
+var GOOGLE_CLIENT_ID = "";
+// The emailed code (Settings tab "Allow emailed sign-in code"). Off: the page doesn't offer it and
+// sendSignInCode / verifySignInCode refuse. Turn it on if Google sign-in is blocked for students.
+var ALLOW_SIGNIN_CODE = false;
+
+var SIGNIN_KEEP = 5;             // sign-ins kept per student (phone, laptop, ...); older ones end
+var SIGNIN_MAIL_PER_HOUR = 120;  // codes this sheet sends per hour, all students together
+var SIGNIN_MAIL_PER_DAY = 400;   // ... and per day, so a flood can't use up your Gmail sending quota
+var SIGNIN_MAIL_RESERVE = 50;    // emails a day always left for your own use
+var VIA_POST_ = false;           // true while doPost runs: those requests count only their sign-in token (see doPost)
+
+/** { email, via }: via is "google" (school account signed in first) or "code" (emailed code or Sign in with Google). */
+function whoIs_(token) {
+  // A request to doPost is identified only by its token, never by the browser's Google sign-in, so another
+  // website can't make a signed-in student's browser save answers for them.
+  var email = VIA_POST_ ? "" : String(Session.getActiveUser().getEmail() || "").toLowerCase();
+  if (email) return { email: email, via: "google" };
+  email = sessionEmail_(token);
+  return email ? { email: email, via: "code" } : { email: "", via: "" };
+}
+
+function currentStudent_(token) {
+  var email = whoIs_(token).email;
+  if (!email) throw new Error("SIGNIN: You're signed out. Sign in with Class Pass to keep working.");
+  return email;
+}
+
+function signInState_() {
+  return { needSignIn: true, title: ASSIGNMENT_TITLE, domain: studentDomain_(readRoster_()), minutes: SIGNIN_CODE_MINUTES,
+           googleClient: googleClient_(), code: !!ALLOW_SIGNIN_CODE, passLink: passLink_() };
+}
+
+/** The Class Pass page asks this first (no sign-in needed): what this sheet is, and how students may sign in. */
+function classPass() {
+  loadConfig_();
+  return { classPass: 1, kind: SKILL_NAME, version: SKILL_VERSION, title: ASSIGNMENT_TITLE, domain: studentDomain_(readRoster_()),
+           googleClient: googleClient_(), code: !!ALLOW_SIGNIN_CODE, minutes: SIGNIN_CODE_MINUTES };
+}
+
+/** The Google client ID for Sign in with Google: the Settings tab's, or Class Pass's own, or "" when it's "off". */
+function googleClient_() {
+  var id = String(GOOGLE_CLIENT_ID == null ? "" : GOOGLE_CLIENT_ID).trim();
+  if (/^(off|no|none)$/i.test(id)) return "";
+  return /^[\w.-]+\.apps\.googleusercontent\.com$/.test(id) ? id : CLASS_PASS_CLIENT_ID;
+}
+
+/** " Or get a code by email instead." while codes are allowed, else a pointer to the teacher. */
+function orCode_() { return ALLOW_SIGNIN_CODE ? " Or get a code by email instead." : " If it keeps happening, tell your teacher."; }
+/** Refuses an emailed-code request while the Settings tab doesn't allow codes (not just hidden on the page). */
+function assertCodeAllowed_() {
+  if (!ALLOW_SIGNIN_CODE) throw new Error("SIGNIN: Emailed sign-in codes are turned off for this assignment. Use Sign in with Google, or ask your teacher.");
+}
+
+/** The part after @ that most students on the roster use (the teacher's, if there's no roster yet). */
+function studentDomain_(roster) {
+  var count = {}, best = "", most = 0;
+  Object.keys(roster || {}).forEach(function (e) {
+    var d = e.split("@")[1];
+    if (!d) return;
+    count[d] = (count[d] || 0) + 1;
+    if (count[d] > most) { most = count[d]; best = d; }
+  });
+  return best || String(Session.getEffectiveUser().getEmail() || "").toLowerCase().split("@")[1] || "";
+}
+
+/** What the student typed, as a full lowercase email ("jdoe" gets @ + the school domain), or "". */
+function typedEmail_(typed, domain) {
+  var e = String(typed == null ? "" : typed).toLowerCase().replace(/\s+/g, "");
+  if (e && e.indexOf("@") === -1 && domain) e += "@" + domain;
+  return /^[^@]+@[^@]+\.[a-z]{2,}$/.test(e) ? e : "";
+}
+
+/** Sign-in step 1 (called by the page): email a 6-digit code to a student on the roster. */
+function sendSignInCode(typed) {
+  loadConfig_();
+  assertCodeAllowed_();
+  var roster = readRoster_(), domain = studentDomain_(roster);
+  var email = typedEmail_(typed, domain);
+  if (!email) throw new Error("SIGNIN: Type your whole school email address, like yourname@" + domain + ".");
+  if (!mayUseSignIn_(email, roster, domain)) {
+    throw new Error("SIGNIN: " + email + " isn't on the class list for this assignment. Check the spelling. If it's right, ask your teacher to refresh the roster.");
+  }
+  var c = cache_(), now = Date.now(), code;
+  var busyText = "SIGNIN: Codes can't be sent right now. Wait a few minutes and try again, or ask your teacher.";
+  if (!c) throw new Error(busyText);
+  // The limits are counted inside the script lock, so requests that arrive together can't slip past them.
+  // (Only the counting: the email itself is sent after the lock is let go.)
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) throw new Error("BUSY: Lots of students are signing in. Try again in a moment.");
+  try {
+    var sentKey = "signin:sent:" + email;
+    var sent = (cacheGet_(sentKey) || []).filter(function (t) { return now - t < 3600000; });
+    // Asked again within 45 s (often because the answer to the first request got lost): same code, no new email.
+    if (sent.length && now - sent[sent.length - 1] < 45000 && cacheGet_("signin:code:" + email)) return { sent: true, email: email, minutes: SIGNIN_CODE_MINUTES, again: true };
+    if (sent.length >= SIGNIN_CODES_PER_HOUR) {
+      throw new Error("SIGNIN: That's too many codes for one hour. Use the code in your newest email, or wait a while and try again.");
+    }
+    var hourKey = "signin:hour:" + Math.floor(now / 3600000), hourCount = Number(c.get(hourKey)) || 0;
+    var today = Math.floor(now / 86400000), day = {};
+    try { day = JSON.parse(props_().getProperty("MAIL_DAY") || "{}"); } catch (e) { day = {}; }
+    var dayCount = day.d === today ? Number(day.n) || 0 : 0;
+    if (hourCount >= SIGNIN_MAIL_PER_HOUR || dayCount >= SIGNIN_MAIL_PER_DAY || MailApp.getRemainingDailyQuota() <= SIGNIN_MAIL_RESERVE) throw new Error(busyText);
+    code = ("00000" + (parseInt(Utilities.getUuid().replace(/-/g, "").slice(0, 8), 16) % 1000000)).slice(-6);
+    cachePut_("signin:code:" + email, { c: code, n: 0, x: now + SIGNIN_CODE_MINUTES * 60000 }, SIGNIN_CODE_MINUTES * 60);
+    sent.push(now);
+    cachePut_(sentKey, sent, 3600);
+    c.put(hourKey, String(hourCount + 1), 3600);
+    props_().setProperty("MAIL_DAY", JSON.stringify({ d: today, n: dayCount + 1 }));
+  } finally {
+    lock.releaseLock();
+  }
+  MailApp.sendEmail({
+    to: email,
+    subject: code + " is your Class Pass code for " + ASSIGNMENT_TITLE,
+    body: "Your Class Pass sign-in code is " + code + ".\n\n" +
+          "Type it on the \"" + ASSIGNMENT_TITLE + "\" page to keep working. It works for " + SIGNIN_CODE_MINUTES + " minutes.\n\n" +
+          "If you didn't ask for a code, you can ignore this email. Nobody can sign in as you without it."
+  });
+  return { sent: true, email: email, minutes: SIGNIN_CODE_MINUTES };
+}
+
+/** Who may sign in on the page (emailed code or Google): students on the Roster tab (any address at the
+ *  school's domain before there's a roster), plus the teacher, to preview as a student. */
+function mayUseSignIn_(email, roster, domain) {
+  var teacher = String(Session.getEffectiveUser().getEmail() || "").toLowerCase();
+  var listed = Object.keys(roster).length ? !!roster[email] : email.split("@")[1] === domain;
+  return listed || email === teacher;
+}
+
+/** Sign-in step 2 (called by the page): check the code. Returns a token the page keeps in the browser. */
+function verifySignInCode(typed, code) {
+  loadConfig_();
+  assertCodeAllowed_();
+  var email = typedEmail_(typed, studentDomain_(readRoster_()));
+  code = String(code == null ? "" : code).replace(/\D/g, "");
+  if (!email) throw new Error("SIGNIN: That code has expired. Press Send a new code.");
+  var key = "signin:code:" + email, doneKey = "signin:done:" + email, badKey = "signin:bad:" + email, now = Date.now();
+  // Checked and counted inside the script lock, so guesses sent all at once still only get SIGNIN_TRIES tries.
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) throw new Error("BUSY: Lots of students are signing in. Try again in a moment.");
+  try {
+    // The same right code again within 2 minutes (the answer to the first try got lost): the same sign-in.
+    var done = cacheGet_(doneKey);
+    if (done && done.c === code) return { token: done.t, email: email };
+    var bad = Number(cacheRaw_(badKey)) || 0;
+    if (bad >= SIGNIN_TRIES * 3) throw new Error("SIGNIN: Too many wrong codes this hour. Wait a while, then press Send a new code.");
+    var rec = cacheGet_(key);
+    if (!rec || rec.x < now) throw new Error("SIGNIN: That code has expired. Press Send a new code.");
+    if (code !== rec.c) {
+      rec.n = (rec.n || 0) + 1;
+      cachePut_(badKey, bad + 1, 3600);
+      if (rec.n >= SIGNIN_TRIES) { cacheDel_([key]); throw new Error("SIGNIN: Too many wrong tries. Press Send a new code."); }
+      cachePut_(key, rec, Math.max(1, Math.ceil((rec.x - now) / 1000)));
+      throw new Error("SIGNIN: That code isn't right. Use the code in the newest email.");
+    }
+    cacheDel_([key]);
+    var token = Utilities.getUuid().replace(/-/g, "") + Utilities.getUuid().replace(/-/g, "");
+    saveSession_(token, email);
+    cachePut_(doneKey, { c: code, t: token }, 120);
+    return { token: token, email: email };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * "Sign in with Google" on the Class Pass page (called by the page). Google's own sign-in page gives the page an
+ * ID token: a note signed by Google saying which account signed in, and for which app. Google's token check
+ * confirms the note is real and current; this makes sure it was made for THIS app's client ID, the address is
+ * verified, and the student is on the roster. Returns the same kind of token as an emailed code, plus the
+ * assignment itself (state: what getStudentState gives) and what the sheet is (kind), so the page needs no other
+ * trip to the sheet before it opens the assignment.
+ */
+function signInWithGoogle(idToken) {
+  loadConfig_();
+  var cid = googleClient_();
+  if (!cid) throw new Error("SIGNIN: Google sign-in is turned off for this assignment." + orCode_());
+  idToken = String(idToken == null ? "" : idToken).trim();
+  if (idToken.length > 8000 || !/^[\w-]+\.[\w-]+\.[\w-]+$/.test(idToken)) throw new Error("SIGNIN: Google's sign-in didn't come through. Try again." + orCode_());
+  // First read what the token itself says (not trusted yet: Google's check below confirms it), so junk sent to this
+  // sheet is refused without using up Google checks, and one prankster can't lock the whole class out for an hour.
+  var said = tokenClaims_(idToken);
+  if (!said) throw new Error("SIGNIN: Google's sign-in didn't come through. Try again." + orCode_());
+  var email = String(said.email || "").toLowerCase();
+  if (!googleClaimsOk_(said, cid, email)) throw new Error("SIGNIN: That Google sign-in can't be used here. Sign in with your school account." + orCode_());
+  // Every sheet shares Class Pass's Google client, so an ID token by itself would work at any of them for an hour.
+  // The Class Pass page ends the nonce (inside the signed token) with the deployment it sends the token to: only
+  // a token made for THIS web app counts, so a link to some other web app can't collect a student's sign-in and use it here.
+  var ownIds = ownAppIds_(), forApp = String(said.nonce || "").split(".").pop();
+  if (!ownIds.length) throw new Error("SIGNIN: Google sign-in isn't ready for this assignment's link yet. Please tell your teacher: run Show student link in the sheet's menu once." + orCode_());
+  if (ownIds.indexOf(forApp) === -1) throw new Error("SIGNIN: That Google sign-in was for a different assignment. Open this assignment's link again, then sign in.");
+  var roster = readRoster_();
+  if (!mayUseSignIn_(email, roster, studentDomain_(roster))) {
+    throw new Error("SIGNIN: " + email + " isn't on the class list for this assignment. Sign in with your school account. If that's the one you used, ask your teacher to refresh the roster.");
+  }
+  // Caps on Google checks: per student, then for the whole sheet (they use your daily URL-fetch quota, which Drive
+  // videos need too). A class signs in well under both.
+  var hour = Math.floor(Date.now() / 3600000);
+  var tryKey = "signin:gtry:" + email + ":" + hour, tries = Number(cacheRaw_(tryKey)) || 0;
+  if (tries >= 10) throw new Error("SIGNIN: That's a lot of sign-ins for one hour. Wait a while, then try again.");
+  cachePut_(tryKey, tries + 1, 3600);
+  var hourKey = "signin:gchk:" + hour, checks = Number(cacheRaw_(hourKey)) || 0;
+  if (checks >= Math.max(1000, 12 * Object.keys(roster).length)) throw new Error("BUSY: Lots of Google sign-ins right now. Try again in a few minutes.");
+  cachePut_(hourKey, checks + 1, 3600);
+  var r;
+  try {
+    r = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo", { method: "post", payload: { id_token: idToken }, muteHttpExceptions: true });
+  } catch (e) {
+    throw new Error("BUSY: Couldn't reach Google to check the sign-in (" + e.message + ").");
+  }
+  var status = r.getResponseCode(), c = null;
+  if (status >= 500 || status === 429) throw new Error("BUSY: Google's sign-in check is busy. Try again in a minute.");
+  try { c = JSON.parse(r.getContentText()); } catch (e) { c = null; }
+  if (status !== 200 || !c) throw new Error("SIGNIN: That Google sign-in ran out or didn't work. Press Sign in with Google again.");
+  // Google's answer is the one that counts: the same checks again, on what Google says.
+  if (!googleClaimsOk_(c, cid, email) || String(c.email || "").toLowerCase() !== email || (c.nonce != null && String(c.nonce) !== String(said.nonce || ""))) {
+    throw new Error("SIGNIN: That Google sign-in can't be used here. Sign in with your school account." + orCode_());
+  }
+  var token = Utilities.getUuid().replace(/-/g, "") + Utilities.getUuid().replace(/-/g, "");
+  saveSession_(token, email);
+  var out = { token: token, email: email, kind: SKILL_NAME };   // kind: which page opens, so the page needn't wait for classPass
+  // The Class Pass page opens the assignment next: its first answer comes along, so that's one trip to the sheet
+  // instead of two. (Pages from before 2026.09.30 ignore it and ask for it themselves.)
+  try { var st = getStudentState(token); if (st && !st.needSignIn) out.state = st; } catch (e) { /* the page asks */ }
+  return out;
+}
+/** Made for Class Pass's client, by Google, not run out, with a verified email address. */
+function googleClaimsOk_(c, cid, email) {
+  return c.aud === cid && (c.iss === "accounts.google.com" || c.iss === "https://accounts.google.com") &&
+         Number(c.exp) * 1000 > Date.now() && String(c.email_verified) === "true" && /^[^@\s]+@[^@\s]+$/.test(email);
+}
+/** The claims an ID token carries (its middle part), or null. Only Google's check proves they're real. */
+function tokenClaims_(t) {
+  try {
+    var p = String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (p.length % 4) p += "=";
+    var c = JSON.parse(Utilities.newBlob(Utilities.base64Decode(p)).getDataAsString());
+    return c && typeof c === "object" ? c : null;
+  } catch (e) { return null; }
+}
+
+/** This web app's own deployment IDs: the one in the student link (saved by Show student link and step 2), and the one
+ *  Google reports (only an /exec link counts). A Google sign-in is accepted only when it was made for one of them. */
+function ownAppIds_() {
+  var ids = [];
+  [function () { return props_().getProperty("WEBAPP_URL"); }, function () { return ScriptApp.getService().getUrl(); }].forEach(function (get) {
+    var u = "";
+    try { u = String(get() || ""); } catch (e) { u = ""; }
+    var m = /\/macros\/s\/([\w-]+)\/exec$/.exec(plainUrl_(u));
+    if (m && ids.indexOf(m[1]) === -1) ids.push(m[1]);
+  });
+  return ids;
+}
+
+/** "Sign out" on the page: forget this browser's code sign-in. */
+function signOut(token) {
+  if (/^[0-9a-f]{64}$/.test(String(token || ""))) {
+    var k = sessionKey_(token);
+    props_().deleteProperty(k);
+    cacheDel_([k]);
+  }
+  return { signedOut: true };
+}
+
+/** Sign-ins are kept as script properties named by a hash of the token, never the token itself. */
+function sessionKey_(token) {
+  var d = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(token), Utilities.Charset.UTF_8);
+  return "SIGNIN_" + d.map(function (b) { return ("0" + (b & 255).toString(16)).slice(-2); }).join("");
+}
+function saveSession_(token, email) {
+  var p = props_(), now = Date.now(), all = p.getProperties(), mine = [], gone = [];
+  Object.keys(all).forEach(function (k) {   // tidy up sign-ins that have run out
+    if (k.indexOf("SIGNIN_") !== 0) return;
+    var s = null;
+    try { s = JSON.parse(all[k]); } catch (e) {}
+    if (!s || !(s.x > now)) { p.deleteProperty(k); gone.push(k); return; }
+    if (s.e === email) mine.push({ k: k, x: s.x });
+  });
+  // Only this student's newest few sign-ins stay, so signing in over and over can't fill the script's storage
+  // (live lessons and linked classes are kept there too).
+  mine.sort(function (a, b) { return b.x - a.x; });
+  var old = mine.slice(SIGNIN_KEEP - 1).map(function (m) { return m.k; });
+  old.forEach(function (k) { p.deleteProperty(k); });
+  gone = gone.concat(old);
+  if (gone.length) cacheDel_(gone);   // and their short-term copies
+  p.setProperty(sessionKey_(token), JSON.stringify({ e: email, x: now + SIGNIN_DAYS * 86400000 }));
+}
+function sessionEmail_(token) {
+  if (!/^[0-9a-f]{64}$/.test(String(token || ""))) return "";
+  var k = sessionKey_(token), s = cacheGet_(k);
+  if (!s) {
+    try { s = JSON.parse(props_().getProperty(k) || "null"); } catch (e) { s = null; }
+    if (s) cachePut_(k, s, 21600);
+  }
+  return s && s.x > Date.now() ? s.e : "";
+}
+
+// ============================== CLASS PASS (the student link, on the class website) ==============================
+// Google refuses to open any web app in a browser where another Google account is signed in before the
+// school one, whatever the access setting, before any of this code runs. So the link students get is
+// CLASS PASS, a page on the class website: CLASS_PASS_URL + "?app=" + this deployment's ID. The same page
+// serves every Video Check and Self-Check sheet (it asks classPass() which one this is).
+//   1. It loads this web app out of sight (doGet with ?probe=1, probePage_), which only reports whether
+//      Google told this script who is signed in.
+//   2. If Google did (school Chromebooks), the student goes on to the plain /exec link, exactly as before.
+//   3. If not, the student signs in with Class Pass (WHO IS THIS STUDENT above), and the video runs on the class
+//      website (/pass/video/, this same Index.html). It talks to doPost with fetch, and those requests carry no
+//      Google sign-in (so there's nothing for two accounts to mix up), which is why the deployment's access is
+//      "Anyone".
+// Both ways save to this spreadsheet.
+var CLASS_PASS_URL = "https://physical-science-8.pages.dev/pass/";   // "" = students get the plain /exec link
+
+/** Everything the class website may call, and nothing else (no teacher or menu functions, ever). */
+var API_ = { getStudentState: getStudentState, gradeAnswer: gradeAnswer, checkAnswer: checkAnswer, saveDraft: saveDraft,
+             saveProgress: saveProgress, turnIn: turnIn, livePoll: livePoll, revealQuestion: revealQuestion,
+             getVideoChunk: getVideoChunk, getPicture: getPicture, signOut: signOut, classPass: classPass,
+             sendSignInCode: sendSignInCode, verifySignInCode: verifySignInCode, signInWithGoogle: signInWithGoogle };
+var API_NO_TOKEN_ = { classPass: true, sendSignInCode: true, verifySignInCode: true, signInWithGoogle: true };
+
+/**
+ * The class website's requests: {fn, args, token} as text. The token goes in as the function's LAST argument
+ * here on the server (missing arguments become null), so one Class Pass page works with every sheet's version.
+ * Answers {ok: true, result} or {ok: false, error}; errors keep their SIGNIN:/BUSY:/NOT OPEN: starts.
+ */
+function doPost(e) {
+  VIA_POST_ = true;   // identified by the token only (whoIs_): the class website never sends the browser's Google sign-in
+  var out;
+  try {
+    var req = null;
+    try { req = JSON.parse((e && e.postData && e.postData.contents) || ""); } catch (err) { req = null; }
+    if (!req || typeof req.fn !== "string" || !Object.prototype.hasOwnProperty.call(API_, req.fn)) throw new Error("Unknown request.");
+    var f = API_[req.fn], n = API_NO_TOKEN_[req.fn] ? f.length : f.length - 1;
+    var args = (Array.isArray(req.args) ? req.args : []).slice(0, n);
+    while (args.length < n) args.push(null);
+    if (!API_NO_TOKEN_[req.fn]) args.push(typeof req.token === "string" ? req.token : "");
+    out = { ok: true, result: f.apply(null, args) };
+  } catch (err) {
+    out = { ok: false, error: String((err && err.message) || err) };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/** "https://physical-science-8.pages.dev" from CLASS_PASS_URL, or "". */
+function classPassOrigin_() {
+  var m = /^https:\/\/[^\/?#]+/.exec(String(CLASS_PASS_URL || ""));
+  return m ? m[0] : "";
+}
+
+/**
+ * Class Pass's out-of-sight check (doGet with ?probe=1). Tells the Class Pass page only whether Google said who
+ * is signed in (so the plain link will open for them), and only if that page is the class website.
+ * from = the Class Pass page's own address; the local test pages use http://localhost.
+ */
+function probePage_(from) {
+  var known = false;
+  try { known = !!Session.getActiveUser().getEmail(); } catch (e) { known = false; }
+  from = String(from || "");
+  var to = from && (from === classPassOrigin_() || /^http:\/\/localhost(:\d+)?$/.test(from)) ? from : "";
+  var html = to ? "<script>try { window.top.postMessage({ videoCheckProbe: " + (known ? 1 : 0) + " }, " + JSON.stringify(to) + "); } catch (e) {}</script>" : "";
+  return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** The link students get: Class Pass for this deployment, or the plain /exec link if there's no Class Pass. */
+function classPassLink_(url) {
+  url = plainUrl_(url);
+  var m = /\/macros\/s\/([\w-]+)\/exec$/.exec(url);
+  return CLASS_PASS_URL && m ? CLASS_PASS_URL + "?app=" + m[1] : url;
+}
+/** The Class Pass link for the /exec page's sign-in card (from the link saved by Show student link or step 2), or "". */
+function passLink_() {
+  var url = "";
+  try { url = props_().getProperty("WEBAPP_URL") || ""; } catch (e) { url = ""; }
+  if (!url) try { url = ScriptApp.getService().getUrl() || ""; } catch (e) { url = ""; }
+  var link = classPassLink_(url);
+  return CLASS_PASS_URL && link.indexOf(CLASS_PASS_URL) === 0 ? link : "";
+}
+
+/**
+ * A question's picture, for the class website (Drive only shows a picture shared with the district to a browser
+ * whose FIRST Google account is a school one). Only a Drive picture in the Questions tab, only for a signed-in
+ * student who can already see that question, and only an image file.
+ */
+/** A limit per student per hour (or per secs), so one signed-in page run in a loop can't use up the quotas every sheet shares. */
+function perHour_(what, email, max, secs) {
+  secs = secs || 3600;
+  var k = "rate:" + what + ":" + email + ":" + Math.floor(Date.now() / (secs * 1000)), n = Number(cacheRaw_(k)) || 0;
+  if (n >= max) throw new Error("BUSY: That's a lot for now. Wait a few minutes, then reload the page.");
+  cachePut_(k, n + 1, secs);
+}
+var PICTURE_MAX_BYTES = 8 * 1024 * 1024;
+function getPicture(idx, token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  perHour_("pic", email, 300);
+  idx = Number(idx);
+  var it = ITEMS[idx];
+  if (!(idx >= 0 && idx < ITEMS.length) || !it.img) throw new Error("Unknown picture.");
+  if (!mayShowQuestion_(email, idx)) throw new Error("NOT YET: This question comes up later in the video.");
+  var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|thumbnail\?id=)([\w-]{20,})/.exec(String(it.img));
+  if (!m) throw new Error("Unknown picture.");   // other https pictures load on the page directly
+  var blob;
+  try { blob = DriveApp.getFileById(m[1]).getBlob(); } catch (e) { throw new Error("BUSY: Couldn't read the picture from Drive right now (" + e.message + ")."); }
+  var mime = String(blob.getContentType() || "");
+  if (!/^image\/(png|jpeg|gif|webp|bmp)$/.test(mime)) throw new Error("Unknown picture.");
+  var bytes = blob.getBytes();
+  if (bytes.length > PICTURE_MAX_BYTES) throw new Error("Unknown picture.");
+  return { mime: mime, data: Utilities.base64Encode(bytes) };
+}
+/** Has this student been shown question idx (reached in the video, opened in a live lesson, or fetched just before)? */
+function mayShowQuestion_(email, idx) {
+  var acc = access_(email, readRoster_());
+  if (acc.mode === "wait") return false;
+  if (acc.mode === "live" && (acc.live.opened || []).indexOf(idx) !== -1) return true;
+  if (cacheRaw_("shown:" + email + ":" + idx)) return true;
+  var rec = readRecord_(email), v = videoInfo_();
+  return !!rec && reachedQ_(idx, rec, acc, v.end || rec.dur || 0);
+}
+
+/** Waits for our turn to write. Throws a friendly "busy" error the page retries on its own. */
+function lockOrBusy_(ms) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(ms)) throw new Error("BUSY: Lots of students are saving right now.");
+  return lock;
+}
+
+/** Rebuilds the Question Summary tab at most once a minute (it reads every student's work). */
+function maybeRenderSummary_() {
+  var c = cache_();
+  try { if (c && c.get("summaryFresh")) return; if (c) c.put("summaryFresh", "1", 60); } catch (e) {}
+  try { renderSummary_(); } catch (e) { /* summary is only for the teacher; never fail a student's save */ }
+}
+
+/**
+ * FAST FEEDBACK: grade only, no waiting in line, no spreadsheet writes.
+ * priorWrong is the page's count of wrong multiple-choice tries (the save that follows uses the real count).
+ */
+function gradeAnswer(idx, answer, priorWrong, token) {
+  loadConfig_();
+  idx = Number(idx);
+  if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
+  var email = currentStudent_(token);
+  assertCanAnswer_(email, idx, readRoster_());
+  answer = String(answer == null ? "" : answer).slice(0, 5000).trim();
+  var tries = Math.max(Number(priorWrong) || 0, mcWrongPicks_(email, idx).length);
+  var result = feedbackFor_(idx, answer, tries);
+  if (ITEMS[idx].type === "mc" && result.status === "incorrect") noteWrongPick_(email, idx, answer);
+  return { result: result };
+}
+
+/** Wrong multiple-choice picks this student has had graded (6 hours), so trying every choice here without saving
+ *  still counts as wrong tries when the right one is saved (Settings: full credit for MC fixed on a later try). */
+function mcWrongPicks_(email, idx) { return cacheGet_("mcw:" + email + ":" + idx) || []; }
+function noteWrongPick_(email, idx, answer) {
+  var list = mcWrongPicks_(email, idx), a = mcPicks_(answer, ITEMS[idx].choices.length).join(",");
+  if (a && list.indexOf(a) === -1 && list.length < 30) { list.push(a); cachePut_("mcw:" + email + ":" + idx, list, 21600); }
+}
+
+/** Grade one answer, save it, update the teacher's live view. pos = how far the student has watched (seconds). */
+function checkAnswer(idx, answer, pos, token) {
+  loadConfig_();
+  idx = Number(idx);
+  if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
+  answer = String(answer == null ? "" : answer).slice(0, 5000).trim();
+  var email = currentStudent_(token);
+  var roster = readRoster_();
+  var acc = assertCanAnswer_(email, idx, roster);
+  var lock = lockOrBusy_(20000), out, changed, rec, result;
+  try {
+    rec = readRecord_(email) || newRecord_();
+    if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already turned this in, so answers are locked.");
+    var tries = rec.tries[idx] || 0;
+    // wrong picks graded but never saved count too (mcWrongPicks_), so trying every choice doesn't earn green
+    var graded = ITEMS[idx].type === "mc" ? Math.max(tries, mcWrongPicks_(email, idx).length) : tries;
+    result = feedbackFor_(idx, answer, graded);
+    changed = rec.answers[idx] !== answer;
+    if (changed && ITEMS[idx].type === "mc" && result.status === "incorrect") rec.tries[idx] = tries + 1;
+    if (graded > (rec.tries[idx] || 0)) rec.tries[idx] = graded;
+    rec.answers[idx] = answer;
+    rec.statuses[idx] = result.status;
+    if (rec.drafts) rec.drafts[idx] = null;   // the checked answer replaces any autosaved draft
+    if (changed) rec.checks = (rec.checks || 0) + 1;
+    var seen = acc.mode === "live" ? (ITEMS[idx].t || 0) : Number(pos) || 0;
+    if (seen > (rec.watched || 0)) rec.watched = Math.round(seen * 10) / 10;
+    rec.updated = new Date().toISOString();
+    writeRecord_(email, rec);
+    renderLiveRow_(email, rec, roster);
+    out = { result: result, grade: gradeFor_(rec.statuses), tries: rec.tries[idx] || 0 };
+  } finally {
+    lock.releaseLock();
+  }
+  // Teacher-only extras happen after the student's save is done, outside the line.
+  if (acc.mode === "live") cachePut_("la:" + acc.live.id + ":" + idx + ":" + email, { s: result.status, a: answer }, LIVE_CACHE_SECS);
+  try { if (changed) logEvent_(email, idx, result.status, answer); } catch (e) {}
+  maybeRenderSummary_();
+  return out;
+}
+
+/**
+ * Autosave while typing a written answer. Saves the text so nothing is lost, but does NOT
+ * grade it or change its color; that still happens on Check.
+ */
+function saveDraft(idx, text, token) {
+  loadConfig_();
+  idx = Number(idx);
+  if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
+  text = String(text == null ? "" : text).slice(0, 5000).trim();
+  var email = currentStudent_(token);
+  var roster = readRoster_();
+  assertCanAnswer_(email, idx, roster);
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(4000)) return { saved: false };   // busy moment: the page quietly tries again
+  try {
+    var rec = readRecord_(email) || newRecord_();
+    if (LOCK_AFTER_TURN_IN && rec.turnedIn) return { saved: false, locked: true };
+    rec.drafts = rec.drafts || [];
+    rec.drafts[idx] = text === (rec.answers[idx] || "") ? null : text;
+    rec.updated = new Date().toISOString();
+    writeRecord_(email, rec);
+    renderLiveRow_(email, rec, roster);
+    return { saved: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** How far the student has watched, so "Prevent skipping" and the Watched column survive a reload. */
+function saveProgress(pos, dur, token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  var roster = readRoster_();
+  if (access_(email, roster).mode !== "self") return { saved: false };
+  pos = Number(pos) || 0; dur = Number(dur) || 0;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(4000)) return { saved: false };
+  try {
+    var rec = readRecord_(email) || newRecord_(), changed = false;
+    if (pos > (rec.watched || 0) + 0.5) { rec.watched = Math.round(pos * 10) / 10; changed = true; }
+    if (dur > 0 && Math.abs(dur - (rec.dur || 0)) > 1) { rec.dur = Math.round(dur); changed = true; }
+    if (!changed) return { saved: true };
+    rec.updated = new Date().toISOString();
+    writeRecord_(email, rec);
+    renderLiveRow_(email, rec, roster);
+    return { saved: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** "I'm finished" button. */
+function turnIn(token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  var roster = readRoster_();
+  if (access_(email, roster).mode === "wait") throw new Error("NOT OPEN: This video isn't open for you yet.");
+  var lock = lockOrBusy_(20000);
+  try {
+    var rec = readRecord_(email) || newRecord_();
+    rec.turnedIn = new Date().toISOString();
+    rec.updated = rec.turnedIn;
+    writeRecord_(email, rec);
+    renderLiveRow_(email, rec, roster);
+    return { turnedIn: rec.turnedIn, locked: !!LOCK_AFTER_TURN_IN, grade: gradeFor_(rec.statuses) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ============================== LIVE LESSON ==============================
+// One live lesson at a time (you have one projector). The live state is kept in script
+// properties (durable) and mirrored in the cache, which is what students' pages poll.
+// "live:next" (cache only) is the live screen's word on when its video reaches the next question (liveNext).
+function liveInfo_() {
+  var c = cache_(), got = {};
+  if (CACHE_MEMO_.hasOwnProperty("live") && CACHE_MEMO_.hasOwnProperty("live:next")) got = { live: CACHE_MEMO_.live, "live:next": CACHE_MEMO_["live:next"] };
+  else if (c) try { got = c.getAll(["live", "live:next"]) || {}; } catch (e) { got = {}; }
+  var out = null;
+  try { out = got.live ? JSON.parse(got.live) : null; } catch (e) { out = null; }
+  if (!out) {
+    var p = props_();
+    out = { live: JSON.parse(p.getProperty("LIVE") || "null"),
+            done: JSON.parse(p.getProperty("LIVE_DONE") || "{}"),
+            linked: courses_().length > 0 };
+    cachePut_("live", out, LIVE_CACHE_SECS);
+  }
+  var next = null;
+  try { next = got["live:next"] ? JSON.parse(got["live:next"]) : null; } catch (e) { next = null; }
+  applyNext_(out.live, next);
+  return out;
+}
+/** Once the moment the live screen gave has come, its question counts as open for everyone, so students get it
+ *  on their next check without waiting for the screen's own liveOpen. Before then, pages only learn the time. */
+function applyNext_(live, next) {
+  if (!live || !next || next.id !== live.id) return;
+  if (Date.now() < next.at) { live.next = next.at; return; }
+  if (live.q >= 0) return;
+  live.q = next.q;
+  live.opened = live.opened || [];
+  if (live.opened.indexOf(next.q) === -1) live.opened.push(next.q);
+}
+function saveLive_(live, done) {
+  if (live) { live = JSON.parse(JSON.stringify(live)); delete live.next; }   // worked out again on every read
+  var p = props_();
+  if (live) p.setProperty("LIVE", JSON.stringify(live)); else p.deleteProperty("LIVE");
+  p.setProperty("LIVE_DONE", JSON.stringify(done || {}));
+  var out = { live: live, done: done || {}, linked: courses_().length > 0 };
+  cachePut_("live", out, LIVE_CACHE_SECS);
+  return out;
+}
+
+/** Student page, every few seconds during a live lesson or while waiting for one. Cache reads only.
+ *  next = when the projector will stop for the next question (server clock, no question text), so the page
+ *  can time its next check to land right then; now = the server clock, to line the two clocks up. */
+function livePoll(token) {
+  // Everything this needs comes back in one trip to the cache, so each check is quick even with the whole class at once.
+  var keys = ["cfg:settings", "cfg:questions", "roster", "live", "live:next"];
+  if (/^[0-9a-f]{64}$/.test(String(token || ""))) keys.push(sessionKey_(token));
+  prefetchCache_(keys);
+  loadConfig_();
+  var email = currentStudent_(token);
+  var roster = readRoster_(), p = roster[email], L = liveInfo_();
+  var mine = !!(L.live && p && String(p.period) === String(L.live.period));
+  if (mine) { var c = cache_(); try { if (c) c.put("seen:" + L.live.id + ":" + email, "1", LIVE_CACHE_SECS); } catch (e) {} }
+  var open = !mine && (isTeacher_(email) || !WAIT_FOR_LIVE || !L.linked || !!(p && L.done[String(p.period)]));
+  return { on: mine, id: mine ? L.live.id : "", q: mine ? L.live.q : -1, opened: mine ? (L.live.opened || []) : [], open: open,
+           next: mine && L.live.next ? L.live.next : 0, now: Date.now(),
+           question: mine && L.live.q >= 0 && ITEMS[L.live.q] ? questionsForClient_(false)[L.live.q] : null };   // only the one the teacher just opened
+}
+
+/**
+ * The page asks for a question just before (or when) the video reaches it. Refused until then, so
+ * nobody can read ahead. pos = how far this student's video has played; dur = the video's length.
+ */
+function revealQuestion(idx, pos, dur, token) {
+  loadConfig_();
+  idx = Number(idx);
+  if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
+  var email = currentStudent_(token);
+  var acc = access_(email, readRoster_());
+  if (acc.mode === "wait") throw new Error("NOT OPEN: This video isn't open for you yet.");
+  var it = ITEMS[idx], v = videoInfo_(), end = v.end || Number(dur) || 0;
+  pos = Number(pos) || 0;
+  var ok = acc.mode === "live" ? (acc.live.opened || []).indexOf(idx) !== -1
+         : it.t == null ? end > 0 && pos >= end - 3
+         : pos >= it.t - REVEAL_EARLY_SECS;
+  if (!ok) {
+    var rec = readRecord_(email);
+    ok = !!rec && reachedQ_(idx, rec, acc, v.end || rec.dur || 0);
+  }
+  if (!ok) throw new Error("NOT YET: This question comes up later in the video.");
+  cachePut_("shown:" + email + ":" + idx, 1, 21600);   // its picture may load now (getPicture)
+  return questionsForClient_(false)[idx];
+}
+
+/** The live lesson screen shows the right answers, so it needs Google's own sign-in: an emailed code never unlocks it. */
+function teacherOnly_() {
+  var email = String(Session.getActiveUser().getEmail() || "").toLowerCase();
+  if (!isTeacher_(email)) {
+    throw new Error("Only the teacher who owns this video can open the live lesson screen." +
+      (email ? "" : " If that's you, open it from the spreadsheet (Video Check > Live lesson), or in a private window where you first sign in to only your school account at accounts.google.com."));
+  }
+  return email;
+}
+
+/** Everything the live lesson screen needs, including the right answers (teacher only). */
+function getTeacherState() {
+  loadConfig_();
+  teacherOnly_();
+  var L = liveInfo_(), v = videoInfo_();
+  return {
+    title: ASSIGNMENT_TITLE,
+    video: videoForClient_(v),
+    questions: questionsForClient_(true),
+    numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE),
+    periods: periodsForTeacher_(L),
+    live: L.live, waitForLive: !!WAIT_FOR_LIVE,
+    studentLink: props_().getProperty("WEBAPP_URL") ? classPassLink_(props_().getProperty("WEBAPP_URL")) : ""
+  };
+}
+function periodsForTeacher_(L) {
+  var roster = readRoster_(), n = {};
+  Object.keys(roster).forEach(function (e) { var k = String(roster[e].period); n[k] = (n[k] || 0) + 1; });
+  return courses_().map(function (c) {
+    return { period: String(c.period), name: c.name, students: n[String(c.period)] || 0, open: L.done[String(c.period)] || "" };
+  });
+}
+
+function liveStart(period) {
+  loadConfig_();
+  teacherOnly_();
+  period = String(period);
+  if (!courses_().some(function (c) { return String(c.period) === period; })) throw new Error("Period " + period + " isn't linked. Use Video Check > 1. Link Google Classroom classes first.");
+  var L = liveInfo_();
+  var live = { id: "L" + Date.now().toString(36), period: period, q: -1, opened: [], started: new Date().toISOString() };
+  cacheDel_(["live:next"]);
+  return saveLive_(live, L.done).live;
+}
+/** reach = the furthest point the projector's video has been, however it got there (played, skipped, or fast-forwarded). */
+function noteReach_(live, reach) {
+  reach = Number(reach) || 0;
+  if (reach > (live.reach || 0)) live.reach = Math.round(reach * 10) / 10;
+}
+function liveOpen(q, reach) {
+  loadConfig_();
+  teacherOnly_();
+  q = Number(q);
+  var L = liveInfo_();
+  if (!L.live) throw new Error("The live lesson isn't running.");
+  if (!(q >= 0 && q < ITEMS.length)) throw new Error("Unknown question.");
+  L.live.q = q;
+  if (L.live.opened.indexOf(q) === -1) L.live.opened.push(q);
+  noteReach_(L.live, reach);
+  cacheDel_(["live:next"]);   // this question is open now (or the teacher jumped to it): any schedule is used up
+  return saveLive_(L.live, L.done).live;
+}
+function liveClose(reach) {
+  teacherOnly_();
+  var L = liveInfo_();
+  if (!L.live) return null;
+  var closing = L.live.q, n = cacheGet_("live:next");
+  // A schedule that opened this question must go, or it would open it again. One for a later question stays.
+  if (n && (Date.now() >= n.at || n.q === closing)) cacheDel_(["live:next"]);
+  L.live.q = -1;
+  noteReach_(L.live, reach);
+  return saveLive_(L.live, L.done).live;
+}
+/**
+ * The live screen, a few seconds before its video reaches question q: "it stops there in inMs". From that
+ * moment students' pages get the question on their next check (timed to land right then), without waiting
+ * for the screen's own liveOpen. q = -1 cancels (the video was paused or moved). A question whose moment has
+ * already come stays open: students have it, and the screen opens it too.
+ */
+function liveNext(q, inMs) {
+  loadConfig_();
+  teacherOnly_();
+  var L = liveInfo_();
+  if (!L.live) return null;
+  q = Number(q);
+  if (q >= 0 && q < ITEMS.length) {
+    warmLiveCaches_();
+    cachePut_("live:next", { id: L.live.id, q: q, at: Date.now() + Math.min(20000, Math.max(0, Number(inMs) || 0)) }, LIVE_CACHE_SECS);
+  } else {
+    var n = cacheGet_("live:next");
+    if (n && Date.now() < n.at) cacheDel_(["live:next"]);
+  }
+  return L.live;
+}
+/** When the video stops, the whole class checks within the same half second. Refresh what those checks read, so
+ *  none of them finds it expired and has to open the spreadsheet (slow, and a crowd of those at once could run
+ *  into Google's limit on how many can run at the same time). loadConfig_ has already refilled anything missing. */
+function warmLiveCaches_() {
+  readRoster_();
+  var c = cache_();
+  if (!c) return;
+  try {
+    var got = c.getAll(["cfg:settings", "cfg:questions", "roster"]) || {};
+    if (got["cfg:settings"]) c.put("cfg:settings", got["cfg:settings"], CFG_CACHE_SECS);
+    if (got["cfg:questions"]) c.put("cfg:questions", got["cfg:questions"], CFG_CACHE_SECS);
+    if (got.roster) c.put("roster", got.roster, ROSTER_CACHE_SECS);
+  } catch (e) {}
+}
+/**
+ * Ends the live lesson and opens the video for that period right away (it can then watch on its
+ * own and fix answers). reach / dur = how far the projector's video got, and its length.
+ */
+function liveEnd(letThemWatch, reach, dur) {
+  loadConfig_();
+  teacherOnly_();
+  var L = liveInfo_(), live = L.live;
+  if (live && letThemWatch !== false) {
+    L.done[String(live.period)] = new Date().toISOString();
+    try { creditWatched_(live, Math.max(Number(reach) || 0, live.reach || 0), Number(dur) || 0); } catch (e) { /* never block ending the lesson */ }
+  }
+  cacheDel_(["live:next"]);
+  saveLive_(null, L.done);
+  return periodsForTeacher_(liveInfo_());
+}
+
+/** Students who were in the live lesson watched it on the board. Everything the projector reached
+ *  counts as watched for them, including parts you skipped or fast-forwarded, so "Prevent skipping
+ *  ahead" never makes them rewatch it. Students who never joined get nothing. */
+function creditWatched_(live, reach, dur) {
+  (live.opened || []).forEach(function (q) { if (ITEMS[q] && ITEMS[q].t > reach) reach = ITEMS[q].t; });
+  var v = videoInfo_(), end = v.end || dur || 0;
+  if (end && reach >= end - 2) reach = end;   // got to the end on the board = watched the whole video
+  if (!(reach > 0)) return;
+  var roster = readRoster_(), c = cache_();
+  var emails = Object.keys(roster).filter(function (e) { return String(roster[e].period) === String(live.period); });
+  var seen = c && emails.length ? c.getAll(emails.map(function (e) { return "seen:" + live.id + ":" + e; })) || {} : {};
+  var lock = lockOrBusy_(30000);
+  try {
+    emails.forEach(function (e) {
+      if (!seen["seen:" + live.id + ":" + e]) return;   // wasn't in the live lesson
+      var rec = readRecord_(e) || newRecord_();
+      if ((rec.watched || 0) >= reach && (rec.dur || !dur)) return;
+      rec.watched = Math.max(rec.watched || 0, Math.round(reach * 10) / 10);
+      if (dur > 0 && !rec.dur) rec.dur = Math.round(dur);
+      rec.updated = rec.updated || new Date().toISOString();
+      writeRecord_(e, rec);
+      renderLiveRow_(e, rec, roster);
+    });
+  } finally {
+    lock.releaseLock();
+  }
+}
+function setPeriodOpen(period, open) {
+  loadConfig_();
+  teacherOnly_();
+  var L = liveInfo_();
+  if (open) L.done[String(period)] = new Date().toISOString(); else delete L.done[String(period)];
+  saveLive_(L.live, L.done);
+  return periodsForTeacher_(liveInfo_());
+}
+
+/** The live screen asks this every couple of seconds: who's here, who answered, what they picked. */
+function liveStatus(withAnswers) {
+  loadConfig_();
+  teacherOnly_();
+  var L = liveInfo_();
+  if (!L.live) return { on: false };
+  var live = L.live, roster = readRoster_();
+  var emails = Object.keys(roster).filter(function (e) { return String(roster[e].period) === String(live.period); });
+  var c = cache_(), seen = {}, ans = {};
+  if (c && emails.length) {
+    try { seen = c.getAll(emails.map(function (e) { return "seen:" + live.id + ":" + e; })) || {}; } catch (e) {}
+    if (live.q >= 0) try { ans = c.getAll(emails.map(function (e) { return "la:" + live.id + ":" + live.q + ":" + e; })) || {}; } catch (e) {}
+  }
+  var it = live.q >= 0 ? ITEMS[live.q] : null;
+  var out = { on: true, live: live, total: emails.length, joined: 0, answered: 0,
+              colors: { correct: 0, partial: 0, incorrect: 0 }, dist: it ? it.choices.map(function () { return 0; }) : [],
+              missing: [], notJoined: [], answers: [] };
+  emails.forEach(function (e) {
+    if (seen["seen:" + live.id + ":" + e]) out.joined++;
+    else out.notJoined.push(roster[e].name);
+    if (!it) return;
+    var raw = ans["la:" + live.id + ":" + live.q + ":" + e];
+    if (!raw) { out.missing.push(roster[e].name); return; }
+    var a = JSON.parse(raw);
+    out.answered++;
+    if (out.colors[a.s] != null) out.colors[a.s]++;
+    if (it.type === "mc") mcPicks_(a.a, it.choices.length).forEach(function (k) { out.dist[k]++; });
+    else if (withAnswers) out.answers.push({ s: a.s, a: a.a });
+  });
+  out.missing.sort();
+  out.notJoined.sort();
+  if (withAnswers) out.answers.sort(function () { return Math.random() - 0.5; });   // no telling who wrote what by order
+  return out;
+}
+
+// ============================== FEEDBACK + GRADE ==============================
+/** tries = wrong multiple-choice tries already made on this question. */
+function feedbackFor_(idx, answer, tries) {
+  var it = ITEMS[idx];
+  answer = String(answer == null ? "" : answer).trim();
+  if (!it || it.type === "note" || !answer) return { status: "blank", message: "" };
+  if (it.type === "mc") return mcFeedback_(it, answer, Number(tries) || 0);
+  var res = gradeLocal_(it, answer);
+  if (!res.total) {   // no key words: any thoughtful answer counts
+    return answer.length < MIN_ANSWER_LENGTH
+      ? { status: "partial", message: "Good start. Explain a little more (at least " + MIN_ANSWER_LENGTH + " characters)." }
+      : { status: "correct", message: "Answer recorded, nice work!" };
+  }
+  var sc = "Score: " + res.score + "/" + res.total + ". ";
+  if (res.status === "correct" && answer.length < MIN_ANSWER_LENGTH) {
+    return { status: "partial", message: sc + "You used the right words, but that's too short to show your thinking. Explain in a full sentence or two (at least " + MIN_ANSWER_LENGTH + " characters)." };
+  }
+  if (res.status === "correct") return { status: "correct", message: sc + "Nice work, you covered the key ideas!" };
+  if (res.status === "partial") return { status: "partial", message: sc + "Good start! Still missing: " + res.unmet.join(" ") };
+  return { status: "incorrect", message: sc + "You're on the right track. " + res.unmet.join(" ") };
+}
+
+/** "2" or "0,2" -> [0, 2]: the choices a student picked (0 = A). */
+function mcPicks_(answer, n) {
+  var seen = {}, out = [];
+  String(answer == null ? "" : answer).split(/[\s,]+/).forEach(function (x) {
+    if (!/^\d+$/.test(x)) return;
+    var k = Number(x);
+    if (k < n && !seen[k]) { seen[k] = true; out.push(k); }
+  });
+  return out.sort(function (a, b) { return a - b; });
+}
+
+function mcFeedback_(it, answer, tries) {
+  var picks = mcPicks_(answer, it.choices.length);
+  if (!picks.length) return { status: "blank", message: "" };
+  var right = [];
+  it.choices.forEach(function (c, k) { if (c.correct) right.push(k); });
+  if (picks.join(",") === right.join(",")) {
+    if (tries > 0 && !MC_FULL_CREDIT_ON_RETRY) return { status: "partial", message: "Correct now! It took more than one try, so this one counts for partial credit." };
+    return { status: "correct", message: "Correct, nice work!" };
+  }
+  var many = right.length > 1;
+  return { status: "incorrect", message: "Not quite. " + (it.hint ? it.hint + " " : "") +
+    (many && picks.length !== right.length ? "This question has " + right.length + " right answers, and you picked " + picks.length + ". " : "") +
+    (many ? "Pick the " + right.length + " right answers, then press Check again." : "Pick another answer and press Check again.") };
+}
+
+function statusesOf_(results) { return results.map(function (r) { return r.status; }); }
+
+/** Colors -> grade out of MAX_POINTS. Notes don't count. */
+function gradeFor_(statuses) {
+  var g = gq_(), earned = 0;
+  if (!g.length) return 0;
+  g.forEach(function (i) { earned += CREDIT[statuses[i] || "blank"] || 0; });
+  var pts = Math.min(1, (earned / g.length) / FULL_CREDIT_AT) * MAX_POINTS;
+  return Math.round(pts / ROUND_TO) * ROUND_TO;
+}
+
+function counts_(statuses) {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
+  gq_().forEach(function (i) { c[statuses[i] || "blank"]++; });
+  return c;
+}
+
+// ============================== STORAGE ==============================
+function openSS_() {
+  var id = PropertiesService.getScriptProperties().getProperty("SSID");
+  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+}
+function ss_() { loadConfig_(); return openSS_(); }
+function sheet_(name) {
+  var s = ss_().getSheetByName(name);
+  if (!s) { ensureSheets_(); s = ss_().getSheetByName(name); }
+  return s;
+}
+function newRecord_() {
+  var a = [], s = [], t = [];
+  for (var i = 0; i < ITEMS.length; i++) { a.push(""); s.push("blank"); t.push(0); }
+  return { answers: a, statuses: s, tries: t, checks: 0, updated: "", turnedIn: "", watched: 0, dur: 0 };
+}
+/** Row of a student in a tab, remembered so we don't scan the whole column on every save.
+ *  The remembered row is double-checked, so sorting the tab can't send data to the wrong row. */
+function rowOf_(sh, col, key) {
+  var ck = "row:" + sh.getName() + ":" + key, c = cache_(), r = 0;
+  try { r = c ? Number(c.get(ck)) || 0 : 0; } catch (e) { r = 0; }
+  if (r >= 2 && r <= sh.getLastRow() && String(sh.getRange(r, col).getValue()).toLowerCase() === key) return r;
+  r = findRow_(sh, col, key);
+  if (r && c) try { c.put(ck, String(r), 21600); } catch (e) {}
+  return r;
+}
+
+function findRow_(sh, col, key) {
+  var last = sh.getLastRow();
+  if (last < 2) return 0;
+  var vals = sh.getRange(2, col, last - 1, 1).getValues();
+  for (var i = 0; i < vals.length; i++) if (String(vals[i][0]).toLowerCase() === key) return i + 2;
+  return 0;
+}
+function fixRecord_(rec) {
+  rec.tries = rec.tries || [];
+  while (rec.answers.length < ITEMS.length) rec.answers.push("");
+  while (rec.statuses.length < ITEMS.length) rec.statuses.push("blank");
+  while (rec.tries.length < ITEMS.length) rec.tries.push(0);
+  return rec;
+}
+function readRecord_(email) {
+  var sh = sheet_(SH_STATE), r = rowOf_(sh, 1, email);
+  if (!r) return null;
+  return fixRecord_(JSON.parse(sh.getRange(r, 2).getValue()));
+}
+function writeRecord_(email, rec) {
+  var sh = sheet_(SH_STATE), r = rowOf_(sh, 1, email);
+  if (!r) r = sh.getLastRow() + 1;
+  sh.getRange(r, 1, 1, 2).setValues([[email, JSON.stringify(rec)]]);
+}
+function allRecords_() {
+  var sh = sheet_(SH_STATE), last = sh.getLastRow(), out = {};
+  if (last < 2) return out;
+  sh.getRange(2, 1, last - 1, 2).getValues().forEach(function (row) {
+    if (row[0]) out[String(row[0]).toLowerCase()] = fixRecord_(JSON.parse(row[1]));
+  });
+  return out;
+}
+function readRoster_() {
+  var hit = cacheGet_("roster");
+  if (hit) return hit;
+  var out = readRosterFromSheet_();
+  cachePut_("roster", out, ROSTER_CACHE_SECS);
+  return out;
+}
+function readRosterFromSheet_() {
+  var sh = ss_().getSheetByName(SH_ROSTER), out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, ROSTER_HEADERS.length).getValues().forEach(function (row) {
+    // Period | Name | Email | Classroom user ID | Course ID
+    if (row[2]) out[String(row[2]).toLowerCase()] = { period: row[0], name: row[1], userId: String(row[3]), courseId: String(row[4]) };
+  });
+  return out;
+}
+/** Student text going into a cell: never let it start a formula. */
+function safeCell_(s) { s = String(s == null ? "" : s); return /^[=+\-@]/.test(s) ? "'" + s : s; }
+function logEvent_(email, idx, status, answer) {
+  var p = readRoster_()[email] || {};
+  sheet_(SH_LOG).appendRow([new Date(), p.period === undefined ? "" : p.period, p.name || email, email,
+                            "Q" + qNum_(idx), status, safeCell_(answerText_(idx, answer, status, 0))]);
+}
+
+// ============================== TEACHER VIEW ==============================
+/** How an answer reads in the sheets. Multiple choice shows the letter and the choice. */
+function answerText_(idx, answer, status, tries) {
+  var it = ITEMS[idx];
+  if (!answer) return "";
+  if (!it || it.type !== "mc") return String(answer);
+  var t = mcPicks_(answer, it.choices.length).map(function (k) { return LETTERS.charAt(k) + ". " + it.choices[k].text; }).join("; ");
+  if (status === "partial") t += "  (fixed after " + tries + " wrong " + (tries === 1 ? "try" : "tries") + ")";
+  return t;
+}
+function watchedText_(rec) {
+  if (!rec.watched) return "";
+  var v = videoInfo_(), s = v.start || 0, e = v.end || rec.dur || 0;
+  if (e > s) return Math.min(100, Math.max(0, Math.round(100 * (rec.watched - s) / (e - s)))) + "%";
+  return formatTime_(rec.watched);
+}
+
+function liveRowData_(email, rec, p) {
+  p = p || {};
+  var c = counts_(rec.statuses);
+  var drafts = rec.drafts || [];
+  var anyDraft = drafts.some(function (d) { return d != null; });
+  var status = rec.turnedIn ? "Turned in" : ((rec.checks || anyDraft) ? "In progress" : (rec.watched ? "Watching" : "Not started"));
+  var row = [p.period === undefined ? "" : p.period, p.name || email.split("@")[0], email, status,
+             rec.updated ? new Date(rec.updated) : "", rec.checks ? gradeFor_(rec.statuses) : "",
+             c.correct, c.partial, c.incorrect, c.blank, rec.checks || 0, watchedText_(rec)];
+  var bg = row.map(function () { return null; });
+  gq_().forEach(function (i) {
+    var d = drafts[i];
+    // An autosaved draft that hasn't been checked yet is shown with a prefix; its color is still the last check.
+    row.push(safeCell_(d != null && d !== rec.answers[i] ? "[not checked] " + d : answerText_(i, rec.answers[i], rec.statuses[i], rec.tries[i] || 0)));
+    bg.push(FILL[rec.statuses[i] || "blank"]);
+  });
+  bg[3] = rec.turnedIn ? "#c9daf8" : null;
+  return { row: row, bg: bg };
+}
+
+function renderLiveRow_(email, rec, roster) {
+  var sh = sheet_(SH_LIVE);
+  roster = roster || readRoster_();
+  var r = rowOf_(sh, LIVE_EMAIL_COL, email);
+  if (!r) r = sh.getLastRow() + 1;
+  var d = liveRowData_(email, rec, roster[email]);
+  sh.getRange(r, 1, 1, d.row.length).setValues([d.row]).setBackgrounds([d.bg]);
+}
+
+/** Wipe and redraw every Live Results row (roster students + anyone who has started). */
+function rebuildLive_() {
+  var sh = sheet_(SH_LIVE), recs = allRecords_(), roster = readRoster_();
+  if (sh.getLastRow() > 1) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).clearContent().setBackground(null);
+  }
+  var emails = Object.keys(roster);
+  Object.keys(recs).forEach(function (e) { if (!roster[e]) emails.push(e); });
+  emails.sort(function (a, b) {
+    var pa = roster[a] ? Number(roster[a].period) || 999 : 1000, pb = roster[b] ? Number(roster[b].period) || 999 : 1000;
+    if (pa !== pb) return pa - pb;
+    return String(roster[a] ? roster[a].name : a).localeCompare(String(roster[b] ? roster[b].name : b));
+  });
+  if (!emails.length) return;
+  var rows = [], bgs = [];
+  emails.forEach(function (e) { var d = liveRowData_(e, recs[e] || newRecord_(), roster[e]); rows.push(d.row); bgs.push(d.bg); });
+  sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows).setBackgrounds(bgs);
+}
+
+function renderSummary_() {
+  var recs = allRecords_(), roster = readRoster_(), sh = sheet_(SH_SUMMARY), rows = [];
+  var started = Object.keys(recs).filter(function (k) { return recs[k].checks; });
+  var periods = periodList_();
+  gq_().forEach(function (i) {
+    var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 }, byP = {};
+    started.forEach(function (k) {
+      var s = recs[k].statuses[i] || "blank";
+      c[s]++;
+      var p = roster[k] ? String(roster[k].period) : "";
+      byP[p] = byP[p] || { g: 0, n: 0 };
+      if (s !== "blank") { byP[p].n++; if (s === "correct") byP[p].g++; }
+    });
+    var answered = c.correct + c.partial + c.incorrect;
+    var row = ["Q" + qNum_(i), ITEMS[i].at || "after video", ITEMS[i].q.slice(0, 90) + (ITEMS[i].q.length > 90 ? "…" : ""),
+               c.correct, c.partial, c.incorrect, c.blank, answered ? c.correct / answered : ""];
+    periods.forEach(function (p) { var b = byP[String(p)]; row.push(b && b.n ? b.g / b.n : ""); });
+    rows.push(row);
+  });
+  var headers = SUMMARY_HEADERS.concat(periods.map(function (p) { return "P" + p + " % green"; }));
+  sh.clearContents();
+  sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#c9daf8");
+  if (!rows.length) return;
+  sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  sh.getRange(2, 8, rows.length, headers.length - 7).setNumberFormat("0%");
+}
+
+// ============================== TEACHER MENU ==============================
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu("Video Check")
+    .addItem("Set up / repair sheets", "setupSheets")
+    .addSeparator()
+    .addItem("1. Link Google Classroom classes (all periods)", "linkClassroom")
+    .addItem("2. Create the assignment in each class (draft)", "createClassroomAssignment")
+    .addItem("3. Upload grades to Classroom (draft grades)", "uploadDraftGrades")
+    .addItem("3b. Upload grades AND return them to students", "uploadAndReturnGrades")
+    .addSubMenu(ui.createMenu("Automatic grades after the due date")
+      .addItem("Turn on", "autoGradesOn")
+      .addItem("Show status", "autoGradesStatus")
+      .addItem("Turn off", "autoGradesOff"))
+    .addSeparator()
+    .addSubMenu(ui.createMenu("Live lesson")
+      .addItem("Open the live lesson screen", "openLiveScreen")
+      .addItem("Which periods can watch on their own", "showPeriodAccess")
+      .addItem("Let a period watch on its own now", "openPeriodNow")
+      .addItem("Make a period wait for the live lesson again", "closePeriodAgain"))
+    .addSeparator()
+    .addItem("Show linked classes", "showLinkedClasses")
+    .addItem("Refresh roster from Classroom", "refreshRoster")
+    .addItem("Recalculate all grades (after editing the questions)", "recalculateAll")
+    .addItem("Show student link", "showStudentLink")
+    .addItem("Test an answer against the key", "testAnswer")
+    .addItem("Check the Questions tab for problems", "checkQuestionsTab")
+    .addItem("Check for skill updates", "checkForSkillUpdates")
+    .addSeparator()
+    .addItem("Start a new school year (clear student data)", "resetForNewYear")
+    .addToUi();
+}
+
+// ============================== CHECK FOR SKILL UPDATES (same as Self-Check) ==============================
+// Releases come from two places (2026.10.30b), and the newer one wins:
+// 1. The class website: SKILL_UPDATES_URL + "video-check/latest.json" and the files next to it (npm run release in Donny's class-tools repo).
+//    Its Code.gs carries NO starter questions (the website is public), so it only suits a sheet whose questions are in its Questions tab.
+// 2. The Drive folder SKILL_UPDATES_FOLDER, with plain-text files named
+//      "video-check v<YYYY.MM.DD> - What changed.txt", "... - Code.gs", "... - Index.html"
+//    The folder can hold releases for your other skills too; this sheet only reads files that start with SKILL_NAME.
+// Either way a release is { sawFolder, version, web, files: { "Code.gs": { url, text() }, ... } }.
+
+/** Newest release of a skill in the Drive updates folder (version null when there is none). */
+function latestSkillRelease_(name) {
+  var folders = DriveApp.getFoldersByName(SKILL_UPDATES_FOLDER), best = null, byVer = {}, sawFolder = false;
+  while (folders.hasNext()) {
+    sawFolder = true;
+    var files = folders.next().getFiles();
+    while (files.hasNext()) {
+      var f = files.next();
+      var m = /^(.+) v(\d{4}\.\d{2}\.\d{2}[a-z]?) - (.+)$/.exec(f.getName());
+      if (!m || m[1] !== name) continue;
+      (byVer[m[2]] = byVer[m[2]] || {})[m[3]] = f;
+      if (!best || m[2] > best) best = m[2];   // YYYY.MM.DD sorts correctly as text
+    }
+  }
+  var out = {};
+  Object.keys(best ? byVer[best] : {}).forEach(function (label) {
+    var f = byVer[best][label];
+    out[label] = { url: f.getUrl(), text: function () { return f.getBlob().getDataAsString("UTF-8"); } };
+  });
+  return { sawFolder: sawFolder, version: best, files: out, web: false };
+}
+
+/** The newest release on the class website, or null (none there, or the site didn't answer). Only the three known files, by plain names. */
+function webSkillRelease_(name) {
+  if (!SKILL_UPDATES_URL) return null;
+  var base = SKILL_UPDATES_URL + encodeURIComponent(name) + "/", j = null;
+  try {
+    var r = UrlFetchApp.fetch(base + "latest.json", { muteHttpExceptions: true, followRedirects: true });
+    if (r.getResponseCode() === 200) j = JSON.parse(r.getContentText("UTF-8"));
+  } catch (e) { return null; }
+  if (!j || j.kind !== name || !/^\d{4}\.\d{2}\.\d{2}[a-z]?$/.test(String(j.version)) || !j.files) return null;
+  var out = {};
+  ["What changed.txt", "Code.gs", "Index.html"].forEach(function (label) {
+    var file = String(j.files[label] || "");
+    if (!/^[\w.-]+$/.test(file)) return;
+    var url = base + file;
+    out[label] = { url: url, text: function () {
+      var t = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+      return t.getResponseCode() === 200 ? t.getContentText("UTF-8") : "";
+    } };
+  });
+  return { sawFolder: true, version: String(j.version), files: out, web: true };
+}
+
+/** Are this sheet's questions in its Questions tab? (If not, it runs on the starter questions built into its code, which website releases don't carry.) */
+function questionsInTab_() {
+  var qs = openSS_().getSheetByName(SH_QUESTIONS);
+  return !!qs && qs.getLastRow() > 1;
+}
+
+/** The release to offer: the newer of the website's and the Drive folder's. With the same version in both, the website's, unless this sheet's
+    questions live only in its code (then the Drive copy, which still carries them). Throws only when neither place could be read. */
+function skillRelease_(name) {
+  var web = webSkillRelease_(name), drive = null, err = null;
+  try { drive = latestSkillRelease_(name); } catch (e) { err = e; }
+  if (!drive) { if (web) return web; throw err; }
+  if (!web || !drive.version) return web || drive;
+  if (web.version > drive.version) return web;
+  if (web.version < drive.version) return drive;
+  return questionsInTab_() ? web : drive;
+}
+
+function htmlEsc_(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Menu: Video Check > Check for skill updates. */
+function checkForSkillUpdates() {
+  menuOnly_();
+  var ui = SpreadsheetApp.getUi(), rel;
+  try { rel = skillRelease_(SKILL_NAME); }
+  catch (e) { ui.alert("Couldn't reach the class website or your Google Drive: " + e.message); return; }
+  if (!rel.sawFolder || !rel.version) {
+    ui.alert("Check for skill updates",
+      "This sheet is on " + SKILL_NAME + " version " + SKILL_VERSION + ".\n\n" +
+      "The class website has no release for " + SKILL_NAME + ", and " +
+      (rel.sawFolder ? "neither does the \"" + SKILL_UPDATES_FOLDER + "\" folder in your Google Drive."
+                     : "there's no folder named \"" + SKILL_UPDATES_FOLDER + "\" in your Google Drive.") +
+      "\n\nAsk Claude: \"Release " + SKILL_NAME + " and publish it.\"", ui.ButtonSet.OK);
+    return;
+  }
+  var from = rel.web ? "from the class website" : "from your Drive folder " + SKILL_UPDATES_FOLDER;
+  // a website release has no starter questions: a sheet whose questions are only in its code must copy them into its Questions tab first
+  var noQs = rel.web && !questionsInTab_();
+  var style = "<style>body{font-family:Poppins,Arial,sans-serif;font-size:14px;color:#111;margin:0}" +
+    "h2{font-size:17px;margin:0 0 8px}.v{background:#c9daf8;padding:8px 10px;border-radius:6px;margin-bottom:10px}" +
+    "pre{white-space:pre-wrap;background:#f3f3f3;border:1px solid #bbb;padding:8px;max-height:150px;overflow:auto;font-family:inherit;font-size:13px}" +
+    "ol{padding-left:20px;margin:6px 0}li{margin:4px 0}button{font-family:inherit;font-weight:700;border:2px solid #111;border-radius:6px;background:#111;color:#fff;padding:6px 12px;cursor:pointer;margin:2px 0}" +
+    "textarea{position:absolute;left:-9999px}.ok{color:#38761d;font-weight:600}</style>";
+  if (rel.version <= SKILL_VERSION) {
+    ui.showModalDialog(HtmlService.createHtmlOutput(style + "<h2 class='ok'>You're up to date.</h2><div class='v'>This sheet: version " +
+      htmlEsc_(SKILL_VERSION) + "<br>Newest release: version " + htmlEsc_(rel.version) + " (" + htmlEsc_(from) + ")</div>").setWidth(420).setHeight(190), "Check for skill updates");
+    return;
+  }
+  function text(label) { var f = rel.files[label]; try { return f ? f.text() : ""; } catch (e) { return ""; } }
+  var notes = text("What changed.txt"), gs = noQs ? "" : text("Code.gs"), idx = text("Index.html");
+  function copyBtn(id, label) {
+    if (label === "Code.gs" && noQs) return "<b>First: Video Check &gt; Set up / repair sheets.</b> This sheet's questions are only in its code (its Questions tab is empty), " +
+      "and releases on the class website don't carry questions. Set up copies them into the Questions tab; then check for updates again.";
+    return rel.files[label] ? "<button onclick=\"cp('" + id + "',this)\">Copy " + label + "</button>" +
+      " <a href='" + htmlEsc_(rel.files[label].url) + "' target='_blank'>open file</a>" : "(" + label + " is missing from the release)";
+  }
+  var body = style +
+    "<h2>A newer version is available</h2>" +
+    "<div class='v'>This sheet: version " + htmlEsc_(SKILL_VERSION) + "<br>Newest release: <b>version " + htmlEsc_(rel.version) + "</b> (" + htmlEsc_(from) + ")</div>" +
+    (notes ? "<b>What changed</b><pre>" + htmlEsc_(notes) + "</pre>" : "") +
+    "<b>How to update (about 3 minutes)</b><ol>" +
+    "<li>" + copyBtn("gs", "Code.gs") + "<br>Then Extensions &gt; Apps Script &gt; <b>Code.gs</b>: click in the code, Ctrl+A, Ctrl+V (paste), Save.</li>" +
+    "<li>" + copyBtn("ix", "Index.html") + "<br>Click the <b>Index</b> file: Ctrl+A, Ctrl+V, Save.</li>" +
+    "<li>Deploy &gt; Manage deployments &gt; pencil &gt; Version: <b>New version</b> &gt; Deploy. (Keeps the same student link.)</li>" +
+    "<li>Reload this sheet, then Video Check &gt; <b>Set up / repair sheets</b>. Approve if Google asks.</li></ol>" +
+    "Your questions, answer keys, settings and student work stay; they live in the tabs, not the code." +
+    "<textarea id='gs'>" + htmlEsc_(gs) + "</textarea><textarea id='ix'>" + htmlEsc_(idx) + "</textarea>" +
+    "<script>function cp(id,b){var t=document.getElementById(id);t.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}" +
+    "if(!ok&&navigator.clipboard){navigator.clipboard.writeText(t.value).then(function(){b.textContent='Copied!'});return}" +
+    "b.textContent=ok?'Copied!':'Copy failed, use open file';}</script>";
+  ui.showModalDialog(HtmlService.createHtmlOutput(body).setWidth(560).setHeight(560), "Check for skill updates");
+}
+
+/** In a copy of the spreadsheet (File > Make a copy), the script's saved student link is still the ORIGINAL's. Forget it,
+ *  so Show student link and step 2 ask for this copy's own /exec link (and Class Pass checks sign-ins against it). */
+function forgetCopiedLink_() {
+  var was = props_().getProperty("SSID");
+  if (was && was !== SpreadsheetApp.getActiveSpreadsheet().getId()) props_().deleteProperty("WEBAPP_URL");
+}
+
+/** First line of every menu step that changes anything: throws when called from the web app, before any work. */
+function menuOnly_() { SpreadsheetApp.getUi(); }
+
+function setupSheets() {
+  menuOnly_();
+  clearConfigCache_();
+  forgetCopiedLink_();
+  props_().setProperty("SSID", SpreadsheetApp.getActiveSpreadsheet().getId());
+  CONFIG_LOADED_ = true;            // use the starter values while creating new tabs
+  seedConfigTabs_();
+  CONFIG_LOADED_ = false; CONFIG_WARNINGS_ = [];
+  loadConfig_();                    // then read back whatever is in the tabs
+  ensureSheets_();
+  rebuildLive_();
+  renderSummary_();
+  SpreadsheetApp.getUi().alert("Sheets are ready. Edit the questions, pause times, choices and answer keys in the Questions tab, and the video link and grading options in the Settings tab. No redeploy needed.\n\n" +
+    "If you haven't yet: Deploy > New deployment > Web app (Execute as: Me, Who has access: Anyone), then use step 1 in this menu.");
+}
+
+function ensureSheets_() {
+  var ss = ss_();
+  // Creates the sheet if needed and (re)writes its header row if it's out of date.
+  var fresh = {};
+  function mk(name, headers, widths) {
+    var s = ss.getSheetByName(name) || ss.insertSheet(name);
+    var cur = s.getLastColumn() ? s.getRange(1, 1, 1, headers.length).getValues()[0] : [];
+    if (cur.join("|") !== headers.join("|")) {
+      if (s.getFilter()) s.getFilter().remove();
+      s.getRange(1, 1, 1, Math.max(headers.length, s.getLastColumn() || 1)).clearContent();
+      s.getRange(1, 1, 1, headers.length).setValues([headers])
+        .setFontWeight("bold").setBackground("#c9daf8").setFontFamily("Poppins");
+      s.setFrozenRows(1);
+      (widths || []).forEach(function (w, i) { if (w) s.setColumnWidth(i + 1, w); });
+      fresh[name] = true;
+    }
+    return s;
+  }
+  var g = gq_(), qh = g.map(function (i) { return "Q" + qNum_(i) + (ITEMS[i].at ? " (" + ITEMS[i].at + ")" : " (end)"); });
+  var live = mk(SH_LIVE, LIVE_FIXED.concat(qh), [60, 160, 200, 95, 130, 60, 55, 55, 55, 55, 60, 75]);
+  if (fresh[SH_LIVE]) {
+    live.setFrozenColumns(2);
+    if (g.length) {
+      live.getRange(1, FIRST_Q_COL, 1, g.length).setNotes([g.map(function (i) { return ITEMS[i].q; })]);
+      for (var j = 0; j < g.length; j++) live.setColumnWidth(FIRST_Q_COL + j, 220);
+      live.getRange(2, FIRST_Q_COL, live.getMaxRows() - 1, g.length).setWrap(false);
+    }
+    live.getRange("E:E").setNumberFormat("m/d h:mm am/pm");
+  }
+  // Sort/filter arrows on every column (Period, Student, Grade, ...).
+  if (!live.getFilter()) live.getRange(1, 1, live.getMaxRows(), LIVE_FIXED.length + g.length).createFilter();
+  mk(SH_SUMMARY, SUMMARY_HEADERS, [80, 80, 420, 60, 60, 60, 60, 150]);
+  mk(SH_ROSTER, ROSTER_HEADERS, [60, 180, 240, 180, 140]);
+  mk(SH_LOG, ["Time", "Period", "Student", "Email", "Question", "Color", "Answer"], [140, 60, 160, 200, 70, 80, 600]);
+  mk(SH_STATE, ["Email", "Record (JSON)"]).hideSheet();
+  try { ss.setActiveSheet(live); ss.moveActiveSheet(1); } catch (e) { /* not possible from the web app; harmless */ }
+  var def = ss.getSheetByName("Sheet1");
+  if (def && ss.getSheets().length > 1 && def.getLastRow() === 0) ss.deleteSheet(def);
+}
+
+function props_() { return PropertiesService.getScriptProperties(); }
+
+/** Friendly message if the Google Classroom API service hasn't been added yet. */
+function requireClassroom_() {
+  if (typeof Classroom === "undefined") {
+    throw new Error("The Google Classroom API service isn't turned on for this script yet. In Apps Script, click Services (+) in the left sidebar, choose Google Classroom API, leave the Identifier as  Classroom  (capital C), and click Add. Then save and try again.");
+  }
+}
+
+// ---------- Linked classes: [{id, name, period, cwId}] ----------
+function courses_() {
+  var raw = props_().getProperty("COURSES");
+  if (raw) return JSON.parse(raw);
+  return [];
+}
+function saveCourses_(list) {
+  props_().setProperty("COURSES", JSON.stringify(list));
+  cacheDel_(["live"]);   // "linked" lives in the live-lesson cache
+}
+function periodList_() {
+  return courses_().map(function (c) { return c.period; }).filter(function (p) { return p !== ""; })
+    .sort(function (a, b) { return (Number(a) || 0) - (Number(b) || 0); });
+}
+/** Guess a period number from the class name/section, e.g. "Science - Period 3", "P4", "Per. 2". */
+function guessPeriod_(c) {
+  var t = (c.section || "") + " " + (c.name || "");
+  var m = /(?:period|per\.?|pd\.?|\bp)\s*#?\s*(\d{1,2})\b/i.exec(t) || /\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:period|per|pd)\b/i.exec(t) || /\b(\d)\b/.exec(t);
+  return m ? m[1] : "";
+}
+
+function linkClassroom() {
+  menuOnly_();
+  requireClassroom_();
+  var ui = SpreadsheetApp.getUi();
+  var all = [], tok;
+  do {
+    var resp = Classroom.Courses.list({ teacherId: "me", courseStates: ["ACTIVE"], pageToken: tok });
+    all = all.concat(resp.courses || []);
+    tok = resp.nextPageToken;
+  } while (tok);
+  if (!all.length) { ui.alert("No active Classroom classes found where you're a teacher."); return; }
+  var list = all.map(function (c, i) { return (i + 1) + ". " + c.name + (c.section ? " (" + c.section + ")" : ""); }).join("\n");
+  var r = ui.prompt("Link Classroom classes",
+    "Type the numbers of ALL the classes getting this video, separated by commas (e.g. 1, 2, 4):\n\n" + list, ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var picks = r.getResponseText().split(/[\s,]+/).map(function (x) { return parseInt(x, 10); })
+    .filter(function (n) { return n >= 1 && n <= all.length; });
+  if (!picks.length) { ui.alert("None of those were numbers from the list."); return; }
+
+  var prev = {};
+  courses_().forEach(function (c) { prev[c.id] = c; });
+  var linked = [];
+  for (var k = 0; k < picks.length; k++) {
+    var c = all[picks[k] - 1];
+    if (linked.some(function (x) { return x.id === c.id; })) continue;
+    var guess = (prev[c.id] && prev[c.id].period) || guessPeriod_(c);
+    var pr = ui.prompt("Period number",
+      "What period is \"" + c.name + (c.section ? " (" + c.section + ")" : "") + "\"?" +
+      (guess ? "\n\nLeave blank to use " + guess + "." : ""), ui.ButtonSet.OK_CANCEL);
+    if (pr.getSelectedButton() !== ui.Button.OK) return;
+    var period = pr.getResponseText().trim() || guess;
+    period = /^\d+$/.test(period) ? Number(period) : period;
+    linked.push({ id: c.id, name: c.name, period: period, cwId: prev[c.id] ? prev[c.id].cwId : "" });
+  }
+  linked.sort(function (a, b) { return (Number(a.period) || 99) - (Number(b.period) || 99); });
+  saveCourses_(linked);
+  var count = refreshRoster_();
+  ui.alert("Linked " + linked.length + " class(es):\n" + describeCourses_(linked) +
+           "\n\n" + count + " students added to the Roster and Live Results tabs.\nNext: step 2 to create the assignment in each class." + rosterProblemsNote_());
+}
+
+function describeCourses_(list) {
+  return list.map(function (c) {
+    return "  Period " + (c.period === "" ? "?" : c.period) + ": " + c.name + (c.cwId ? "  (assignment created)" : "");
+  }).join("\n");
+}
+
+function showLinkedClasses() {
+  menuOnly_();
+  var list = courses_();
+  SpreadsheetApp.getUi().alert(list.length ? "Linked classes:\n" + describeCourses_(list) : "No classes linked yet. Use step 1.");
+}
+
+function refreshRoster() {
+  menuOnly_();
+  var n = refreshRoster_();
+  SpreadsheetApp.getUi().alert("Roster refreshed: " + n + " students." + rosterProblemsNote_());
+}
+
+var ROSTER_PROBLEMS_ = [];   // classes the last roster refresh couldn't read
+function rosterErrorText_(e) {
+  var m = String((e && e.message) || e);
+  if (/does not have permission|PERMISSION_DENIED|forbidden/i.test(m)) {
+    return "Classroom won't show this class's student list to the account running this (" +
+      (Session.getActiveUser().getEmail() || "unknown account") + "). In Classroom, check that this account is a teacher of this class: " +
+      "a co-teacher invitation has to be accepted first, and a class another teacher owns or last year's class won't work. " +
+      "If it shouldn't be linked, run step 1 again and leave it out.";
+  }
+  if (/not found/i.test(m)) return "Classroom can't find this class any more (deleted?). Run step 1 again and leave it out.";
+  return m;
+}
+function rosterProblemsNote_() {
+  return ROSTER_PROBLEMS_.length ? "\n\nCOULDN'T READ " + ROSTER_PROBLEMS_.length + " CLASS LIST(S) (their last saved list was kept):\n\n" + ROSTER_PROBLEMS_.join("\n\n") : "";
+}
+
+function refreshRoster_() {
+  loadConfig_();
+  requireClassroom_();
+  var list = courses_();
+  if (!list.length) throw new Error("Link your Classroom classes first (step 1).");
+  var sh = sheet_(SH_ROSTER);
+  var old = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, ROSTER_HEADERS.length).getValues() : [];
+  var rows = [];
+  ROSTER_PROBLEMS_ = [];
+  // One class Classroom refuses must not stop the others: keep going, keep that class's last good list, and say which one.
+  list.forEach(function (course) {
+    var got = [], tok;
+    try {
+      do {
+        var resp = Classroom.Courses.Students.list(course.id, { pageToken: tok, pageSize: 100 });
+        (resp.students || []).forEach(function (s) {
+          got.push([course.period, s.profile.name.fullName, String(s.profile.emailAddress || "").toLowerCase(), s.userId, course.id]);
+        });
+        tok = resp.nextPageToken;
+      } while (tok);
+      rows = rows.concat(got);
+    } catch (e) {
+      ROSTER_PROBLEMS_.push("Period " + (course.period === "" ? "?" : course.period) + " (" + course.name + "): " + rosterErrorText_(e));
+      old.forEach(function (r) { if (String(r[4]) === String(course.id)) rows.push(r); });
+    }
+  });
+  if (!rows.length && ROSTER_PROBLEMS_.length) throw new Error("Couldn't read any class list from Classroom.\n\n" + ROSTER_PROBLEMS_.join("\n\n"));
+  rows.sort(function (a, b) { return ((Number(a[0]) || 99) - (Number(b[0]) || 99)) || String(a[1]).localeCompare(String(b[1])); });
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, ROSTER_HEADERS.length).clearContent();
+  if (rows.length) sh.getRange(2, 1, rows.length, ROSTER_HEADERS.length).setValues(rows);
+  cacheDel_(["roster"]);
+  rebuildLive_();   // shows everyone, sorted by period then name, including students who haven't started
+  renderSummary_();
+  return rows.length;
+}
+
+function studentUrl_(askIfMissing) {
+  var url = props_().getProperty("WEBAPP_URL");
+  if (url || !askIfMissing) return plainUrl_(url);
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt("Student link", "Paste the Web app URL from Deploy > Manage deployments (it ends in /exec):", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return "";
+  url = r.getResponseText().trim();
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { ui.alert("That doesn't look like a web app URL ending in /exec."); return ""; }
+  url = plainUrl_(url);
+  props_().setProperty("WEBAPP_URL", url);
+  return url;
+}
+
+/** The student link without "/a/macros/<district>/". With that part in it, a browser that has another
+ *  Google account signed in first is sent to a district sign-in page instead of the video,
+ *  even when the student's school account is signed in too. The plain link works for everyone. */
+function plainUrl_(url) {
+  return String(url || "").replace(/^https:\/\/script\.google\.com\/a\/macros\/[^\/]+\//, "https://script.google.com/macros/");
+}
+
+function showStudentLink() {
+  menuOnly_();
+  var url = studentUrl_(true);
+  if (!url) return;
+  var link = classPassLink_(url);
+  SpreadsheetApp.getUi().alert("Class Pass student link (same for every period):\n\n" + link +
+    (link !== url ? "\n\nIt opens the video right away wherever Google recognizes the student (school Chromebooks). Everyone else signs in with Class Pass (their school Google account) instead of seeing Google's \"Sorry, unable to open the file\" page." +
+                    "\n\nDirect link (skips Class Pass; only for browsers signed in to a school account first):\n\n" + url : "") +
+    "\n\nLive lesson screen (only works for you):\n\n" + url + "?mode=live");
+}
+
+// ---------- Step 2: the assignment, as a draft in the Classroom topic you pick ----------
+// Each class has its own topics. The question lists every topic name in the classes getting the assignment
+// once (extra spaces and capitals don't matter), and a class without the topic you pick gets it added.
+// Only Google's own boxes (prompt, alert) here, like step 1: with more than one Google account signed in to the
+// browser, google.script.run from a dialog fails ("a server error occurred while reading from storage. PERMISSION_DENIED").
+
+function createClassroomAssignment() {
+  menuOnly_();
+  loadConfig_();
+  requireClassroom_();
+  var ui = SpreadsheetApp.getUi();
+  var list = courses_();
+  if (!list.length) { ui.alert("Do step 1 first (link your classes)."); return; }
+  var todo = list.filter(function (c) { return !c.cwId; });
+  if (!todo.length) {
+    var again = ui.alert("Every linked class already has this assignment:\n" + describeCourses_(list) +
+                         "\n\nCreate ANOTHER copy in every class?", ui.ButtonSet.YES_NO);
+    if (again !== ui.Button.YES) return;
+    todo = list;
+  }
+  var url = studentUrl_(true);
+  if (!url) return;
+  var topic = askTopic_(ui, todo);
+  if (topic == null) return;
+  var made = [], added = [], errors = [];
+  todo.forEach(function (c) {
+    var p = c.period === "" ? "?" : c.period, who = "Period " + p + " (" + c.name + ")", topicId = "";
+    if (topic) {
+      try {
+        var t = topicIdFor_(c.id, topic);
+        topicId = t.id;
+        if (t.made) added.push(String(c.period));
+      } catch (e) {
+        errors.push("  " + who + ": couldn't use the topic (" + e.message + "), so that draft has no topic. Pick it in Classroom.");
+      }
+    }
+    try {
+      var body = {
+        title: ASSIGNMENT_TITLE,
+        description: "Open the link below and watch the video. It stops at each question: answer it and press Check. " +
+                     "You can rewatch any part and fix any answer until the due date, and your work saves automatically. " +
+                     "Your score is sent here after the due date even if you didn't finish, so do every question you can. " +
+                     "When you're done, click \"I'm finished\" on the page, then click Mark as done here in Classroom.",
+        materials: [{ link: { url: classPassLink_(url), title: ASSIGNMENT_TITLE } }],
+        workType: "ASSIGNMENT",
+        state: "DRAFT",
+        maxPoints: MAX_POINTS
+      };
+      if (topicId) body.topicId = topicId;
+      c.cwId = Classroom.Courses.CourseWork.create(body, c.id).id;
+      made.push("  Period " + p + ": " + c.name);
+    } catch (e) {
+      errors.push("  " + who + ": " + e.message);
+    }
+  });
+  saveCourses_(list);
+  ui.alert((made.length ? "Draft assignment (" + MAX_POINTS + " points) created in:\n" + made.join("\n") + "\n\n" +
+            (topic ? "Topic: " + topic + (added.length ? " (new in " + periodsText_(added) + ")" : "") +
+                     "\n\nIn Classroom, open each class > Classwork, find the draft under that topic, set the due date, and click Assign."
+                   : "No topic.\n\nIn Classroom, open each class > Classwork, find the draft, set the due date, and click Assign.") : "") +
+           (errors.length ? "\n\nProblems:\n" + errors.join("\n") : ""));
+}
+
+/** Step 2's topic question. Returns the topic's name, "" for no topic, or null to stop. */
+function askTopic_(ui, todo) {
+  var got = topicChoices_(todo), topics = got.topics;
+  var list = topics.map(function (t, i) {
+    return (i + 1) + ". " + t.name + (t.missing.length ? "   (" + periodsText_(t.missing) + (t.missing.length > 1 ? " don't" : " doesn't") + " have it yet: it gets added)" : "");
+  }).join("\n");
+  var r = ui.prompt("Classroom topic",
+    (list ? "Which topic should the assignment go in? Type its number.\n\n" + list + "\n\nOr type a new topic's name to add it to every class. "
+          : "These classes don't have any topics yet. Type a new topic's name to add it to every class. ") +
+    "Leave blank for no topic." +
+    (got.unread.length ? "\n\n(Couldn't read the topics in " + periodsText_(got.unread) + ".)" : ""),
+    ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return null;
+  var a = cleanTopic_(r.getResponseText());
+  if (!a) return "";
+  if (/^\d+$/.test(a)) {
+    if (Number(a) >= 1 && Number(a) <= topics.length) return topics[Number(a) - 1].name;
+    ui.alert("There's no topic " + a + " in the list. Nothing was created; run step 2 again.");
+    return null;
+  }
+  var same = topics.filter(function (t) { return topicKey_(t.name) === topicKey_(a); })[0];
+  if (same) return same.name;
+  if (a.length > 100) { ui.alert("A topic name can be at most 100 characters. Nothing was created; run step 2 again."); return null; }
+  return ui.alert("New topic", "Add a new topic \"" + a + "\" to every class getting the assignment?", ui.ButtonSet.YES_NO) === ui.Button.YES ? a : null;
+}
+
+/** "Period 3", or "Periods 1, 3 and 6". A class with no period number shows as ?. */
+function periodsText_(list) {
+  var p = list.map(function (x) { return x === "" ? "?" : String(x); });
+  return p.length === 1 ? "Period " + p[0] : "Periods " + p.slice(0, -1).join(", ") + " and " + p[p.length - 1];
+}
+
+/** Classroom's own rule for topic names: no spaces at the ends, and a run of spaces counts as one. */
+function cleanTopic_(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").trim(); }
+function topicKey_(s) { return cleanTopic_(s).toLowerCase(); }
+
+function listTopics_(courseId) {
+  var all = [], tok;
+  do {
+    var resp = Classroom.Courses.Topics.list(courseId, { pageSize: 100, pageToken: tok });
+    all = all.concat(resp.topic || []);
+    tok = resp.nextPageToken;
+  } while (tok);
+  return all;
+}
+
+/** This class's topic with that name, {id, made}: an exact match first, then one with other capitals. Adds the topic if the class doesn't have it. */
+function topicIdFor_(courseId, name) {
+  var hit = null;
+  listTopics_(courseId).forEach(function (t) {
+    if (topicKey_(t.name) !== topicKey_(name)) return;
+    if (!hit || cleanTopic_(t.name) === cleanTopic_(name)) hit = t;
+  });
+  if (hit) return { id: hit.topicId, made: false };
+  return { id: Classroom.Courses.Topics.create({ name: cleanTopic_(name) }, courseId).topicId, made: true };
+}
+
+/** The topics to choose from, in Classroom's order: [{name, missing: [periods without it]}], plus the periods whose topics couldn't be read. */
+function topicChoices_(todo) {
+  var byKey = {}, keys = [], unread = [];
+  todo.forEach(function (c) {
+    var topics;
+    try { topics = listTopics_(c.id); } catch (e) { unread.push(String(c.period)); return; }
+    topics.forEach(function (t) {
+      var k = topicKey_(t.name);
+      if (!k) return;
+      if (!byKey[k]) { byKey[k] = { name: cleanTopic_(t.name), has: {} }; keys.push(k); }
+      byKey[k].has[c.id] = true;
+    });
+  });
+  return {
+    topics: keys.map(function (k) {
+      return { name: byKey[k].name, missing: todo.filter(function (c) { return !byKey[k].has[c.id]; }).map(function (c) { return String(c.period); }) };
+    }),
+    unread: unread
+  };
+}
+
+function uploadDraftGrades()     { menuOnly_(); uploadGrades_(false); }
+function uploadAndReturnGrades() { menuOnly_(); uploadGrades_(true); }
+
+function uploadGrades_(andReturn) {
+  loadConfig_();
+  requireClassroom_();
+  var ui = SpreadsheetApp.getUi();
+  var list = courses_().filter(function (c) { return c.cwId; });
+  if (!list.length) { ui.alert("Do steps 1 and 2 first. Grades can only go to assignments created by step 2."); return; }
+  if (andReturn) {
+    var ok = ui.alert("This posts grades AND returns them in every linked class, so students will see their scores in Classroom right away. Continue?", ui.ButtonSet.YES_NO);
+    if (ok !== ui.Button.YES) return;
+  }
+  var res = uploadGradesCore_(list, andReturn);
+  logUpload_("Manual", res, andReturn);
+  ui.alert("Grades " + (andReturn ? "uploaded and returned" : "uploaded as DRAFT grades. Review them and click Return in Classroom") + ":\n" +
+           res.lines.join("\n") + (res.errors.length ? "\n\nProblems:\n" + res.errors.slice(0, 10).join("\n") : ""));
+}
+
+/** Posts grades for the given linked classes. No pop-ups, so it also runs from the automatic timer. */
+function uploadGradesCore_(list, andReturn) {
+  refreshRoster_();
+  var byId = {};
+  var roster = readRoster_();
+  Object.keys(roster).forEach(function (email) { byId[roster[email].userId] = email; });
+  var recs = allRecords_();
+  var S = Classroom.Courses.CourseWork.StudentSubmissions;
+  var lines = [], errors = ROSTER_PROBLEMS_.map(function (p) { return "Roster: " + p; }), ok = {};
+
+  list.forEach(function (course) {
+    var subs = [], tok, done = 0, skipped = 0;
+    try {
+      do {
+        var resp = S.list(course.id, course.cwId, { pageToken: tok });
+        subs = subs.concat(resp.studentSubmissions || []);
+        tok = resp.nextPageToken;
+      } while (tok);
+    } catch (e) {
+      errors.push("Period " + course.period + ": couldn't read the assignment (was it deleted in Classroom?): " + e.message);
+      return;
+    }
+    subs.forEach(function (sub) {
+      var email = byId[sub.userId];
+      var rec = email ? recs[email] : null;
+      if (!rec || !rec.checks) {
+        if (!UPLOAD_ZERO_FOR_MISSING) { skipped++; return; }
+        rec = newRecord_();
+      }
+      var g = gradeFor_(rec.statuses);
+      try {
+        var body = { draftGrade: g }, mask = "draftGrade";
+        if (andReturn) { body.assignedGrade = g; mask = "draftGrade,assignedGrade"; }
+        S.patch(body, course.id, course.cwId, sub.id, { updateMask: mask });
+        if (andReturn) {
+          var ret = S["return"] || S["return_"];
+          try { ret.call(S, {}, course.id, course.cwId, sub.id); } catch (e) { /* not turned in yet: grade still saved */ }
+        }
+        done++;
+      } catch (e) {
+        errors.push("Period " + course.period + " " + (email || sub.userId) + ": " + e.message);
+      }
+    });
+    ok[course.cwId] = true;
+    lines.push("  Period " + course.period + ": " + done + " uploaded" + (skipped ? ", " + skipped + " not started (left blank)" : ""));
+  });
+  return { lines: lines, errors: errors, ok: ok };
+}
+
+/** One row per upload in the "Grade Uploads" tab, so you can see what the timer did. */
+function logUpload_(how, res, andReturn) {
+  try {
+    var ss = ss_();
+    var sh = ss.getSheetByName(SH_UPLOADS);
+    if (!sh) {
+      sh = ss.insertSheet(SH_UPLOADS);
+      sh.getRange(1, 1, 1, 4).setValues([["Time", "How", "Result", "Problems"]])
+        .setFontWeight("bold").setBackground("#c9daf8").setFontFamily("Poppins");
+      sh.setFrozenRows(1); sh.setColumnWidth(1, 150); sh.setColumnWidth(2, 220); sh.setColumnWidth(3, 420); sh.setColumnWidth(4, 420);
+    }
+    sh.appendRow([new Date(), how + (andReturn ? " (posted + returned)" : " (draft)"),
+                  res.lines.join("\n").replace(/^\s+/gm, ""), res.errors.slice(0, 20).join("\n")]);
+  } catch (e) { /* logging must never stop an upload */ }
+}
+
+// ============================== AUTOMATIC GRADES AFTER THE DUE DATE ==============================
+// An hourly timer checks each linked class's due date in Classroom. Once it passes, grades are
+// uploaded for that class, then re-sent once a day for AUTO_UPDATE_DAYS days to pick up late work.
+// Each class follows its own due date. Progress is kept in the script property AUTO_STATE.
+
+var AUTO_HANDLER = "autoUploadGrades";
+var AUTO_DAY_MS = 24 * 60 * 60 * 1000;
+
+function autoTriggers_() {
+  return ScriptApp.getProjectTriggers().filter(function (t) { return t.getHandlerFunction() === AUTO_HANDLER; });
+}
+function autoState_() { return JSON.parse(props_().getProperty("AUTO_STATE") || "{}"); }
+function saveAutoState_(s) { props_().setProperty("AUTO_STATE", JSON.stringify(s)); }
+
+/** The Classroom due date/time as a Date, or null if none is set. Classroom stores it in UTC. */
+function classroomDue_(course) {
+  var cw = Classroom.Courses.CourseWork.get(course.id, course.cwId);
+  if (!cw.dueDate) return null;
+  var d = cw.dueDate, t = cw.dueTime || { hours: 23, minutes: 59 };
+  return new Date(Date.UTC(d.year, d.month - 1, d.day, t.hours || 0, t.minutes || 0));
+}
+
+function autoGradesOn() {
+  menuOnly_();
+  loadConfig_();
+  requireClassroom_();
+  var ui = SpreadsheetApp.getUi();
+  var list = courses_().filter(function (c) { return c.cwId; });
+  if (!list.length) { ui.alert("Do steps 1 and 2 first. Grades can only go to assignments created by step 2."); return; }
+  if (!autoTriggers_().length) ScriptApp.newTrigger(AUTO_HANDLER).timeBased().everyHours(1).create();
+  ui.alert("Automatic grades are ON.\n\n" + autoSummary_(list) + "\n\n" +
+    "About an hour after each due date, grades are " + (AUTO_RETURN_GRADES ? "posted AND returned (students see them)" : "uploaded as DRAFT grades for you to return") + ". " +
+    "Every student who answered at least one question gets a grade, finished or not. " +
+    (AUTO_UPDATE_DAYS > 0 ? "They are updated once a day for " + AUTO_UPDATE_DAYS + " more days to count late work, then it stops by itself." : "This happens once.") +
+    "\n\nChange the due date in Classroom any time; the timer reads it fresh each hour. Every upload is listed in the Grade Uploads tab.");
+}
+
+function autoGradesOff() {
+  menuOnly_();
+  var ui = SpreadsheetApp.getUi();   // first: getUi() fails outside the spreadsheet, so the student page can't turn the timer off
+  autoTriggers_().forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ui.alert("Automatic grades are OFF. You can still use step 3 any time.");
+}
+
+function autoGradesStatus() {
+  menuOnly_();
+  loadConfig_();
+  requireClassroom_();
+  var list = courses_().filter(function (c) { return c.cwId; });
+  SpreadsheetApp.getUi().alert("Automatic grades are " + (autoTriggers_().length ? "ON" : "OFF") + ".\n\n" +
+    (list.length ? autoSummary_(list) : "No classes have the assignment yet (steps 1 and 2)."));
+}
+
+function autoSummary_(list) {
+  var st = autoState_(), now = Date.now();
+  var fmt = function (d) { return Utilities.formatDate(d, Session.getScriptTimeZone(), "EEE M/d h:mm a"); };
+  return list.map(function (c) {
+    var line = "  Period " + c.period + ": ";
+    var s = st[c.cwId];
+    try {
+      var due = classroomDue_(c);
+      if (!due) return line + "no due date set in Classroom yet, so it will wait until you set one.";
+      line += "due " + fmt(due);
+      if (!s) return line + (due.getTime() > now ? ". Grades will upload after that." : ". The due date passed, so grades upload within the hour.");
+      var until = new Date(new Date(s.first).getTime() + AUTO_UPDATE_DAYS * AUTO_DAY_MS);
+      return line + ". First uploaded " + fmt(new Date(s.first)) + (until.getTime() > now ? ", updating daily until " + fmt(until) : ", finished") + ".";
+    } catch (e) {
+      return line + "couldn't read it from Classroom (" + e.message + ")";
+    }
+  }).join("\n");
+}
+
+/** Runs every hour from the timer. Never shows pop-ups. */
+function autoUploadGrades(e) {
+  // Only this sheet's own hourly timer may run it (the web app lets anyone call a function by name).
+  if (!e || !e.triggerUid || !autoTriggers_().some(function (t) { return String(t.getUniqueId()) === String(e.triggerUid); })) return;
+  loadConfig_();
+  requireClassroom_();
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(60000)) return;   // another upload is running; try next hour
+  try {
+    var st = autoState_(), now = Date.now(), todo = [], allDone = true;
+    courses_().filter(function (c) { return c.cwId; }).forEach(function (c) {
+      var s = st[c.cwId];
+      if (s && (AUTO_UPDATE_DAYS <= 0 || now - new Date(s.first).getTime() > AUTO_UPDATE_DAYS * AUTO_DAY_MS + 2 * 3600000)) return;   // finished
+      allDone = false;
+      var due;
+      try { due = classroomDue_(c); } catch (e) { return; }
+      if (!due || due.getTime() > now) return;                                        // not due yet (or no due date)
+      if (s && now - new Date(s.last).getTime() < AUTO_DAY_MS - 30 * 60 * 1000) return; // already sent in the last day
+      todo.push(c);
+    });
+    if (todo.length) {
+      var res = uploadGradesCore_(todo, AUTO_RETURN_GRADES);
+      var stamp = new Date(now).toISOString();
+      todo.forEach(function (c) {
+        if (!res.ok[c.cwId]) return;
+        st[c.cwId] = st[c.cwId] ? { first: st[c.cwId].first, last: stamp } : { first: stamp, last: stamp };
+      });
+      saveAutoState_(st);
+      logUpload_("Automatic (after due date)", res, AUTO_RETURN_GRADES);
+      allDone = false;
+    }
+    if (allDone) autoTriggers_().forEach(function (t) { ScriptApp.deleteTrigger(t); });   // everything finished: stop the timer
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------- Live lesson menu ----------
+function openLiveScreen() {
+  menuOnly_();
+  var url = studentUrl_(true);
+  if (!url) return;
+  var live = url + "?mode=live";
+  var html = HtmlService.createHtmlOutput(
+    '<div style="font-family:Poppins,Arial,sans-serif;font-size:14px">' +
+    '<p>Open this on the computer that\'s on the projector. It only works for you.</p>' +
+    '<p><a href="' + live + '" target="_blank" style="display:inline-block;background:#1b4587;color:#fff;font-weight:700;padding:10px 18px;border-radius:6px;text-decoration:none">Open the live lesson screen</a></p>' +
+    '<p style="color:#555;font-size:12px;word-break:break-all">' + live + '</p></div>').setWidth(460).setHeight(210);
+  SpreadsheetApp.getUi().showModalDialog(html, "Live lesson");
+}
+
+function describeAccess_() {
+  var L = liveInfo_(), list = courses_();
+  if (!list.length) return "No classes linked yet. Use step 1.";
+  var fmt = function (iso) { return Utilities.formatDate(new Date(iso), Session.getScriptTimeZone(), "EEE M/d h:mm a"); };
+  return list.map(function (c) {
+    var p = String(c.period), line = "  Period " + p + " (" + c.name + "): ";
+    if (L.live && String(L.live.period) === p) return line + "LIVE LESSON RUNNING NOW";
+    if (!WAIT_FOR_LIVE) return line + "can watch on its own (Wait for the live lesson is off)";
+    return line + (L.done[p] ? "can watch on its own (since " + fmt(L.done[p]) + ")" : "waiting for the live lesson");
+  }).join("\n");
+}
+
+function showPeriodAccess() {
+  menuOnly_();
+  loadConfig_();
+  SpreadsheetApp.getUi().alert("Who can watch on their own:\n" + describeAccess_());
+}
+
+function askPeriod_(title, prompt) {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt(title, prompt + "\n\n" + describeAccess_(), ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return null;
+  var p = r.getResponseText().trim();
+  if (!courses_().some(function (c) { return String(c.period) === p; })) { ui.alert("Period " + p + " isn't one of the linked classes."); return null; }
+  return p;
+}
+
+function openPeriodNow() {
+  menuOnly_();
+  loadConfig_();
+  var p = askPeriod_("Let a period watch on its own", "Which period? (Students in it can watch and fix answers right away, with no live lesson.)");
+  if (p == null) return;
+  var L = liveInfo_();
+  L.done[p] = new Date().toISOString();
+  saveLive_(L.live, L.done);
+  SpreadsheetApp.getUi().alert("Period " + p + " can now watch on its own.");
+}
+
+function closePeriodAgain() {
+  menuOnly_();
+  loadConfig_();
+  var p = askPeriod_("Make a period wait again", "Which period should wait for the live lesson again? (Their saved answers stay.)");
+  if (p == null) return;
+  var L = liveInfo_();
+  delete L.done[p];
+  saveLive_(L.live, L.done);
+  SpreadsheetApp.getUi().alert("Period " + p + " now waits for the live lesson" + (WAIT_FOR_LIVE ? "." : ", once Wait for the live lesson is checked in the Settings tab."));
+}
+
+/** Try an answer against the key without being a student. */
+function testAnswer() {
+  menuOnly_();
+  loadConfig_();
+  var ui = SpreadsheetApp.getUi();
+  var g = gq_();
+  var q = ui.prompt("Test an answer", "Which question number? (1-" + g.length + ")", ui.ButtonSet.OK_CANCEL);
+  if (q.getSelectedButton() !== ui.Button.OK) return;
+  var n = parseInt(q.getResponseText(), 10);
+  if (!(n >= 1 && n <= g.length)) { ui.alert("That isn't a question number."); return; }
+  var idx = g[n - 1], it = ITEMS[idx];
+  var how = it.type === "mc"
+    ? "\n\n" + it.choices.map(function (c, k) { return LETTERS.charAt(k) + ". " + c.text; }).join("\n") + "\n\nType the letter(s) a student picks, e.g.  B  or  A, C"
+    : "\n\nType a sample student answer:";
+  var a = ui.prompt("Q" + n, it.q + how, ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK) return;
+  var text = a.getResponseText();
+  if (it.type === "mc") {
+    text = text.toUpperCase().split(/[\s,]+/).map(function (x) { return LETTERS.indexOf(x); })
+      .filter(function (k) { return k >= 0 && k < it.choices.length; }).join(",");
+  }
+  var r1 = feedbackFor_(idx, text, 0);
+  var color = { correct: "GREEN", partial: "YELLOW", incorrect: "RED", blank: "BLANK" };
+  var extra = it.type === "mc" && r1.status === "correct" ? "\n\nIf the student got it wrong first, it would show " + color[feedbackFor_(idx, text, 1).status] + "." : "";
+  ui.alert("Q" + n + " would show:  " + color[r1.status] + "\n\n" + (r1.message || "(no feedback for a blank answer)") + extra);
+}
+
+/** Clears students, roster, results, linked classes and live lessons; keeps questions, key and settings. */
+function resetForNewYear() {
+  menuOnly_();
+  var ui = SpreadsheetApp.getUi();
+  var ok = ui.alert("Start a new school year?",
+    "This permanently clears ALL student answers, the roster, the answer log, the linked classes, and which periods have had their live lesson in THIS spreadsheet. " +
+    "Your questions, answer key, video and settings stay.\n\nTip: File > Make a copy first if you want to keep this year's results.\n\nContinue?",
+    ui.ButtonSet.YES_NO);
+  if (ok !== ui.Button.YES) return;
+  var ss = ss_();
+  [SH_STATE, SH_LOG, SH_ROSTER, SH_LIVE, SH_SUMMARY].forEach(function (n) {
+    var sh = ss.getSheetByName(n);
+    if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(1, sh.getLastColumn())).clearContent().setBackground(null);
+  });
+  ["COURSES", "AUTO_STATE", "LIVE", "LIVE_DONE"].forEach(function (k) { props_().deleteProperty(k); });
+  var all = props_().getProperties(), gone = [];   // last year's Class Pass sign-ins (and their short-term copies)
+  Object.keys(all).forEach(function (k) { if (k.indexOf("SIGNIN_") === 0) { props_().deleteProperty(k); gone.push(k); } });
+  if (gone.length) cacheDel_(gone);
+  clearConfigCache_();
+  autoTriggers_().forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  forgetCopiedLink_();
+  props_().setProperty("SSID", SpreadsheetApp.getActiveSpreadsheet().getId());
+  renderSummary_();
+  ui.alert("Cleared. Next: Video Check > 1. Link Google Classroom classes (this year's periods), then step 2.\n" +
+           "Your student link stays the same unless you made a new deployment.");
+}
+
+/** Re-grade every saved answer (use after changing the questions, key, or credit settings). */
+function recalculateAll() {
+  menuOnly_();
+  clearConfigCache_();
+  loadConfig_();
+  var lock = lockOrBusy_(30000), recs;   // so an answer a student saves right now isn't overwritten
+  try {
+    recs = allRecords_();
+    Object.keys(recs).forEach(function (email) {
+      var rec = recs[email];
+      for (var i = 0; i < ITEMS.length; i++) rec.statuses[i] = feedbackFor_(i, rec.answers[i], rec.tries[i]).status;
+      writeRecord_(email, rec);
+    });
+  } finally {
+    lock.releaseLock();
+  }
+  ensureSheets_();
+  rebuildLive_();
+  renderSummary_();
+  SpreadsheetApp.getUi().alert("Recalculated " + Object.keys(recs).length + " students.");
+}
+
+// ============================== GRADING ENGINE (same as Self-Check) ==============================
+function gradeLocal_(item, answer) {
+  var padded = normalize_(answer);
+  var words = padded.trim().split(" ");
+  var total = item.criteria.length, score = 0, unmet = [];
+  for (var i = 0; i < item.criteria.length; i++) {
+    if (criterionMet_(item.criteria[i], padded, words)) score++;
+    else unmet.push(item.criteria[i].nudge || "Reread the question and try again.");
+  }
+  var status = score === total ? "correct" : (score === 0 ? "incorrect" : "partial");
+  return { status: status, score: score, total: total, unmet: unmet };
+}
+
+function criterionMet_(criterion, padded, words) {
+  var need = criterion.need;
+  for (var s = 0; s < need.length; s++) {
+    var set = need[s], hit = false;
+    if (set[0] === "!") {   // NOT group: fails if any of these words appear
+      for (var u = 1; u < set.length; u++) if (answerHasTerm_(padded, words, set[u])) return false;
+      continue;
+    }
+    for (var t = 0; t < set.length; t++) {
+      if (answerHasTerm_(padded, words, set[t])) { hit = true; break; }
+    }
+    if (!hit) return false;
+  }
+  return true;
+}
+
+function normalize_(s) {
+  return " " + String(s).toLowerCase().replace(/[^a-z0-9%\s]/g, " ").replace(/\s+/g, " ").trim() + " ";
+}
+
+function answerHasTerm_(padded, words, term) {
+  if (term.indexOf(" ") !== -1) {
+    return padded.indexOf(" " + term + " ") !== -1 || padded.indexOf(term) !== -1;
+  }
+  if (term.length >= 4) {
+    var stems = [term];
+    if (term.charAt(term.length - 1) === "e") stems.push(term.slice(0, -1));
+    for (var i = 0; i < words.length; i++) {
+      for (var k = 0; k < stems.length; k++) {
+        if (stems[k].length >= 4 && words[i].indexOf(stems[k]) === 0) return true;
+      }
+    }
+    return false;
+  }
+  var forms = [term, term + "s", term + "es", term + "ed", term + "ing", term + "d", term + "r", term + "er"];
+  for (var j = 0; j < words.length; j++) {
+    if (forms.indexOf(words[j]) !== -1) return true;
+  }
+  return false;
+}

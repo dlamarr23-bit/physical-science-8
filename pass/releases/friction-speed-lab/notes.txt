@@ -1,0 +1,14 @@
+friction-speed-lab v2026.10.30b
+
+- Check for skill updates now also finds new versions on the class website, so an update reaches this sheet as soon as it is published, with no files needed in the Drive folder. Your Drive folder Claude Skill Updates still works too, and the update window says where each version came from.
+- The copy on the website has no questions or answer keys (the website is public). Your questions live in your Questions tab, so nothing changes for you. If a sheet's Questions tab were ever empty, the window would tell you to run Self-Check > Set up / repair sheets first.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.10.30, if this sheet skipped it:
+- The left side of a two-column page can have three buttons: Directions plus two simulations.
+- New Settings rows: Simulation button name, Simulation 2 link, Simulation 2 button name. Rename any button from the Settings tab, no redeploy.
+  Blank names stay as before: Simulation (or Simulation 1 and Simulation 2 when there are two). Simulation 2 link follows the same rules as Simulation link.
+- Each simulation keeps running while students switch between buttons, and Open it in a new tab opens the one showing.
+
+After you paste the new Code.gs and Index and create the New version (Deploy > Manage deployments > pencil > New version > Deploy), run Self-Check > Set up / repair sheets once. It adds any Settings rows this sheet doesn't have yet, blank.
+Nothing already in the sheet changes, and no new permission is needed.

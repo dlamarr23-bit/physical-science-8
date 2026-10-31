@@ -1,0 +1,10 @@
+{
+  "kind": "friction-speed-lab",
+  "version": "2026.10.30b",
+  "optional": "",
+  "files": {
+    "Code.gs": "Code.gs.txt",
+    "Index.html": "Index.html.txt",
+    "What changed.txt": "notes.txt"
+  }
+}
