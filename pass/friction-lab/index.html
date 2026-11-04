@@ -2201,6 +2201,19 @@ function pairNames(T) {
   }
   return out;
 }
+/** For a data table's graph: when the points bend upward from 0, 0 the way stopping distance grows with speed (twice the speed,
+    four times as far), the a of the best-fit curve y = a times x squared; else 0 and the graph keeps its straight best-fit line.
+    The curve wins only when its misses (squared) add up to less than half the straight line's. Needs 3 points right of 0, none below 0. */
+function curveFit(pts, origin) {
+  if (pts.filter(function (p) { return p[0] > 0; }).length < 3 || pts.some(function (p) { return p[0] < 0 || p[1] < 0; })) return 0;
+  var m = pts.length, x4 = 0, x2y = 0, sxx = 0, sxy = 0, sx = 0, sy = 0;
+  pts.forEach(function (p) { var q = p[0] * p[0]; x4 += q * q; x2y += q * p[1]; sxx += q; sxy += p[0] * p[1]; sx += p[0]; sy += p[1]; });
+  var a = x2y / x4, slope = sxy / sxx, b0 = 0, d = m * sxx - sx * sx;
+  if (!origin) { if (!d) return 0; slope = (m * sxy - sx * sy) / d; b0 = (sy - slope * sx) / m; }
+  function miss(f) { return pts.reduce(function (t, p) { var e = p[1] - f(p[0]); return t + e * e; }, 0); }
+  var curve = miss(function (x) { return a * x * x; }), line = miss(function (x) { return slope * x + b0; });
+  return a > 0 && curve < line * 0.5 ? a : 0;
+}
 function drawTableGraph(i) {
   if (S.questions[i].table.graph) { drawGraphQ(i); return; }
   if (S.questions[i].table.lab) { drawLab(i); return; }
@@ -2220,7 +2233,8 @@ function drawTableGraph(i) {
   var xsAll = T.rows.map(function (r) { return Number(r[0]); }).filter(isFinite);
   var xMax = Math.max.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [1]));
   var xMin = Math.min.apply(null, xsAll.concat(pts.map(function (p) { return p[0]; }), [0]));
-  var yMax = Math.max.apply(null, pts.map(function (p) { return p[1]; }).concat([1]));
+  var bend = curveFit(pts, T.origin), xHi = Math.max.apply(null, pts.map(function (p) { return p[0]; }).concat([0]));
+  var yMax = Math.max.apply(null, pts.map(function (p) { return p[1]; }).concat([1, bend * xHi * xHi]));
   var yMin = Math.min.apply(null, pts.map(function (p) { return p[1]; }).concat([0]));
   var xs = niceStep(xMax - xMin), ys = niceStep(yMax - yMin);
   xMax = Math.ceil(xMax / xs) * xs; xMin = Math.floor(xMin / xs) * xs; yMax = Math.ceil(yMax / ys) * ys; yMin = Math.floor(yMin / ys) * ys;
@@ -2235,7 +2249,11 @@ function drawTableGraph(i) {
   }
   for (var gx = xMin; gx <= xMax + xs / 2; gx += xs) h.push('<text class="tg-tick" x="' + X(gx) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmt(gx) + '</text>');
   h.push('<line class="tg-axis" x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '"/><line class="tg-axis" x1="' + L + '" x2="' + L + '" y1="' + Tp + '" y2="' + B + '"/>');
-  if (T.origin && pts.length) {   // "origin":true: the best-fit line through 0, 0 (y = slope times x), from 0, 0 out to the last point
+  if (bend) {   // the points bend upward from 0, 0: the best-fit curve y = a times x squared, from 0, 0 out to the last point
+    var cd = [];
+    for (var s = 0; s <= 40; s++) { var cx = xHi * s / 40; cd.push((s ? "L" : "M") + X(cx).toFixed(1) + " " + Y(Math.min(yMax, bend * cx * cx)).toFixed(1)); }
+    h.push('<path class="tg-fit" fill="none" d="' + cd.join(" ") + '"/>');
+  } else if (T.origin && pts.length) {   // "origin":true: the best-fit line through 0, 0 (y = slope times x), from 0, 0 out to the last point
     var oxx = 0, oxy = 0, xEnd = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
     pts.forEach(function (p) { oxx += p[0] * p[0]; oxy += p[0] * p[1]; });
     if (oxx) h.push('<line class="tg-fit" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(xEnd) + '" y2="' + Y(Math.max(yMin, Math.min(yMax, oxy / oxx * xEnd))) + '"/>');
@@ -2691,7 +2709,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.10.30c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.03";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

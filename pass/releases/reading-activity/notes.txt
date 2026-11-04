@@ -1,7 +1,14 @@
-reading-activity v2026.10.30c
+reading-activity v2026.11.03
 
-Optional update: paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it.
+Optional update: a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published.
 
+- A data table's graph now draws a best-fit CURVE (from 0, 0) when the points bend upward, like stopping distance against speed
+  (twice the speed, about four times the distance). Points in a straight line keep their straight best-fit line, and "origin":true works as before.
+  The curve only shows when it fits the points much better than a straight line, with 3 or more points typed in. Nothing to set up in the sheet.
+- Students who open this assignment through the class website (Class Pass) see the curve right away. Pasting the new Index into this sheet
+  only matters for the sheet's own student link. Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.10.30c (optional), if this sheet skipped it:
 - Paste safety: this sheet remembers what kind of assignment it is (from the first time you run Self-Check > Set up / repair sheets with this code).
   If code for a different kind is ever pasted in, the Self-Check menu shows only a warning (for example "This sheet is a Review Game, but this code is for a Self-Check (one column). Undo the paste."),
   and Set up, grade uploads and the student page stop until you undo the paste. To change a sheet's kind on purpose, use the menu's "Make this sheet ..." item.

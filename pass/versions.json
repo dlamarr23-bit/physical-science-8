@@ -1,20 +1,20 @@
 {
-  "auto-grading-activity": "2026.10.30c",
-  "friction-article": "2026.10.30c",
-  "friction-sim-lab": "2026.10.30c",
-  "friction-speed-lab": "2026.10.30c",
-  "net-force-escape-room": "2026.10.30c",
-  "reading-activity": "2026.10.30c",
-  "review-game": "2026.10.30c",
-  "video-check": "2026.10.30c",
+  "auto-grading-activity": "2026.11.03",
+  "friction-article": "2026.11.03",
+  "friction-sim-lab": "2026.11.03",
+  "friction-speed-lab": "2026.11.03",
+  "net-force-escape-room": "2026.11.03",
+  "reading-activity": "2026.11.03",
+  "review-game": "2026.11.03",
+  "video-check": "2026.11.03",
   "_optional": {
-    "auto-grading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "friction-article": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "friction-sim-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "friction-speed-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "net-force-escape-room": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "reading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "review-game": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]},
-    "video-check": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."]]}
+    "auto-grading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."]]},
+    "friction-article": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."]]},
+    "friction-sim-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."]]},
+    "friction-speed-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."]]},
+    "net-force-escape-room": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]},
+    "reading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."]]},
+    "review-game": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]},
+    "video-check": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]}
   }
 }

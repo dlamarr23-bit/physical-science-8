@@ -238,7 +238,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "reading-activity";   // a one-off Self-Check with its own page (self-check\custom\reading-activity\)
-var SKILL_VERSION = "2026.10.30c";
+var SKILL_VERSION = "2026.11.03";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 

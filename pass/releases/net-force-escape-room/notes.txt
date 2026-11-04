@@ -1,7 +1,10 @@
-net-force-escape-room v2026.10.30c
+net-force-escape-room v2026.11.03
 
-Optional update: paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it.
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to this kind's code or page (the 2026.11.03 change is a curved best-fit line on data table graphs, which this page doesn't have).
+
+Also from 2026.10.30c (optional), if this sheet skipped it:
 - Paste safety: this sheet remembers what kind of assignment it is (from the first time you run Self-Check > Set up / repair sheets with this code).
   If code for a different kind is ever pasted in, the Self-Check menu shows only a warning (for example "This sheet is a Review Game, but this code is for a Self-Check (one column). Undo the paste."),
   and Set up, grade uploads and the student page stop until you undo the paste. To change a sheet's kind on purpose, use the menu's "Make this sheet ..." item.
