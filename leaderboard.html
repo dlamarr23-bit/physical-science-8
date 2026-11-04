@@ -70,10 +70,18 @@
 <iframe class="embed-frame" id="vocabFrame" title="Class leaderboard" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
 <script>
 /* The class leaderboard (Donny, 2026-10-20): the vocabulary site keeps it, with Class Pass, and shows it here
-   under this site's top bar (its own top bar is hidden inside this site). Signing in is the Class Pass button. */
+   under this site's top bar (its own top bar is hidden inside this site). Signing in is the Class Pass button.
+   Light or dark: it opens in this site's mode (?theme=) and follows the Class Pass menu's switch ({vocabTheme}). */
 (function(){
   var VOCAB = "https://vocabulary-room901.pages.dev";
-  document.getElementById("vocabFrame").src = VOCAB + "/leaderboard/";
+  var frame = document.getElementById("vocabFrame");
+  function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+  function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
+  frame.src = VOCAB + "/leaderboard/?theme=" + theme();
+  window.addEventListener("ps8:theme", tellTheme);
+  window.addEventListener("message", function(e){
+    if(e.origin === VOCAB && e.source === frame.contentWindow && e.data && e.data.vocabSite) tellTheme();
+  });
 })();
 </script>
 </body>

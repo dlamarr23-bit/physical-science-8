@@ -75,26 +75,33 @@
    /flashcards#folder-<id> opens a folder, and older /flashcards/my/<set id>/ links still work.
    (_redirects serves this page at every /flashcards/... address.)
    The vocabulary site's pages say which page is open (its book.js), and the address follows along.
-   The Class Pass menu in the top bar links to /flashcards?go=live (Host a game) and /flashcards?go=join. */
+   The Class Pass menu in the top bar links to /flashcards?go=live (Host a game) and /flashcards?go=join.
+   Light or dark: the frame opens in this site's mode (?theme=), and hears this site's mode ({vocabTheme}) each
+   time one of its pages opens and when the Class Pass menu switches it. */
 (function(){
   var VOCAB = "https://vocabulary-room901.pages.dev";
   var frame = document.getElementById("vocabFrame");
   var pageTitle = document.title, siteName = pageTitle.split(" · ").pop();
+  function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+  function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
   function open(){
     var go = (location.search.match(/[?&]go=(live|join|leaderboard)\b/) || [])[1];
     var code = (location.search.match(/[?&]code=([A-Za-z2-9]{6})\b/) || [])[1];
-    if(go){ frame.src = VOCAB + "/" + go + "/" + (go === "join" && code ? "?code=" + code.toUpperCase() : ""); return; }
+    if(go){ frame.src = VOCAB + "/" + go + "/?theme=" + theme() + (go === "join" && code ? "&code=" + code.toUpperCase() : ""); return; }
     var m = location.pathname.match(/^\/flashcards(\/[\w\/.-]*)?$/);
-    frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + location.hash;
+    frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + "?theme=" + theme() + location.hash;
   }
   open();
   // a link to another folder or study mode of the same page changes only the part after #
   window.addEventListener("hashchange", open);
+  window.addEventListener("ps8:theme", tellTheme);
 
   window.addEventListener("message", function(e){
     if(e.origin !== VOCAB || e.source !== frame.contentWindow) return;
     var info = e.data && e.data.vocabSite;
     if(!info || typeof info.path !== "string") return;
+    // a page of the vocabulary site just opened: it shows this site's mode
+    tellTheme();
     // pages outside the flashcards (hosting or joining a game) keep the plain address
     var inside = /^\/flashcards\/[\w\/.-]+$/.test(info.path);
     var hash = typeof info.hash === "string" && /^#[\w-]*$/.test(info.hash) ? info.hash : "";
