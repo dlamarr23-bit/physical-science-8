@@ -1,7 +1,10 @@
-reading-activity v2026.11.03
+reading-activity v2026.11.03b
 
-Optional update: a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published.
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to this kind's code or page (the 2026.11.03b change is the review game's bigger screen, its two new power-ups, and its Leaderboard topic fix).
+
+Also from 2026.11.03 (optional), if this sheet skipped it:
 - A data table's graph now draws a best-fit CURVE (from 0, 0) when the points bend upward, like stopping distance against speed
   (twice the speed, about four times the distance). Points in a straight line keep their straight best-fit line, and "origin":true works as before.
   The curve only shows when it fits the points much better than a straight line, with 3 or more points typed in. Nothing to set up in the sheet.

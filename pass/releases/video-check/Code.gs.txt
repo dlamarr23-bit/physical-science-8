@@ -108,7 +108,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
 // SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
 var SKILL_NAME = "video-check";
-var SKILL_VERSION = "2026.11.03";
+var SKILL_VERSION = "2026.11.03b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 

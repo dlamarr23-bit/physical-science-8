@@ -74,8 +74,18 @@
   .count .tip b { display:block; font-size:22px; }
   @keyframes pop { from { transform:scale(.5); opacity:0; } 40% { transform:scale(1.1); opacity:1; } to { transform:scale(1); } }
 
-  /* ---------- playing ---------- */
-  .topbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  /* ---------- playing ----------
+     A question fills the screen (2026.11.03b, Donny: Chromebooks and phones): the top bar, the question card (its picture as big as
+     the space allows), the answer tiles and the power-ups make one column exactly as tall as the window, so nothing scrolls.
+     layoutPlay() picks how many tiles go across and shrinks a long question or answer until it fits. A phone, or a window
+     too short for that (#play.flow), scrolls instead, with the power-ups and the result bar kept at the bottom of the screen. */
+  .wrap.playing { max-width:none; padding:0; }
+  .wrap.playing .ver { display:none; }
+  #play { display:flex; flex-direction:column; gap:clamp(6px, 1.3vh, 12px); max-width:1680px; margin:0 auto;
+          padding:10px clamp(8px, 1.5vw, 24px); height:100vh; height:100dvh; }
+  .topbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
+  .topL { display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0; }
+  .topR { display:flex; align-items:center; gap:6px; justify-content:flex-end; }
   .chip { display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.3); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:700; font-size:14px; white-space:nowrap; }
   .chip svg { width:16px; height:16px; fill:currentColor; }
   .chip.rank { color:#ffd6ec; background:rgba(194,24,91,.35); }
@@ -86,22 +96,28 @@
   .iconbtn { width:38px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid var(--line); background:rgba(0,0,0,.3); color:#fff; padding:0; }
   .iconbtn svg { width:18px; height:18px; fill:currentColor; }
   .iconbtn:hover { background:rgba(255,255,255,.15); }
-  .counter { display:block; width:max-content; margin:0 auto 10px; background:rgba(0,0,0,.4); border:1px solid var(--line); border-radius:14px; padding:3px 12px; font-weight:700; font-size:14px; color:var(--gold); }
-  .qcard { display:flex; gap:18px; align-items:center; background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:14px; padding:16px; min-height:150px; }
-  .qpic { flex:0 0 min(42%, 440px); position:relative; background:#fff; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:120px; border:0; padding:0; }
-  .qpic img { display:block; max-width:100%; max-height:300px; object-fit:contain; }
-  .qpic .zoom { position:absolute; left:8px; bottom:8px; width:30px; height:30px; border-radius:6px; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; }
-  .qpic .zoom svg { width:16px; height:16px; fill:#fff; }
-  .qbody { flex:1; text-align:center; }
+  .counter { display:block; width:max-content; background:rgba(0,0,0,.4); border:1px solid var(--line); border-radius:14px; padding:3px 12px; font-weight:700; font-size:14px; color:var(--gold); }
+  .qcard { flex:1 1 0; min-height:0; display:flex; gap:clamp(10px, 1.6vw, 24px); align-items:stretch; background:rgba(0,0,0,.28); border:1px solid var(--line);
+           border-radius:14px; padding:clamp(8px, 1.2vw, 16px); }
+  .qhold { flex:0 0 50%; min-width:0; min-height:0; display:flex; flex-direction:column; background:#fff; border-radius:10px; overflow:hidden; }
+  .qpic { flex:1 1 0; min-height:0; width:100%; position:relative; background:#fff; display:flex; align-items:center; justify-content:center; border:0; padding:0; }
+  .qpic img { display:block; width:100%; height:100%; object-fit:contain; }
+  .qpic .zoom { position:absolute; left:8px; bottom:8px; width:34px; height:34px; border-radius:6px; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; }
+  .qpic .zoom svg { width:18px; height:18px; fill:#fff; }
+  .qbody { flex:1 1 0; min-width:0; min-height:0; overflow:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; justify-content:safe center; text-align:center; }
   .qsec { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
-  .qtext { font-size:clamp(17px, 2.3vw, 24px); font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
-  .qcap { font-size:12px; color:#555; padding:4px 8px 6px; text-align:center; }
-  .speak { margin-top:10px; }
-  .multi { display:block; width:max-content; margin:12px auto 0; background:rgba(255,255,255,.18); border-radius:12px; padding:3px 12px; font-size:13px; font-weight:600; }
-  .tiles { display:grid; gap:10px; margin-top:12px; grid-template-columns:repeat(var(--n), minmax(0, 1fr)); }
-  .tile { position:relative; min-height:150px; border:0; border-radius:12px; color:#fff; font-size:clamp(15px, 1.7vw, 21px); font-weight:700; line-height:1.3;
-          padding:30px 12px 18px; display:flex; align-items:center; justify-content:center; text-align:center; overflow-wrap:anywhere;
+  .qtext { font-size:24px; font-weight:600; line-height:1.35; overflow-wrap:anywhere; }
+  .qcap { font-size:13px; color:#555; padding:4px 8px 6px; text-align:center; flex:none; }
+  .speak { margin-top:8px; flex:none; }
+  .multi { display:inline-block; background:rgba(255,255,255,.18); border-radius:12px; padding:3px 12px; font-size:14px; font-weight:600; }
+  .tiles { flex:0 0 auto; display:grid; gap:clamp(6px, 1vw, 12px); grid-template-columns:repeat(var(--cols, 4), minmax(0, 1fr)); grid-auto-rows:1fr; }
+  .tiles[data-rows="1"] { height:clamp(110px, 28vh, 320px); }
+  .tiles[data-rows="2"] { height:clamp(150px, 34vh, 400px); }
+  .tiles[data-rows="3"] { height:clamp(190px, 40vh, 460px); }
+  .tile { position:relative; min-height:0; border:0; border-radius:12px; color:#fff; font-size:20px; font-weight:700; line-height:1.25; overflow:hidden;
+          padding:28px 12px 14px; display:flex; align-items:center; align-items:safe center; justify-content:center; text-align:center; overflow-wrap:anywhere;
           box-shadow:inset 0 -6px 0 rgba(0,0,0,.22); transition:transform .12s, opacity .25s, filter .2s; }
+  .tile.gone { visibility:hidden; }   /* taken away by 50/50: the others keep their places */
   .tile:hover:not(:disabled) { transform:translateY(-3px); filter:brightness(1.1); }
   .tile:focus-visible { outline:3px solid #fff; outline-offset:3px; }
   .tile .key { position:absolute; top:8px; right:8px; min-width:22px; height:22px; border-radius:5px; background:rgba(0,0,0,.28); font-size:12px; display:flex; align-items:center; justify-content:center; }
@@ -109,8 +125,8 @@
   .tile.sel .box { background:#fff; }
   .tile.sel .box::after { content:""; position:absolute; left:6px; top:1px; width:7px; height:13px; border:solid #2b1640; border-width:0 3px 3px 0; transform:rotate(45deg); }
   .tile.sel { box-shadow:inset 0 -6px 0 rgba(0,0,0,.22), 0 0 0 4px #fff; }
-  .tile img { max-width:100%; max-height:200px; background:#fff; border-radius:8px; display:block; }
-  .tile.picTile { padding:34px 10px 14px; }
+  .tile img { max-width:100%; max-height:100%; object-fit:contain; background:#fff; border-radius:8px; display:block; }
+  .tile.picTile { padding:32px 10px 14px; }
   .c0 { background:linear-gradient(180deg,#8fb31a,var(--t0)); } .c1 { background:linear-gradient(180deg,#a865ea,var(--t1)); }
   .c2 { background:linear-gradient(180deg,#f0832e,var(--t2)); } .c3 { background:linear-gradient(180deg,#1fb7a0,var(--t3)); }
   .c4 { background:linear-gradient(180deg,#e9558a,var(--t4)); } .c5 { background:linear-gradient(180deg,#4f86e6,var(--t5)); }
@@ -123,32 +139,37 @@
   .tile .mark svg { width:16px; height:16px; }
   .tile .gain { position:absolute; left:50%; top:42%; transform:translate(-50%,-50%); font-size:34px; font-weight:800; text-shadow:0 3px 0 rgba(0,0,0,.35); animation:rise 1.4s ease forwards; pointer-events:none; }
   @keyframes rise { from { opacity:0; transform:translate(-50%,-20%) scale(.6); } 25% { opacity:1; transform:translate(-50%,-60%) scale(1.15); } to { opacity:0; transform:translate(-50%,-140%) scale(1); } }
-  .submitRow { text-align:right; margin-top:10px; }
-  .submitRow button { min-width:150px; min-height:46px; border-radius:10px; border:0; font-size:17px; font-weight:800; background:#fff; color:#2b1640; box-shadow:inset 0 -4px 0 rgba(0,0,0,.18); }
+  /* along the bottom while answering: the power-ups, what a power-up is doing, and (select all) the Submit button */
+  .foot { flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:8px 14px; flex-wrap:wrap; min-height:56px; }
+  .submitRow button { min-width:150px; min-height:48px; border-radius:10px; border:0; font-size:17px; font-weight:800; background:#fff; color:#2b1640; box-shadow:inset 0 -4px 0 rgba(0,0,0,.18); }
   .submitRow button:disabled { opacity:.45; }
-  /* the result bar along the bottom after answering */
-  .result { position:fixed; left:0; right:0; bottom:0; z-index:20; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); animation:slideUp .25s ease; }
+  /* the result bar after answering: in the power-ups' place, so it never covers the answers */
+  .result { flex:0 0 auto; position:relative; z-index:20; border-radius:12px; overflow:hidden; padding:10px 14px; animation:fadeUp .2s ease; }
   .result.ok { background:var(--green-dk); } .result.no { background:var(--red-dk); }
-  .result .in { max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .result .in { display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; }
   .result .verdict { font-size:22px; font-weight:800; display:flex; align-items:center; gap:8px; }
   .result .verdict svg { width:26px; height:26px; fill:#fff; }
   .result .extra { flex:1 1 300px; font-size:14px; line-height:1.45; }
   .result .extra b { color:#fff; }
   .result button { min-width:140px; min-height:48px; border-radius:10px; border:0; font-size:18px; font-weight:800; background:#fff; color:#2b1640; box-shadow:inset 0 -4px 0 rgba(0,0,0,.2); }
   .result .bar { position:absolute; left:0; top:0; height:4px; background:rgba(255,255,255,.7); }
-  @keyframes slideUp { from { transform:translateY(100%); } to { transform:none; } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   @keyframes drain { from { width:100%; } to { width:0; } }
-  /* power-ups along the bottom */
-  .powers { position:fixed; left:50%; bottom:12px; transform:translateX(-50%); z-index:10; display:flex; gap:8px; background:rgba(0,0,0,.45); border:1px solid var(--line); border-radius:14px; padding:6px; }
-  .power { position:relative; width:52px; height:52px; border-radius:10px; border:2px solid transparent; color:#fff; padding:0; display:flex; align-items:center; justify-content:center; }
+  /* power-ups */
+  .powers { display:flex; gap:8px; background:rgba(0,0,0,.45); border:1px solid var(--line); border-radius:14px; padding:6px; }
+  .power { position:relative; width:48px; height:48px; border-radius:10px; border:2px solid transparent; color:#fff; padding:0; display:flex; align-items:center; justify-content:center; }
   .power svg { width:26px; height:26px; fill:#fff; }
   .power .n { position:absolute; right:-6px; top:-6px; min-width:20px; height:20px; border-radius:10px; background:var(--gold); color:#2b1640; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; padding:0 4px; }
   .power.p-double { background:linear-gradient(180deg,#7c6cff,#4b3cc9); }
   .power.p-saver { background:linear-gradient(180deg,#2ed06f,#139447); }
   .power.p-boost { background:linear-gradient(180deg,#ff9a3c,#e2551a); }
+  .power.p-fifty { background:linear-gradient(180deg,#3cc7e8,#1479a8); }
+  .power.p-second { background:linear-gradient(180deg,#ff6fae,#c2185b); }
+  .power.p-fifty svg { width:34px; height:34px; }
   .power:disabled { filter:grayscale(1); opacity:.35; }
   .power.armed { border-color:#fff; box-shadow:0 0 0 3px var(--gold), 0 0 18px var(--gold); transform:translateY(-4px); }
-  .armedNote { text-align:center; color:var(--gold); font-weight:700; font-size:14px; margin-top:10px; min-height:1.4em; }
+  .armedNote { text-align:center; color:var(--gold); font-weight:700; font-size:15px; }
+  .armedNote:empty { display:none; }
   .toast { position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:40; background:#fff; color:#2b1640; border-radius:12px; padding:10px 16px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.35); display:flex; gap:10px; align-items:center; max-width:calc(100% - 32px); animation:pop .4s ease; }
   .toast svg { width:24px; height:24px; flex:none; }
   /* a fun fact between questions */
@@ -210,16 +231,32 @@
   .ver { text-align:center; font-size:11px; color:rgba(255,255,255,.35); margin-top:28px; }
   .errorBox { background:#fff; color:#111; border-radius:12px; padding:12px 14px; margin:10px auto; max-width:620px; font-weight:600; }
 
-  @media (max-width: 760px) {
-    .qcard { flex-direction:column; align-items:stretch; }
-    .qpic { flex:none; }
-    .tiles { grid-template-columns:1fr !important; }
-    .tile { min-height:64px; padding:12px 40px; font-size:16px; }
-    .tile.picTile { padding:34px 10px 12px; }
+  /* a phone, or a window too short to fit a question (layoutPlay adds .flow): the page scrolls, and the power-ups and result bar stay at the bottom */
+  #play.flow { height:auto; min-height:100vh; min-height:100dvh; padding-bottom:0; }
+  #play.flow .qcard { flex:1 0 auto; min-height:auto; }
+  #play.flow .qhold { height:clamp(150px, 34dvh, 400px); }
+  #play.flow .qbody { overflow:visible; min-height:auto; }
+  #play.flow .qtext { font-size:clamp(17px, 2.2vw + 1.4vh, 26px); }
+  #play.flow .tiles { height:auto !important; grid-auto-rows:auto; }
+  #play.flow .tile { min-height:58px; font-size:17px; padding:12px 40px 14px; }
+  #play.flow .tiles.two .tile { min-height:clamp(84px, 14dvh, 130px); padding:26px 10px 14px; }
+  #play.flow .tile.picTile { min-height:clamp(110px, 20dvh, 180px); padding:30px 10px 12px; }
+  #play.flow .foot, #play.flow .result { position:sticky; bottom:0; z-index:15; }
+  #play.flow .foot { background:linear-gradient(180deg, rgba(22,7,38,0), var(--bg2) 30%); padding:8px 0 calc(8px + env(safe-area-inset-bottom)); margin:0 -4px; }
+  #play.flow .result { margin-bottom:calc(6px + env(safe-area-inset-bottom)); }
+  @media (max-width: 640px) {
+    .qcard { flex-direction:column; }
+    .qhold { flex:none; }
+    .qbody { flex:0 0 auto; }   /* under the picture: as tall as the question */
+    .topbar { grid-template-columns:auto 1fr auto; }
+    .topL { flex-wrap:nowrap; }
+    .counter { justify-self:center; }
+    .chip { padding:4px 7px; font-size:13px; }
+    .iconbtn { width:34px; }
+    .power { width:46px; height:46px; }
     .count .num { font-size:80px; }
-    .wrap { padding-bottom:140px; }
   }
-  @media (min-width: 761px) and (max-width: 1000px) { .tiles.n4, .tiles.n5, .tiles.n6 { grid-template-columns:repeat(2, minmax(0, 1fr)); } .tile { min-height:110px; } }
+  @media (max-width: 420px) { #rankChip { display:none !important; } }   /* (the place shows between questions and on the leaderboard) */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition:none !important; }
   }
@@ -299,23 +336,28 @@
     <!-- a question -->
     <section id="play" hidden>
       <div class="topbar">
-        <span class="chip rank" id="rankChip" title="Your place in your class period" hidden></span>
-        <span class="chip pts" title="Game points"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z"/></svg><span id="ptsText">0</span></span>
-        <span class="chip streak" id="streakChip" title="Right answers in a row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5.7s.7 2.6.7 4.7c0 2-1.3 3.6-3.3 3.6S7.4 7.4 7.4 5.4V5A11 11 0 0 0 4 13a8 8 0 0 0 16 0c0-5.4-2.6-10.2-6.5-12.3zM11.7 20c-1.8 0-3.2-1.4-3.2-3.1 0-1.6 1-2.8 2.8-3.1 1.8-.4 3.6-1.2 4.6-2.6.4 1.3.6 2.6.6 4A5 5 0 0 1 11.7 20z"/></svg><span id="streakText">0</span></span>
-        <span class="spacer"></span>
-        <button class="iconbtn" id="playBoardBtn" type="button" title="Leaderboard" aria-label="Leaderboard"><svg viewBox="0 0 24 24"><path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/></svg></button>
-        <button class="iconbtn" id="soundBtn" type="button" title="Sound effects" aria-label="Sound effects"></button>
-        <button class="iconbtn" id="exitBtn" type="button" title="Stop for now (your game is saved)" aria-label="Stop for now"><svg viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg></button>
+        <div class="topL">
+          <span class="chip rank" id="rankChip" title="Your place in your class period" hidden></span>
+          <span class="chip pts" title="Game points"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z"/></svg><span id="ptsText">0</span></span>
+          <span class="chip streak" id="streakChip" title="Right answers in a row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5.7s.7 2.6.7 4.7c0 2-1.3 3.6-3.3 3.6S7.4 7.4 7.4 5.4V5A11 11 0 0 0 4 13a8 8 0 0 0 16 0c0-5.4-2.6-10.2-6.5-12.3zM11.7 20c-1.8 0-3.2-1.4-3.2-3.1 0-1.6 1-2.8 2.8-3.1 1.8-.4 3.6-1.2 4.6-2.6.4 1.3.6 2.6.6 4A5 5 0 0 1 11.7 20z"/></svg><span id="streakText">0</span></span>
+        </div>
+        <span class="counter" id="counter"></span>
+        <div class="topR">
+          <button class="iconbtn" id="playBoardBtn" type="button" title="Leaderboard" aria-label="Leaderboard"><svg viewBox="0 0 24 24"><path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/></svg></button>
+          <button class="iconbtn" id="soundBtn" type="button" title="Sound effects" aria-label="Sound effects"></button>
+          <button class="iconbtn" id="exitBtn" type="button" title="Stop for now (your game is saved)" aria-label="Stop for now"><svg viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z"/></svg></button>
+        </div>
       </div>
-      <span class="counter" id="counter"></span>
       <div class="qcard" id="qcard"></div>
-      <span class="multi" id="multiNote" hidden>Select all correct options</span>
       <div class="tiles" id="tiles"></div>
-      <div class="submitRow" id="submitRow" hidden><button type="button" id="submitBtn" disabled>Submit</button></div>
-      <div class="armedNote" id="armedNote" aria-live="polite"></div>
+      <div class="foot" id="foot">
+        <span class="multi" id="multiNote" hidden>Select all correct options</span>
+        <div class="powers" id="powers" hidden></div>
+        <div class="armedNote" id="armedNote" aria-live="polite"></div>
+        <div class="submitRow" id="submitRow" hidden><button type="button" id="submitBtn" disabled>Submit</button></div>
+      </div>
+      <div class="result" id="result" hidden></div>
     </section>
-    <div class="powers" id="powers" hidden></div>
-    <div class="result" id="result" hidden></div>
 
     <!-- a fun fact between questions -->
     <section class="fun" id="fun" hidden></section>
@@ -1151,6 +1193,8 @@ var ORDER = [];        // question numbers (0-based) in this student's order for
 var cur = -1;          // the question on the screen
 var picked = [];       // choices picked on a select-all question (choice numbers, 0-based)
 var armed = "";        // the power-up armed for this question
+var used = "";         // the power-up already spent on this question: "fifty" (two wrong answers taken away) or "second" (a wrong first pick)
+var firstMiss = [];    // the wrong first pick a second guess gave back
 var answering = false; // an answer is on its way to the sheet
 var nextTimer = 0;     // moves on by itself after a right answer
 var BOARD = null;      // the last leaderboard from the sheet
@@ -1161,10 +1205,15 @@ var prefs = loadPrefs();
 var POWER_INFO = {
   double: { name: "Double points", tip: "This question is worth twice the points.", svg: '<svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" font-family="Poppins, Arial, sans-serif">2x</text></svg>' },
   saver:  { name: "Streak saver", tip: "If you miss this one, you keep your streak.", svg: '<svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.6 3.8 10.7 9 12 5.2-1.3 9-6.4 9-12V5l-9-4zm-1.5 15.5-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z"/></svg>' },
-  boost:  { name: "Streak boost", tip: "Your streak jumps up 3 before you answer, so a right answer earns more.", svg: '<svg viewBox="0 0 24 24"><path d="M13.1 2.2C17 3 20.9 7 21.8 10.9L16.6 16l.4 3.8-3.4 3.4-1.8-4.6-4.4-4.4-4.6-1.8L6.2 9l3.8.4zM15 9a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 15 9zM5.6 15.6l2.8 2.8c-1.2 1.6-3.8 2.6-5.6 2.8.2-1.8 1.2-4.4 2.8-5.6z"/></svg>' }
+  boost:  { name: "Streak boost", tip: "Your streak jumps up 3 before you answer, so a right answer earns more.", svg: '<svg viewBox="0 0 24 24"><path d="M13.1 2.2C17 3 20.9 7 21.8 10.9L16.6 16l.4 3.8-3.4 3.4-1.8-4.6-4.4-4.4-4.6-1.8L6.2 9l3.8.4zM15 9a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 15 9zM5.6 15.6l2.8 2.8c-1.2 1.6-3.8 2.6-5.6 2.8.2-1.8 1.2-4.4 2.8-5.6z"/></svg>' },
+  // 2026.11.03b: fifty works the moment it's pressed; second waits for a wrong pick (see useFifty and secondTry)
+  fifty:  { name: "50/50", tip: "Takes away two wrong answers.", svg: '<svg viewBox="0 0 24 24"><text x="12" y="15.2" text-anchor="middle" font-size="8.6" font-weight="800" font-family="Poppins, Arial, sans-serif">50/50</text></svg>' },
+  second: { name: "Second guess", tip: "If your answer is wrong, you get one more try.", svg: '<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>' }
 };
+var POWERS = ["double", "saver", "boost", "fifty", "second"];   // in the order they show along the bottom
 var TIPS = ["Get answers right in a row to build a streak. Each one in a row is worth more points.",
             "Power-ups show up every few questions. Use them wisely!",
+            "The 50/50 power-up takes away two wrong answers. Second guess gives you one more try.",
             "You get one try on each question, so read every choice first.",
             "You can stop any time. Your game saves after every answer.",
             "Click a picture to make it bigger.",
@@ -1308,10 +1357,12 @@ function hidePlayBits() {
   ["play", "fun", "done", "lobby"].forEach(function (id) { var x = $(id); if (x) x.hidden = true; });
   var p = $("powers"), r = $("result"); if (p) p.hidden = true; if (r) r.hidden = true;
   clearTimeout(nextTimer);
+  var w = document.querySelector(".wrap"); if (w) w.classList.remove("playing");
 }
 function showOnly(id) {
   hidePlayBits();
   $(id).hidden = false;
+  document.querySelector(".wrap").classList.toggle("playing", id === "play");   // a question uses the whole window
   window.scrollTo(0, 0);
 }
 
@@ -1403,10 +1454,11 @@ function showQuestion() {
   if (cur === -1) { showDone(true); return; }
   showOnly("play");
   $("msg").innerHTML = "";
-  picked = []; armed = ""; answering = false;
+  picked = []; armed = ""; used = ""; firstMiss = []; answering = false;
   var q = S.questions[cur], n = answeredCount() + 1;
   $("counter").textContent = n + " / " + ORDER.length;
   paintTop();
+  $("foot").hidden = false;
   var card = $("qcard"); card.innerHTML = "";
   if (q.img) {
     var pic = el("button", "qpic"); pic.type = "button"; pic.setAttribute("aria-label", "Make the picture bigger");
@@ -1415,9 +1467,8 @@ function showQuestion() {
     pic.appendChild(img);
     var z = el("span", "zoom"); z.appendChild(svgIcon('<svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM12 10H10v2H9v-2H7V9h2V7h1v2h2v1z"/></svg>')); pic.appendChild(z);
     pic.onclick = function () { zoom(img); };
-    var holder = el("div"); holder.style.cssText = "flex:0 0 min(42%, 440px);display:flex;flex-direction:column;background:#fff;border-radius:10px;overflow:hidden";
-    if (window.matchMedia && matchMedia("(max-width: 760px)").matches) holder.style.flex = "none";
-    pic.style.flex = "1"; holder.appendChild(pic);
+    var holder = el("div", "qhold");   // as big as the question card allows (layoutPlay)
+    holder.appendChild(pic);
     if (q.imgCaption) holder.appendChild(el("div", "qcap", q.imgCaption));
     card.appendChild(holder);
   }
@@ -1433,7 +1484,6 @@ function showQuestion() {
   $("multiNote").hidden = !q.multi;
   var tiles = $("tiles"); tiles.innerHTML = "";
   var order = choiceOrder(cur);
-  tiles.style.setProperty("--n", Math.min(order.length, 5));
   tiles.className = "tiles n" + order.length;
   order.forEach(function (k, pos) {
     var c = q.choices[k], b = el("button", "tile c" + (pos % 6) + (c.img ? " picTile" : ""));
@@ -1441,7 +1491,7 @@ function showQuestion() {
     b.appendChild(el("span", "key", String(pos + 1)));
     if (q.multi) b.appendChild(el("span", "box"));
     if (c.img) { var im = el("img"); im.alt = "Picture choice " + (pos + 1); cpPicture(im, c.img, "c" + cur + "." + k); b.appendChild(im); b.setAttribute("aria-label", "Choice " + (pos + 1) + " (a picture)"); }
-    else b.appendChild(el("span", null, c.t));
+    else b.appendChild(el("span", "tt", c.t));
     b.onclick = function () { pick(k, b); };
     tiles.appendChild(b);
   });
@@ -1449,9 +1499,59 @@ function showQuestion() {
   $("submitBtn").disabled = true;
   paintPowers();
   $("armedNote").textContent = "";
+  layoutPlay();
   readQuestion();
   var first = tiles.querySelector(".tile"); if (first) first.focus({ preventScroll: true });
 }
+
+/* ---------- fitting a question to the window ----------
+   The tiles go 4 (or 5) across on a Chromebook, 2 by 2 when the window is narrower, and 2 by 2 or one under another on a phone
+   (one under another when an answer is long). On a window tall enough (#play not .flow), the question card takes the room
+   the tiles leave, the picture fills its half of the card, and the question and the answers start big and shrink only until
+   they fit. layoutPlay runs for every question, when the window changes size, and when the result bar comes and goes. */
+var FLOW_W = 640, FLOW_H = 520;
+function layoutPlay() {
+  var play = $("play");
+  if (!S || play.hidden || cur < 0) return;
+  var q = S.questions[cur], tiles = $("tiles"), w = window.innerWidth, h = window.innerHeight;
+  var n = tiles.children.length, flow = w <= FLOW_W || h < FLOW_H;
+  var longest = 0, pics = false;
+  q.choices.forEach(function (c) { if (c.img) pics = true; else longest = Math.max(longest, String(c.t || "").length); });
+  var cols;
+  if (w <= FLOW_W) cols = (n === 2 || n === 4) && (pics || longest <= 24) ? 2 : 1;
+  else if (w < 1000) cols = n <= 3 ? n : n === 4 ? 2 : 3;
+  else cols = n <= 5 ? n : 3;
+  if (!flow && n === 4 && cols === 4 && longest > 70 && w < 1300) cols = 2;   // long answers read better two across
+  play.classList.toggle("flow", flow);
+  tiles.style.setProperty("--cols", cols);
+  tiles.setAttribute("data-rows", Math.ceil(n / cols));
+  tiles.classList.toggle("two", cols === 2);
+  var qt = document.querySelector("#qcard .qtext"), spans = [].slice.call(tiles.querySelectorAll(".tile .tt"));
+  [qt].concat(spans).forEach(function (x) { if (x) x.style.fontSize = ""; });
+  if (!flow) {   // the whole question on the screen: start big, shrink until it fits
+    var big = Math.min(46, Math.max(18, Math.min(w * (q.img ? 0.026 : 0.034), h * 0.058)));
+    if (qt) fitText(qt.parentNode, [qt], big, 14);
+  }
+  if (spans.length && (!flow || cols === 2)) {   // every answer the same size: the size the longest one fits at
+    var top = flow ? 20 : Math.max(15, Math.min(32, (w - 40) / cols * 0.075, h * 0.045));
+    fitText(null, spans, top, 12);
+  }
+}
+/** Shrinks the text in list (one font size for all of them) from max down to min until box (or each item's own tile) stops overflowing. */
+function fitText(box, list, max, min) {
+  var size = Math.round(max);
+  function over() {
+    if (box) return box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1;
+    return list.some(function (x) { var t = x.parentNode; return t.scrollHeight > t.clientHeight + 1 || t.scrollWidth > t.clientWidth + 1; });
+  }
+  function set() { list.forEach(function (x) { x.style.fontSize = size + "px"; }); }
+  set();
+  while (size > min && over()) { size -= 1; set(); }
+  return size;
+}
+var layoutTimer = 0;
+window.addEventListener("resize", function () { clearTimeout(layoutTimer); layoutTimer = setTimeout(layoutPlay, 80); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layoutPlay(); });   // Poppins arrives after the first question can show
 function readQuestion() {
   if (!prefs.read || cur < 0) return;
   var q = S.questions[cur], order = choiceOrder(cur);
@@ -1468,15 +1568,21 @@ function paintTop() {
 }
 function paintPowers() {
   var box = $("powers"); box.innerHTML = "";
-  var g = S.game, any = false;
-  ["double", "saver", "boost"].forEach(function (p) {
+  var g = S.game, any = false, q = cur >= 0 ? S.questions[cur] : null, keys = cur >= 0 && !!rightOf(cur);
+  POWERS.forEach(function (p) {
     var n = (g.powers && g.powers[p]) || 0, info = POWER_INFO[p];
     var b = el("button", "power p-" + p + (armed === p ? " armed" : "")); b.type = "button";
-    b.innerHTML = info.svg; b.title = info.name + ": " + info.tip; b.setAttribute("aria-label", info.name + " (" + n + ")");
+    b.innerHTML = info.svg; b.setAttribute("aria-label", info.name + " (" + n + ")");
     b.setAttribute("aria-pressed", armed === p ? "true" : "false");
     if (n) { b.appendChild(el("span", "n", String(n))); any = true; }
-    b.disabled = !n || answering;
+    // One power-up a question. 50/50 needs 3 or more answers and one right one; it and Second guess need the instant answers (keys).
+    var why = "";
+    if ((p === "fifty" || p === "second") && !keys) why = "Not in this game.";
+    else if (p === "fifty" && q && (q.multi || q.choices.length < 3)) why = q.multi ? "Not on a select-all question." : "Not on a two-answer question.";
+    b.title = info.name + ": " + info.tip + (why ? " " + why : "");
+    b.disabled = !n || answering || !!used || !!why;
     b.onclick = function () {
+      if (p === "fifty") { useFifty(); return; }
       armed = armed === p ? "" : p;
       sfx("tick");
       $("armedNote").textContent = armed ? POWER_INFO[armed].name + " is on for this question. " + POWER_INFO[armed].tip : "";
@@ -1484,7 +1590,42 @@ function paintPowers() {
     };
     box.appendChild(b);
   });
-  box.hidden = $("play").hidden || (!any && !armed);
+  box.hidden = $("play").hidden || (!any && !armed && !used);
+}
+/** 50/50: two wrong answers fade away at once (the answer key is on the page already). The sheet hears about it with the answer. */
+function useFifty() {
+  if (answering || used || cur < 0) return;
+  var q = S.questions[cur], right = rightOf(cur);
+  if (!right || q.multi || q.choices.length < 3 || !(S.game.powers && S.game.powers.fifty > 0)) return;
+  var wrong = choiceOrder(cur).filter(function (k) { return right.indexOf(k) === -1; });
+  var gone = shuffled(wrong, S.email + "|fifty|" + cur + "|" + S.game.attempt).slice(0, Math.min(2, q.choices.length - 2));
+  used = "fifty"; armed = "";
+  S.game.powers.fifty--;
+  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
+    if (gone.indexOf(Number(t.getAttribute("data-k"))) !== -1) { t.classList.add("gone"); t.disabled = true; t.setAttribute("aria-hidden", "true"); }
+  });
+  sfx("power");
+  $("armedNote").textContent = "50/50: two wrong answers are gone.";
+  paintPowers();
+}
+/** Second guess, after a wrong first pick: that pick turns red (on a select-all question the picks just clear), and the next pick counts. */
+function secondTry(miss) {
+  var q = S.questions[cur];
+  used = "second"; armed = "";
+  S.game.powers.second = Math.max(0, (S.game.powers.second || 0) - 1);
+  picked = [];
+  sfx("wrong");
+  [].forEach.call(document.querySelectorAll("#tiles .tile"), function (t) {
+    var k = Number(t.getAttribute("data-k"));
+    if (q.multi) { t.classList.remove("sel"); t.setAttribute("aria-pressed", "false"); return; }
+    if (miss.indexOf(k) === -1) return;
+    t.classList.add("wrong"); t.disabled = true;
+    var m = el("span", "mark"); m.innerHTML = ICON_NO; t.appendChild(m);
+  });
+  if (!q.multi) firstMiss = miss.slice();
+  $("submitBtn").disabled = true;
+  $("armedNote").textContent = q.multi ? "Not quite. Second guess: pick again, then press Submit." : "Not that one. Second guess: pick again!";
+  paintPowers();
 }
 function pick(k, b) {
   if (answering || cur < 0) return;
@@ -1527,10 +1668,10 @@ function rightOf(i) {
 }
 function sameSet(a, b) { return a.length === b.length && a.every(function (x, k) { return x === b[k]; }); }
 /** Points, streak and power-ups for an answer, the same way answerChoice counts them (the sheet's numbers replace these when it answers). */
-function scoreHere(ok, power) {
+function scoreHere(ok, power, spent) {   // spent: the power-up was already taken off when it was used (50/50, Second guess)
   var g = S.game, r = g.rules || { base: 500, step: 100, max: 5 }, gained = 0;
   g.powers = g.powers || {};
-  if (power) g.powers[power] = Math.max(0, (g.powers[power] || 0) - 1);
+  if (power && !spent) g.powers[power] = Math.max(0, (g.powers[power] || 0) - 1);
   if (power === "boost") g.streak += 3;
   if (ok) { g.streak++; gained = r.base + r.step * Math.min(g.streak - 1, r.max); if (power === "double") gained *= 2; }
   else if (power !== "saver") g.streak = 0;
@@ -1544,13 +1685,14 @@ function scoreHere(ok, power) {
 function send() {
   if (answering || cur < 0 || !picked.length) return;
   stopSpeaking();
-  var i = cur, sentPicks = picked.slice().sort(function (a, b) { return a - b; }), power = armed, right = rightOf(i);
+  var i = cur, sentPicks = picked.slice().sort(function (a, b) { return a - b; }), power = used || armed, right = rightOf(i);
   if (!right) { sendAndWait(i, sentPicks, power); return; }
   var ok = sameSet(sentPicks, right);
+  if (!ok && armed === "second" && !used) { secondTry(sentPicks); return; }   // the first pick doesn't count: only the second goes to the sheet
   S.results[i] = { status: ok ? "correct" : "incorrect", picks: sentPicks, right: right, explain: "" };
-  var gained = scoreHere(ok, power);
+  var gained = scoreHere(ok, power, !!used);
   picked = [];
-  paintAnswer(ok, right, sentPicks, gained);
+  paintAnswer(ok, right, sentPicks.concat(firstMiss), gained);
   showResult(ok, { gained: gained, power: power, result: S.results[i] });
   queueSave({ i: i, picks: sentPicks.map(function (k) { return k + 1; }), power: power, attempt: S.game.attempt });
 }
@@ -1602,6 +1744,7 @@ function addWhy(text) {
   var ex = el("div", "why"); ex.appendChild(el("b", null, "Why: ")); ex.appendChild(document.createTextNode(text)); extra.appendChild(ex);
   clearTimeout(nextTimer);   // time to read it
   var bar = document.querySelector("#result .bar"); if (bar) bar.remove();
+  layoutPlay();   // the result bar grew
 }
 /** Colors the tiles: right ones green, a wrong pick red, the rest dimmed. */
 function paintAnswer(ok, right, mine, gained) {
@@ -1618,7 +1761,7 @@ function paintAnswer(ok, right, mine, gained) {
   $("submitBtn").disabled = true;
   sfx(ok ? (S.game.streak >= 3 ? "streak" : "right") : "wrong");
   paintTop();
-  armed = "";
+  armed = ""; used = ""; firstMiss = [];
   paintPowers();
   $("armedNote").textContent = "";
 }
@@ -1682,6 +1825,7 @@ function showResult(ok, r) {
   var v = el("div", "verdict"); v.appendChild(svgIcon(ok ? ICON_OK_W : ICON_NO_W)); v.appendChild(el("span", null, ok ? "Correct!" : "Incorrect"));
   inner.appendChild(v);
   var extra = el("div", "extra"), lines = [];
+  if (ok && r.power === "second") lines.push("Got it on your second guess!");
   if (ok && r.gained) lines.push("+" + fmt(r.gained) + " points" + (r.power === "double" ? " (doubled!)" : ""));
   if (ok && S.game.streak >= 2) lines.push(S.game.streak + " in a row!");
   if (!ok) lines.push(r.power === "saver" ? "Your streak saver kept your streak." : "The right answer is in green.");
@@ -1692,7 +1836,8 @@ function showResult(ok, r) {
   nb.onclick = afterResult;
   inner.appendChild(nb);
   bar.appendChild(inner);
-  $("powers").hidden = true;
+  $("foot").hidden = true;   // the result bar takes the power-ups' place
+  layoutPlay();
   nb.focus({ preventScroll: true });
   if (ok && !r.result.explain && !S.game.done) {   // a right answer moves on by itself; a wrong one waits, so the right answer can be read
     var drain = el("div", "bar"); drain.style.animation = "drain 2.6s linear forwards"; bar.appendChild(drain);

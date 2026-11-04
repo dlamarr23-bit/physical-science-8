@@ -1,8 +1,17 @@
-review-game v2026.11.03
+review-game v2026.11.03b
 
-Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
-
-- No changes to this kind's code or page (the 2026.11.03 change is a curved best-fit line on data table graphs, which this page doesn't have).
+- Each question now fills the whole screen on Chromebooks, laptops and phones: a bigger picture, bigger question text and bigger answer tiles,
+  with nothing to scroll on a Chromebook. A long question or long answers shrink just enough to fit. On a phone the answers go 2 by 2
+  (or one under another when they are long), the page scrolls, and the power-ups stay at the bottom of the screen.
+- Two new power-ups: 50/50 takes away two wrong answers (not on two-answer or select-all questions), and Second guess gives one more try
+  after a wrong answer (only the second answer counts, and a right one earns its points). Power-ups still come every 4 answers, now from five kinds.
+- The Correct / Incorrect bar now sits where the power-ups were, so it never covers the answers.
+- Fix: a game that sent its points before the class website kept game titles showed on the website Leaderboard under All topics only,
+  not under its own topic. The sheet now sends its title (with every student's points) at its next hourly check, and again whenever you
+  change the Assignment title. Self-Check > Send game points to the website leaderboard now does the same right away.
+- Students who open the game through the class website (Class Pass) get the new screen as soon as it is published. Students who open the
+  sheet's own link (school Chromebooks usually go there) get it after you paste the new Index, so paste both files.
+- Your questions, settings, scores and leaderboard are not touched.
 
 Also from 2026.10.30c (optional), if this sheet skipped it:
 - Paste safety: this sheet remembers what kind of assignment it is (from the first time you run Self-Check > Set up / repair sheets with this code).
