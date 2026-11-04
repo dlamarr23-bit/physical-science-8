@@ -321,6 +321,17 @@ body.pt-editing img[data-pt-changed]{ outline:3px solid #e0b400; background:none
 }
 .hero-inner.no-art{ grid-template-columns:1fr; }
 
+/* Review, Sims, Extra Credit, Glossary and Leaderboard share one header: the title and its words on the left,
+   the section's picture (assets/section-icons) on the right, no label above the title. Review and Leaderboard
+   (vocabulary site, book.css) and Sims (sim-library index.html) copy these numbers, so change all three together. */
+.hero.hero-section{ padding-top:0; }
+.hero-section .hero-inner{ grid-template-columns:minmax(0,1fr) 240px; padding:34px 20px; }
+.hero-pic{ display:block; justify-self:end; width:240px; height:160px; border-radius:18px; box-shadow:var(--shadow-sm); }
+@media (max-width:700px){
+  .hero-section .hero-inner{ grid-template-columns:1fr; padding:26px 20px; }
+  .hero-section .hero-pic{ display:none; }
+}
+
 /* home page: wide banner under the title, intro text as wide as the title */
 .home-banner{ display:block; width:100%; height:auto; border-radius:16px; box-shadow:var(--shadow); margin:4px 0 20px; }
 .hero .home-banner + .lede{ max-width:none; }

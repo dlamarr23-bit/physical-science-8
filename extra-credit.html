@@ -15,14 +15,6 @@
 <script src="./assets/app.js" defer></script>
 <script src="./assets/pass-menu.js" defer></script>
 <style>
-  /* banner: the Extra Credit badge sits left of the title; on phones it shrinks and the text wraps around it */
-  .hero-inner.ec-hero{ grid-template-columns:auto minmax(0,1fr); gap:30px; }
-  .ec-badge{ display:block; width:190px; height:auto; }
-  @media (max-width:700px){
-    .hero-inner.ec-hero{ display:flow-root; }
-    .ec-badge{ float:left; width:100px; margin:0 14px 8px 0; }
-  }
-
   /* ---------------- extra credit book list ---------------- */
   /* How to earn your points: three numbered steps in a row */
   .ec-steps h2{ font-size:1.4rem; margin:0 0 14px; }
@@ -295,14 +287,13 @@
       <ul><li><a class="" href="./molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="./physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="./conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="./synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
     </div>
 </div>
-<div class="hero hero-page">
-  <div class="hero-inner ec-hero">
-    <img class="ec-badge" src="./assets/extra-credit-badge.png" width="198" height="191" alt="Extra Credit badge: a cartoon reader sitting on a big green check mark with stacks of books">
+<div class="hero hero-section">
+  <div class="hero-inner">
     <div>
-      <span class="eyebrow">Extra Credit</span>
       <h1>Science Extra Credit</h1>
       <p class="lede">Every book on this list is on the shelf in the Placerita School Library. Read one, pass its AR test, and turn in a summary to earn the points shown on its cover.</p>
     </div>
+    <img class="hero-pic" src="./assets/section-icons/extra-credit.webp" width="240" height="160" alt="">
   </div>
 </div>
 <main class="container">
