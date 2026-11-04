@@ -15,6 +15,14 @@
    bridge picks the sign-in up under that number. What the bridge said last is kept in this browser
    (ps8-pass-view-v1: a name, a period, and whether it is the teacher) so the button is right at once.
 
+   The sign-in screen (Donny, 2026-11-03): students sign in with Class Pass to use this site. A line in each
+   page's <head> puts html.cp-gate-on on (every page but the Chromebook help page and the teacher's
+   Launchpad), and html.cp-locked too when this browser has no sign-in on record, which hides the page
+   (style.css) before it draws. This file then shows the sign-in screen (.cp-gate) until a student, the
+   teacher or a guest is signed in. A guest is a teacher from another school with the guest code, which
+   Donny sees and changes from this menu (Guest code); the bridge keeps the guest's key. The page's words
+   are still in its file, so this keeps out visitors, not someone who reads the files.
+
    Every menu also has the Dark mode switch. The choice is kept in this browser (ps8-theme = "dark"; light is
    the default), and a line in each page's <head> puts html[data-theme="dark"] on before the page draws.
    Pages that show something in a frame hear about a change from the "ps8:theme" event (sims.html).
@@ -28,9 +36,10 @@
   var VIEW_KEY = "ps8-pass-view-v1";
 
   function readView(){
-    try { var v = JSON.parse(localStorage.getItem(VIEW_KEY)); if(v && typeof v === "object") return v; } catch(e){ /* no storage */ }
-    return {me: null, teacher: false};
+    try { var v = JSON.parse(localStorage.getItem(VIEW_KEY)); if(v && typeof v === "object") return {me: v.me || null, teacher: Boolean(v.teacher), guest: Boolean(v.guest)}; } catch(e){ /* no storage */ }
+    return {me: null, teacher: false, guest: false};
   }
+  function signedIn(v){ return Boolean(v.me || v.teacher || v.guest); }
   function saveView(v){ try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch(e){ /* a per-browser convenience only */ } }
 
   var view = readView();
@@ -111,9 +120,11 @@
         queue.splice(0).forEach(send);
       }
       var me = m.me && typeof m.me === "object" ? {name: String(m.me.name || ""), first: String(m.me.first || ""), period: m.me.period ? String(m.me.period) : ""} : null;
+      // a browser that blocks the bridge's storage forgets a sign-in there on every page: this site's own record stands
+      var keep = m.kept === false;
       // until the bridge has asked the site about the teacher password, keep what this browser knew
-      var next = {me: me, teacher: m.checked ? Boolean(m.teacher) : view.teacher};
-      if(m.checked) saveView(next);
+      var next = {me: me || (keep ? view.me : null), teacher: m.checked ? Boolean(m.teacher) : view.teacher, guest: Boolean(m.guest) || (keep && view.guest)};
+      if(m.checked || next.me || next.guest) saveView(next);
       setView(next);
     } else if(m.type === "reply" && waiting[m.id]){
       waiting[m.id](m);
@@ -123,7 +134,7 @@
   function setView(v){
     var changed = JSON.stringify(v) !== JSON.stringify(view);
     view = v;
-    if(changed){ draw(); listeners.forEach(function(fn){ try { fn(view); } catch(e){ /* one listener's problem */ } }); }
+    if(changed){ draw(); gate(); listeners.forEach(function(fn){ try { fn(view); } catch(e){ /* one listener's problem */ } }); }
   }
 
   /* ---------- signing in and out ---------- */
@@ -137,7 +148,12 @@
     if(signingIn && signingIn.win && !signingIn.win.closed){ try { signingIn.win.focus(); } catch(e){} return; }
     var n = nonce(), win = null;
     try { win = window.open(VOCAB + "/signin/?n=" + n, "classpass", "popup,width=520,height=700"); } catch(e){ win = null; }
-    if(!win){ toast("Your browser blocked the sign-in window. Allow pop-ups for this site, then press Sign in again.", true); return; }
+    if(!win){
+      toast("Your browser blocked the sign-in window. Allow pop-ups for this site, then press Sign in again.", true);
+      gateMsg("Your browser blocked the sign-in window. Allow pop-ups for this site, then press Sign in again.", true);
+      return;
+    }
+    gateMsg("Finish signing in in the window that opened.");
     var job = {win: win, done: false};
     signingIn = job;
     // closed without finishing: one more look a few seconds later (the bridge keeps asking), then stop
@@ -154,20 +170,22 @@
       job.done = true;
       if(!win.closed) try { win.close(); } catch(e){}
       toast(err.message, true);
+      gateMsg(err.message, true);
     }).then(function(){ if(signingIn === job) signingIn = null; });
   }
   function signOut(){
     if(view.me) send({type: "signOut"});
+    if(view.guest) send({type: "guestOut"});
     if(view.teacher){
       ask({type: "logout"}).catch(function(err){ toast(err.message, true); });
     }
-    setView({me: null, teacher: false});
+    setView({me: null, teacher: false, guest: false});
     saveView(view);
   }
 
-  // The teacher password: a small window on this page; the bridge sends it to the vocabulary site,
-  // which keeps the sign-in (60 days on this device, inside this site).
-  function teacherDialog(){
+  // A small window over the page: its tag, title and words, a box to type in, a line for messages and a
+  // button. d.close() takes it away (so do the X, Escape and a click outside it).
+  function dialog(o){
     var old = document.querySelector(".cp-dlg-back");
     if(old) old.remove();
     var back = el("div", "cp-dlg-back");
@@ -180,20 +198,20 @@
     x.setAttribute("aria-label", "Close");
     box.appendChild(x);
     box.appendChild(el("span", "cp-tag", "Teacher"));
-    var h = el("h2", "cp-dlg-title", "Teacher sign in");
+    var h = el("h2", "cp-dlg-title", o.title);
     h.id = "cpDlgTitle";
     box.appendChild(h);
-    box.appendChild(el("p", "cp-dlg-text", "Type the teacher password, the same one that edits the flashcard sets. Then you can change the words on this site's pages."));
+    box.appendChild(el("p", "cp-dlg-text", o.text));
     var input = el("input", "cp-dlg-input");
-    input.type = "password";
-    input.autocomplete = "current-password";
-    input.setAttribute("aria-label", "Teacher password");
-    input.required = true;
+    input.type = o.password ? "password" : "text";
+    if(o.password) input.autocomplete = "current-password";
+    else { input.autocomplete = "off"; input.spellcheck = false; }
+    input.setAttribute("aria-label", o.label);
     box.appendChild(input);
     var msg = el("p", "cp-msg");
     msg.setAttribute("role", "status");
     box.appendChild(msg);
-    var go = el("button", "btn cp-dlg-go", "Sign in");
+    var go = el("button", "btn cp-dlg-go", o.button);
     go.type = "submit";
     box.appendChild(go);
     back.appendChild(box);
@@ -204,21 +222,73 @@
     document.addEventListener("keydown", onKey);
     x.addEventListener("click", close);
     back.addEventListener("click", function(e){ if(e.target === back) close(); });
+    function say(text, bad){ msg.className = "cp-msg" + (bad ? " bad" : ""); msg.textContent = text; }
+    return {box: box, input: input, go: go, say: say, close: close};
+  }
+
+  // The teacher password: a small window on this page; the bridge sends it to the vocabulary site,
+  // which keeps the sign-in (60 days on this device, inside this site).
+  function teacherDialog(){
+    var d = dialog({title: "Teacher sign in", text: "Type the teacher password, the same one that edits the flashcard sets. Then you can change the words on this site's pages.",
+      label: "Teacher password", password: true, button: "Sign in"});
+    var box = d.box, input = d.input, go = d.go, close = d.close;
+    input.required = true;
     box.addEventListener("submit", function(e){
       e.preventDefault();
       if(!input.value) return;
       go.disabled = true;
-      msg.className = "cp-msg";
-      msg.textContent = "Checking...";
-      ask({type: "login", password: input.value}).then(function(d){
-        if(!d.teacher) throw new Error("That did not sign in. Try again.");
+      d.say("Checking...");
+      ask({type: "login", password: input.value}).then(function(r){
+        if(!r.teacher) throw new Error("That did not sign in. Try again.");
         close();
         toast("Signed in as the teacher. Open the menu and choose Edit this page to change the words on a page.");
       }).catch(function(err){
         go.disabled = false;
-        msg.className = "cp-msg bad";
-        msg.textContent = err.message;
+        d.say(err.message, true);
         input.select();
+      });
+    });
+  }
+
+  // The guest code (teacher only): a teacher from another school types it once on the sign-in screen.
+  // A new code signs out everyone who used the old one; an empty code turns guests off.
+  var CODE_WORDS = ["wave", "magnet", "rocket", "photon", "atom", "orbit", "spark", "prism", "comet", "quark", "joule", "newton"];
+  function newCode(){
+    var a = new Uint32Array(3), n = CODE_WORDS.length;
+    crypto.getRandomValues(a);
+    var first = a[0] % n, second = (first + 1 + a[1] % (n - 1)) % n; // two different words
+    return CODE_WORDS[first] + "-" + CODE_WORDS[second] + "-" + (1000 + a[2] % 9000);
+  }
+  function guestCodeDialog(){
+    var d = dialog({title: "Guest code", text: "A teacher from another school types this code once on the sign-in screen to use this site. Change it to sign out everyone who used the old one. Empty means no guests.",
+      label: "Guest code", button: "Save"});
+    var saved = null;
+    var fresh = el("button", "cp-dlg-new", "Make a new code");
+    fresh.type = "button";
+    d.box.insertBefore(fresh, d.go);
+    fresh.addEventListener("click", function(){ d.input.value = newCode(); d.say("Press Save to use this code."); d.input.focus(); });
+    d.input.disabled = d.go.disabled = true;
+    d.say("Loading...");
+    ask({type: "guestCode"}).then(function(r){
+      saved = String(r.code || "");
+      d.input.value = saved;
+      d.input.disabled = d.go.disabled = false;
+      d.say(saved ? "Guests can use this code now." : "No guest code yet, so no guests can sign in. Make one, then press Save.");
+      d.input.focus();
+    }, function(err){ d.say(err.message, true); });
+    d.box.addEventListener("submit", function(e){
+      e.preventDefault();
+      if(saved === null) return;
+      d.go.disabled = true;
+      d.say("Saving...");
+      ask({type: "saveGuestCode", code: d.input.value}).then(function(r){
+        saved = String(r.code || "");
+        d.input.value = saved;
+        d.go.disabled = false;
+        d.say(saved ? "Saved. Give a guest this code: " + saved : "Saved. Guests are turned off.");
+      }, function(err){
+        d.go.disabled = false;
+        d.say(err.message, true);
       });
     });
   }
@@ -231,9 +301,9 @@
     var p = prefix();
     var open = wrap.classList.contains("open");
     wrap.textContent = "";
-    var who = view.teacher ? "the teacher" : view.me ? (view.me.name + (view.me.period ? ", period " + view.me.period : "")) : "";
+    var who = view.teacher ? "the teacher" : view.me ? (view.me.name + (view.me.period ? ", period " + view.me.period : "")) : view.guest ? "a guest" : "";
     var btn;
-    if(!view.teacher && !view.me){
+    if(!signedIn(view)){
       btn = el("button", "cp-chip");
       btn.appendChild(el("span", "cp-tag", "Class Pass"));
       btn.appendChild(el("span", "cp-who", "Sign in"));
@@ -245,8 +315,10 @@
         pic.src = p + "assets/teacher-avatar.png";
         pic.alt = "";
         btn.appendChild(pic);
-      } else {
+      } else if(view.me){
         btn.textContent = ((view.me.first || view.me.name || "?").trim().charAt(0) || "?").toUpperCase();
+      } else {
+        btn.textContent = "G";
       }
       btn.setAttribute("aria-label", "Class Pass: signed in as " + who + ". Open the menu.");
     }
@@ -279,7 +351,7 @@
         if(again) again.focus();
       });
     }
-    if(!view.teacher && !view.me){
+    if(!signedIn(view)){
       item("Sign in").addEventListener("click", function(){ closeMenu(); signIn(); });
       item("Leaderboard", p + "leaderboard.html");
       darkItem();
@@ -289,7 +361,8 @@
         item("Edit this page", null, "cp-drop-edit").addEventListener("click", function(){ closeMenu(); window.PS8Text.edit(); });
       }
       if(view.teacher) item("Assignment Launchpad", p + "launchpad.html");
-      item("Leaderboard", p + "leaderboard.html");
+      if(view.teacher) item("Guest code").addEventListener("click", function(){ closeMenu(); guestCodeDialog(); });
+      if(view.me || view.teacher) item("Leaderboard", p + "leaderboard.html");
       item("Review sets", p + "flashcards.html");
       if(view.teacher) item("Host a game", p + "flashcards.html?go=live");
       darkItem();
@@ -324,6 +397,95 @@
     toastTimer = setTimeout(function(){ t.classList.remove("show"); setTimeout(function(){ t.remove(); }, 400); }, bad ? 9000 : 6000);
   }
 
+  /* ---------- the sign-in screen ---------- */
+  // Covers a page with html.cp-gate-on (the line in its <head>) until someone is signed in.
+  var cover = null, coverMsg = null;
+  function gate(){
+    var root = document.documentElement;
+    if(!root.classList.contains("cp-gate-on")) return;
+    if(signedIn(view)){ root.classList.remove("cp-locked"); return; }
+    root.classList.add("cp-locked");
+    if(!cover && document.body) buildCover();
+  }
+  function gateMsg(text, bad){
+    if(!coverMsg) return;
+    coverMsg.className = "cp-msg" + (bad ? " bad" : "");
+    coverMsg.textContent = text;
+  }
+  function buildCover(){
+    var p = prefix();
+    cover = el("section", "cp-gate");
+    cover.setAttribute("aria-labelledby", "cpGateTitle");
+    var card = el("div", "cp-gate-card");
+    var pic = el("img", "cp-gate-pic");
+    pic.src = p + "assets/mascot.png";
+    pic.alt = "";
+    card.appendChild(pic);
+    card.appendChild(el("span", "cp-tag", "Class Pass"));
+    var h = el("h1", "cp-gate-title", "Sign in to use this site");
+    h.id = "cpGateTitle";
+    card.appendChild(h);
+    card.appendChild(el("p", "cp-gate-text", "Mr. LaMarr’s Physical Science Classroom is for his students. Sign in with your school Google account."));
+    var go = el("button", "btn cp-gate-go", "Sign in with Class Pass");
+    go.type = "button";
+    go.addEventListener("click", signIn);
+    card.appendChild(go);
+    coverMsg = el("p", "cp-msg");
+    coverMsg.setAttribute("role", "status");
+    card.appendChild(coverMsg);
+    var help = el("a", "cp-gate-help", "Trouble signing in?");
+    help.href = p + "chromebook-help.html";
+    card.appendChild(help);
+
+    // a teacher from another school, with the guest code
+    var form = el("form", "cp-gate-guest");
+    var label = el("label", null, "Visiting teacher? Type your guest code.");
+    label.htmlFor = "cpGuestCode";
+    form.appendChild(label);
+    var row = el("div", "cp-gate-row");
+    var input = el("input", "cp-dlg-input");
+    input.id = "cpGuestCode";
+    input.type = "text";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    row.appendChild(input);
+    var enter = el("button", "btn secondary", "Enter");
+    enter.type = "submit";
+    row.appendChild(enter);
+    form.appendChild(row);
+    var guestMsg = el("p", "cp-msg");
+    guestMsg.setAttribute("role", "status");
+    form.appendChild(guestMsg);
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      if(!input.value.trim()) return;
+      enter.disabled = true;
+      guestMsg.className = "cp-msg";
+      guestMsg.textContent = "Checking...";
+      // the bridge tells this page the guest is in before it answers, so the page has opened by then
+      ask({type: "guest", code: input.value}).then(function(){
+        enter.disabled = false;
+        guestMsg.textContent = "";
+        input.value = "";
+        toast("Welcome! You are signed in as a guest on this device.");
+      }, function(err){
+        enter.disabled = false;
+        guestMsg.className = "cp-msg bad";
+        guestMsg.textContent = err.message;
+        input.select();
+      });
+    });
+    card.appendChild(form);
+
+    var teacher = el("button", "cp-gate-teacher", "Teacher sign in");
+    teacher.type = "button";
+    teacher.addEventListener("click", teacherDialog);
+    card.appendChild(teacher);
+    cover.appendChild(card);
+    var bar = document.querySelector(".topbar");
+    document.body.insertBefore(cover, bar ? bar.nextSibling : document.body.firstChild);
+  }
+
   window.PS8Pass = {
     view: function(){ return view; },
     onChange: function(fn){ listeners.push(fn); },
@@ -336,6 +498,7 @@
 
   function init(){
     draw();
+    gate();
     document.addEventListener("click", function(e){ if(wrap && !wrap.contains(e.target)) closeMenu(); });
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
     startBridge();

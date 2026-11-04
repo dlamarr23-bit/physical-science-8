@@ -228,6 +228,32 @@ html[data-theme="dark"] .cp-switch{ background:#3a4052; }
 }
 .cp-toast.bad{ background:#b3261e; }
 .cp-toast.show{ opacity:1; transform:translate(-50%, 0); }
+/* the guest code window (teacher): a link-style button that fills in a new code */
+.cp-dlg-new{ display:inline-block; margin-top:10px; border:0; background:none; padding:4px 2px; font:inherit; font-size:.85rem; font-weight:700; color:var(--accent-dark); text-decoration:underline; cursor:pointer; }
+
+/* ---- the Class Pass sign-in screen (pass-menu.js). The line in a page's <head> puts html.cp-gate-on on, and
+   html.cp-locked when this browser has no sign-in on record; everything but the top bar, the sign-in screen
+   and its windows is hidden until someone signs in. ---- */
+html.cp-locked body > *:not(.topbar):not(.cp-gate):not(.cp-dlg-back):not(.cp-toast){ display:none !important; }
+html.cp-locked .menu-btn{ display:none; }
+.cp-gate{ display:none; }
+html.cp-locked .cp-gate{ display:flex; justify-content:center; padding:48px 16px 72px; }
+.cp-gate-card{
+  width:440px; max-width:100%; background:var(--card); border:1px solid var(--line); border-radius:20px;
+  box-shadow:var(--shadow); padding:28px 28px 22px; text-align:center;
+}
+.cp-gate-pic{ display:block; width:96px; height:auto; margin:0 auto 14px; border-radius:16px; }
+.cp-gate-title{ margin:12px 0 8px; font-size:1.6rem; }
+.cp-gate-text{ margin:0 0 18px; color:var(--ink-soft); line-height:1.5; }
+.cp-gate-go{ width:100%; font-size:1rem; padding:13px 18px; }
+.cp-gate-help{ display:inline-block; margin-top:12px; font-size:.88rem; font-weight:600; }
+.cp-gate-guest{ margin-top:20px; padding-top:18px; border-top:1px solid var(--line); text-align:left; }
+.cp-gate-guest label{ display:block; margin-bottom:8px; font-weight:700; font-size:.9rem; }
+.cp-gate-row{ display:flex; gap:8px; }
+.cp-gate-row .cp-dlg-input{ flex:1; min-width:0; background:var(--card); color:var(--ink); }
+.cp-gate-row .btn{ flex:none; padding:10px 18px; }
+.cp-gate-teacher{ display:block; margin:16px auto 0; border:0; background:none; padding:4px 2px; font:inherit; font-size:.8rem; font-weight:600; color:var(--ink-soft); text-decoration:underline; cursor:pointer; }
+.cp-gate-teacher:hover{ color:var(--accent-dark); }
 
 /* ---------------- the teacher changing a page's words (page-text.js) ---------------- */
 body.pt-editing{ padding-bottom:140px; }

@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/style.css">
 <script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script>/* Class Pass sign-in screen (pass-menu.js): the page stays hidden until this browser has a sign-in on record */(function(){var h=document.documentElement;h.classList.add("cp-gate-on");try{var v=JSON.parse(localStorage.getItem("ps8-pass-view-v1"));if(v&&(v.me||v.teacher||v.guest))return}catch(e){}h.classList.add("cp-locked")})()</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <script src="/assets/icons.js" defer></script>
 <script src="/assets/app.js" defer></script>
