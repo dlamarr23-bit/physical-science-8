@@ -108,7 +108,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
 // SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
 var SKILL_NAME = "video-check";
-var SKILL_VERSION = "2026.11.03b";
+var SKILL_VERSION = "2026.11.05";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -129,7 +129,7 @@ var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 var SETTING_DEFS = [
   // [label in the Settings tab, variable, type, explanation]
   ["Assignment title", "ASSIGNMENT_TITLE", "text", "Shown at the top of the student page and used as the Classroom assignment title."],
-  ["Instructions", "INTRO", "text", "The italic directions under the title."],
+  ["Instructions", "INTRO", "text", "The directions under the title (large bold Poppins, in a blue box)."],
   ["Video link", "VIDEO_URL", "text", "A YouTube link (public or unlisted), a Google Drive video link, or a direct link to an .mp4 file. Drive videos play with no ads and never get taken down: upload an .mp4 to your Drive, click Share > Copy link, and paste it here (students don't need access to the file; the app plays it for them). Drive videos can be up to 500 MB. They stream (they start after the first few MB), but a smaller file starts sooner and uses less data on every device: save long videos at 720p, about 900 kbps, with Web Optimized checked in HandBrake (a 25-minute video is then about 190 MB)."],
   ["Start video at", "VIDEO_START", "time", "Optional. Type minutes:seconds (like 0:15) to skip the start of the video. Leave blank to start at the beginning."],
   ["End video at", "VIDEO_END", "time", "Optional. Type minutes:seconds (like 4:30) to stop the video early. Leave blank to play to the end."],

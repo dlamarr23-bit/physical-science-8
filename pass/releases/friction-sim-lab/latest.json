@@ -1,7 +1,7 @@
 {
   "kind": "friction-sim-lab",
-  "version": "2026.11.03b",
-  "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
+  "version": "2026.11.05",
+  "optional": "the directions under the title are bigger (large bold Poppins, in the blue box).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

@@ -1,8 +1,14 @@
-friction-sim-lab v2026.11.03b
+friction-sim-lab v2026.11.05
 
-Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
+Optional update: the directions under the title are bigger (large bold Poppins, in the blue box).
 
-- No changes to this kind's code or page (the 2026.11.03b change is the review game's bigger screen, its two new power-ups, and its Leaderboard topic fix).
+- The directions under the title (the Settings tab's "Instructions" row) are bigger and easier to read: large bold Poppins
+  (17 instead of 14), still in the blue box. A line break you type in the cell (Ctrl+Enter) still starts a new line.
+- Students who open this assignment through the class website (Class Pass) see the bigger directions as soon as it is published.
+  Students who open the sheet's own link see them after you paste the new Index.
+- The explanation next to Instructions in the Settings tab now says "The directions under the title (large bold Poppins, in a blue box)."
+  in new sheets. A sheet you already have keeps its old words there ("The italic directions ..."); you can type over them, nothing reads them.
+- Your questions, answer keys, settings and student work are not touched.
 
 Also from 2026.11.03 (optional), if this sheet skipped it:
 - A data table's graph now draws a best-fit CURVE (from 0, 0) when the points bend upward, like stopping distance against speed

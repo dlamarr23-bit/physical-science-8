@@ -1,5 +1,16 @@
-review-game v2026.11.03b
+review-game v2026.11.05
 
+Optional update: the directions under the title are bigger (large bold Poppins, in the blue box).
+
+- The directions under the title (the Settings tab's "Instructions" row) are bigger and easier to read: large bold Poppins
+  (17 instead of 14), still in the blue box. A line break you type in the cell (Ctrl+Enter) still starts a new line.
+- Students who open this game through the class website (Class Pass) see the bigger directions as soon as it is published.
+  Students who open the sheet's own link see them after you paste the new Index.
+- The explanation next to Instructions in the Settings tab now says "The directions under the title (large bold Poppins, in a blue box)."
+  in new sheets. A sheet you already have keeps its old words there ("The italic directions ..."); you can type over them, nothing reads them.
+- Your questions, settings, scores and leaderboard are not touched.
+
+Also from 2026.11.03b, if this sheet skipped it:
 - Each question now fills the whole screen on Chromebooks, laptops and phones: a bigger picture, bigger question text and bigger answer tiles,
   with nothing to scroll on a Chromebook. A long question or long answers shrink just enough to fit. On a phone the answers go 2 by 2
   (or one under another when they are long), the page scrolls, and the power-ups stay at the bottom of the screen.

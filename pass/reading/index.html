@@ -21,8 +21,8 @@
   .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 120px; }
   h1 { font-size: 24px; font-weight: 700; margin: 8px 0 4px; }
   .who { font-size: 13px; color:#555; margin-bottom: 8px; }
-  /* the directions: bold, in a blue box like the section strips; a line break typed in the Settings cell starts a new line here */
-  .intro { font-weight:700; color:#111; font-size: 14px; line-height:1.5; margin: 8px 0 12px; padding: 10px 12px;
+  /* the directions: large bold Poppins, in a blue box like the section strips; a line break typed in the Settings cell starts a new line here */
+  .intro { font-family:Poppins, Arial, sans-serif; font-weight:700; font-style:normal; color:#111; font-size: 17px; line-height:1.5; margin: 8px 0 12px; padding: 10px 12px;
            background: var(--strip); border-top: 2px solid #111; border-bottom: 2px solid #111; white-space: pre-line; }
   .intro:empty { display:none; }
   .links a { display:inline-block; margin: 4px 8px 4px 0; padding: 6px 12px; border:2px solid #111; border-radius: 6px;
@@ -2654,7 +2654,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.03b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.05";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

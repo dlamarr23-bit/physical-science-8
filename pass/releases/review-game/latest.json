@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.03b",
-  "optional": "",
+  "version": "2026.11.05",
+  "optional": "the directions under the title are bigger (large bold Poppins, in the blue box).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",
