@@ -1,7 +1,7 @@
 {
   "kind": "friction-sim-lab",
-  "version": "2026.11.05",
-  "optional": "the directions under the title are bigger (large bold Poppins, in the blue box).",
+  "version": "2026.11.05b",
+  "optional": "a new Settings row, Classroom instructions, for the words students read in Google Classroom.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

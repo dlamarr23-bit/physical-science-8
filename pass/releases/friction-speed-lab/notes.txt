@@ -1,7 +1,15 @@
-friction-speed-lab v2026.11.05
+friction-speed-lab v2026.11.05b
 
-Optional update: the directions under the title are bigger (large bold Poppins, in the blue box).
+Optional update: a new Settings row, Classroom instructions, for the words students read in Google Classroom.
 
+- New Settings row "Classroom instructions" (right under Instructions): the words students read in Google Classroom, above the link.
+  It starts with the standard text ("Open the link below and answer each question. ..."). Change it BEFORE Self-Check > 2. Create the assignment in each class: step 2 puts it
+  in each class's draft. A line break you type in the cell (Ctrl+Enter) starts a new line. Blank = the standard text.
+- An assignment that's already in Classroom keeps the text it has. To change that one, edit it in Classroom (Classwork > the assignment > Edit).
+- The row shows up the next time you run Self-Check > Set up / repair sheets (after pasting this code).
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.05 (optional), if this sheet skipped it:
 - The directions under the title (the Settings tab's "Instructions" row) are bigger and easier to read: large bold Poppins
   (17 instead of 14), still in the blue box. A line break you type in the cell (Ctrl+Enter) still starts a new line.
 - Students who open this assignment through the class website (Class Pass) see the bigger directions as soon as it is published.

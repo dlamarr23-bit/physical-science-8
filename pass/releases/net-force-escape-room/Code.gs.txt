@@ -238,7 +238,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "net-force-escape-room";   // a one-off Self-Check with its own page (self-check\custom\net-force-escape-room\)
-var SKILL_VERSION = "2026.11.05";
+var SKILL_VERSION = "2026.11.05b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -261,6 +261,7 @@ var SETTING_DEFS = [
   // [label in the Settings tab, variable, type, explanation]
   ["Assignment title", "ASSIGNMENT_TITLE", "text", "Shown at the top of the student page and used as the Classroom assignment title."],
   ["Instructions", "INTRO", "text", "The directions under the title (large bold Poppins, in a blue box)."],
+  ["Classroom instructions", "CLASSROOM_TEXT", "text", "What students read in Google Classroom, above the link to this assignment. Step 2 (Create the assignment in each class) puts it in each class's draft, so edit it here BEFORE step 2. A line break you type in the cell (Ctrl+Enter) starts a new line. Blank = the standard text. To change an assignment that's already in Classroom, edit it in Classroom."],
   ["Minimum characters for green", "MIN_ANSWER_LENGTH", "number", "An answer shorter than this can't turn green, even with all the key words (it stays yellow)."],
   ["Credit for green", "CREDIT.correct", "number", "Share of one question's credit. 1 = full."],
   ["Credit for yellow", "CREDIT.partial", "number", "e.g. 0.6"],
@@ -321,6 +322,11 @@ var ARTICLE_BUTTON = "";   // Settings "Article button name" (a side-by-side pag
 var SIM_URL = "";   // Settings "Simulation link" (a lab page with a simulation on the left: Directions / Simulation buttons; blank = the page's own address)
 var SIM_BUTTON = "";   // Settings "Simulation button name" (blank = Simulation, or Simulation 1 with two)
 var SIM2_URL = "";   // Settings "Simulation 2 link" (a second simulation: a third button on the left; blank = none)
+var CLASSROOM_TEXT = SKILL_NAME === "review-game"   // Settings "Classroom instructions" (the Classroom assignment's text; step 2 uses it)
+  ? "Open the link below and play the review game. You get one try at each question: right answers earn points, and a streak of right answers earns more. " +
+    "Your work saves automatically. When you're done, click Mark as done here in Classroom."
+  : "Open the link below and answer each question. Your answer box turns green, yellow, or red with feedback. Revise until you're mostly green! " +
+    "Your work saves automatically. When you're done, click \"I'm finished\" on the page, then click Mark as done here in Classroom.";
 var SIM2_BUTTON = "";   // Settings "Simulation 2 button name" (blank = Simulation 2)
 var IDEA_COLS = 4;   // idea (hint + key words) column pairs added to a new Questions tab
 var MIS_COLS = 2;    // misconception (hint + key words) column pairs added to the end of a Questions tab
@@ -3736,8 +3742,7 @@ function createClassroomAssignment() {
     try {
       var cw = Classroom.Courses.CourseWork.create({
         title: ASSIGNMENT_TITLE,
-        description: "Open the link below and answer each question. Your answer box turns green, yellow, or red with feedback. Revise until you're mostly green! " +
-                     "Your work saves automatically. When you're done, click \"I'm finished\" on the page, then click Mark as done here in Classroom.",
+        description: CLASSROOM_TEXT,   // Settings "Classroom instructions"
         materials: [{ link: { url: classPassLink_(url), title: ASSIGNMENT_TITLE } }],
         workType: "ASSIGNMENT",
         state: "DRAFT",
