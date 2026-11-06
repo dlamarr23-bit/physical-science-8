@@ -242,6 +242,13 @@
   input.shortbox.correct { background: var(--green); } input.shortbox.incorrect { background: var(--red); }
   .fbbar .triesleft { flex:none; font-size:13px; font-weight:600; white-space:nowrap; color:#fff; }
   .fbbar .triesleft:empty { display:none; }
+  .fbbar .triesleft.last { background:#ffd966; color:#111; border-radius:999px; padding:2px 10px; }
+  /* the last try: a yellow warning right over the answer (wrong answers stay pink) */
+  .lastwarn { display:flex; align-items:center; gap:8px; padding:9px 12px; background:#fff2cc; border-top:3px solid #bf9000; color:#5c3d00; font-weight:700; font-size:15px; line-height:1.35; }
+  .lastwarn svg { width:22px; height:22px; flex:none; color:#bf9000; }
+  .lastwarn[hidden] { display:none; }
+  html[data-theme="dark"] .lastwarn { background:#3a3010; color:#ffe08a; border-color:#c9a227; }
+  html[data-theme="dark"] .lastwarn svg { color:#ffd966; }
   .item.hasbulb { position:relative; }
   .item.hasbulb > .qtext { padding-right:60px; }
   button.bulb { position:absolute; top:6px; right:8px; width:40px; height:40px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -1293,6 +1300,29 @@ function triesOrder(i) {
   for (k = n - 1; k > 0; k--) { var j = Math.floor(rand() * (k + 1)), x = order[k]; order[k] = order[j]; order[j] = x; }
   return order;
 }
+/** Settings "Shuffle question order" (2026.11.06b, so students can't copy by number): the order this student sees the questions in,
+    shuffled within each blue section (seeded by their email, so a reload keeps it), each section's strip over its first question shown
+    (sec / secNo, keyed by that question), and S.qNum = the number this student sees for each question (qLabel uses it). Unshuffled:
+    the Questions tab's order, as before. Used by both pages' render() for every kind of question. */
+function questionOrder() {
+  var n = S.questions.length, starts = [0], order = [], first = {}, sec = {}, secNo = {}, k;
+  (S.sections || []).forEach(function (s) { if (s.before > 0 && s.before < n && starts.indexOf(s.before) === -1) starts.push(s.before); });
+  starts.sort(function (a, b) { return a - b; });
+  starts.forEach(function (st, g) {
+    var end = g + 1 < starts.length ? starts[g + 1] : n, ids = [];
+    for (k = st; k < end; k++) ids.push(k);
+    if (S.shuffleQuestions && ids.length > 1) {
+      var rand = triesRandom(String(S.email || "") + "|order|" + st);
+      for (k = ids.length - 1; k > 0; k--) { var j = Math.floor(rand() * (k + 1)), x = ids[k]; ids[k] = ids[j]; ids[j] = x; }
+    }
+    first[st] = ids[0];
+    order = order.concat(ids);
+  });
+  (S.sections || []).forEach(function (s, sk) { var f = first[s.before]; if (f != null && !sec.hasOwnProperty(f)) { sec[f] = s; secNo[f] = sk; } });
+  S.qNum = null;
+  if (S.shuffleQuestions) { S.qNum = []; order.forEach(function (i, pos) { S.qNum[i] = pos + 1; }); }
+  return { order: order, sec: sec, secNo: secNo };
+}
 /** The answer area: choice buttons, or a one-line box. */
 function triedBox(i) {
   var q = S.questions[i];
@@ -1317,6 +1347,13 @@ function triedBox(i) {
 function wireTried(i, item) {
   var q = S.questions[i], btn = document.getElementById("b" + i), left = el("span", "triesleft");
   left.id = "tl" + i; btn.parentNode.insertBefore(left, btn);
+  // the last try (Donny, 2026-11-06: "make it obvious so they take their time"): a yellow warning over the answer, "Last try!", "Check (last try)"
+  var warn = el("div", "lastwarn"); warn.id = "lw" + i; warn.hidden = true; warn.setAttribute("role", "note");
+  warn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>';
+  warn.appendChild(el("span", null, q.kind === "short" ? "Last try! Check your work before you press Check." :
+    q.kind === "truefalse" ? "One try only! Read the statement carefully before you press Check." : "Last try! Read every choice carefully before you press Check."));
+  var area = document.getElementById("a" + i);
+  area.parentNode.insertBefore(warn, area);
   btn.addEventListener("click", function () { tryCheck(i); });
   if (q.kind === "short") {
     var inp = document.getElementById("s" + i);
@@ -1397,8 +1434,11 @@ function paintTried(i, res) {
   }
   var needHint = !!t.needHint && !hintSeen[i] && !done;
   if (fb) fb.textContent = (res.message || "") + (needHint ? (res.message ? " " : "") + HINT_SENTENCE : "");
-  if (left) left.textContent = done || !t.max ? "" : "Tries left: " + t.left;
-  if (btn) btn.disabled = locked || done || needHint || !!pending[i];
+  var last = !done && t.max > 0 && t.left === 1;   // the last try: make it obvious (the warning over the answer, Last try!, Check (last try))
+  if (left) { left.textContent = done || !t.max ? "" : last ? "Last try!" : "Tries left: " + t.left; left.classList.toggle("last", last); }
+  var warn = document.getElementById("lw" + i);
+  if (warn) warn.hidden = !last || locked;
+  if (btn) { btn.disabled = locked || done || needHint || !!pending[i]; btn.textContent = last && !locked ? "Check (last try)" : "Check"; }
   var bulb = document.getElementById("hb" + i);
   if (bulb) bulb.classList.toggle("glow", needHint && !locked);
 }
@@ -1406,16 +1446,17 @@ function paintTried(i, res) {
 function triesRetryable(err) {
   return isRetryable(err) && !/^(NOTRY|HINT):|ended|Reload the page/i.test(String((err && err.message) || err || ""));
 }
-function triesRetry(call, ok, fail, onRetry, attempt) {
-  attempt = attempt || 0;
+function triesRetry(call, ok, fail, onRetry, delays, attempt) {
+  attempt = attempt || 0; delays = delays || RETRY_DELAYS;
   call(ok, function (err) {
-    if (attempt < RETRY_DELAYS.length && triesRetryable(err)) {
+    if (attempt < delays.length && triesRetryable(err)) {
       if (onRetry) onRetry(attempt);
-      setTimeout(function () { triesRetry(call, ok, fail, onRetry, attempt + 1); }, RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500));
+      setTimeout(function () { triesRetry(call, ok, fail, onRetry, delays, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 1000));
     } else fail(err);
   });
 }
-/** Check on a question with tries = ONE try (see tryAnswer in Code.gs). */
+/** Check on a question with tries = ONE try. A sheet on 2026.11.06b or newer (S.quickTries) answers at once with quickTry, then the
+    try is saved in the background (saveTry), like a typed answer's Check (see FAST CHECK in Code.gs); an older sheet: tryAnswer, and wait. */
 function tryCheck(i) {
   var q = S.questions[i], res = S.results[i] || {}, t = res.tries || {};
   if (S.locked || pending[i] || t.done) return;
@@ -1423,8 +1464,9 @@ function tryCheck(i) {
   if (!ans) { setMeta(i, q.kind === "short" ? "Type your answer first." : "Pick an answer first.", "#cc0000"); return; }
   if (t.needHint && !hintSeen[i]) { setMeta(i, HINT_SENTENCE, "#cc0000"); paintTried(i, res); return; }
   var lost = triedLost[i], id = lost && lost.ans === ans ? lost.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 10), seen = hintSeen[i] || "";
+  var quick = !!S.quickTries;
   pending[i] = true; paintTried(i, res); setMeta(i, "Checking…", "#666");
-  triesRetry(function (ok, fail) { api.run("tryAnswer", [i, ans, id, seen], ok, fail); }, function (resp) {
+  triesRetry(function (ok, fail) { api.run(quick ? "quickTry" : "tryAnswer", [i, ans, id, seen], ok, fail); }, function (resp) {
     pending[i] = false; delete triedLost[i];
     resp = resp || {};
     if (resp.counted) { hintSeen[i] = ""; saved[i] = draftSaved[i] = ans; }   // a new try needs a new hint
@@ -1432,6 +1474,7 @@ function tryCheck(i) {
     S.grade = S.credit ? localGrade() : (typeof resp.grade === "number" ? resp.grade : S.grade);
     updateProgress();
     if (resp.note) setMeta(i, resp.note, "#b45f06");
+    else if (quick && resp.counted) { setMeta(i, "Checked. Saving…", "#666"); saveTry(i, { ans: ans, id: id, seen: seen }); }
     else setMeta(i, resp.counted ? "Saved " + stamp() : "", "#666");
   }, function (err) {
     pending[i] = false;
@@ -1443,8 +1486,47 @@ function tryCheck(i) {
     else if (/locked|turned this in/i.test(m)) showError(err);
     else { triedLost[i] = { ans: ans, id: id }; setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000"); }
     paintTried(i, S.results[i]);
-  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); });
+  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); }, quick ? TRIES_QUICK_DELAYS : null);
 }
+/** FAST CHECK, step 2: saves each checked try in the background, one at a time per question and in order (tryAnswer with the same
+    attemptId, so it's saved once). A save that keeps failing tries again by itself (15 s, 30 s ... every minute) while the page is open. */
+var tryQueue = {}, tryLater = {}, tryLaterN = {};
+var TRIES_QUICK_DELAYS = [600, 1500, 3000, 6000];   // quickTry never waits in line, so a retry usually works at once
+function saveTry(i, job) {
+  (tryQueue[i] = tryQueue[i] || []).push(job);
+  saving[i] = true;
+  if (tryQueue[i].length === 1 && !tryLater[i]) sendTry(i);
+}
+function sendTry(i) {
+  clearTimeout(tryLater[i]); tryLater[i] = 0;
+  var job = (tryQueue[i] || [])[0];
+  if (!job) { saving[i] = false; return; }
+  triesRetry(function (ok, fail) { api.run("tryAnswer", [i, job.ans, job.id, job.seen], ok, fail); }, function (resp) {
+    tryQueue[i].shift(); tryLaterN[i] = 0;
+    if (tryQueue[i].length) { sendTry(i); return; }
+    saving[i] = false;
+    if (resp && resp.result && !pending[i]) paintTried(i, resp.result);   // the sheet's copy (the same grading)
+    if (resp && typeof resp.grade === "number" && !S.credit) S.grade = resp.grade;
+    updateProgress();
+    if (!pending[i]) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    var m = String((err && err.message) || err || "");
+    if (cpIsSignInError(err)) { setMeta(i, "Checked, but not saved yet. Sign in again and it saves by itself.", "#cc0000"); signedOutMidway(); tryLaterSoon(i); }
+    else if (closedMidway(err)) { tryQueue[i] = []; saving[i] = false; setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); }
+    else if (/^(NOTRY|HINT):|locked|turned this in/i.test(m)) {   // the sheet refused it (another tab got there first ...): show the sheet's word on it
+      tryQueue[i].shift(); setMeta(i, "Not saved: " + m.replace(/^(NOTRY|HINT):\s*/, ""), "#cc0000");
+      if (tryQueue[i].length) sendTry(i); else saving[i] = false;
+    }
+    else tryLaterSoon(i);
+  }, function () { if (!pending[i]) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666"); });
+}
+function tryLaterSoon(i) {
+  var n = tryLaterN[i] = (tryLaterN[i] || 0) + 1;
+  clearTimeout(tryLater[i]);
+  tryLater[i] = setTimeout(function () { sendTry(i); }, Math.min(60000, 15000 * n) + Math.floor(Math.random() * 8000));
+  if (!pending[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
+}
+window.addEventListener("online", function () { Object.keys(tryLater).forEach(function (k) { if (tryLater[k]) sendTry(Number(k)); }); });
 /* ============================== (@@TRIES-END) ============================== */
 
 function simButton(l) {
@@ -1556,6 +1638,7 @@ function fitBox(inp) {
 /** "Question number style" setting: the first 1 in the pattern becomes the question's number
     ("Q1" -> Q7, "Question 1" -> Question 7, "1)" -> 7)). No 1 in the pattern = number added at the end. */
 function qLabel(n) {
+  if (S && S.qNum) n = S.qNum[n - 1] || n;   // shuffled questions: the number this student sees (questionOrder)
   var p = String(S && S.numberStyle != null ? S.numberStyle : "1").trim() || "1";
   var at = p.indexOf("1");
   return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
@@ -1595,8 +1678,10 @@ function render() {
   L.hidden = !(S.links && S.links.length);
 
   var box = document.getElementById("items");
-  var sec = {}, secNo = {}; S.sections.forEach(function (s, k) { sec[s.before] = s; secNo[s.before] = k; });
-  S.questions.forEach(function (q, i) {
+  // Settings "Shuffle question order" (2026.11.06b): this student's own order, within each section (questionOrder, in the LIMITED TRIES block)
+  var qo = questionOrder(), sec = qo.sec, secNo = qo.secNo;
+  qo.order.forEach(function (i) {
+    var q = S.questions[i];
     if (sec[i]) {
       var stripEl = el("div", "strip", sec[i].title); stripEl.id = "part" + (secNo[i] + 1); box.appendChild(stripEl);
       if (sec[i].img) {   // a picture right under the strip (Questions tab: Section picture)
@@ -2056,7 +2141,7 @@ function drawTableGraph(i) {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.06";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.06b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

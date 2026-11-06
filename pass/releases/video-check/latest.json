@@ -1,6 +1,6 @@
 {
   "kind": "video-check",
-  "version": "2026.11.06",
+  "version": "2026.11.06b",
   "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
   "files": {
     "Code.gs": "Code.gs.txt",

@@ -177,9 +177,9 @@ var TRY_CREDIT         = "100%, 90%, 80%";  // credit when the first right answe
 var TRIED_WRONG_CREDIT = 0.5;               // a question tried but never answered right earns this share (never tried = 0)
 var HINT_BEFORE_RETRY  = true;              // true = after a wrong try, the student opens a hint (the light bulb) before trying again
 var SHUFFLE_CHOICES    = true;              // true = each student gets the answer choices in its own order (true/false never shuffles)
+var SHUFFLE_QUESTIONS  = false;             // true = each student gets the questions in their own order (a Self-Check: within each blue section; a review game: a new order each try)
 // ---------- Review game only (a sheet whose SKILL_NAME is "review-game"; see REVIEW GAME) ----------
 var START_OVER        = true;  // true = students can Start Over; their best try is the grade
-var SHUFFLE_QUESTIONS = true;  // true = each student (and each new try) gets the questions in its own order
 var WEBSITE_BOARD_URL = "";    // the class website whose Leaderboard shows review game points, e.g. https://vocabulary-room901.pages.dev
 var WEBSITE_BOARD_KEY = "";    // the Review game key from that Leaderboard page (blank = game points stay in this sheet)
 
@@ -248,7 +248,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-sim-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-sim-lab\)
-var SKILL_VERSION = "2026.11.06";
+var SKILL_VERSION = "2026.11.06b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -315,15 +315,17 @@ var TRY_SETTING_DEFS = [
 ];
 // Shared by every kind (a review game and a Self-Check's choice questions).
 var SHUFFLE_CHOICES_DEF = ["Shuffle answer choices", "SHUFFLE_CHOICES", "bool", "Checked = each student sees the answer choices of a question in their own order (in a Self-Check, a new order after each wrong try). True/false is never shuffled. Unchecked = the order of the Choice columns."];
+var SHUFFLE_QUESTIONS_DEF = ["Shuffle question order", "SHUFFLE_QUESTIONS", "bool", "Checked = each student gets the questions in their own order, so neighbors can't copy by number (a Self-Check: mixed within each blue section, numbered 1, 2, 3 ... in the student's own order, while Live Results keeps the Questions tab's numbers; a review game: a new order each time they start over). Unchecked = everyone gets the Questions tab's order."];
 // A review game's own Settings rows (only a review-game sheet has them).
 var GAME_SETTING_DEFS = [
   ["Students can start over", "START_OVER", "bool", "Checked = students see a Start Over button that clears their answers so they can try the whole game again. Their BEST try is their grade (in this sheet and in Classroom), and their best game points stay on the leaderboard. Unchecked = one try only (they can still leave and pick up where they left off)."],
-  ["Shuffle question order", "SHUFFLE_QUESTIONS", "bool", "Checked = each student gets the questions in their own order, and a new order each time they start over. Unchecked = everyone gets the Questions tab's order."],
+  SHUFFLE_QUESTIONS_DEF,
   ["Website leaderboard address", "WEBSITE_BOARD_URL", "text", "The class website whose Leaderboard page shows Review game points, like https://vocabulary-room901.pages.dev (just the address, nothing after .dev)."],
   ["Website leaderboard key", "WEBSITE_BOARD_KEY", "text", "Paste the Review game key from that website's Leaderboard page (sign in there as the teacher, then open Review game key at the bottom). Then each student's best game points go on the website's Leaderboard when they finish a game, and every hour for games still in progress. Blank = the points show only inside this game."]
 ];
 if (triesPage_()) SETTING_DEFS = SETTING_DEFS.concat(TRY_SETTING_DEFS);
 if (SKILL_NAME !== "net-force-escape-room") SETTING_DEFS = SETTING_DEFS.concat([SHUFFLE_CHOICES_DEF]);
+if (triesPage_()) SETTING_DEFS = SETTING_DEFS.concat([SHUFFLE_QUESTIONS_DEF]);   // (a review game has it among its own rows)
 /** Pages that show limited tries questions: the one- and two-column Self-Check pages (and the friction pages built on the two-column one),
  *  not the review game (its own multiple choice) or the escape room (its page is an older copy without the choice buttons). */
 function triesPage_() { return SKILL_NAME !== "review-game" && SKILL_NAME !== "net-force-escape-room"; }
@@ -970,7 +972,7 @@ function graphFeedback_(item, answer) {
   });
   var sc = "Score: " + score + "/" + labels.length + ". ", frac = score / labels.length;
   if (score === labels.length) return { status: "correct", message: sc + (item.table.graph.title ? "Nice work: your graph has a title and every axis is labeled!" : "Nice work: every axis on your graph is labeled!"), parts: parts, frac: frac };
-  if (score === 0) return { status: "incorrect", message: sc + "You're on the right track. " + unmet.join(" "), parts: parts, frac: frac };
+  if (score === 0) return { status: "incorrect", message: sc + unmet.join(" "), parts: parts, frac: frac };
   return { status: "partial", message: sc + "Good start! Still missing: " + unmet.join(" "), parts: parts, frac: frac };
 }
 /** A table answer -> { v: [what the student typed in each box, row by row], t: title, x: x label, y: y label }. */
@@ -1020,7 +1022,7 @@ function tableFeedback_(item, answer) {
   }
   var out;
   if (score === nParts) out = { status: "correct", message: sc + (labels.length ? "Nice work: your table is complete and your graph is labeled!" : "Nice work: every box in your table checks out!"), parts: parts, frac: frac };
-  else if (score === 0) out = { status: "incorrect", message: sc + "You're on the right track. " + unmet.join(" "), parts: parts, frac: frac };
+  else if (score === 0) out = { status: "incorrect", message: sc + unmet.join(" "), parts: parts, frac: frac };
   else out = { status: "partial", message: sc + "Good start! Still missing: " + unmet.join(" "), parts: parts, frac: frac };
   if (calc) out.cells = calc.cells;   // each box's own color (green, yellow, red)
   return out;
@@ -1440,6 +1442,12 @@ function getStudentState(token) {
   if (!who.email) return signInState_();   // Google can't tell who this is: the page shows Class Pass
   var email = who.email;
   var rec = readRecordQuick_(email) || newRecord_();
+  var waiting = allWaitingTries_(email);   // limited tries checked a moment ago and still on their way into the record (see FAST CHECK)
+  Object.keys(waiting).forEach(function (k) {
+    rec.tries = rec.tries || {};
+    rec.tries[k] = withWaiting_(Number(k), rec.tries[k], waiting[k]);
+    if (rec.tries[k].a.length) rec.answers[k] = rec.tries[k].a[rec.tries[k].a.length - 1];
+  });
   var results = [];
   for (var i = 0; i < ITEMS.length; i++) results.push(isTried_(ITEMS[i]) ? triedFeedback_(i, rec) : feedbackFor_(i, rec.answers[i]));   // limited tries: never an open question's answer
   var roster = readRoster_();
@@ -1470,6 +1478,8 @@ function getStudentState(token) {
     showPoints: !!SHOW_POINTS,   // the "2 points" tag next to each question (the page still uses Points for the running grade)
     grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best }, due).grade, maxPoints: MAX_POINTS,
     shuffleChoices: !!SHUFFLE_CHOICES,   // LIMITED TRIES: the page shuffles choice questions' buttons per student (true/false never)
+    shuffleQuestions: !isGame_() && !!SHUFFLE_QUESTIONS,   // 2026.11.06b: each student's own question order, within each section (the page's questionOrder)
+    quickTries: true,   // 2026.11.06b: the page checks a try with quickTry, then saves it with tryAnswer (FAST CHECK); an older sheet has only tryAnswer
     minLength: MIN_ANSWER_LENGTH,
     blockPaste: !!BLOCK_PASTE,
     numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE),
@@ -1659,15 +1669,15 @@ function tryGrade_(item, answer) {
   var n = choicePicks_(item, answer)[0];
   if (n == null) return { status: "blank", message: "" };
   if (n === item.right[0]) return { status: "correct", message: "That's right!" };
-  return { status: "incorrect", message: "You're on the right track." + (item.choices[n].fb ? " " + item.choices[n].fb : "") };
+  return { status: "incorrect", message: item.choices[n].fb || "That isn't the right answer." };   // (Donny, 2026-11-06: a wrong answer goes straight to its feedback)
 }
 /** A short answer's try: green only with every idea and no misconception (no minimum length). */
 function shortGrade_(item, answer) {
   var res = gradeLocal_(item, answer), mis = misconceptionsIn_(item, answer);
-  if (!res.total) return mis.length ? { status: "partial", message: "You're on the right track. Check this: " + mis.join(" ") } : { status: "correct", message: "That's right!" };
+  if (!res.total) return mis.length ? { status: "partial", message: "Check this: " + mis.join(" ") } : { status: "correct", message: "That's right!" };
   if (res.status === "correct" && !mis.length) return { status: "correct", message: "That's right!" };
-  if (mis.length) return { status: res.status === "incorrect" ? "incorrect" : "partial", message: "You're on the right track. Check this: " + mis.join(" ") };
-  return { status: res.status, message: (res.status === "partial" ? "Good start! Still missing: " : "You're on the right track. ") + res.unmet.join(" ") };
+  if (mis.length) return { status: res.status === "incorrect" ? "incorrect" : "partial", message: "Check this: " + mis.join(" ") };
+  return { status: res.status, message: (res.status === "partial" ? "Good start! Still missing: " : "") + res.unmet.join(" ") };
 }
 /** Every number in an answer: "25 J", "25J", "25.0" and " 25 " all give [25]; "1,025" gives [1025]. */
 function numbersIn_(raw) {
@@ -1736,13 +1746,40 @@ function triedCellText_(idx, rec) {
   return parts.join(" | ");
 }
 
-/** The only way to answer a choice, truefalse or short question: one try. answer = a choice's number from 1 (the page shuffles the
- *  buttons but sends the Questions tab's numbers), or the typed words. attemptId = this Check press (a retry of a lost reply sends the
- *  same one and gets the same result back, with no second try). hintSeen = the hint opened since the last try ("clue", "example",
- *  "video"), so a hint saved by openHint a moment ago still counts. Refused with no try used: closed, locked, already right, out of tries,
- *  or a hint needed first (HINT:). No try used either (but a result): a choice or answer already tried, or a number question with no number. */
-function tryAnswer(idx, answer, attemptId, hintSeen, token) {
-  loadConfig_();
+// FAST CHECK (2026.11.06b, Donny: "a long delay after Check"). Like a typed answer's Check, a try is two calls:
+//   1. quickTry: no waiting in line and no writing to the sheet. It checks the try against the student's tries so far and answers
+//      at once. The try goes into the short-term cache right away ("tp:<email>:<question>", a list of { id, a: answer, k: hint }),
+//      so it counts from that moment: a second quickTry (another tab, or a student calling it by hand) sees it, and can't use it twice.
+//   2. tryAnswer, in the background: saves it in the student's record (in the line), with Live Results and the Answer Log.
+// The record keeps every saved try's attemptId (t.ids), so a try is saved once however many times it's sent, and a later try's save
+// also saves any earlier one still waiting (a dropped connection), in order. getStudentState shows the waiting tries too.
+var TRY_WAIT_SECS = 21600;
+var TRY_REPEAT_NOTE = "You already tried that one. (That didn't use a try.)";
+function tryWaitKey_(email, idx) { return "tp:" + email + ":" + idx; }
+/** The tries this student's page checked (quickTry) for a question, in order; some may be saved already (their ids are in t.ids). */
+function waitingTries_(email, idx) { var v = cacheGet_(tryWaitKey_(email, idx)); return Array.isArray(v) ? v : []; }
+function putWaitingTries_(email, idx, list) { cachePut_(tryWaitKey_(email, idx), list.slice(-12), TRY_WAIT_SECS); }
+/** Every tried question's waiting tries in one cache read: { idx: [ ... ] }. */
+function allWaitingTries_(email) {
+  var c = cache_(), keys = [], out = {};
+  ITEMS.forEach(function (it, i) { if (isTried_(it)) keys.push(tryWaitKey_(email, i)); });
+  if (!c || !keys.length) return out;
+  try { var got = c.getAll(keys); keys.forEach(function (k) { if (got[k]) { var v = JSON.parse(got[k]); if (Array.isArray(v) && v.length) out[k.split(":").pop()] = v; } }); } catch (e) {}
+  return out;
+}
+/** A copy of a question's saved tries (t) with its waiting tries added after them, in order, until the question is done. */
+function withWaiting_(idx, t, wait) {
+  t = t || {};
+  var out = { a: (t.a || []).slice(), h: (t.h || []).slice(), ids: (t.ids || (t.id ? [t.id] : [])).slice(), id: t.id || "" };
+  (wait || []).forEach(function (w) {
+    if (!w || !w.id || out.ids.indexOf(w.id) !== -1 || tryState_(idx, out).done) return;
+    if (w.k && !out.h.some(function (h) { return h.after >= out.a.length; })) out.h.push({ k: w.k, after: out.a.length });
+    out.a.push(w.a); out.ids.push(w.id); out.id = w.id;
+  });
+  return out;
+}
+/** A try as the page sends it: { item, idx, email, answer, id, seen, hk }, or { note } for a number question with no number. Throws for a bad request. */
+function tryRequest_(idx, answer, attemptId, hintSeen, token) {
   idx = Number(idx);
   if (!(idx >= 0 && idx < ITEMS.length) || !isTried_(ITEMS[idx])) throw new Error("Unknown question.");
   var item = ITEMS[idx], email = currentStudent_(token);
@@ -1754,48 +1791,107 @@ function tryAnswer(idx, answer, attemptId, hintSeen, token) {
   } else {
     answer = answer.replace(/\s+/g, " ").slice(0, 300);
     if (!answer) throw new Error("NOTRY: Type an answer first.");
-    if (isNumberQ_(item) && !numbersIn_(answer).length) return { counted: false, note: "Type a number, like " + exampleNumber_(item) + ". (That didn't use a try.)" };
+    if (isNumberQ_(item) && !numbersIn_(answer).length) return { note: "Type a number, like " + exampleNumber_(item) + ". (That didn't use a try.)" };
   }
-  attemptId = String(attemptId == null ? "" : attemptId).slice(0, 64);
-  var seen = !!hintSeen, hk = /^(clue|example|video)$/.test(String(hintSeen)) ? String(hintSeen) : "";
+  return { item: item, idx: idx, email: email, answer: answer, id: String(attemptId == null ? "" : attemptId).slice(0, 64),
+           seen: !!hintSeen, hk: /^(clue|example|video)$/.test(String(hintSeen)) ? String(hintSeen) : "" };
+}
+/** May this answer be tried now, after tries t? Throws the refusals (NOTRY: already right / out of tries, HINT: a hint first);
+ *  returns { st, repeat } (repeat = this choice or answer was already tried, so it uses no try). */
+function tryAllowed_(item, idx, t, answer, seen) {
+  var st = tryState_(idx, t);
+  if (st.rightTry) throw new Error("NOTRY: You already got this one right.");
+  if (st.done) throw new Error("NOTRY: You're out of tries for this one.");
+  if (st.needHint && !seen) throw new Error("HINT: Open a hint (the light bulb) before you try again.");
+  var repeat = item.choices ? t.a.indexOf(answer) !== -1 : t.a.some(function (x) {
+    return normalize_(x) === normalize_(answer) || (isNumberQ_(item) && JSON.stringify(numbersIn_(x)) === JSON.stringify(numbersIn_(answer)));
+  });
+  return { st: st, repeat: repeat };
+}
+
+/** FAST CHECK, step 1: one try, checked at once (no waiting in line, nothing written to the sheet; see FAST CHECK). The same
+ *  arguments and refusals as tryAnswer. The page then saves it with tryAnswer (same attemptId) in the background. */
+function quickTry(idx, answer, attemptId, hintSeen, token) {
+  loadConfig_();
+  var p = tryRequest_(idx, answer, attemptId, hintSeen, token);
+  if (p.note) return { counted: false, note: p.note };
+  if (!p.id) throw new Error("NOTRY: Reload the page.");
+  var close = closeForStudent_(p.email, readRoster_(), true);   // never waits on Classroom
+  if (isClosed_(close)) throw new Error(closedError_(close));
+  var rec = readRecordQuick_(p.email) || newRecord_();
+  if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already turned this in, so answers are locked.");
+  rec.tries = rec.tries || {};
+  var wait = waitingTries_(p.email, p.idx), t = withWaiting_(p.idx, rec.tries[p.idx], wait);
+  rec.tries[p.idx] = t;
+  if (t.ids.indexOf(p.id) !== -1) return { result: triedFeedback_(p.idx, rec), counted: true, again: true };   // sent twice: the same result
+  var ok = tryAllowed_(p.item, p.idx, t, p.answer, p.seen);
+  if (ok.repeat) return { result: triedFeedback_(p.idx, rec), counted: false, note: TRY_REPEAT_NOTE };
+  wait.push({ id: p.id, a: p.answer, k: p.hk });
+  putWaitingTries_(p.email, p.idx, wait);   // it counts from now on
+  rec.tries[p.idx] = withWaiting_(p.idx, rec.tries[p.idx], [wait[wait.length - 1]]);
+  return { result: triedFeedback_(p.idx, rec), counted: true };
+}
+
+/** One try, saved in the student's record (FAST CHECK step 2; also works on its own, as on 2026.11.06 sheets). answer = a choice's
+ *  number from 1 (the page shuffles the buttons but sends the Questions tab's numbers), or the typed words. attemptId = this Check press
+ *  (sent again, it gets the same result back with no second try). hintSeen = the hint opened since the last try ("clue", "example",
+ *  "video"), so a hint saved by openHint a moment ago still counts. Refused with no try used: closed, locked, already right, out of tries,
+ *  or a hint needed first (HINT:). No try used either (but a result): a choice or answer already tried, or a number question with no number.
+ *  A try that quickTry checked is saved with the hint it had then, after any earlier waiting try of the same question. */
+function tryAnswer(idx, answer, attemptId, hintSeen, token) {
+  loadConfig_();
+  var p = tryRequest_(idx, answer, attemptId, hintSeen, token), item = p.item, email = p.email;
+  if (p.note) return { counted: false, note: p.note };
+  idx = p.idx;
   var roster = readRoster_(), due = dueForStudent_(email, roster), close = closeForStudent_(email, roster);   // before waiting in line
   if (isClosed_(close)) throw new Error(closedError_(close));
-  var lock = lockOrBusy_(20000), out, counted = false;
+  var lock = lockOrBusy_(20000), out, made = [];
   try {
     var rec = readRecord_(email) || newRecord_();
     if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already turned this in, so answers are locked.");
     rec.tries = rec.tries || {};
-    var t = rec.tries[idx] || { a: [], h: [] }, st = tryState_(idx, t);
-    t.a = t.a || []; t.h = t.h || [];
-    var repeat = item.choices ? t.a.indexOf(answer) !== -1 : t.a.some(function (x) {
-      return normalize_(x) === normalize_(answer) || (isNumberQ_(item) && JSON.stringify(numbersIn_(x)) === JSON.stringify(numbersIn_(answer)));
-    });
-    if (attemptId && t.id === attemptId) out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: true, again: true };   // the reply got lost: the same result
-    else if (st.rightTry) throw new Error("NOTRY: You already got this one right.");
-    else if (st.done) throw new Error("NOTRY: You're out of tries for this one.");
-    else if (st.needHint && !seen) throw new Error("HINT: Open a hint (the light bulb) before you try again.");
-    else if (repeat) out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: false, note: "You already tried that one. (That didn't use a try.)" };
+    var t = rec.tries[idx] || { a: [], h: [] };
+    t.a = t.a || []; t.h = t.h || []; t.ids = t.ids || (t.id ? [t.id] : []);
+    if (p.id && t.ids.indexOf(p.id) !== -1) out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: true, again: true };   // saved already: the same result
     else {
-      keepOnTimeCopy_(rec, due);   // first save after the due date: remember the work as it was at the due date
-      if (hk && !t.h.some(function (h) { return h.after >= st.used; })) t.h.push({ k: hk, after: st.used });   // openHint hadn't landed yet
-      t.a.push(answer); t.id = attemptId;
-      rec.tries[idx] = t;
-      rec.answers[idx] = answer;
-      rec.statuses[idx] = tryState_(idx, t).status;
-      if (rec.drafts) rec.drafts[idx] = null;
-      rec.checks = (rec.checks || 0) + 1;
-      rec.updated = new Date().toISOString();
-      writeRecord_(email, rec);
-      renderLiveRow_(email, rec, roster, due);
-      counted = true;
-      out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: true };
+      var wait = waitingTries_(email, idx), at = -1, todo, note = "";
+      wait.forEach(function (w, k) { if (p.id && w.id === p.id) at = k; });
+      todo = at === -1 ? [{ id: p.id, a: p.answer, k: p.hk, seen: p.seen }]   // not checked by quickTry first
+                       : wait.slice(0, at + 1).filter(function (w) { return t.ids.indexOf(w.id) === -1; }).map(function (w) { return { id: w.id, a: w.a, k: w.k, seen: true }; });
+      keepOnTimeCopy_(rec, due);   // first save after the due date: remember the work as it was at the due date (kept only if a try is saved)
+      try {
+        todo.forEach(function (x, k) {
+          var ok = tryAllowed_(item, idx, t, x.a, x.seen);
+          if (ok.repeat) { if (k === todo.length - 1) note = TRY_REPEAT_NOTE; return; }
+          if (x.k && !t.h.some(function (h) { return h.after >= ok.st.used; })) t.h.push({ k: x.k, after: ok.st.used });   // openHint hadn't landed yet
+          t.a.push(x.a); if (x.id) t.ids.push(x.id); t.id = x.id;
+          made.push(x.a);
+        });
+      } catch (err) {   // the sheet refuses it (out of tries in another tab ...): it stops counting as a waiting try too
+        if (at !== -1) putWaitingTries_(email, idx, wait.filter(function (w) { return w.id !== p.id; }));
+        throw err;
+      }
+      if (t.ids.length > 20) t.ids = t.ids.slice(-20);
+      if (made.length) {
+        rec.tries[idx] = t;
+        rec.answers[idx] = t.a[t.a.length - 1];
+        rec.statuses[idx] = tryState_(idx, t).status;
+        if (rec.drafts) rec.drafts[idx] = null;
+        rec.checks = (rec.checks || 0) + made.length;
+        rec.updated = new Date().toISOString();
+        writeRecord_(email, rec);
+        renderLiveRow_(email, rec, roster, due);
+      }
+      out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: made.length > 0 };
+      if (note) out.note = note;
     }
   } finally {
     unlock_(lock);
   }
   // Teacher-only extras happen after the student's save is done, outside the line.
-  if (counted) {
-    try { logEvent_(email, idx, tryGrade_(item, answer).status, answerText_(item, answer) + " (try " + out.result.tries.used + ")"); } catch (e) {}
+  if (made.length) {
+    var n0 = out.result.tries.used - made.length;
+    made.forEach(function (a, k) { try { logEvent_(email, idx, tryGrade_(item, a).status, answerText_(item, a) + " (try " + (n0 + k + 1) + ")"); } catch (e) {} });
     maybeRenderSummary_();
   }
   return out;
@@ -1815,7 +1911,7 @@ function openHint(idx, kind, token) {
     var rec = readRecord_(email) || newRecord_();
     if (LOCK_AFTER_TURN_IN && rec.turnedIn) return { saved: false, locked: true };
     rec.tries = rec.tries || {};
-    var t = rec.tries[idx] || { a: [], h: [] }, used = (t.a || []).length;
+    var t = rec.tries[idx] || { a: [], h: [] }, used = withWaiting_(idx, t, waitingTries_(email, idx)).a.length;   // (counting tries still waiting to be saved)
     t.a = t.a || []; t.h = t.h || [];
     if (!t.h.some(function (h) { return h.k === kind && h.after === used; }) && t.h.length < 40) t.h.push({ k: kind, after: used });
     rec.tries[idx] = t;
@@ -2606,7 +2702,7 @@ var API_ = { getStudentState: getStudentState, gradeAnswer: gradeAnswer, checkAn
              turnIn: turnIn, getPicture: getPicture, signOut: signOut, classPass: classPass,
              uploadPicture: uploadPicture, getMyUpload: getMyUpload, getArticle: getArticle, getArticlePicture: getArticlePicture,
              sendSignInCode: sendSignInCode, verifySignInCode: verifySignInCode, signInWithGoogle: signInWithGoogle,
-             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint };
+             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint, quickTry: quickTry };
 var API_NO_TOKEN_ = { classPass: true, sendSignInCode: true, verifySignInCode: true, signInWithGoogle: true };
 
 /**
@@ -3059,7 +3155,7 @@ function textFeedback_(item, answer) {
   }
   if (res.status === "correct") return { status: "correct", message: sc + "Nice work, you covered the key ideas!", frac: frac };
   if (res.status === "partial") return { status: "partial", message: sc + "Good start! " + check + "Still missing: " + res.unmet.join(" "), frac: frac };
-  return { status: "incorrect", message: sc + "You're on the right track. " + check + res.unmet.join(" "), frac: frac };
+  return { status: "incorrect", message: sc + check + res.unmet.join(" "), frac: frac };
 }
 /** The hints of the misconceptions (common wrong ideas) this answer shows, from the Questions tab's Misconception columns. */
 function misconceptionsIn_(item, answer) {
@@ -3083,7 +3179,7 @@ function boxFeedback_(item, answer) {
   if (!filled) return { status: "blank", message: "", parts: marks };
   var sc = "Score: " + score + "/" + n + ". ", frac = score / n;
   if (score === n) return { status: "correct", message: sc + "Nice work, every box is right!", parts: marks, frac: frac };
-  if (score === 0) return { status: "incorrect", message: sc + "You're on the right track. " + unmet.join(" "), parts: marks, frac: frac };
+  if (score === 0) return { status: "incorrect", message: sc + unmet.join(" "), parts: marks, frac: frac };
   return { status: "partial", message: sc + "Good start! Still missing: " + unmet.join(" "), parts: marks, frac: frac };
 }
 

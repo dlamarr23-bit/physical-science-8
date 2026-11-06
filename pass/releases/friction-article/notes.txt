@@ -1,7 +1,28 @@
-friction-article v2026.11.06
+friction-article v2026.11.06b
 
-Optional update: limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints).
+Optional update: wrong answers go straight to their hints (no "You're on the right track."), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting.
 
+- This page is built on the two-column page, so it gets the same changes:
+- Wrong answers no longer start with "You're on the right track." A red typed answer goes straight to its score and hints (for example
+  "Score: 0/2. Look at the cart after you press Go. ..."), so gibberish doesn't get praised. A wrong multiple choice pick shows just that choice's feedback ("That isn't the right
+  answer." when it has none), and a short answer with a misconception starts with "Check this: ...".
+- Faster Check on limited tries questions (choice, truefalse, short): the answer shows right away, like a typed answer's Check. The sheet
+  checks the try without waiting in line, shows the result, then saves it in the background ("Checked. Saving..." then "Saved 6:54 PM").
+  The try counts the moment it's checked, so it can't be used twice, and the right answer still never reaches the page until the question is done.
+- The last try is obvious: a yellow warning right over the answer ("Last try! Read every choice carefully before you press Check."),
+  "Last try!" next to the button, and the button says "Check (last try)". A true/false question (one try) shows "One try only! Read the
+  statement carefully before you press Check." Wrong picks stay pink.
+- New Settings row "Shuffle question order" (unchecked to start): checked = each student gets the questions in their own order, mixed
+  within each blue section, so neighbors can't copy by number. Each student's questions are numbered 1, 2, 3 ... in their own order (the
+  same order every time they open it); Live Results and the Question Summary keep the Questions tab's numbers. Answer choices were already
+  shuffled for each student (Shuffle answer choices). Leave it unchecked for a lab whose questions go in order.
+- To use it: paste the new Code.gs and Index, New version, then Self-Check > Set up / repair sheets (it adds the Shuffle question order row
+  at the end of the Settings tab). For a practice set like the Kinetic Energy one, check that box.
+- Students who open this assignment through the class website (Class Pass) see the last-try warning as soon as it is published. The faster
+  Check, the new wording and the question shuffle need the paste and New version.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06 (optional), if this sheet skipped it:
 - This page is built on the two-column page, so it can use the new question types too. Its own questions don't change.
 - New: three Answer types with a limited number of tries, for practice sets where students used to click choices until one turned green
   (like the Kinetic Energy Google Form): choice (multiple choice: the Choice columns and Right choice), truefalse (TRUE / FALSE: Right choice

@@ -1,7 +1,12 @@
-review-game v2026.11.06
+review-game v2026.11.06b
 
-Optional update: nothing changes in the game. This release keeps every kind on the same version number.
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to the review game. (2026.11.06b changes Self-Check feedback and adds a Shuffle question order row to the Self-Check pages;
+  the game already had its own, and it works as before.)
+- Your questions, settings, scores and leaderboard are not touched.
+
+Also from 2026.11.06 (optional), if this sheet skipped it:
 - No changes to the review game. (2026.11.06 adds multiple choice, true/false and short answer questions with limited tries to the
   Self-Check pages. They share the "Shuffle answer choices" Settings row with the game: your game's row stays exactly as it is, and a
   brand-new game sheet lists it just before "Students can start over".)

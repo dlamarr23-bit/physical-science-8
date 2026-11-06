@@ -1,20 +1,20 @@
 {
-  "auto-grading-activity": "2026.11.06",
-  "friction-article": "2026.11.06",
-  "friction-sim-lab": "2026.11.06",
-  "friction-speed-lab": "2026.11.06",
-  "net-force-escape-room": "2026.11.06",
-  "reading-activity": "2026.11.06",
-  "review-game": "2026.11.06",
-  "video-check": "2026.11.06",
+  "auto-grading-activity": "2026.11.06b",
+  "friction-article": "2026.11.06b",
+  "friction-sim-lab": "2026.11.06b",
+  "friction-speed-lab": "2026.11.06b",
+  "net-force-escape-room": "2026.11.06b",
+  "reading-activity": "2026.11.06b",
+  "review-game": "2026.11.06b",
+  "video-check": "2026.11.06b",
   "_optional": {
-    "auto-grading-activity": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."]]},
-    "friction-article": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."]]},
-    "friction-sim-lab": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."]]},
-    "friction-speed-lab": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."]]},
-    "net-force-escape-room": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]},
-    "reading-activity": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."]]},
-    "review-game": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes in the game. This release keeps every kind on the same version number."]]},
-    "video-check": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]}
+    "auto-grading-activity": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."],["2026.11.06b","wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting."]]},
+    "friction-article": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."],["2026.11.06b","wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting."]]},
+    "friction-sim-lab": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."],["2026.11.06b","wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting."]]},
+    "friction-speed-lab": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."],["2026.11.06b","wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting."]]},
+    "net-force-escape-room": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.06b","wrong typed answers go straight to their hints (no \"You're on the right track.\")."]]},
+    "reading-activity": {"needed":"2026.11.05c","notes":[["2026.11.06","limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints)."],["2026.11.06b","wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting."]]},
+    "review-game": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes in the game. This release keeps every kind on the same version number."],["2026.11.06b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]},
+    "video-check": {"needed":"2026.11.05c","notes":[["2026.11.06","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.06b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."]]}
   }
 }
