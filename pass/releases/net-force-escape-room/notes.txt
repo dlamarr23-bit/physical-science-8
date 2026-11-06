@@ -1,7 +1,11 @@
-net-force-escape-room v2026.11.06b
+net-force-escape-room v2026.11.06c
 
-Optional update: wrong typed answers go straight to their hints (no "You're on the right track.").
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to the escape room. (2026.11.06c adds a Reset my answers button for the teacher on the Self-Check pages; the escape room page doesn't have it.)
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06b (optional), if this sheet skipped it:
 - Wrong answers no longer start with "You're on the right track." A red typed answer goes straight to its score and hints (for example
   "Score: 0/2. Look at the cart after you press Go. ..."), so gibberish doesn't get praised.
 - It's in Code.gs, so it needs the paste and New version below. The escape room page itself didn't change.

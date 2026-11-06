@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.06b",
-  "optional": "wrong typed answers go straight to their hints (no \"You're on the right track.\").",
+  "version": "2026.11.06c",
+  "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

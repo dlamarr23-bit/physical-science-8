@@ -689,7 +689,7 @@
 /** Student calls that carry this browser's sign-in token, and how many arguments come before it.
     Missing arguments are filled with null so the token always lands in the same place. */
 var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1,
-                   uploadPicture: 3, getMyUpload: 1, tryAnswer: 4, openHint: 2, getArticle: 0, getArticlePicture: 1 };
+                   uploadPicture: 3, getMyUpload: 1, tryAnswer: 4, openHint: 2, quickTry: 4, resetMyAnswers: 0, getArticle: 0, getArticlePicture: 1 };
 
 /* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
    Class Pass signs a student in when Google can't tell this page who they are: a browser where a personal
@@ -1769,6 +1769,30 @@ function tryLaterSoon(i) {
   if (!pending[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
 }
 window.addEventListener("online", function () { Object.keys(tryLater).forEach(function (k) { if (tryLater[k]) sendTry(Number(k)); }); });
+/* ---------- the teacher's own copy (2026.11.06c): Reset my answers ----------
+   Only when the sheet's owner opens the assignment (S.teacher): a button after "Signed in as ..." erases the teacher's OWN answers
+   (resetMyAnswers in Code.gs refuses anyone else), so the assignment can be tried again from the start. Students never see it.
+   On the class website the page then reloads by itself; on the sheet's own link it asks for a reload (that page can't reload itself). */
+function teacherTools() {
+  if (!S || !S.teacher || document.getElementById("resetMine")) return;
+  var who = document.getElementById("who"), b = el("button", "linkbtn", "Reset my answers");
+  b.type = "button"; b.id = "resetMine"; b.title = "Only you see this: it erases your own answers on this assignment so you can try it again";
+  who.appendChild(document.createTextNode(" Your own copy: ")); who.appendChild(b);
+  b.addEventListener("click", resetMine);
+}
+function resetMine() {
+  if (savesRunning() || Object.keys(pending).some(function (k) { return pending[k]; })) { note("Your answers are still saving. Try again in a few seconds."); return; }
+  askConfirm("Erase all of your own answers on this assignment, so you can try it again from the start? Only your answers are erased (students never see this button).", function () {
+    var b = document.getElementById("resetMine"); if (b) b.disabled = true;
+    note("Erasing your answers…");
+    api.run("resetMyAnswers", [], function () {
+      S.locked = true;   // nothing more saves from this copy of the page
+      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, #finishBtn").forEach(function (x) { x.disabled = true; });
+      if (CP_SITE) { note("Your answers are erased. Starting over…"); setTimeout(function () { location.reload(); }, 600); }
+      else note("Your answers are erased. Reload this page (the reload button, or Ctrl+R) to start over.");
+    }, function (err) { if (b) b.disabled = false; showError(err); });
+  }, "Erase my answers", "Cancel");
+}
 /* ============================== (@@TRIES-END) ============================== */
 
 function simButton(l) {
@@ -2298,6 +2322,7 @@ function render() {
   fin.addEventListener("click", finish);
   updateFinish();
   updateProgress();
+  teacherTools();   // the teacher's own copy: Reset my answers (the LIMITED TRIES block)
   setUpClose();
 }
 
@@ -3096,7 +3121,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.06b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.06c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

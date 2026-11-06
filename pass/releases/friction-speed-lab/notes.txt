@@ -1,7 +1,19 @@
-friction-speed-lab v2026.11.06b
+friction-speed-lab v2026.11.06c
 
-Optional update: wrong answers go straight to their hints (no "You're on the right track."), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting.
+Optional update: a Reset my answers button for your own copy of the assignment (only you see it).
 
+- This lab page is built on the two-column page, so it gets the same change:
+- New: Reset my answers, for your own copy. When you open the assignment yourself (signed in as the account that owns this sheet),
+  "Signed in as ..." is followed by "Your own copy: Reset my answers". It asks first, then erases only YOUR answers (tries, hints, drafts,
+  turned in), so you can try the assignment again from the start, like a student. Students never see the button, and the sheet refuses
+  it for anyone but you (it would give them every try back).
+  On the class website (Class Pass) the page starts over by itself; on the sheet's own link, reload the page after it says your answers are erased.
+- Fix: on the sheet's own link, the faster Check from 2026.11.06b now also works for a student signed in with an emailed code
+  (rare: emailed codes are off unless you turned them on). On the class website it already worked.
+- To use it: paste the new Code.gs and Index, then New version. No Set up / repair needed (no new Settings rows).
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06b (optional), if this sheet skipped it:
 - This lab page is built on the two-column page, so it gets the same changes (leave Shuffle question order unchecked for the lab):
 - Wrong answers no longer start with "You're on the right track." A red typed answer goes straight to its score and hints (for example
   "Score: 0/2. Look at the cart after you press Go. ..."), so gibberish doesn't get praised. A wrong multiple choice pick shows just that choice's feedback ("That isn't the right

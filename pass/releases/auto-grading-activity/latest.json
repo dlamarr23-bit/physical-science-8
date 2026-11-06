@@ -1,7 +1,7 @@
 {
   "kind": "auto-grading-activity",
-  "version": "2026.11.06b",
-  "optional": "wrong answers go straight to their hints (no \"You're on the right track.\"), a faster Check and an obvious last try on limited tries questions, and a Shuffle question order setting.",
+  "version": "2026.11.06c",
+  "optional": "a Reset my answers button for your own copy of the assignment (only you see it).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

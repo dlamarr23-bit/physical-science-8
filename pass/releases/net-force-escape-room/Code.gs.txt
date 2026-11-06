@@ -251,7 +251,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "net-force-escape-room";   // a one-off Self-Check with its own page (self-check\custom\net-force-escape-room\)
-var SKILL_VERSION = "2026.11.06b";
+var SKILL_VERSION = "2026.11.06c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1483,6 +1483,7 @@ function getStudentState(token) {
     shuffleChoices: !!SHUFFLE_CHOICES,   // LIMITED TRIES: the page shuffles choice questions' buttons per student (true/false never)
     shuffleQuestions: !isGame_() && !!SHUFFLE_QUESTIONS,   // 2026.11.06b: each student's own question order, within each section (the page's questionOrder)
     quickTries: true,   // 2026.11.06b: the page checks a try with quickTry, then saves it with tryAnswer (FAST CHECK); an older sheet has only tryAnswer
+    teacher: email === teacherEmail_(),   // 2026.11.06c: the sheet's owner trying their own copy: the page offers Reset my answers (resetMyAnswers)
     minLength: MIN_ANSWER_LENGTH,
     blockPaste: !!BLOCK_PASTE,
     numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE),
@@ -1898,6 +1899,28 @@ function tryAnswer(idx, answer, attemptId, hintSeen, token) {
     maybeRenderSummary_();
   }
   return out;
+}
+
+/** The sheet's owner (the account the web app runs as, "Execute as: Me"): the teacher. */
+function teacherEmail_() { try { return String(Session.getEffectiveUser().getEmail() || "").toLowerCase(); } catch (e) { return ""; } }
+/** TEACHER'S OWN COPY (2026.11.06c, Donny: "on the copy I open I want to be able to reset my answers"): erases the teacher's OWN work
+ *  (answers, tries, hints, drafts, picture links, turned in) so the assignment can be tried again from the start, as a student would.
+ *  Only the sheet's owner, signed in as themselves, can: a student can never reset (that would give them every try back). The Answer Log
+ *  keeps its rows; Live Results shows the teacher Not started again, and the Question Summary no longer counts the teacher's tries. */
+function resetMyAnswers(token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  if (!email || email !== teacherEmail_()) throw new Error("Only the teacher can reset answers.");
+  var roster = readRoster_(), lock = lockOrBusy_(20000);
+  try {
+    writeRecord_(email, newRecord_());
+    renderLiveRow_(email, newRecord_(), roster, 0);
+  } finally {
+    unlock_(lock);
+  }
+  cacheDel_(ITEMS.map(function (it, i) { return tryWaitKey_(email, i); }));   // tries still waiting to be saved (FAST CHECK)
+  try { renderSummary_(); } catch (e) {}
+  return { reset: true };
 }
 
 /** The light bulb: records that the student opened a hint (kind = "clue", "example" or "video") on a question with tries. The page
@@ -2705,7 +2728,7 @@ var API_ = { getStudentState: getStudentState, gradeAnswer: gradeAnswer, checkAn
              turnIn: turnIn, getPicture: getPicture, signOut: signOut, classPass: classPass,
              uploadPicture: uploadPicture, getMyUpload: getMyUpload, getArticle: getArticle, getArticlePicture: getArticlePicture,
              sendSignInCode: sendSignInCode, verifySignInCode: verifySignInCode, signInWithGoogle: signInWithGoogle,
-             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint, quickTry: quickTry };
+             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint, quickTry: quickTry, resetMyAnswers: resetMyAnswers };
 var API_NO_TOKEN_ = { classPass: true, sendSignInCode: true, verifySignInCode: true, signInWithGoogle: true };
 
 /**
