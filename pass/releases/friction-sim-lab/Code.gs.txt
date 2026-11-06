@@ -102,6 +102,12 @@
  * WRONG idea, and the hint students see when their answer has them
  * ("Check this: ..."). An answer with a misconception can't turn green.
  *
+ * LIMITED TRIES (multiple choice, true/false, short answers): type  choice,  truefalse  or  short  in a
+ * question's "Answer type" column. Students get a few tries (Settings: Tries for ...), earn a little less
+ * with each try (Credit by try: 100%, 90%, 80%; Credit when never answered right: 50%), see feedback for the
+ * wrong choice they picked, and open a hint (the light bulb) before trying again. The right answer and the
+ * Explanation show only once the question is done. See LIMITED TRIES further down.
+ *
  * SECTION PICTURES: a picture right under a blue section strip (not tied to any
  * question): on the row that starts the section, paste a Drive share link in
  * "Section picture" (and optional text in "Section picture caption").
@@ -163,10 +169,17 @@ var CLASS_START_TIMES = "1 = 8:10 AM, 6 = 9:10 AM, 2 = 10:18 AM, 3 = 11:26 AM, 5
 // Last days with a different bell schedule: a weekday, a date (12/17/2026) or a quarter (Q2), a colon, then period = time.
 // Separate changes with semicolons. Priority: a date beats a quarter, which beats a weekday. "none" = always the usual times.
 var CLOSE_TIME_CHANGES = "Thursday: 1 = 8:10 AM, 5 = 9:10 AM, 6 = 10:33 AM, 2 = 11:26 AM, 3 = 12:54 PM";
+// ---------- Limited tries: Answer type choice, truefalse or short (see LIMITED TRIES) ----------
+var TRIES_CHOICE       = 2;                 // tries for a multiple choice question (a question's Tries column can change it)
+var TRIES_TF           = 1;                 // tries for a true/false question
+var TRIES_SHORT        = 3;                 // tries for a short answer question
+var TRY_CREDIT         = "100%, 90%, 80%";  // credit when the first right answer comes on try 1, 2, 3 (tries past the list use the last one)
+var TRIED_WRONG_CREDIT = 0.5;               // a question tried but never answered right earns this share (never tried = 0)
+var HINT_BEFORE_RETRY  = true;              // true = after a wrong try, the student opens a hint (the light bulb) before trying again
+var SHUFFLE_CHOICES    = true;              // true = each student gets the answer choices in its own order (true/false never shuffles)
 // ---------- Review game only (a sheet whose SKILL_NAME is "review-game"; see REVIEW GAME) ----------
 var START_OVER        = true;  // true = students can Start Over; their best try is the grade
 var SHUFFLE_QUESTIONS = true;  // true = each student (and each new try) gets the questions in its own order
-var SHUFFLE_CHOICES   = true;  // true = each student gets the answer choices in its own order
 var WEBSITE_BOARD_URL = "";    // the class website whose Leaderboard shows review game points, e.g. https://vocabulary-room901.pages.dev
 var WEBSITE_BOARD_KEY = "";    // the Review game key from that Leaderboard page (blank = game points stay in this sheet)
 
@@ -235,7 +248,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-sim-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-sim-lab\)
-var SKILL_VERSION = "2026.11.05c";
+var SKILL_VERSION = "2026.11.06";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -250,7 +263,7 @@ var LIVE_FIXED = ["Period", "Student", "Email", "Status", "Last activity", "Grad
 var LIVE_EMAIL_COL = 3;
 var FIRST_Q_COL = LIVE_FIXED.length + 1;
 var ROSTER_HEADERS = ["Period", "Name", "Email", "Classroom user ID", "Course ID"];
-var SUMMARY_HEADERS = ["Question", "Prompt", "Green", "Yellow", "Red", "Blank", "% green (all periods)"];
+var SUMMARY_HEADERS = ["Question", "Prompt", "Green", "Yellow", "Red", "Blank", "% green (all periods)", "% right on the first try"];
 
 
 // ============================== LIVE CONFIG (Questions + Settings tabs) ==============================
@@ -291,14 +304,29 @@ var SETTING_DEFS = [
   ["Allow emailed sign-in code", "ALLOW_SIGNIN_CODE", "bool", "Unchecked = Class Pass signs students in with Google only: the code box is hidden and this sheet refuses code requests. Checked = students can also get a 6-digit code emailed to their school address from your Gmail (for when Google sign-in is blocked for students)."],
   ["Automatic grades after the due date", "AUTO_GRADES", "bool", "Checked = about an hour after each class's due date in Classroom, grades upload by themselves, then are re-sent once a day for the days set above. Unchecked = upload grades yourself with step 3. Grades only go to assignments made by step 2. You can also flip this from the Self-Check Hub. Takes effect at the next hourly check."]
 ];
+// Limited tries (Answer type choice, truefalse or short; see LIMITED TRIES): a Self-Check's rows, not a review game's.
+var TRY_SETTING_DEFS = [
+  ["Tries for multiple choice", "TRIES_CHOICE", "number", "Only for questions whose Answer type is choice. How many tries a student gets. A question's own Tries column (in the Questions tab) changes it for that question."],
+  ["Tries for true/false", "TRIES_TF", "number", "Only for questions whose Answer type is truefalse. How many tries a student gets (1 = one try, since there are only two choices)."],
+  ["Tries for short answers", "TRIES_SHORT", "number", "Only for questions whose Answer type is short (a one-line answer checked by its key words). How many tries a student gets."],
+  ["Credit by try", "TRY_CREDIT", "label", "The share of a question's points when the student's first right answer comes on try 1, try 2, try 3 ..., separated by commas, e.g. 100%, 90%, 80%. Tries past the end of the list use the last one. Only for choice, truefalse and short questions."],
+  ["Credit when never answered right", "TRIED_WRONG_CREDIT", "percent", "A choice, truefalse or short question the student tried but never answered right (out of tries, or stopped trying) earns this share of its points, e.g. 50%. A question never tried earns 0."],
+  ["Open a hint before trying again", "HINT_BEFORE_RETRY", "bool", "Checked = after a wrong try, a student has to open a hint (the light bulb: a clue, an example or a video) before trying again. Only for questions that have hints in the Questions tab. Hints never cost points. Unchecked = they can try again right away."]
+];
+// Shared by every kind (a review game and a Self-Check's choice questions).
+var SHUFFLE_CHOICES_DEF = ["Shuffle answer choices", "SHUFFLE_CHOICES", "bool", "Checked = each student sees the answer choices of a question in their own order (in a Self-Check, a new order after each wrong try). True/false is never shuffled. Unchecked = the order of the Choice columns."];
 // A review game's own Settings rows (only a review-game sheet has them).
 var GAME_SETTING_DEFS = [
   ["Students can start over", "START_OVER", "bool", "Checked = students see a Start Over button that clears their answers so they can try the whole game again. Their BEST try is their grade (in this sheet and in Classroom), and their best game points stay on the leaderboard. Unchecked = one try only (they can still leave and pick up where they left off)."],
   ["Shuffle question order", "SHUFFLE_QUESTIONS", "bool", "Checked = each student gets the questions in their own order, and a new order each time they start over. Unchecked = everyone gets the Questions tab's order."],
-  ["Shuffle answer choices", "SHUFFLE_CHOICES", "bool", "Checked = each student sees the answer choices of a question in their own order. Unchecked = the order of the Choice columns."],
   ["Website leaderboard address", "WEBSITE_BOARD_URL", "text", "The class website whose Leaderboard page shows Review game points, like https://vocabulary-room901.pages.dev (just the address, nothing after .dev)."],
   ["Website leaderboard key", "WEBSITE_BOARD_KEY", "text", "Paste the Review game key from that website's Leaderboard page (sign in there as the teacher, then open Review game key at the bottom). Then each student's best game points go on the website's Leaderboard when they finish a game, and every hour for games still in progress. Blank = the points show only inside this game."]
 ];
+if (triesPage_()) SETTING_DEFS = SETTING_DEFS.concat(TRY_SETTING_DEFS);
+if (SKILL_NAME !== "net-force-escape-room") SETTING_DEFS = SETTING_DEFS.concat([SHUFFLE_CHOICES_DEF]);
+/** Pages that show limited tries questions: the one- and two-column Self-Check pages (and the friction pages built on the two-column one),
+ *  not the review game (its own multiple choice) or the escape room (its page is an older copy without the choice buttons). */
+function triesPage_() { return SKILL_NAME !== "review-game" && SKILL_NAME !== "net-force-escape-room"; }
 if (SKILL_NAME === "review-game") SETTING_DEFS = SETTING_DEFS.concat(GAME_SETTING_DEFS);
 var AUTO_LABEL = "Automatic grades after the due date";
 var Q_COLS = { section: "Section title (starts a blue strip)", secLabel: "Section button text", secUrl: "Section button link",
@@ -311,8 +339,10 @@ var Q_COLS = { section: "Section title (starts a blue strip)", secLabel: "Sectio
                sentences: "Minimum sentences (blank = no minimum)",
                short: "Allow short answer (x = skip the minimum length)",
                points: "Points (blank = 1)",
-               right: "Right choice (a number, or 1, 3 for select all)", explain: "Explanation (shown after answering)" };
+               right: "Right choice (a number, or 1, 3 for select all)", explain: "Explanation (shown after answering)",
+               tries: "Tries (blank = Settings)", hintClue: "Hint: clue", hintEx: "Hint: example", hintVideo: "Hint: video or link" };
 var CHOICE_COLS = 5;   // Choice 1 ... Choice 5 columns in a new review game Questions tab (up to 6 are read)
+var TRY_CHOICE_COLS = 4;   // Choice 1 + Choice 1 feedback ... Choice 4 in a new Self-Check Questions tab (up to 6 are read)
 var BOX_HINT = "";   // Settings "Picture box hint text" (blank = no hint in picture boxes)
 var ARTICLE_DOC = "";   // Settings "Article Google Doc link" (a side-by-side reading page's article; see ARTICLE FROM A GOOGLE DOC)
 var ARTICLE_BUTTON = "";   // Settings "Article button name" (a side-by-side page's left side: its button and phone tab; blank = Article, or Directions on a page with a simulation built in)
@@ -429,8 +459,12 @@ function parseQuestions_(rows) {
   c.secImg = startsCol(/^section picture(?! caption)/); c.secCap = startsCol(/^section picture caption/);
   c.table = startsCol(/^table config/); c.sentences = startsCol(/^minimum sentences/); c.short = startsCol(/^allow short answer/); c.points = startsCol(/^points\b/);
   c.right = startsCol(/^right (choice|answer)/); c.explain = startsCol(/^explanation/);
-  var choiceCols = [];   // a review game's Choice 1, Choice 2 ... columns
-  for (var cn = 1; cn <= 6; cn++) { var cc = startsCol(new RegExp("^(choice|option) " + cn + "\\b")); if (cc !== -1) choiceCols.push(cc); }
+  c.tries = startsCol(/^tries\b/); c.hintClue = startsCol(/^hint:?\s*clue/); c.hintEx = startsCol(/^hint:?\s*example/); c.hintVideo = startsCol(/^hint:?\s*(video|link)/);
+  var choiceCols = [], fbCols = [];   // Choice 1, Choice 2 ... columns (a review game's, or a Self-Check's choice questions) and each one's feedback column (-1 = none)
+  for (var cn = 1; cn <= 6; cn++) {
+    var cc = startsCol(new RegExp("^(choice|option) " + cn + "\\b(?!\\s*feedback)"));
+    if (cc !== -1) { choiceCols.push(cc); fbCols.push(startsCol(new RegExp("^(choice|option) " + cn + "\\s+feedback"))); }
+  }
   var ideas = [], misCols = [];
   for (var n = 1; n <= 20; n++) {
     var h = col("Idea " + n + " hint"), k = col("Idea " + n + " key words");
@@ -464,18 +498,41 @@ function parseQuestions_(rows) {
     }
     var q = cell(r, c.q);
     if (!q) continue;
-    var ty = cell(r, c.type).toLowerCase();
-    var game = isGame_() ? choicesFrom_(r, choiceCols, cell(r, c.right), "Q" + (items.length + 1) + " (row " + rowNo + ")", warnings) : null;
+    var ty = cell(r, c.type).toLowerCase(), at = "Q" + (items.length + 1) + " (row " + rowNo + ")";
+    var game = isGame_() ? choicesFrom_(r, choiceCols, cell(r, c.right), at, warnings) : null;
     if (isGame_() && !game) continue;   // a review game only has multiple choice questions (choicesFrom_ said why this row is left out)
+    var tk = isGame_() ? "" : triedKind_(ty);   // choice, truefalse or short: limited tries (see LIMITED TRIES)
+    if (tk && !triesPage_()) { warnings.push(at + ": Answer type \"" + ty + "\" (limited tries) needs the one-column or two-column Self-Check page, so it's a typed answer here."); tk = ""; ty = ""; }
+    var picks = tk === "choice" || tk === "truefalse" ? triedChoices_(r, choiceCols, fbCols, cell(r, c.right), tk, at, warnings) : null;
+    if ((tk === "choice" || tk === "truefalse") && !picks) continue;   // too few choices, or no usable Right choice (triedChoices_ said why)
     if (pendingSec) { pendingSec.before = items.length; sections.push(pendingSec); pendingSec = null; }
     var item = { q: q, criteria: [] };
     if (game) {
       item.choices = game.choices; item.right = game.right;
       if (cell(r, c.explain)) item.explain = cell(r, c.explain).slice(0, 1000);
       ty = "";
-    } else if (/^(choice|choices|multiple choice|mc|mcq)$/.test(ty)) {
-      warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" only works in a review game sheet, so it's a typed answer here.");
+    } else if (tk) {
+      item.kind = tk;
+      if (picks) { item.choices = picks.choices; item.right = picks.right; }
+      if (cell(r, c.explain)) item.explain = cell(r, c.explain).slice(0, 1000);
+      else warnings.push(at + " has no Explanation, so students only see that it's done. Type a short reason in Explanation (they see it once they get it right or run out of tries).");
+      var tv = cell(r, c.tries);
+      if (tv !== "") {
+        if (/^\d+$/.test(tv) && +tv >= 1 && +tv <= 10) item.tries = +tv;
+        else warnings.push(at + ": Tries \"" + tv + "\" isn't a whole number from 1 to 10, so this question uses Settings.");
+      }
       ty = "";
+    }
+    var hints = {}, hv = cell(r, c.hintVideo);
+    if (cell(r, c.hintClue)) hints.clue = cell(r, c.hintClue).slice(0, 1000);
+    if (cell(r, c.hintEx)) hints.example = cell(r, c.hintEx).slice(0, 1000);
+    if (hv) {
+      if (/^https:\/\/[^\s"'<>\\]+$/i.test(hv)) hints.video = hv;
+      else warnings.push(at + ": the Hint: video or link cell must be an https:// link, so it's left out.");
+    }
+    if (Object.keys(hints).length) {
+      if (tk) item.hints = hints;
+      else if (!game) warnings.push(at + " has hints, but hints only show on choice, truefalse and short questions (Answer type), so they're ignored.");
     }
     if (isDrawType_(ty)) { item.upload = true; item.draw = true; }
     else if (isUploadType_(ty)) item.upload = true;
@@ -484,7 +541,7 @@ function parseQuestions_(rows) {
       if (tc.table) item.table = tc.table;
       else warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): " + tc.error + " So it's a typed answer for now.");
     }
-    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, draw = drawing pad, upload = picture upload), so it's a typed answer.");
+    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
     var ms = parseInt(cell(r, c.sentences), 10);
     if (ms > 0) item.minSentences = Math.min(ms, 20);
     if (/^(x|yes|y|true|1)$/i.test(cell(r, c.short))) item.short = true;
@@ -533,6 +590,15 @@ function parseQuestions_(rows) {
       if (need.every(function (g) { return g[0] === "!"; })) warnings.push(at + " has only NOT words, so it shows up on every answer that leaves those words out. Add the words that show the wrong idea, like  second, sec + NOT cm, meter.");
       (item.mis = item.mis || []).push({ nudge: hint || "Part of your answer isn't right. Reread it and rethink that part.", need: need });
     });
+    if (item.kind && item.kind !== "short") {   // choice and true/false: graded by Right choice only
+      if (item.criteria.length || item.mis) warnings.push(at + " is a " + (item.kind === "choice" ? "multiple choice" : "true/false") + " question, so its Idea and Misconception key words are ignored (Right choice grades it).");
+      if (item.boxes) warnings.push(at + " is a " + (item.kind === "choice" ? "multiple choice" : "true/false") + " question, so its picture boxes are ignored.");
+      item.criteria = []; delete item.mis; delete item.boxes;
+    }
+    if (item.kind === "short") {
+      if (item.boxes) { warnings.push(at + " is a short answer (one line), so its picture boxes are ignored."); delete item.boxes; }
+      if (!item.criteria.length) warnings.push(at + " is a short answer with no key words, so any answer counts as right on the first try. Type the right answer's key words in Idea 1 key words.");
+    }
     if (item.boxes) {
       if (item.boxes.length !== item.criteria.length) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has " + item.boxes.length + " boxes on the picture but " + item.criteria.length + " ideas with key words. Box 1 uses Idea 1, box 2 uses Idea 2, and so on, so these should match.");
       if (!item.img) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has picture boxes but no picture yet, so students see the boxes as a plain list until you paste the picture link.");
@@ -550,7 +616,7 @@ function parseQuestions_(rows) {
       if (item.criteria.length) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") is a picture upload, so its key words are ignored (uploads aren't graded).");
       if (item.boxes) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") is a picture upload, so its picture boxes are ignored.");
       item.criteria = []; delete item.boxes;
-    } else if (!item.criteria.length && !item.table && !item.choices) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has no key words, so any answer at least the minimum length counts as green.");
+    } else if (!item.criteria.length && !item.table && !item.choices && !item.kind) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has no key words, so any answer at least the minimum length counts as green.");
     if (item.mis && (item.upload || item.table || item.boxes)) {
       warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): misconceptions only check typed answers (not tables, picture boxes or uploads), so this question's are ignored.");
       delete item.mis;
@@ -609,6 +675,72 @@ function choicesFrom_(r, cols, rightText, at, warnings) {
   });
   if (!right.length) { warnings.push(at + ": the Right choice cell" + (rightText ? " (\"" + rightText + "\") doesn't name one of its " + choices.length + " choices" : " is empty") + ", so the game leaves it out. Type the number of the right choice, like 2 (or 1, 3 when more than one is right)."); return null; }
   return { choices: choices, right: right.sort(function (a, b) { return a - b; }) };
+}
+
+/** A Self-Check's Answer type with limited tries: "choice", "truefalse" or "short" (see LIMITED TRIES), or "" for any other. */
+function triedKind_(ty) {
+  ty = String(ty || "").trim().toLowerCase();
+  if (/^(choice|choices|multiple choice|multiple-choice|mc|mcq)$/.test(ty)) return "choice";
+  if (/^(truefalse|true\/false|true-false|true false|true or false|tf|t\/f)$/.test(ty)) return "truefalse";
+  if (/^(short|short answer)$/.test(ty)) return "short";
+  return "";
+}
+/** A Self-Check choice or true/false row: { choices: [{ t, img, fb }], right: [0-based] }, or null (and a warning) when students can't
+ *  answer it yet. fb = what a student sees after picking that wrong choice (its "Choice N feedback" cell). A true/false question's
+ *  choices are always TRUE and FALSE (its Choice 1 and 2 cells can stay blank; Choice 1 feedback is for TRUE, Choice 2 feedback for FALSE). */
+function triedChoices_(r, cols, fbCols, rightText, kind, at, warnings) {
+  function text(ci) { return ci == null || ci === -1 ? "" : String(r[ci] == null ? "" : r[ci]).trim(); }
+  var choices = [], place = {}, colOf = [], what = kind === "truefalse" ? "true/false" : "multiple choice";
+  if (kind === "truefalse") {
+    choices = [{ t: "TRUE" }, { t: "FALSE" }]; place = { 0: 0, 1: 1 }; colOf = [1, 2];
+    [0, 1].forEach(function (k) { var f = text(fbCols[k]); if (f) choices[k].fb = f.slice(0, 1000); });
+  } else {
+    if (!cols.length) { warnings.push(at + " is a multiple choice question, but the Questions tab has no Choice 1, Choice 2 ... columns. Run Set up / repair sheets to add them."); return null; }
+    cols.forEach(function (ci, k) {
+      var v = text(ci), f = text(fbCols[k]);
+      if (!v) { if (f) warnings.push(at + ": Choice " + (k + 1) + " feedback has no Choice " + (k + 1) + " to go with, so it's ignored."); return; }
+      var pic = /^\S+$/.test(v) && /^https:\/\//.test(v) ? imageUrl_(v) : "";
+      var ch = pic ? { t: "", img: v } : { t: v.slice(0, 500) };
+      if (f) ch.fb = f.slice(0, 1000);
+      place[k] = choices.length; colOf.push(k + 1);
+      choices.push(ch);
+    });
+    if (choices.length < 2) { warnings.push(at + " is a multiple choice question with " + (choices.length ? "only one choice" : "no choices") + ", so students don't see it yet. Type at least two choices in the Choice columns."); return null; }
+  }
+  var right = rightChoices_(rightText, choices, place, kind);
+  if (!right.length) {
+    warnings.push(at + ": the Right choice cell" + (rightText ? " (\"" + rightText + "\") doesn't match one of its " + choices.length + " choices" : " is empty") + ", so students don't see this " + what + " question yet. " +
+      (kind === "truefalse" ? "Type TRUE or FALSE." : "Type the number of the right choice, like 2 (or the right choice's own words)."));
+    return null;
+  }
+  if (right.length > 1) { warnings.push(at + ": the Right choice cell names " + right.length + " choices, but a Self-Check question has one right choice, so only choice " + colOf[right[0]] + " counts."); right = right.slice(0, 1); }
+  if (choices[right[0]].fb) warnings.push(at + ": Choice " + colOf[right[0]] + " is the right choice, so its feedback is never shown (Choice feedback is for wrong choices; the Explanation is shown instead).");
+  return { choices: choices, right: right };
+}
+/** Right choice cell -> [0-based choices]: numbers (2, or 1, 3), letters (B), or the right choice's own words (case doesn't matter);
+ *  for true/false also TRUE / FALSE / T / F (1 = TRUE, 2 = FALSE). place = column order -> place in choices (an empty Choice cell is skipped). */
+function rightChoices_(rightText, choices, place, kind) {
+  var s = String(rightText == null ? "" : rightText).trim(), out = [];
+  if (!s) return out;
+  if (kind === "truefalse") { var tf = /^(true|t|1)$/i.test(s) ? 0 : /^(false|f|2)$/i.test(s) ? 1 : -1; return tf === -1 ? [] : [tf]; }
+  if (/^([1-9]|[a-f])(\s*([,;&+]|\band\b)\s*([1-9]|[a-f]))*$/i.test(s)) {
+    s.toUpperCase().split(/[\s,;&+]+|\bAND\b/).forEach(function (p) {
+      var k = /^\d$/.test(p) ? Number(p) - 1 : /^[A-F]$/.test(p) ? p.charCodeAt(0) - 65 : -1, n = place.hasOwnProperty(k) ? place[k] : -1;
+      if (n >= 0 && out.indexOf(n) === -1) out.push(n);
+    });
+    if (out.length) return out;
+  }
+  var low = s.toLowerCase().replace(/\s+/g, " ");
+  choices.forEach(function (ch, n) { if (!ch.img && ch.t.toLowerCase().replace(/\s+/g, " ") === low) out.push(n); });
+  return out;
+}
+/** A number question: a short question (limited tries) whose Idea key words (every word that isn't after NOT) are all numbers.
+ *  Its answers are read as numbers (25, 25 J, 25J and 25.0 all read 25), its misconceptions' numbers too. Worked out once per item. */
+function isNumberQ_(item) {
+  if (item.numberQ_ != null) return item.numberQ_;
+  var terms = [];
+  if (item.kind === "short" && !isGame_()) item.criteria.forEach(function (cr) { cr.need.forEach(function (g) { if (g[0] !== "!") terms = terms.concat(g); }); });
+  return (item.numberQ_ = terms.length > 0 && terms.every(function (t) { return /^-?\d+(\.\d+)?$/.test(t); }));
 }
 
 /** Data table + graph (Answer type "table"). The Table config cell is JSON:
@@ -1008,11 +1140,19 @@ function seedConfigTabs_() {
   if (isGame_()) { seedGameQuestions_(ss, qs); return; }
   if (!qs || qs.getLastRow() < 2) {
     qs = qs || ss.insertSheet(SH_QUESTIONS, 0);
-    var ideaCount = IDEA_COLS, misCount = MIS_COLS;
-    ITEMS.forEach(function (it) { ideaCount = Math.max(ideaCount, it.criteria.length); misCount = Math.max(misCount, (it.mis || []).length); });
+    var ideaCount = IDEA_COLS, misCount = MIS_COLS, choiceCount = TRY_CHOICE_COLS;
+    ITEMS.forEach(function (it) {
+      ideaCount = Math.max(ideaCount, it.criteria.length); misCount = Math.max(misCount, (it.mis || []).length);
+      if (it.kind && it.choices) choiceCount = Math.max(choiceCount, Math.min(6, it.choices.length));
+    });
     var head = [Q_COLS.section, Q_COLS.secLabel, Q_COLS.secUrl, Q_COLS.secImg, Q_COLS.secCap, Q_COLS.q, Q_COLS.img, Q_COLS.cap, Q_COLS.btnLabel, Q_COLS.btnUrl, Q_COLS.boxes];
     for (var n = 1; n <= ideaCount; n++) head.push("Idea " + n + " hint", "Idea " + n + " key words");
     head.push(Q_COLS.type, Q_COLS.table, Q_COLS.sentences, Q_COLS.short, Q_COLS.points);
+    var tryCols = triesPage_();   // LIMITED TRIES: choice and truefalse questions' columns, then every tried question's
+    if (tryCols) {
+      for (n = 1; n <= choiceCount; n++) head.push("Choice " + n, "Choice " + n + " feedback");
+      head.push(Q_COLS.right, Q_COLS.explain, Q_COLS.tries, Q_COLS.hintClue, Q_COLS.hintEx, Q_COLS.hintVideo);
+    }
     for (n = 1; n <= misCount; n++) head.push("Misconception " + n + " hint", "Misconception " + n + " key words");
     var secAt = {}; SECTIONS.forEach(function (s) { secAt[s.before] = s; });
     var out = [head];
@@ -1024,9 +1164,19 @@ function seedConfigTabs_() {
         var cr = it.criteria[n];
         row.push(cr ? (cr.row ? "[" + cr.row + "] " : "") + cr.nudge : "", cr ? keyWordsText_(cr.need) : "");
       }
-      row.push(it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : "",
+      row.push(it.kind ? it.kind : it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : "",
                it.table ? JSON.stringify(it.table.graph ? { graph: it.table.graph } : it.table.lab ? { lab: it.table.lab } : tableConfigOut_(it.table)) : "",
                it.minSentences || "", it.short ? "x" : "", it.points == null ? "" : it.points);
+      if (tryCols) {
+        var tfc = it.kind === "truefalse" ? [{ t: "TRUE" }, { t: "FALSE" }].map(function (c, k) { var own = (it.choices || [])[k]; return own && own.fb ? { t: c.t, fb: own.fb } : c; }) : null;
+        for (var cn = 0; cn < choiceCount; cn++) {
+          var ch = it.kind && it.kind !== "short" ? (tfc || it.choices || [])[cn] : null;
+          row.push(ch ? (ch.img || ch.t) : "", ch && ch.fb ? ch.fb : "");
+        }
+        var hn = it.kind && it.hints ? it.hints : {};
+        row.push(it.kind && it.right ? (it.kind === "truefalse" ? (it.right[0] === 0 ? "TRUE" : "FALSE") : it.right.map(function (x) { return x + 1; }).join(", ")) : "",
+                 it.kind ? it.explain || "" : "", it.kind && it.tries ? it.tries : "", hn.clue || "", hn.example || "", hn.video || "");
+      }
       for (var m = 0; m < misCount; m++) {
         var mc = (it.mis || [])[m];
         row.push(mc ? mc.nudge : "", mc ? keyWordsText_(mc.need) : "");
@@ -1044,9 +1194,13 @@ function seedConfigTabs_() {
     head.forEach(function (h, i) {   // misconception columns: key words on light red, so they don't look like the ideas
       if (/^Misconception \d+ hint$/.test(h)) qs.setColumnWidth(i + 1, 280);
       if (/^Misconception \d+ key words$/.test(h)) { qs.setColumnWidth(i + 1, 240); qs.getRange(1, i + 1, out.length, 1).setBackground("#f4cccc"); }
+      var tw = tryColWidth_(h);   // LIMITED TRIES columns
+      if (tw) qs.setColumnWidth(i + 1, tw);
+      if (h === Q_COLS.right) qs.getRange(1, i + 1, out.length, 1).setBackground("#d9ead3").setNumberFormat("@");   // the right choice in green, kept as typed
     });
     qs.getRange(1, 1, 1, head.length).setBackground("#c9daf8");
     var notes = head.map(function (h) {
+      if (tryColNote_(h)) return tryColNote_(h);
       if (/^Misconception \d+ hint$/.test(h)) return MIS_HINT_NOTE_;
       if (/^Misconception \d+ key words$/.test(h)) return MIS_KEYS_NOTE_;
       if (h === Q_COLS.section) return "Type a title here on the FIRST question of a section to start a blue strip. Leave blank otherwise.";
@@ -1091,7 +1245,37 @@ function seedConfigTabs_() {
         if (qs.getLastRow() > 1) qs.getRange(2, lastC, qs.getLastRow() - 1, 1).setBackground("#f4cccc");
       }
     }
+    // LIMITED TRIES (2026.11.06): choice, truefalse and short questions
+    if (!triesPage_()) return;
+    var addTry = function (label) { addCol(label, tryColNote_(label)); qs.setColumnWidth(lastC, tryColWidth_(label) || 170); };
+    if (!has(/^(choice|option) 1\b(?!\s*feedback)/)) for (var cn = 1; cn <= TRY_CHOICE_COLS; cn++) { addTry("Choice " + cn); addTry("Choice " + cn + " feedback"); }
+    if (!has(/^right (choice|answer)/)) { addTry(Q_COLS.right); qs.getRange(1, lastC, Math.max(1, qs.getLastRow()), 1).setNumberFormat("@"); }
+    if (!has(/^explanation/)) addTry(Q_COLS.explain);
+    if (!has(/^tries\b/)) addTry(Q_COLS.tries);
+    if (!has(/^hint:?\s*clue/)) addTry(Q_COLS.hintClue);
+    if (!has(/^hint:?\s*example/)) addTry(Q_COLS.hintEx);
+    if (!has(/^hint:?\s*(video|link)/)) addTry(Q_COLS.hintVideo);
   }
+}
+/** The notes on the LIMITED TRIES columns of a Self-Check's Questions tab ("" = not one of them). */
+function tryColNote_(h) {
+  h = String(h || "");
+  if (/^Choice \d+$/.test(h)) return "Only for Answer type choice: one answer choice (its words, or a picture link alone). Students see the choices as buttons, shuffled for each student (Settings: Shuffle answer choices). Leave extra Choice cells blank. A truefalse question's choices are always TRUE and FALSE, so its Choice cells can stay blank.";
+  if (/^Choice \d+ feedback$/.test(h)) return "OPTIONAL, for choice and truefalse questions: what a student sees after picking this choice when it's WRONG. Coach them toward the right idea, e.g. That's mass x velocity (7 x 4). Did you square the velocity? On a truefalse question, Choice 1 feedback is for TRUE and Choice 2 feedback for FALSE. The right choice's feedback is never shown (the Explanation is).";
+  if (h === Q_COLS.right) return "For choice and truefalse questions: the number of the right choice (2 = Choice 2), or the right choice's own words. A truefalse question: TRUE or FALSE. One right choice per question. Students never see it until they answer right or run out of tries.";
+  if (h === Q_COLS.explain) return "For choice, truefalse and short questions: shown once the question is done (answered right, or out of tries), like a short reason why the right answer is right. Never shown before that.";
+  if (h === Q_COLS.tries) return "OPTIONAL, for choice, truefalse and short questions: how many tries this question gets (a whole number, 1 to 10). Blank = Settings (Tries for multiple choice, Tries for true/false, Tries for short answers).";
+  if (h === Q_COLS.hintClue) return "OPTIONAL, for choice, truefalse and short questions: a clue students can open from the light bulb (Give me a clue). Point toward the answer without giving it away. Hints never cost points. A question with no hints has no light bulb.";
+  if (h === Q_COLS.hintEx) return "OPTIONAL, for choice, truefalse and short questions: a worked example of a similar problem, opened from the light bulb (Show me an example).";
+  if (h === Q_COLS.hintVideo) return "OPTIONAL, for choice, truefalse and short questions: an https:// link (a YouTube video is fine) that opens in a new tab from the light bulb (Watch a video).";
+  return "";
+}
+function tryColWidth_(h) {
+  h = String(h || "");
+  if (/^Choice \d+$/.test(h)) return 190;
+  if (/^Choice \d+ feedback$/.test(h)) return 280;
+  return { "Right choice (a number, or 1, 3 for select all)": 130, "Explanation (shown after answering)": 300, "Tries (blank = Settings)": 90,
+           "Hint: clue": 260, "Hint: example": 280, "Hint: video or link": 220 }[h] || 0;
 }
 /** A review game's Questions tab: only what a multiple choice question needs. A new tab gets the starter questions;
  *  an existing one only gets the Choice / Right choice / Explanation columns it is missing. */
@@ -1151,7 +1335,7 @@ var POINTS_NOTE_ = "OPTIONAL: what this question is worth. Blank = 1, the same a
 var MIS_HINT_NOTE_ = "OPTIONAL: what students see when their answer shows this WRONG idea (the misconception's key words are in it), e.g. Seconds only measure time. Speed also needs a distance unit, like cm. Coach them toward the right idea instead of just saying it's wrong. They see it as  Check this: ...  and the box can't turn green until they fix that part.";
 var MIS_KEYS_NOTE_ = "OPTIONAL: words that show a common WRONG idea (misconception) for this question. Typed the same way as the Idea key words: commas mean OR, + means AND, capital NOT forbids words. Example for the units of speed (a time unit with no distance unit):\n  second, sec + NOT cm, meter, mile, per\nWhen an answer has these words, the student sees this misconception's hint, and the box can't turn green (it earns at most the yellow share of its points). Only typed answers are checked (not tables, picture boxes or uploads). Leave blank when there's no common wrong idea. Try it with Self-Check > Test an answer against the key.";
 var TABLE_NOTE_ = "Only for Answer type  table. JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
-var TYPE_NOTE_ = "Leave blank for a typed answer. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
+var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count). These show their Explanation once done, and their Hint columns under a light bulb. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
 
 /** Existing Settings tab: add any settings that are newer than the tab (existing values are never changed).
     Returns how many rows were added. */
@@ -1210,7 +1394,8 @@ function checkQuestionsTab() {
   ITEMS.forEach(function (it) { if (ungraded_(it)) return; pointsSum += it.points == null ? 1 : it.points; if (it.points != null) anyPoints = true; });
   if (anyPoints && Math.abs(pointsSum - MAX_POINTS) > 0.001) CONFIG_WARNINGS_.push("Points: the questions are worth " + (Math.round(pointsSum * 100) / 100) + " in all, but Points possible (Settings) is " + MAX_POINTS + ". The grade is scaled to Points possible, so they don't have to match, but they usually should.");
   SpreadsheetApp.getUi().alert((isGame_() ? "Found " + ITEMS.length + " multiple choice questions (" + ITEMS.filter(function (it) { return it.right.length > 1; }).length + " of them select all that apply), " + SECTIONS.length + " sections." :
-    "Found " + ITEMS.length + " questions, " + SECTIONS.length + " sections, " + crit + " key ideas, " + mis + (mis === 1 ? " misconception" : " misconceptions") + ".") + "\n\n" +
+    "Found " + ITEMS.length + " questions, " + SECTIONS.length + " sections, " + crit + " key ideas, " + mis + (mis === 1 ? " misconception" : " misconceptions") + "." +
+    (ITEMS.some(isTried_) ? " " + ITEMS.filter(isTried_).length + " of the questions have limited tries (" + ["choice", "truefalse", "short"].map(function (k) { var n = ITEMS.filter(function (it) { return isTried_(it) && it.kind === k; }).length; return n ? n + " " + k : ""; }).filter(String).join(", ") + ")." : "")) + "\n\n" +
     (CONFIG_WARNINGS_.length ? "Check these:\n• " + CONFIG_WARNINGS_.join("\n• ") : "No problems found."));
 }
 
@@ -1256,7 +1441,7 @@ function getStudentState(token) {
   var email = who.email;
   var rec = readRecordQuick_(email) || newRecord_();
   var results = [];
-  for (var i = 0; i < ITEMS.length; i++) results.push(feedbackFor_(i, rec.answers[i]));
+  for (var i = 0; i < ITEMS.length; i++) results.push(isTried_(ITEMS[i]) ? triedFeedback_(i, rec) : feedbackFor_(i, rec.answers[i]));   // limited tries: never an open question's answer
   var roster = readRoster_();
   var due = dueForStudent_(email, roster, true), pastDue = !!due && Date.now() > due;   // never waits on Classroom
   var close = closeForStudent_(email, roster, true), closed = isClosed_(close);       // end of the quarter (see QUARTER CLOSE)
@@ -1283,7 +1468,8 @@ function getStudentState(token) {
     now: Date.now(),
     showGrade: SHOW_GRADE_TO_STUDENTS,
     showPoints: !!SHOW_POINTS,   // the "2 points" tag next to each question (the page still uses Points for the running grade)
-    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, onTime: rec.onTime, best: rec.best }, due).grade, maxPoints: MAX_POINTS,
+    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best }, due).grade, maxPoints: MAX_POINTS,
+    shuffleChoices: !!SHUFFLE_CHOICES,   // LIMITED TRIES: the page shuffles choice questions' buttons per student (true/false never)
     minLength: MIN_ANSWER_LENGTH,
     blockPaste: !!BLOCK_PASTE,
     numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE),
@@ -1332,6 +1518,7 @@ function gradeAnswer(idx, answer, token) {
   idx = Number(idx);
   if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
   if (ITEMS[idx].upload) throw new Error("This question takes a picture, not typing. Reload the page to get the upload box. If you still don't see one, add your picture from a school Chromebook.");
+  if (isTried_(ITEMS[idx])) throw new Error("This question has a limited number of tries now. Reload the page.");   // only tryAnswer answers them
   if (ITEMS[idx].choices) throw new Error("This question is part of a review game. Reload the page.");   // one try each: only answerChoice grades them
   var email = currentStudent_(token);   // must be signed in
   var close = closeForStudent_(email, readRoster_(), true);   // never waits on Classroom
@@ -1346,6 +1533,7 @@ function checkAnswer(idx, answer, token) {
   idx = Number(idx);
   if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
   if (ITEMS[idx].upload) throw new Error("This question takes a picture, not typing. Reload the page to get the upload box. If you still don't see one, add your picture from a school Chromebook.");
+  if (isTried_(ITEMS[idx])) throw new Error("This question has a limited number of tries now. Reload the page.");   // only tryAnswer saves them
   if (ITEMS[idx].choices) throw new Error("This question is part of a review game. Reload the page.");   // one try each: only answerChoice saves them
   answer = String(answer == null ? "" : answer).slice(0, 5000).trim();
   var email = currentStudent_(token);
@@ -1386,7 +1574,7 @@ function saveDraft(idx, text, token) {
   loadConfig_();
   idx = Number(idx);
   if (!(idx >= 0 && idx < ITEMS.length)) throw new Error("Unknown question.");
-  if (ITEMS[idx].upload || ITEMS[idx].choices) return { saved: false, locked: true };   // pictures go through uploadPicture, review game answers through answerChoice
+  if (ITEMS[idx].upload || ITEMS[idx].choices || isTried_(ITEMS[idx])) return { saved: false, locked: true };   // pictures go through uploadPicture, review game answers through answerChoice, limited tries through tryAnswer (an old page stops autosaving it)
   text = String(text == null ? "" : text).slice(0, 5000).trim();
   var email = currentStudent_(token);
   var roster = readRoster_();
@@ -1423,6 +1611,218 @@ function turnIn(token) {
     writeRecord_(email, rec);
     renderLiveRow_(email, rec, roster, due);
     return { turnedIn: rec.turnedIn, locked: !!LOCK_AFTER_TURN_IN, grade: lateGrade_(rec, due).grade };
+  } finally {
+    unlock_(lock);
+  }
+}
+
+// ============================== LIMITED TRIES ==============================
+// Answer type choice (multiple choice), truefalse or short (a one-line typed answer checked by its key words), in a Self-Check
+// (never a review game). Donny, 2026-11-06: it replaces a Google Forms practice set where students clicked choices until one turned
+// green. Each question gets a few tries (Settings: Tries for multiple choice 2, true/false 1, short answers 3; a question's Tries
+// column changes it) and earns less with each one: Credit by try (100%, 90%, 80%) for the try its first right answer came on,
+// Credit when never answered right (50%) for a question tried but never right, 0 for one never tried (tryState_). After a wrong
+// try the student opens a hint (the light bulb: a clue, an example or a video, from the question's Hint columns) before trying
+// again (Settings: Open a hint before trying again). Hints never cost points.
+// tryAnswer is the only way to answer these (inside the script lock, so every try is counted once); openHint records each hint.
+// rec.tries[idx] = { a: [each try's answer, in order], h: [{ k: "clue" | "example" | "video", after: tries used when it was opened }],
+// id: the last try's attemptId }; rec.answers[idx] = the latest try; rec.statuses[idx] = the question's color (green = right,
+// yellow = tried with tries left, red = out of tries). Grades and colors always come from the tries with today's key, so fixing a
+// Right choice and running Recalculate all grades re-grades them. The page never gets an open question's right answer or
+// Explanation (triedFeedback_), and never a choice's feedback until that choice is picked.
+function isTried_(it) { return !!(it && it.kind) && triesPage_(); }
+/** The tries a question gets: its Tries column, else the Settings row for its kind (1 to 10). */
+function maxTries_(it) {
+  var n = Math.floor(Number(it.tries || (it.kind === "choice" ? TRIES_CHOICE : it.kind === "truefalse" ? TRIES_TF : TRIES_SHORT)));
+  return n >= 1 ? Math.min(n, 10) : 1;
+}
+/** Settings "Credit by try" ("100%, 90%, 80%") -> [1, 0.9, 0.8]. */
+function tryCredits_() {
+  var out = [];
+  String(TRY_CREDIT == null ? "" : TRY_CREDIT).split(/[,;\s]+/).forEach(function (p) {
+    var n = parseFloat(p);
+    if (isNaN(n)) return;
+    if (/%$/.test(p) || n > 1) n = n / 100;
+    out.push(Math.max(0, Math.min(1, n)));
+  });
+  return out.length ? out : [1];
+}
+/** The share of a question's points for a first right answer on try n (tries past the list use its last one). */
+function tryCredit_(n) { var c = tryCredits_(); return c[Math.min(Math.max(1, n), c.length) - 1]; }
+function wrongCredit_() { var p = Number(TRIED_WRONG_CREDIT); return isNaN(p) ? 0 : Math.max(0, Math.min(1, p > 1 ? p / 100 : p)); }
+
+/** One try graded on its own: { status, message } (a choice question's answer is the choice's number, from 1). Never names the right choice. */
+function tryGrade_(item, answer) {
+  answer = String(answer == null ? "" : answer).trim();
+  if (!answer) return { status: "blank", message: "" };
+  if (item.kind === "short") return shortGrade_(item, answer);
+  var n = choicePicks_(item, answer)[0];
+  if (n == null) return { status: "blank", message: "" };
+  if (n === item.right[0]) return { status: "correct", message: "That's right!" };
+  return { status: "incorrect", message: "You're on the right track." + (item.choices[n].fb ? " " + item.choices[n].fb : "") };
+}
+/** A short answer's try: green only with every idea and no misconception (no minimum length). */
+function shortGrade_(item, answer) {
+  var res = gradeLocal_(item, answer), mis = misconceptionsIn_(item, answer);
+  if (!res.total) return mis.length ? { status: "partial", message: "You're on the right track. Check this: " + mis.join(" ") } : { status: "correct", message: "That's right!" };
+  if (res.status === "correct" && !mis.length) return { status: "correct", message: "That's right!" };
+  if (mis.length) return { status: res.status === "incorrect" ? "incorrect" : "partial", message: "You're on the right track. Check this: " + mis.join(" ") };
+  return { status: res.status, message: (res.status === "partial" ? "Good start! Still missing: " : "You're on the right track. ") + res.unmet.join(" ") };
+}
+/** Every number in an answer: "25 J", "25J", "25.0" and " 25 " all give [25]; "1,025" gives [1025]. */
+function numbersIn_(raw) {
+  var s = String(raw == null ? "" : raw).replace(/(\d),(?=\d{3}(\D|$))/g, "$1"), out = [], m, re = /-?(\d+(\.\d*)?|\.\d+)/g;
+  while ((m = re.exec(s))) { var v = Number(m[0].replace(/\.$/, "")); if (isFinite(v)) out.push(v); }
+  return out;
+}
+/** A number for "Type a number, like 25." that isn't one of this question's key words (it would give the answer away). */
+function exampleNumber_(item) {
+  var keys = [];
+  item.criteria.concat(item.mis || []).forEach(function (cr) { cr.need.forEach(function (g) { keys = keys.concat(g); }); });
+  var pick = [25, 12, 40, 7, 3].filter(function (n) { return keys.indexOf(String(n)) === -1; })[0];
+  return pick == null ? 9 : pick;
+}
+/** A question's tries so far, graded with today's key: used, max, left, done, rightTry (the try its first right answer came on, 0 = none),
+ *  needHint (a hint must be opened before the next try), credit (the share of its points earned) and status (its color). */
+function tryState_(idx, t) {
+  var item = ITEMS[idx], a = t && t.a ? t.a : [], max = maxTries_(item), rightTry = 0;
+  for (var k = 0; k < a.length && !rightTry; k++) if (tryGrade_(item, a[k]).status === "correct") rightTry = k + 1;
+  var used = a.length, done = !!rightTry || used >= max;
+  var hinted = (t && t.h ? t.h : []).some(function (h) { return h.after >= used; });
+  var needHint = !!HINT_BEFORE_RETRY && !!(item.hints && Object.keys(item.hints).length) && !done && used > 0 && !hinted;
+  return { used: used, max: max, left: done ? 0 : Math.max(0, max - used), done: done, rightTry: rightTry, needHint: needHint,
+           credit: rightTry ? tryCredit_(rightTry) : used ? wrongCredit_() : 0,
+           status: rightTry ? "correct" : !used ? "blank" : done ? "incorrect" : "partial" };
+}
+/** What the page gets for a question with tries (getStudentState, tryAnswer): its color and feedback, tries { used, max, left, needHint,
+ *  done, rightTry }, the wrong choices picked so far (numbers from 1), credit, and only once it's done, the right choice and the Explanation. */
+function triedFeedback_(idx, rec) {
+  var item = ITEMS[idx], t = rec && rec.tries ? rec.tries[idx] : null, st = tryState_(idx, t), a = t && t.a ? t.a : [];
+  var out = { status: st.status, message: "", credit: st.credit,
+              tries: { used: st.used, max: st.max, left: st.left, needHint: st.needHint, done: st.done, rightTry: st.rightTry } };
+  if (item.choices) out.wrong = a.map(function (x) { return choicePicks_(item, x)[0]; })
+                                 .filter(function (n, k, all) { return n != null && n !== item.right[0] && all.indexOf(n) === k; }).map(function (n) { return n + 1; });
+  if (!st.used) return out;
+  var last = a[st.used - 1];
+  if (st.rightTry) {
+    out.message = "That's right!" + (st.rightTry > 1 ? " Right on try " + st.rightTry + ", so it earns " + Math.round(st.credit * 100) + "%." : "");
+  } else if (st.done) {
+    var picked = item.choices ? item.choices[choicePicks_(item, last)[0]] : null;
+    out.message = (picked && picked.fb ? picked.fb + " " : "") + "You're out of tries for this one." + (item.choices ? " The right answer is shown in green." : "");
+  } else {
+    out.message = tryGrade_(item, last).message;
+  }
+  if (st.done) {
+    if (item.choices) out.right = item.right[0] + 1;
+    if (item.explain) { out.explain = item.explain; out.message += " " + item.explain; }
+  }
+  return out;
+}
+/** A try's answer as the teacher reads it: "D. mass and velocity", "FALSE", or the typed words. */
+function answerText_(item, a) {
+  if (!item.choices) return String(a == null ? "" : a);
+  var n = choicePicks_(item, a)[0];
+  return n == null ? "" : item.kind === "truefalse" ? item.choices[n].t : choiceText_(item, a);
+}
+/** Live Results cell: "D. mass and velocity | right on try 2 | hint: clue", "C. 28 J | out of tries (2) | hints: clue, video". */
+function triedCellText_(idx, rec) {
+  var item = ITEMS[idx], t = rec.tries ? rec.tries[idx] : null;
+  if (!t || (!(t.a || []).length && !(t.h || []).length)) return "";
+  var st = tryState_(idx, t), parts = [], kinds = [];
+  if (st.used) parts.push(answerText_(item, t.a[st.used - 1]));
+  parts.push(st.rightTry ? "right on try " + st.rightTry : st.done ? "out of tries (" + st.used + ")" : st.used ? st.used + " of " + st.max + " tries used" : "no tries yet");
+  (t.h || []).forEach(function (h) { if (kinds.indexOf(h.k) === -1) kinds.push(h.k); });
+  if (kinds.length) parts.push((kinds.length > 1 ? "hints: " : "hint: ") + kinds.join(", "));
+  return parts.join(" | ");
+}
+
+/** The only way to answer a choice, truefalse or short question: one try. answer = a choice's number from 1 (the page shuffles the
+ *  buttons but sends the Questions tab's numbers), or the typed words. attemptId = this Check press (a retry of a lost reply sends the
+ *  same one and gets the same result back, with no second try). hintSeen = the hint opened since the last try ("clue", "example",
+ *  "video"), so a hint saved by openHint a moment ago still counts. Refused with no try used: closed, locked, already right, out of tries,
+ *  or a hint needed first (HINT:). No try used either (but a result): a choice or answer already tried, or a number question with no number. */
+function tryAnswer(idx, answer, attemptId, hintSeen, token) {
+  loadConfig_();
+  idx = Number(idx);
+  if (!(idx >= 0 && idx < ITEMS.length) || !isTried_(ITEMS[idx])) throw new Error("Unknown question.");
+  var item = ITEMS[idx], email = currentStudent_(token);
+  answer = String(answer == null ? "" : answer).trim();
+  if (item.choices) {
+    var cn = /^\d+$/.test(answer) ? Number(answer) : 0;
+    if (!(cn >= 1 && cn <= item.choices.length)) throw new Error("NOTRY: Pick an answer first.");
+    answer = String(cn);
+  } else {
+    answer = answer.replace(/\s+/g, " ").slice(0, 300);
+    if (!answer) throw new Error("NOTRY: Type an answer first.");
+    if (isNumberQ_(item) && !numbersIn_(answer).length) return { counted: false, note: "Type a number, like " + exampleNumber_(item) + ". (That didn't use a try.)" };
+  }
+  attemptId = String(attemptId == null ? "" : attemptId).slice(0, 64);
+  var seen = !!hintSeen, hk = /^(clue|example|video)$/.test(String(hintSeen)) ? String(hintSeen) : "";
+  var roster = readRoster_(), due = dueForStudent_(email, roster), close = closeForStudent_(email, roster);   // before waiting in line
+  if (isClosed_(close)) throw new Error(closedError_(close));
+  var lock = lockOrBusy_(20000), out, counted = false;
+  try {
+    var rec = readRecord_(email) || newRecord_();
+    if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already turned this in, so answers are locked.");
+    rec.tries = rec.tries || {};
+    var t = rec.tries[idx] || { a: [], h: [] }, st = tryState_(idx, t);
+    t.a = t.a || []; t.h = t.h || [];
+    var repeat = item.choices ? t.a.indexOf(answer) !== -1 : t.a.some(function (x) {
+      return normalize_(x) === normalize_(answer) || (isNumberQ_(item) && JSON.stringify(numbersIn_(x)) === JSON.stringify(numbersIn_(answer)));
+    });
+    if (attemptId && t.id === attemptId) out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: true, again: true };   // the reply got lost: the same result
+    else if (st.rightTry) throw new Error("NOTRY: You already got this one right.");
+    else if (st.done) throw new Error("NOTRY: You're out of tries for this one.");
+    else if (st.needHint && !seen) throw new Error("HINT: Open a hint (the light bulb) before you try again.");
+    else if (repeat) out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: false, note: "You already tried that one. (That didn't use a try.)" };
+    else {
+      keepOnTimeCopy_(rec, due);   // first save after the due date: remember the work as it was at the due date
+      if (hk && !t.h.some(function (h) { return h.after >= st.used; })) t.h.push({ k: hk, after: st.used });   // openHint hadn't landed yet
+      t.a.push(answer); t.id = attemptId;
+      rec.tries[idx] = t;
+      rec.answers[idx] = answer;
+      rec.statuses[idx] = tryState_(idx, t).status;
+      if (rec.drafts) rec.drafts[idx] = null;
+      rec.checks = (rec.checks || 0) + 1;
+      rec.updated = new Date().toISOString();
+      writeRecord_(email, rec);
+      renderLiveRow_(email, rec, roster, due);
+      counted = true;
+      out = { result: triedFeedback_(idx, rec), grade: lateGrade_(rec, due).grade, counted: true };
+    }
+  } finally {
+    unlock_(lock);
+  }
+  // Teacher-only extras happen after the student's save is done, outside the line.
+  if (counted) {
+    try { logEvent_(email, idx, tryGrade_(item, answer).status, answerText_(item, answer) + " (try " + out.result.tries.used + ")"); } catch (e) {}
+    maybeRenderSummary_();
+  }
+  return out;
+}
+
+/** The light bulb: records that the student opened a hint (kind = "clue", "example" or "video") on a question with tries. The page
+ *  shows the hint at once and calls this in the background, retrying quietly; { saved: false } = busy, try again. */
+function openHint(idx, kind, token) {
+  loadConfig_();
+  idx = Number(idx); kind = String(kind == null ? "" : kind);
+  if (!(idx >= 0 && idx < ITEMS.length) || !isTried_(ITEMS[idx]) || !ITEMS[idx].hints || !ITEMS[idx].hints[kind]) throw new Error("Unknown question.");
+  var email = currentStudent_(token), roster = readRoster_(), due = dueForStudent_(email, roster, true);
+  if (isClosed_(closeForStudent_(email, roster, true))) return { saved: false, locked: true };   // the quarter is over: nothing changes
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(4000)) return { saved: false };   // busy moment: the page quietly tries again
+  try {
+    var rec = readRecord_(email) || newRecord_();
+    if (LOCK_AFTER_TURN_IN && rec.turnedIn) return { saved: false, locked: true };
+    rec.tries = rec.tries || {};
+    var t = rec.tries[idx] || { a: [], h: [] }, used = (t.a || []).length;
+    t.a = t.a || []; t.h = t.h || [];
+    if (!t.h.some(function (h) { return h.k === kind && h.after === used; }) && t.h.length < 40) t.h.push({ k: kind, after: used });
+    rec.tries[idx] = t;
+    rec.updated = new Date().toISOString();
+    writeRecord_(email, rec);
+    renderLiveRow_(email, rec, roster, due);
+    return { saved: true };
   } finally {
     unlock_(lock);
   }
@@ -1836,8 +2236,10 @@ function questionsForClient_() {
     return { text: it.q, img: imageUrl_(it.img), imgCaption: it.imgCaption || "", upload: !!it.upload, draw: !!it.draw,
              table: it.table ? { cols: it.table.cols, rows: it.table.rows, lab: it.table.lab || null, graph: it.table.graph || null, pairs: !!it.table.pairs, origin: !!it.table.origin, noGraph: !!it.table.noGraph } : null, minSentences: it.minSentences || 0,
              points: it.points == null ? null : it.points,
-             choices: it.choices ? it.choices.map(function (c) { return { t: c.t, img: imageUrl_(c.img) }; }) : null,   // never which one is right
+             choices: it.choices ? it.choices.map(function (c) { return { t: c.t, img: imageUrl_(c.img) }; }) : null,   // never which one is right (nor a choice's feedback)
              multi: !!(it.choices && it.right.length > 1),   // "Select all correct options" (not how many)
+             kind: isTried_(it) ? it.kind : "",   // LIMITED TRIES: "choice", "truefalse" or "short" ("" = everything else)
+             hints: isTried_(it) && it.hints ? { clue: it.hints.clue || "", example: it.hints.example || "", video: it.hints.video || "" } : null,   // the light bulb (hints never cost points)
              boxes: (it.boxes || []).map(function (b) { return { label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }; }),
              links: (it.links || []).filter(function (l) { return l && buttonUrl_(l.url); }) };
   });
@@ -2204,7 +2606,7 @@ var API_ = { getStudentState: getStudentState, gradeAnswer: gradeAnswer, checkAn
              turnIn: turnIn, getPicture: getPicture, signOut: signOut, classPass: classPass,
              uploadPicture: uploadPicture, getMyUpload: getMyUpload, getArticle: getArticle, getArticlePicture: getArticlePicture,
              sendSignInCode: sendSignInCode, verifySignInCode: verifySignInCode, signInWithGoogle: signInWithGoogle,
-             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard };
+             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint };
 var API_NO_TOKEN_ = { classPass: true, sendSignInCode: true, verifySignInCode: true, signInWithGoogle: true };
 
 /**
@@ -2619,6 +3021,7 @@ function docToArticle_(doc) {
 function feedbackFor_(idx, answer) {
   answer = String(answer || "").trim();
   if (!answer) return { status: "blank", message: "" };
+  if (isTried_(ITEMS[idx])) return tryGrade_(ITEMS[idx], answer);   // one try on its own (the page gets triedFeedback_ instead)
   if (ITEMS[idx].choices) return choiceFeedback_(ITEMS[idx], answer);
   if (ITEMS[idx].upload) return { status: "correct", message: ITEMS[idx].draw ? "Drawing saved. Thanks!" : "Picture added. Thanks! (This one isn't graded.)" };
   if (ITEMS[idx].table) return tableFeedback_(ITEMS[idx], answer);
@@ -2661,8 +3064,8 @@ function textFeedback_(item, answer) {
 /** The hints of the misconceptions (common wrong ideas) this answer shows, from the Questions tab's Misconception columns. */
 function misconceptionsIn_(item, answer) {
   if (!item.mis || !item.mis.length) return [];
-  var padded = normalize_(answer), words = padded.trim().split(" ");
-  return item.mis.filter(function (m) { return criterionMet_(m, padded, words, answer); }).map(function (m) { return m.nudge; });
+  var padded = normalize_(answer), words = padded.trim().split(" "), nums = isNumberQ_(item) ? numbersIn_(answer) : null;   // a number question compares numbers
+  return item.mis.filter(function (m) { return criterionMet_(m, padded, words, answer, nums); }).map(function (m) { return m.nudge; });
 }
 
 /** Picture-box question: each box graded by its own idea. No minimum length. */
@@ -2689,20 +3092,22 @@ function statusesOf_(results) { return results.map(function (r) { return r.statu
 /** Colors -> grade out of MAX_POINTS. See SETTINGS for the knobs. A question counts 1 unless the Questions tab gives it Points;
  *  one that has Points earns the share of its ideas the answer shows (answers = the checked answers), or its color's credit when
  *  it has no key words to count. */
-function gradeFor_(statuses, answers) {
-  var frac = creditFrac_(statuses, answers);
+function gradeFor_(statuses, answers, tries) {
+  var frac = creditFrac_(statuses, answers, tries);
   if (frac == null) return 0;
   var pts = Math.min(1, frac / FULL_CREDIT_AT) * MAX_POINTS;
   return Math.round(Math.round(pts / ROUND_TO) * ROUND_TO * 1000) / 1000;   // (the outer round: 96 x 0.1 is 9.600000000000001 in JavaScript)
 }
-/** The share of the possible credit this work earned (0 to 1), or null when nothing is graded. See gradeFor_. */
-function creditFrac_(statuses, answers) {
+/** The share of the possible credit this work earned (0 to 1), or null when nothing is graded. See gradeFor_.
+ *  tries = rec.tries: a question with limited tries earns its tries' credit (see LIMITED TRIES), times its Points as usual. */
+function creditFrac_(statuses, answers, tries) {
   var earned = 0, total = 0;
   for (var i = 0; i < ITEMS.length; i++) {
     var it = ITEMS[i];
     if (ungraded_(it)) continue;   // picture uploads and graphs with no label boxes aren't graded
     var w = it.points == null ? 1 : it.points, st = statuses[i] || "blank", c = CREDIT[st] || 0;
-    if (it.points != null && st !== "blank" && answers) {
+    if (isTried_(it)) c = tryState_(i, tries ? tries[i] : null).credit;
+    else if (it.points != null && st !== "blank" && answers) {
       var fb = feedbackFor_(i, answers[i]);
       if (typeof fb.frac === "number") c = fb.frac;
     }
@@ -2713,8 +3118,8 @@ function creditFrac_(statuses, answers) {
 
 /** A student's grade (no late penalty): the work on the page now, or a review game's best earlier try (rec.best), whichever is higher. */
 function workGrade_(work) {
-  var g = gradeFor_(work.statuses || [], work.answers);
-  if (work.best) g = Math.max(g, gradeFor_(work.best.statuses || [], work.best.answers));
+  var g = gradeFor_(work.statuses || [], work.answers, work.tries);
+  if (work.best) g = Math.max(g, gradeFor_(work.best.statuses || [], work.best.answers, work.best.tries));
   return g;
 }
 
@@ -2794,6 +3199,7 @@ function keepOnTimeCopy_(rec, due) {
   if (due && !rec.onTime && Date.now() > due) {
     rec.onTime = { answers: rec.answers.slice(), statuses: rec.statuses.slice(), taken: new Date().toISOString() };
     if (rec.best) rec.onTime.best = rec.best;   // a review game's best try so far counts as on time too
+    if (rec.tries) rec.onTime.tries = JSON.parse(JSON.stringify(rec.tries));   // limited tries: the tries made by the due date
   }
 }
 
@@ -3270,6 +3676,7 @@ function liveRowData_(email, rec, p, due) {
     // An autosaved draft that hasn't been checked yet is shown with a prefix; its color is still the last check.
     var shown = d != null && d !== rec.answers[i] ? d : (rec.answers[i] || "");
     if (ITEMS[i].table) shown = tableText_(ITEMS[i], shown);
+    if (isTried_(ITEMS[i])) { row.push(safeCell_(triedCellText_(i, rec))); bg.push(FILL[rec.statuses[i] || "blank"]); continue; }   // the latest try, how it went, and the hints opened
     if (ITEMS[i].choices) shown = choiceText_(ITEMS[i], shown);
     row.push(d != null && d !== rec.answers[i] ? "[not checked] " + shown : safeCell_(shown));
     bg.push(FILL[rec.statuses[i] || "blank"]);
@@ -3326,9 +3733,14 @@ function renderSummary_() {
       byP[p] = byP[p] || { g: 0, n: 0 };
       if (s !== "blank") { byP[p].n++; if (s === "correct") byP[p].g++; }
     });
-    var answered = c.correct + c.partial + c.incorrect;
+    var answered = c.correct + c.partial + c.incorrect, first = "";
+    if (isTried_(ITEMS[i])) {   // limited tries: of the students who tried it, how many got it right on the first try
+      var tried = 0, firstOk = 0;
+      started.forEach(function (k) { var st = tryState_(i, recs[k].tries ? recs[k].tries[i] : null); if (st.used) { tried++; if (st.rightTry === 1) firstOk++; } });
+      first = tried ? firstOk / tried : "";
+    }
     var row = ["Q" + (i + 1), ITEMS[i].q.slice(0, 90) + "…", c.correct, c.partial, c.incorrect, c.blank,
-               answered ? c.correct / answered : ""];
+               answered ? c.correct / answered : "", first];
     periods.forEach(function (p) { var b = byP[String(p)]; row.push(b && b.n ? b.g / b.n : ""); });
     rows.push(row);
   }
@@ -3370,6 +3782,10 @@ function missingPieces_(ss) {
     if (!heads.some(function (h) { return /^misconception \d+ (hint|key words)$/.test(h); })) out.columns.push("Misconception hint and key words");
     if (!heads.some(function (h) { return /^section picture(?! caption)/.test(h); })) out.columns.push("Section picture");
     if (!heads.some(function (h) { return /^section picture caption/.test(h); })) out.columns.push("Section picture caption");
+    [[/^(choice|option) 1\b(?!\s*feedback)/, "Choice 1, Choice 1 feedback ..."], [/^right (choice|answer)/, "Right choice"], [/^explanation/, "Explanation"], [/^tries\b/, "Tries"],
+     [/^hint:?\s*clue/, "Hint: clue"], [/^hint:?\s*example/, "Hint: example"], [/^hint:?\s*(video|link)/, "Hint: video or link"]].forEach(function (p) {   // LIMITED TRIES
+      if (triesPage_() && !heads.some(function (h) { return p[0].test(h); })) out.columns.push(p[1]);
+    });
   }
   return out;
 }
@@ -3567,7 +3983,7 @@ function ensureSheets_() {
   }
   // Sort/filter arrows on every column (Period, Student, Grade, ...).
   if (!live.getFilter()) live.getRange(1, 1, live.getMaxRows(), LIVE_FIXED.length + ITEMS.length).createFilter();
-  mk(SH_SUMMARY, SUMMARY_HEADERS, [80, 420, 60, 60, 60, 60, 150]);
+  mk(SH_SUMMARY, SUMMARY_HEADERS, [80, 420, 60, 60, 60, 60, 150, 170]);
   mk(SH_ROSTER, ROSTER_HEADERS, [60, 180, 240, 180, 140]);
   mk(SH_LOG, ["Time", "Period", "Student", "Email", "Question", "Color", "Answer"], [140, 60, 160, 200, 70, 80, 600]);
   mk(SH_STATE, ["Email", "Record (JSON)"]).hideSheet();
@@ -4242,13 +4658,21 @@ function testAnswer() {
   if (it.table && it.table.graph) { ui.alert("Q" + n + " is a graph of the numbers students type in " + it.table.graph.lines.map(function (L) { return "Q" + L.from; }).join(" and ") + ". Try it on the student page: each axis label colors itself (Idea 1 checks the x-axis label, Idea 2 the y-axis label" + (graphHasTop_(it) ? ", Idea 3 the top axis label" : "") + ")."); return; }
   if (it.table) { ui.alert("Q" + n + " is a data table with a graph. Try it on the student page: the table, the title and the two axis labels each color themselves (Ideas 1 to 3 check the title, x-axis and y-axis labels)."); return; }
   if (it.upload) { ui.alert("Q" + n + " is a " + (it.draw ? "drawing" : "picture upload") + ". It isn't graded: it turns green once the student saves one."); return; }
-  var how = it.boxes && it.boxes.length
+  var how = isTried_(it) && it.choices
+    ? "\n\nType the number of a choice to try it:\n" + it.choices.map(function (c, k) { return (k + 1) + ". " + (c.img ? "(picture)" : c.t); }).join("\n")
+    : isTried_(it) ? "\n\nType a sample student answer (one try; " + (isNumberQ_(it) ? "a number question: 25, 25 J and 25.0 all read 25" : "no minimum length") + "):"
+    : it.boxes && it.boxes.length
     ? "\n\nThis question has " + it.boxes.length + " boxes on the picture (" + it.boxes.map(function (b) { return b.label; }).join(", ") +
       "). Type one answer per box, separated by |   e.g.  answer one | answer two | answer three"
     : "\n\nType a sample student answer:";
   var a = ui.prompt("Q" + n, it.q + how, ui.ButtonSet.OK_CANCEL);
   if (a.getSelectedButton() !== ui.Button.OK) return;
   var r = feedbackFor_(n - 1, a.getResponseText());
+  if (isTried_(it)) {   // one try: right or not, and the feedback a student would see for it
+    ui.alert("Q" + n + ", that try would be:  " + ({ correct: "RIGHT", partial: "NOT RIGHT YET (part of it)", incorrect: "NOT RIGHT", blank: "NOT AN ANSWER" })[r.status] + "\n\n" + (r.message || "(nothing to grade)") +
+      (r.status === "correct" ? "" : "\n\nStudents get " + maxTries_(it) + (maxTries_(it) === 1 ? " try" : " tries") + " on this question.") + (it.explain ? "\n\nExplanation (shown once it's done): " + it.explain : ""));
+    return;
+  }
   var color = { correct: "GREEN", partial: "YELLOW", incorrect: "RED", blank: "BLANK" }[r.status];
   var per = r.parts ? "\n\nBoxes: " + it.boxes.map(function (b, k) { return b.label + " = " + ({ correct: "green", incorrect: "red", blank: "blank" })[r.parts[k]]; }).join(", ") : "";
   ui.alert("Q" + n + " would show:  " + color + per + "\n\n" + (r.message || "(no feedback for a blank answer)"));
@@ -4301,8 +4725,9 @@ function recalcCore_() {
     recs = allRecords_();
     Object.keys(recs).forEach(function (email) {
       var rec = recs[email];
-      for (var i = 0; i < ITEMS.length; i++) rec.statuses[i] = feedbackFor_(i, rec.answers[i]).status;
-      if (rec.onTime) for (var k = 0; k < ITEMS.length; k++) rec.onTime.statuses[k] = feedbackFor_(k, (rec.onTime.answers || [])[k]).status;
+      // (a question with limited tries: its color from all its tries, graded with today's key, so a fixed Right choice re-grades them)
+      for (var i = 0; i < ITEMS.length; i++) rec.statuses[i] = isTried_(ITEMS[i]) ? tryState_(i, rec.tries ? rec.tries[i] : null).status : feedbackFor_(i, rec.answers[i]).status;
+      if (rec.onTime) for (var k = 0; k < ITEMS.length; k++) rec.onTime.statuses[k] = isTried_(ITEMS[k]) ? tryState_(k, rec.onTime.tries ? rec.onTime.tries[k] : null).status : feedbackFor_(k, (rec.onTime.answers || [])[k]).status;
       [rec.best, rec.onTime && rec.onTime.best].forEach(function (b) {   // a review game's best try is graded by today's key too
         if (b) for (var j = 0; j < ITEMS.length; j++) b.statuses[j] = feedbackFor_(j, (b.answers || [])[j]).status;
       });
@@ -4319,10 +4744,10 @@ function recalcCore_() {
 // ============================== GRADING ENGINE (unchanged from the Sheet version) ==============================
 function gradeLocal_(item, answer) {
   var padded = normalize_(answer);
-  var words = padded.trim().split(" ");
+  var words = padded.trim().split(" "), nums = isNumberQ_(item) ? numbersIn_(answer) : null;   // a short number question compares numbers (see LIMITED TRIES)
   var total = item.criteria.length, score = 0, unmet = [], rows = [], rowAt = {};   // (keyed "r:" + name, so any row name is safe)
   for (var i = 0; i < item.criteria.length; i++) {
-    var cr = item.criteria[i], met = criterionMet_(cr, padded, words, answer);
+    var cr = item.criteria[i], met = criterionMet_(cr, padded, words, answer, nums);
     if (cr.row) {   // an idea tagged with a rubric row ([Use of Data] ...): count how many of that row's ideas the answer shows
       var rk = "r:" + cr.row;
       if (!Object.prototype.hasOwnProperty.call(rowAt, rk)) { rowAt[rk] = rows.length; rows.push({ label: cr.row, met: 0, total: 0 }); }
@@ -4335,25 +4760,26 @@ function gradeLocal_(item, answer) {
   return { status: status, score: score, total: total, unmet: unmet, rows: rows };
 }
 
-/** raw = the answer as typed (for the sentence checks); the other two are normalize_(raw) and its words. */
-function criterionMet_(criterion, padded, words, raw) {
+/** raw = the answer as typed (for the sentence checks); the other two are normalize_(raw) and its words.
+ *  nums = the numbers in raw (numbersIn_) on a number question, else null: a key word that is a number then matches that number. */
+function criterionMet_(criterion, padded, words, raw, nums) {
   var need = criterion.need;
   for (var s = 0; s < need.length; s++) {
     var set = need[s], hit = false;
     if (set[0] === "!") {   // NOT group: fails if any of these words appear
-      for (var u = 1; u < set.length; u++) if (answerHasTerm_(padded, words, set[u])) return false;
+      for (var u = 1; u < set.length; u++) if (answerHasTerm_(padded, words, set[u], nums)) return false;
       continue;
     }
     if (set[0] === "@s") { if (countSentences_(raw) < Number(set[1])) return false; continue; }   // at least N complete sentences
     if (set[0] === "@c") { if (!clearlyWritten_(raw)) return false; continue; }                   // clearly written (see clearlyWritten_)
     if (/^@\d+$/.test(set[0])) {   // at least N of these words
       var got = 0, want = Number(set[0].slice(1));
-      for (var g = 1; g < set.length; g++) if (answerHasTerm_(padded, words, set[g])) got++;
+      for (var g = 1; g < set.length; g++) if (answerHasTerm_(padded, words, set[g], nums)) got++;
       if (got < want) return false;
       continue;
     }
     for (var t = 0; t < set.length; t++) {
-      if (answerHasTerm_(padded, words, set[t])) { hit = true; break; }
+      if (answerHasTerm_(padded, words, set[t], nums)) { hit = true; break; }
     }
     if (!hit) return false;
   }
@@ -4377,7 +4803,8 @@ function normalize_(s) {
   return " " + String(s).toLowerCase().replace(/[^a-z0-9%\s]/g, " ").replace(/\s+/g, " ").trim() + " ";
 }
 
-function answerHasTerm_(padded, words, term) {
+function answerHasTerm_(padded, words, term, nums) {
+  if (nums && /^-?\d+(\.\d+)?$/.test(term)) return nums.some(function (n) { return n === Number(term); });   // a number question: 25 matches 25 J, 25J and 25.0
   if (term.charAt(0) === "#") return term === "#num" && words.some(function (w) { return /\d/.test(w); });   // #num: any number
   if (term.charAt(0) === "^") { var lead = term.slice(1); return !!lead && padded.indexOf(" " + lead + " ") === 0; }   // ^if: the answer starts with it
   if (term.indexOf(" ") !== -1) {

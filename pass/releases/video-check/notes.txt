@@ -1,5 +1,10 @@
-video-check v2026.11.05c
+video-check v2026.11.06
 
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
+
+• No changes to this kind's code or page (the 2026.11.06 change is multiple choice, true/false and short answer questions with limited tries on the Self-Check pages).
+
+Also from 2026.11.05c, if this sheet skipped it:
 • Fix: an answer could go missing when it reached the sheet in the same second as another save (the page also
   saves how far into the video the student got while they watch).
   The second save could read the student's work from before the first one and write the older copy back. Now each save is

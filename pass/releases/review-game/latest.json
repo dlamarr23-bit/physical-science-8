@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.05c",
-  "optional": "",
+  "version": "2026.11.06",
+  "optional": "nothing changes in the game. This release keeps every kind on the same version number.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

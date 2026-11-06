@@ -1,5 +1,37 @@
-reading-activity v2026.11.05c
+reading-activity v2026.11.06
 
+Optional update: limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints).
+
+- The two-column page has the same new question types as the one-column page:
+- New: three Answer types with a limited number of tries, for practice sets where students used to click choices until one turned green
+  (like the Kinetic Energy Google Form): choice (multiple choice: the Choice columns and Right choice), truefalse (TRUE / FALSE: Right choice
+  TRUE or FALSE), and short (a one-line answer checked by its Idea key words). A short answer whose key words are all numbers reads numbers:
+  25, 25 J, 25J and 25.0 all count, and typing no number at all doesn't use a try.
+- Tries: 2 for multiple choice, 1 for true/false, 3 for short answers (new Settings rows; a question's own Tries column changes it).
+- Credit: right on try 1 = 100%, try 2 = 90%, try 3 = 80% (Settings: Credit by try). Tried but never right = 50% (Settings: Credit when
+  never answered right). Never tried = 0. A question's Points still scale it. For a practice set, set Full credit at to 100%.
+- After a wrong try the student sees the feedback for the choice they picked (the new Choice 1 feedback ... Choice 4 feedback columns),
+  and opens a hint before trying again (Settings: Open a hint before trying again; uncheck it to let them retry right away).
+- The light bulb at the top right of the question: Give me a clue, Show me an example, Watch a video (the Hint: clue, Hint: example and
+  Hint: video or link columns). A question shows only the hints it has, and one with no hints has no light bulb. Hints never cost points.
+- Choices are shuffled for each student and again after each wrong try (Settings: Shuffle answer choices). True/false is never shuffled.
+- Students never see the right answer or the Explanation until the question is done (answered right, or out of tries). Then the right
+  choice turns green and the Explanation shows in the black bar. The answer key still never reaches the page before that.
+- Live Results shows each of these questions like "D. mass and velocity | right on try 2 | hint: clue" (green = right, yellow = tries left,
+  red = out of tries). The Question Summary has a new column, % right on the first try. Recalculate all grades re-grades every try
+  with today's key (so fixing a Right choice fixes the grades too).
+- Self-Check > Check the Questions tab for problems warns about a choice question with too few choices or no matching Right choice, more than
+  one right choice, a missing Explanation, a short answer with no key words, a Tries number that isn't 1 to 10, a hint link that isn't https,
+  and feedback typed on the right choice.
+- Typed answers with a blank Answer type work exactly as before (revise as many times as you like).
+- To use it: paste the new Code.gs and Index, New version, then Self-Check > Set up / repair sheets. That adds seven Settings rows at the end of
+  the Settings tab and the new Questions columns (Choice 1 to Choice 4 with their feedback, Right choice, Explanation, Tries, Hint: clue,
+  Hint: example, Hint: video or link) at the end of the Questions tab. Nothing already in the sheet changes, and no new permission is needed.
+- Students who open this assignment through the class website (Class Pass) get the new page as soon as it is published. A sheet with no
+  choice, truefalse or short questions looks exactly the same.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.05c, if this sheet skipped it:
 - Fix: a student's drawing could disappear when they opened the assignment again. The drawing pad was blank for a few seconds while
   the saved drawing loaded, and a student who drew in that time started a new drawing that saved over the old one. Now the pad is
   covered ("Loading your saved drawing...") and takes no drawing until the saved one is back on it. If it can't load, the pad says so,

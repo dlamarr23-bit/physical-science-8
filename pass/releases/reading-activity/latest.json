@@ -1,7 +1,7 @@
 {
   "kind": "reading-activity",
-  "version": "2026.11.05c",
-  "optional": "",
+  "version": "2026.11.06",
+  "optional": "limited tries for multiple choice, true/false and short answer questions (a few tries each, a little less credit each try, light bulb hints).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

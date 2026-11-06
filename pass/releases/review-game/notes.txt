@@ -1,5 +1,13 @@
-review-game v2026.11.05c
+review-game v2026.11.06
 
+Optional update: nothing changes in the game. This release keeps every kind on the same version number.
+
+- No changes to the review game. (2026.11.06 adds multiple choice, true/false and short answer questions with limited tries to the
+  Self-Check pages. They share the "Shuffle answer choices" Settings row with the game: your game's row stays exactly as it is, and a
+  brand-new game sheet lists it just before "Students can start over".)
+- Your questions, settings, scores and leaderboard are not touched.
+
+Also from 2026.11.05c, if this sheet skipped it:
 - Fix: a student's answer or points could go back to an older copy when two saves reached the sheet in the same second.
   The second save could read the student's work from before the first one and write the older copy back. Now each save is
   completely in the sheet before the next one starts. (Found on the October Sky self-check: an answer checked one second before

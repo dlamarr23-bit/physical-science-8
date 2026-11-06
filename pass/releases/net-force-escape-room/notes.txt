@@ -1,5 +1,13 @@
-net-force-escape-room v2026.11.05c
+net-force-escape-room v2026.11.06
 
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
+
+- No changes to the escape room. (2026.11.06 adds multiple choice, true/false and short answer questions with limited tries to the
+  Self-Check pages. The escape room page doesn't show them, so its sheet treats those Answer types as typed answers, Check the Questions tab
+  says so, and it gets none of their Settings rows or Questions columns.)
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.05c, if this sheet skipped it:
 - Fix: an answer could go missing when two saves reached the sheet in the same second (an answer checked right
   before the drawing saved, or while an autosave ran).
   The second save could read the student's work from before the first one and write the older copy back. Now each save is
