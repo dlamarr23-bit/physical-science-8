@@ -258,6 +258,11 @@
   canvas.padcanvas { display:block; width:100%; height:auto; aspect-ratio: 1000 / 650; border:2px solid #111; border-radius:6px; background:#fff;
                      touch-action:none; cursor:crosshair; }
   .drawpad.viewonly canvas.padcanvas { cursor:default; }
+  /* covers the pad while the saved drawing comes back (no drawing until it's there), or says it didn't load */
+  .padcover { position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:16px;
+              background:rgba(255,255,255,.92); border-radius:6px; color:#111; font-weight:700; font-size:17px; line-height:1.4; text-align:center; }
+  .padcover[hidden] { display:none; }
+  .padcoverbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
   input.padtext { position:absolute; z-index:2; margin:0; min-width:180px; padding:2px 6px; border:2px dashed #1b4587; border-radius:4px; background:rgba(255,255,255,.9);
                   font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:16px; line-height:1.3; outline:none; }
   /* picture upload questions (Answer type "upload") */
@@ -2704,7 +2709,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.05b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.05c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -2835,7 +2840,7 @@ function drawBox(i) {
   padButtons(i);
   function pt(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * P.w / r.width, y: (e.clientY - r.top) * P.h / r.height }; }
   cv.addEventListener("pointerdown", function (e) {
-    if (S.locked || e.button > 0 || P.bgWait) return;
+    if (S.locked || e.button > 0 || P.bgWait || P.loading) return;
     e.preventDefault();
     if (P.tool === "text") return;   // labels start on click (below), after the pointer is let go
     var p = pt(e);
@@ -2860,7 +2865,7 @@ function drawBox(i) {
     padChanged(i);
   }
   cv.addEventListener("click", function (e) {
-    if (S.locked || P.tool !== "text") return;
+    if (S.locked || P.loading || P.tool !== "text") return;
     var had = !!P.text;
     commitText(i);
     if (!had) startText(i, pt(e));   // a click while a label is open just finishes that label
@@ -2993,7 +2998,7 @@ function padClear(i) {
   P.ink = false;
   padChanged(i, true);
 }
-function padButtons(i) { var P = pads[i]; if (!P.undoBtn) return; P.undoBtn.disabled = S.locked || !P.undo.length; P.redoBtn.disabled = S.locked || !P.redo.length; }
+function padButtons(i) { var P = pads[i]; if (!P.undoBtn) return; P.undoBtn.disabled = S.locked || P.loading || !P.undo.length; P.redoBtn.disabled = S.locked || P.loading || !P.redo.length; }
 /** Something changed on the pad: save it a moment after the student stops. */
 function padChanged(i, keepInk) {
   var P = pads[i];
@@ -3009,7 +3014,7 @@ function padChanged(i, keepInk) {
 function saveDrawing(i) {
   var P = pads[i];
   clearTimeout(P.timer);
-  if (S.locked || !P.ink || !P.dirty) return;
+  if (S.locked || P.loading || !P.ink || !P.dirty) return;   // P.loading: the saved drawing isn't back on the pad yet
   if (uploading[i]) { P.timer = setTimeout(function () { saveDrawing(i); }, 1000); return; }
   var url = P.cv.toDataURL("image/png"), mime = "image/png";
   if (url.length > 2500000) { url = P.cv.toDataURL("image/jpeg", 0.9); mime = "image/jpeg"; }
@@ -3030,23 +3035,62 @@ function saveDrawing(i) {
     setMeta(i, (String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") || "Your drawing didn't save.") + " It tries again when you draw more.", "#cc0000");
   }, 0, function () { setMeta(i, "Saving your drawing… (lots of students saving, so hang on)", "#666"); });
 }
-/** After a reload: put the saved drawing back on the pad so the student can keep working on it. */
+/** After a reload: put the saved drawing back on the pad so the student can keep working on it.
+    Until it's back the pad is covered and takes no drawing (2026.11.05c): before, the pad was blank and open for a few seconds,
+    and a student who drew in that time started a new drawing that saved over the old one. If it can't be shown, the saved
+    drawing stays saved and the cover offers Try again, or Draw a new one (which replaces it once the new one saves). */
 function loadDrawing(i) {
-  if (!api.myUpload) return;
-  if (pads[i] && pads[i].bgWait) { pads[i].loadAfter = true; return; }   // after the picture is on the pad
+  var P = pads[i];
+  if (!api.myUpload || !P) return;
+  P.loading = true; padButtons(i);
+  padCover(i, "Loading your saved drawing…");
+  if (P.bgWait) { P.loadAfter = true; return; }   // after the picture is on the pad
   setMeta(i, "Loading your drawing…", "#666");
-  api.myUpload(i, function (r) {
-    var P = pads[i];
-    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { setMeta(i, "Your drawing is saved.", "#38761d"); return; }
+  withRetry(function (ok, fail) { api.myUpload(i, ok, fail); }, function (r) {
+    if (!r || !/^image\/(png|jpeg|gif|webp)$/.test(String(r.mime)) || typeof r.data !== "string") { padLoadFailed(i, "Your saved drawing couldn't be found."); return; }
     var img = new Image();
     img.onload = function () {
-      if (P.ink) return;   // the student already started drawing again
-      P.cx.drawImage(img, 0, 0, P.w, P.h); P.ink = true;
+      P.cx.drawImage(img, 0, 0, P.w, P.h); P.ink = true; P.dirty = false;
+      P.loading = false; P.undo = []; P.redo = []; padButtons(i); padCover(i, null);
       setMeta(i, "Your drawing is saved. Keep drawing to change it.", "#38761d");
     };
-    img.onerror = function () { setMeta(i, "Your drawing is saved.", "#38761d"); };
+    img.onerror = function () { padLoadFailed(i, "Your saved drawing couldn't be shown."); };
     img.src = "data:" + r.mime + ";base64," + r.data;
-  }, function () { setMeta(i, "Your drawing is saved. (It couldn't be shown right now.)", "#38761d"); });
+  }, function (err) {
+    if (cpIsSignInError(err)) signedOutMidway();
+    padLoadFailed(i, "Your saved drawing didn't load.");
+  }, 0, function () { padCover(i, "Still loading your saved drawing (lots of students right now)…"); });
+}
+/** The cover over a pad: text while the saved drawing loads, text + buttons when it didn't (failed), null = take it away. */
+function padCover(i, text, failed) {
+  var P = pads[i];
+  if (!P.cover) { P.cover = el("div", "padcover"); P.cover.setAttribute("role", "status"); P.wrap.appendChild(P.cover); }
+  P.cover.hidden = text == null;
+  P.cover.textContent = "";
+  if (text == null) return;
+  P.cover.appendChild(el("div", null, text));
+  if (!failed) return;
+  var row = el("div", "padcoverbtns"), again = el("button", null, "Try again");
+  again.type = "button";
+  again.addEventListener("click", function () { loadDrawing(i); });
+  row.appendChild(again);
+  if (!S.locked) {
+    var fresh = el("button", "secondary", "Draw a new one");
+    fresh.type = "button";
+    fresh.addEventListener("click", function () {
+      askConfirm("Start a new drawing? Once it saves, it takes the place of the drawing you saved before.", function () {
+        P.loading = false; padButtons(i); padCover(i, null);
+        setMeta(i, "Your saved drawing stays until you draw something new.", "#b45f06");
+      }, "Draw a new one", "Cancel");
+    });
+    row.appendChild(fresh);
+  }
+  P.cover.appendChild(row);
+}
+/** The saved drawing couldn't be put back on the pad: it is still saved, and nothing replaces it unless the student chooses to. */
+function padLoadFailed(i, why) {
+  padCover(i, why + " It is still saved.", true);
+  setMeta(i, why + " Press Try again.", "#cc0000");
 }
 /** I'm finished: save any drawing that hasn't been saved yet. */
 function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k)); }); }

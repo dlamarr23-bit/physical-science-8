@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.05b",
-  "optional": "a new Settings row, Classroom instructions, for the words students read in Google Classroom.",
+  "version": "2026.11.05c",
+  "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

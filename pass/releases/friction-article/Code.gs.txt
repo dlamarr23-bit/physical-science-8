@@ -232,7 +232,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-article";   // a one-off Self-Check with its own page (self-check\custom\friction-article\)
-var SKILL_VERSION = "2026.11.05b";
+var SKILL_VERSION = "2026.11.05c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1298,6 +1298,13 @@ function getStudentState(token) {
   };
 }
 
+/** Lets the next save in line go. Everything this run wrote goes into the sheet FIRST (flush): Apps Script holds writes back
+ *  until a run ends, so without it the next save could read a student's row from before this one and write the old answers back
+ *  (2026.11.05c: an October Sky answer checked a second before a drawing saved came back blank). */
+function unlock_(lock) {
+  try { SpreadsheetApp.flush(); } catch (e) {}
+  lock.releaseLock();
+}
 /** Waits for our turn to write. Throws a friendly "busy" error the page retries on its own. */
 function lockOrBusy_(ms) {
   var lock = LockService.getScriptLock();
@@ -1359,7 +1366,7 @@ function checkAnswer(idx, answer, token) {
     renderLiveRow_(email, rec, roster, due);
     out = { result: result, grade: lateGrade_(rec, due).grade };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   // Teacher-only extras happen after the student's save is done, outside the line.
   try { if (changed) logEvent_(email, idx, result.status, answer); } catch (e) {}
@@ -1393,7 +1400,7 @@ function saveDraft(idx, text, token) {
     renderLiveRow_(email, rec, roster);
     return { saved: true };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1414,7 +1421,7 @@ function turnIn(token) {
     renderLiveRow_(email, rec, roster, due);
     return { turnedIn: rec.turnedIn, locked: !!LOCK_AFTER_TURN_IN, grade: lateGrade_(rec, due).grade };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1550,7 +1557,7 @@ function answerChoice(idx, picks, power, token) {
       out = { result: result, again: false, gained: gained, power: power, earned: earned, game: gameStateFor_(rec, email), grade: lateGrade_(rec, due).grade };
     }
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   // Teacher-only extras happen after the student's save is done, outside the line.
   if (fresh) {
@@ -1584,7 +1591,7 @@ function startOver(token) {
     renderLiveRow_(email, rec, roster, due);
     out = { game: gameStateFor_(rec, email), grade: lateGrade_(rec, due).grade, results: ITEMS.map(function () { return { status: "blank", message: "" }; }) };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   cacheDel_(["board"]);
   maybeRenderSummary_();
@@ -1739,7 +1746,7 @@ function uploadFolder_() {
     props_().setProperty("UPLOAD_FOLDER", folder.getId());
     return folder;
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 /** The Drive file ID in a link, or "". */
@@ -1793,7 +1800,7 @@ function uploadPicture(idx, data, mime, token) {
     renderLiveRow_(email, rec, roster, due);
     out = { result: feedbackFor_(idx, url), grade: lateGrade_(rec, due).grade, url: url };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   var oldId = driveId_(old);   // the picture this one replaces goes to your Drive trash (kept 30 days)
   if (oldId && oldId !== file.getId()) { try { DriveApp.getFileById(oldId).setTrashed(true); } catch (e) {} }
@@ -1986,7 +1993,7 @@ function sendSignInCode(typed) {
     c.put(hourKey, String(hourCount + 1), 3600);
     props_().setProperty("MAIL_DAY", JSON.stringify({ d: today, n: dayCount + 1 }));
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   MailApp.sendEmail({
     to: email,
@@ -2038,7 +2045,7 @@ function verifySignInCode(typed, code) {
     cachePut_(doneKey, { c: code, t: token }, 120);
     return { token: token, email: email };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -2446,7 +2453,7 @@ function saveArticle_(conv, name, modified) {
     sh.getRange(1, 2).setValue(JSON.stringify(meta));
     cacheDel_(["article:meta"]);
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -3963,7 +3970,7 @@ function autoUploadGrades(e) {
     try {
       autoRun_();
     } finally {
-      lock.releaseLock();
+      unlock_(lock);
     }
   }
   try { stopTimerIfFinished_(); } catch (err) {}
@@ -4299,7 +4306,7 @@ function recalcCore_() {
       writeRecord_(email, rec);
     });
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   rebuildLive_();
   renderSummary_();

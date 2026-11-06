@@ -1,20 +1,10 @@
 {
-  "auto-grading-activity": "2026.11.05b",
-  "friction-article": "2026.11.05b",
-  "friction-sim-lab": "2026.11.05b",
-  "friction-speed-lab": "2026.11.05b",
-  "net-force-escape-room": "2026.11.05b",
-  "reading-activity": "2026.11.05b",
-  "review-game": "2026.11.05b",
-  "video-check": "2026.11.05b",
-  "_optional": {
-    "auto-grading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "friction-article": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "friction-sim-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "friction-speed-lab": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "net-force-escape-room": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "reading-activity": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","a data table's graph draws a best-fit curve when the points curve. Students on the class website get it as soon as it is published."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "review-game": {"needed":"2026.11.03b","notes":[["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]},
-    "video-check": {"needed":"2026.10.30b","notes":[["2026.10.30c","paste safety (the sheet refuses code meant for a different kind of assignment). A sheet on 2026.10.30b works fine without it."],["2026.11.03","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.03b","nothing changes for this kind of sheet. This release keeps every kind on the same version number."],["2026.11.05","the directions under the title are bigger (large bold Poppins, in the blue box)."],["2026.11.05b","a new Settings row, Classroom instructions, for the words students read in Google Classroom."]]}
-  }
+  "auto-grading-activity": "2026.11.05c",
+  "friction-article": "2026.11.05c",
+  "friction-sim-lab": "2026.11.05c",
+  "friction-speed-lab": "2026.11.05c",
+  "net-force-escape-room": "2026.11.05c",
+  "reading-activity": "2026.11.05c",
+  "review-game": "2026.11.05c",
+  "video-check": "2026.11.05c"
 }

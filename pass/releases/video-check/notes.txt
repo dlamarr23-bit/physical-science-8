@@ -1,7 +1,14 @@
-video-check v2026.11.05b
+video-check v2026.11.05c
 
-Optional update: a new Settings row, Classroom instructions, for the words students read in Google Classroom.
+• Fix: an answer could go missing when it reached the sheet in the same second as another save (the page also
+  saves how far into the video the student got while they watch).
+  The second save could read the student's work from before the first one and write the older copy back. Now each save is
+  completely in the sheet before the next one starts. (Found on the October Sky self-check: an answer checked one second before
+  the drawing saved came back blank.)
+• The fix is in Code.gs, so it needs the paste and New version below. The video page itself didn't change.
+• Your questions, answer keys, settings and student work are not touched.
 
+Also from 2026.11.05b (optional), if this sheet skipped it:
 • New Settings row "Classroom instructions" (right under Instructions): the words students read in Google Classroom, above the link.
   It starts with the standard text ("Open the link below and watch the video. ..."). Change it BEFORE Video Check > 2. Create the assignment in each class: step 2 puts it
   in each class's draft. A line break you type in the cell (Ctrl+Enter) starts a new line. Blank = the standard text.

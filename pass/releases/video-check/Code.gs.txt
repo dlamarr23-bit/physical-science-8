@@ -108,7 +108,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
 // SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
 var SKILL_NAME = "video-check";
-var SKILL_VERSION = "2026.11.05b";
+var SKILL_VERSION = "2026.11.05c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -887,7 +887,7 @@ function sendSignInCode(typed) {
     c.put(hourKey, String(hourCount + 1), 3600);
     props_().setProperty("MAIL_DAY", JSON.stringify({ d: today, n: dayCount + 1 }));
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   MailApp.sendEmail({
     to: email,
@@ -939,7 +939,7 @@ function verifySignInCode(typed, code) {
     cachePut_(doneKey, { c: code, t: token }, 120);
     return { token: token, email: email };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1196,6 +1196,13 @@ function mayShowQuestion_(email, idx) {
   return !!rec && reachedQ_(idx, rec, acc, v.end || rec.dur || 0);
 }
 
+/** Lets the next save in line go. Everything this run wrote goes into the sheet FIRST (flush): Apps Script holds writes back
+ *  until a run ends, so without it the next save could read a student's row from before this one and write the old answers back
+ *  (2026.11.05c: an October Sky answer checked a second before a drawing saved came back blank). */
+function unlock_(lock) {
+  try { SpreadsheetApp.flush(); } catch (e) {}
+  lock.releaseLock();
+}
 /** Waits for our turn to write. Throws a friendly "busy" error the page retries on its own. */
 function lockOrBusy_(ms) {
   var lock = LockService.getScriptLock();
@@ -1266,7 +1273,7 @@ function checkAnswer(idx, answer, pos, token) {
     renderLiveRow_(email, rec, roster);
     out = { result: result, grade: gradeFor_(rec.statuses), tries: rec.tries[idx] || 0 };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   // Teacher-only extras happen after the student's save is done, outside the line.
   if (acc.mode === "live") cachePut_("la:" + acc.live.id + ":" + idx + ":" + email, { s: result.status, a: answer }, LIVE_CACHE_SECS);
@@ -1299,7 +1306,7 @@ function saveDraft(idx, text, token) {
     renderLiveRow_(email, rec, roster);
     return { saved: true };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1322,7 +1329,7 @@ function saveProgress(pos, dur, token) {
     renderLiveRow_(email, rec, roster);
     return { saved: true };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1341,7 +1348,7 @@ function turnIn(token) {
     renderLiveRow_(email, rec, roster);
     return { turnedIn: rec.turnedIn, locked: !!LOCK_AFTER_TURN_IN, grade: gradeFor_(rec.statuses) };
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -1579,7 +1586,7 @@ function creditWatched_(live, reach, dur) {
       renderLiveRow_(e, rec, roster);
     });
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 function setPeriodOpen(period, open) {
@@ -2650,7 +2657,7 @@ function autoUploadGrades(e) {
     }
     if (allDone) autoTriggers_().forEach(function (t) { ScriptApp.deleteTrigger(t); });   // everything finished: stop the timer
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
 }
 
@@ -2785,7 +2792,7 @@ function recalculateAll() {
       writeRecord_(email, rec);
     });
   } finally {
-    lock.releaseLock();
+    unlock_(lock);
   }
   ensureSheets_();
   rebuildLive_();

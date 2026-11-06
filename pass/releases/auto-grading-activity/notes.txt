@@ -1,7 +1,21 @@
-auto-grading-activity v2026.11.05b
+auto-grading-activity v2026.11.05c
 
-Optional update: a new Settings row, Classroom instructions, for the words students read in Google Classroom.
+- Fix: a student's drawing could disappear when they opened the assignment again. The drawing pad was blank for a few seconds while
+  the saved drawing loaded, and a student who drew in that time started a new drawing that saved over the old one. Now the pad is
+  covered ("Loading your saved drawing...") and takes no drawing until the saved one is back on it. If it can't load, the pad says so,
+  keeps the saved drawing, and offers Try again or Draw a new one (which asks first).
+- Fix: an answer could go missing when two saves reached the sheet in the same second (an answer checked right
+  before the drawing saved, or while an autosave ran).
+  The second save could read the student's work from before the first one and write the older copy back. Now each save is
+  completely in the sheet before the next one starts. (Found on the October Sky self-check: an answer checked one second before
+  the drawing saved came back blank.)
+- Students who open this assignment through the class website (Class Pass) get the drawing pad fix as soon as it is published.
+  The saving fix is in Code.gs, so it needs the paste and New version below.
+- Older drawings are in your Google Drive trash for 30 days (each new save of a drawing puts the one before it there):
+  open Trash and search the student's name.
+- Your questions, answer keys, settings and student work are not touched.
 
+Also from 2026.11.05b (optional), if this sheet skipped it:
 - New Settings row "Classroom instructions" (right under Instructions): the words students read in Google Classroom, above the link.
   It starts with the standard text ("Open the link below and answer each question. ..."). Change it BEFORE Self-Check > 2. Create the assignment in each class: step 2 puts it
   in each class's draft. A line break you type in the cell (Ctrl+Enter) starts a new line. Blank = the standard text.
