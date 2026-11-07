@@ -281,7 +281,7 @@
             padding:9px 12px; font-size:14px; font-weight:600; }
   .remind[hidden] { display:none; }
   .remind button { font-size:13px; padding:4px 12px; }
-  /* @@TRIES-CSS-BEGIN: limited tries (choice, truefalse and short questions; the same in both Self-Check pages: change it in self-check/tries.css, then npm run build) */
+  /* @@TRIES-CSS-BEGIN: limited tries (choice, truefalse, short and dropdown questions; the same in both Self-Check pages: change it in self-check/tries.css, then npm run build) */
   .choicebox { display:flex; flex-direction:column; gap:8px; padding:10px 12px; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
   .choicebox.tf { flex-direction:row; }
   .choicebox.tf button.choicebtn { flex:1 1 0; text-align:center; }
@@ -296,6 +296,32 @@
   button.choicebtn:disabled { opacity:.6; }
   button.choicebtn.tried:disabled, button.choicebtn.right:disabled { opacity:1; }
   button.choicebtn img { display:block; max-width:100%; max-height:220px; border-radius:4px; background:#fff; }
+  /* picture choices (every choice a picture, 2026.11.06d): 2 to a row (1 on a phone), the picture fills the button, a thick outline like IXL */
+  .choicebox.pics { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:14px; }
+  @media (max-width:560px) { .choicebox.pics { grid-template-columns:1fr; } }
+  .choicebox.pics button.choicebtn { align-items:center; justify-content:center; padding:6px; background:#fff; border:2px solid #9aa0a6; cursor:pointer; }
+  .choicebox.pics button.choicebtn img { width:100%; height:260px; max-height:none; object-fit:contain; pointer-events:none; user-select:none; }
+  .choicebox.pics button.choicebtn:hover:not(:disabled) { background:#fff; border-color:#1b4587; }
+  .choicebox.pics button.choicebtn.picked { background:#fff; border-color:#1b4587; box-shadow: 0 0 0 4px #3c78d8; }
+  .choicebox.pics button.choicebtn.tried { background:#fff; border-color:#cc0000; box-shadow: 0 0 0 4px #e06666; }
+  .choicebox.pics button.choicebtn.right { background:#fff; border-color:#38761d; box-shadow: 0 0 0 4px #6aa84f; }
+  /* dropdowns in sentences (Answer type dropdown, 2026.11.06d): a small table to read, then each sentence with its boxes */
+  .ddbox { padding:12px 14px; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; color:#111; font-size:16px; line-height:1.5; }
+  .ddtablewrap { overflow-x:auto; margin:0 0 14px; }
+  table.ddtable { border-collapse:collapse; font-size:15px; }
+  table.ddtable th { background:#000; color:#fff; font-weight:700; padding:6px 10px; border:1px solid #111; line-height:1.25; }
+  table.ddtable td { border:1px solid #111; padding:5px 12px; text-align:center; font-weight:600; }
+  table.ddtable tbody tr:nth-child(even) td { background:#d9d9d9; }
+  .ddline { margin:0 0 12px; font-weight:600; }
+  .ddline:last-child { margin-bottom:0; }
+  select.ddsel { max-width:100%; margin:2px 4px; padding:4px 8px; border:2px solid #111; border-radius:6px; background:#fff; color:#111;
+                 font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:15px; vertical-align:baseline; cursor:pointer; }
+  select.ddsel:focus { outline:none; box-shadow: 0 0 0 3px #3c78d8; }
+  select.ddsel.chosen { border-color:#1b4587; }
+  select.ddsel.right { background: var(--green); border-color:#38761d; color:#111; opacity:1; cursor:default; }
+  select.ddsel.wrong { background: var(--red); border-color:#cc0000; }
+  select.ddsel:disabled { opacity:.75; }
+  select.ddsel.right:disabled { opacity:1; }
   input.shortbox { display:block; width:100%; margin:0; border:0; border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px; outline:none; background:#fff; color:#111;
                    font-family:Poppins, Arial, sans-serif; font-size:15px; line-height:1.5; transition: background .25s; }
   input.shortbox:focus { box-shadow: inset 0 0 0 2px #3c78d8; }
@@ -328,6 +354,18 @@
   html[data-theme="dark"] button.choicebtn.picked { background:#203050; border-color:#8fb3ff; box-shadow: inset 0 0 0 2px #8fb3ff; }
   html[data-theme="dark"] button.choicebtn.tried { background:var(--red); border-color:#ff8a80; color:#f1f3f5; }
   html[data-theme="dark"] button.choicebtn.right { background:var(--green); border-color:#8fd19e; box-shadow: inset 0 0 0 2px #8fd19e; color:#f1f3f5; }
+  html[data-theme="dark"] .choicebox.pics button.choicebtn, html[data-theme="dark"] .choicebox.pics button.choicebtn:hover:not(:disabled) { background:#14171c; }
+  html[data-theme="dark"] .choicebox.pics button.choicebtn.picked { background:#14171c; border-color:#8fb3ff; box-shadow: 0 0 0 4px #8fb3ff; }
+  html[data-theme="dark"] .choicebox.pics button.choicebtn.tried { background:#14171c; border-color:#ff8a80; box-shadow: 0 0 0 4px #ff8a80; }
+  html[data-theme="dark"] .choicebox.pics button.choicebtn.right { background:#14171c; border-color:#8fd19e; box-shadow: 0 0 0 4px #8fd19e; }
+  html[data-theme="dark"] .ddbox { background:#1d2128; color:#f1f3f5; border-color:#5f6670; }
+  html[data-theme="dark"] table.ddtable th { background:#000; border-color:#5f6670; }
+  html[data-theme="dark"] table.ddtable td { border-color:#5f6670; }
+  html[data-theme="dark"] table.ddtable tbody tr:nth-child(even) td { background:#2a2f38; }
+  html[data-theme="dark"] select.ddsel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] select.ddsel.chosen { border-color:#8fb3ff; }
+  html[data-theme="dark"] select.ddsel.right { background:var(--green); border-color:#8fd19e; color:#f1f3f5; }
+  html[data-theme="dark"] select.ddsel.wrong { background:var(--red); border-color:#ff8a80; color:#f1f3f5; }
   html[data-theme="dark"] input.shortbox { background:#14171c; color:#f1f3f5; border-color:#5f6670; }
   html[data-theme="dark"] input.shortbox.correct { background:var(--green); } html[data-theme="dark"] input.shortbox.incorrect { background:var(--red); }
   html[data-theme="dark"] button.bulb { background:#1d2128; color:#e8eaed; border-color:#8a9099; }
@@ -1406,11 +1444,18 @@ var AUTOSAVE_MS = 8000;    // autosave this long after the student stops typing
    - "Tries left: 1" next to Check. When the question is done the right choice turns green and the Explanation shows in the black bar.
    - The light bulb (top right of the question, only when it has hints): Give me a clue, Show me an example, Watch a video (a new tab).
      After a wrong try, when Settings asks for it, the bulb glows and Check waits until a hint is opened. Hints never cost points.
+   - Picture choices (2026.11.06d): when every choice is a picture, the buttons go 2 to a row (1 on a phone), the picture fills the button,
+     and a thick outline shows the pick (blue), a wrong try (red) and the right one (green). Clicking the picture picks it.
+   - dropdown (2026.11.06d, like IXL): an optional table (display only), then the question's sentences with a dropdown at each ___
+     (each starts on "Choose"; the options in the Choice columns' order, never shuffled). One Check sends every box as one try ("2,3,1").
+     After a wrong try each box turns green (right: it stays set) or red; once done every box shows its right answer in green.
+     The gray box shows only the lines before the first ___ (appendQuestionText, called by both pages' render()).
    Each Check is ONE try, sent to tryAnswer with its own attemptId: a retry after a lost reply sends the same one, so it never counts
    twice. The page never knows an open question's right answer; tryAnswer's result says how the try went, and only once the question
-   is done which choice was right. Hooks in the page: render() calls triedBox(i) and wireTried(i, item), paint() calls paintTried(i, res),
-   localGrade() uses each result's credit, answerOf() and check() leave these questions alone. */
+   is done which choice was right. Hooks in the page: render() calls appendQuestionText(qt, q), triedBox(i) and wireTried(i, item),
+   paint() calls paintTried(i, res), localGrade() uses each result's credit, answerOf() and check() leave these questions alone. */
 var hintSeen = {}, triedPick = {};   // question -> the hint opened since the last try ("clue", "example", "video"); the choice picked (its number from 1)
+var ddSel = {};                       // dropdown question -> what's in each box now (option numbers as text, "" = Choose), sent with Check
 var triedLost = {};                   // question -> { ans, id } of a try whose reply never came: the same answer again reuses its id (never two tries)
 var HINT_NAMES = { clue: "Give me a clue", example: "Show me an example", video: "Watch a video" };
 var HINT_SENTENCE = "Open a hint (the light bulb) before you try again.";
@@ -1455,9 +1500,78 @@ function questionOrder() {
   if (S.shuffleQuestions) { S.qNum = []; order.forEach(function (i, pos) { S.qNum[i] = pos + 1; }); }
   return { order: order, sec: sec, secNo: secNo };
 }
-/** The answer area: choice buttons, or a one-line box. */
+/** The question's words in its gray box (both pages' render()): the text, or for a dropdown question only the lines before its first ___
+    (the sentences with the dropdowns go in its answer area, ddBox). Built from text nodes, never the sheet's text as HTML. */
+function appendQuestionText(qt, q) {
+  if (q.kind !== "dropdown") { qt.appendChild(document.createTextNode(q.text)); return; }
+  var lead = ddLines(q).lead;
+  if (!lead.length) lead = ["Choose the right answer in each box."];
+  lead.forEach(function (line, k) { if (k) qt.appendChild(el("br")); qt.appendChild(document.createTextNode(line)); });
+}
+/** A dropdown question's lines (Ctrl+Enter in the cell): lead = before the first line with a ___, body = that line and the rest. */
+function ddLines(q) {
+  var lines = String(q.text || "").split(/\r?\n/), at = -1;
+  lines.forEach(function (l, k) { if (at === -1 && /_{3,}/.test(l)) at = k; });
+  if (at === -1) at = lines.length;
+  var keep = function (l) { return l.trim() !== ""; };
+  return { lead: lines.slice(0, at).filter(keep), body: lines.slice(at).filter(keep) };
+}
+/** A dropdown question's answer area: its table (display only), then each sentence with a dropdown at every ___. */
+function ddBox(i) {
+  var q = S.questions[i], box = el("div", "ddbox"), n = 0;
+  box.id = "a" + i;
+  var t = q.dtable;
+  if (t && t.cols && t.cols.length) {
+    var wrap = el("div", "ddtablewrap"), tb = el("table", "ddtable"), hr = el("tr");
+    t.cols.forEach(function (c) { hr.appendChild(el("th", null, c)); });
+    tb.appendChild(el("thead")).appendChild(hr);
+    var body = tb.appendChild(el("tbody"));
+    (t.rows || []).forEach(function (row) { var tr = el("tr"); row.forEach(function (c) { tr.appendChild(el("td", null, c)); }); body.appendChild(tr); });
+    wrap.appendChild(tb); box.appendChild(wrap);
+  }
+  ddLines(q).body.forEach(function (line) {
+    var p = el("div", "ddline"), parts = line.split(/_{3,}/);
+    parts.forEach(function (txt, k) {
+      if (txt) p.appendChild(document.createTextNode(txt));
+      if (k === parts.length - 1) return;
+      var s = el("select", "ddsel"); s.id = "d" + i + "_" + n; s.setAttribute("data-k", n);
+      s.setAttribute("aria-label", "Box " + (n + 1) + " of question " + (i + 1));
+      var o = el("option", null, "Choose"); o.value = ""; s.appendChild(o);
+      (q.choices || []).forEach(function (c, j) { var op = el("option", null, c.t); op.value = String(j + 1); s.appendChild(op); });
+      p.appendChild(s); n++;
+    });
+    box.appendChild(p);
+  });
+  return box;
+}
+/** What's in each of a dropdown question's boxes now (first time: the last try's picks, so a reload shows them). */
+function ddCur(i) {
+  var q = S.questions[i], r = S.results[i] || {};
+  if (!ddSel[i]) { ddSel[i] = []; for (var k = 0; k < (q.blanks || 0); k++) ddSel[i].push(r.picks && r.picks[k] ? String(r.picks[k]) : ""); }
+  return ddSel[i];
+}
+/** Paints a dropdown question's boxes: right ones (from the last try) green and set, the ones still wrong red, all green once done. */
+function paintDrop(i, res, done, locked) {
+  var cur = ddCur(i), picks = res.picks || [], marks = res.marks || [], right = Array.isArray(res.right) ? res.right : null;
+  Array.prototype.forEach.call(document.querySelectorAll("#a" + i + " select.ddsel"), function (s) {
+    var k = Number(s.getAttribute("data-k")), fixed = done && right ? String(right[k]) : marks[k] === true ? String(picks[k]) : null;
+    if (fixed != null) cur[k] = fixed;
+    s.value = cur[k] || "";
+    var wrongNow = fixed == null && marks[k] === false && s.value !== "" && s.value === String(picks[k]);
+    s.className = "ddsel" + (fixed != null ? " right" : wrongNow ? " wrong" : s.value ? " chosen" : "");
+    s.disabled = locked || done || fixed != null || !!pending[i];
+  });
+}
+/** The answer a dropdown question's Check sends ("2,3,1"), or "" while a box still says Choose. */
+function ddAnswer(i) {
+  var cur = ddCur(i), n = S.questions[i].blanks || cur.length;
+  for (var k = 0; k < n; k++) if (!cur[k]) return "";
+  return cur.slice(0, n).join(",");
+}
+/** The answer area: choice buttons, dropdowns, or a one-line box. */
 function triedBox(i) {
   var q = S.questions[i];
+  if (q.kind === "dropdown") return ddBox(i);
   if (q.kind === "short") {
     var wrap = el("div", "shortwrap"); wrap.id = "a" + i;
     var inp = el("input", "shortbox"); inp.type = "text"; inp.id = "s" + i; inp.maxLength = 300; inp.autocomplete = "off"; inp.spellcheck = false;
@@ -1465,11 +1579,12 @@ function triedBox(i) {
     wrap.appendChild(inp);
     return wrap;
   }
-  var box = el("div", "choicebox" + (q.kind === "truefalse" ? " tf" : "")); box.id = "a" + i;
+  var pics = q.kind === "choice" && (q.choices || []).length > 1 && q.choices.every(function (c) { return c.img && !c.t; });   // every choice a picture: 2 to a row
+  var box = el("div", "choicebox" + (q.kind === "truefalse" ? " tf" : "") + (pics ? " pics" : "")); box.id = "a" + i;
   box.setAttribute("role", "radiogroup"); box.setAttribute("aria-label", "Choices for question " + (i + 1));
   (q.choices || []).forEach(function (c, k) {
     var b = el("button", "choicebtn"); b.type = "button"; b.setAttribute("data-c", k + 1); b.setAttribute("role", "radio");
-    if (c.img) { var im = el("img"); im.alt = "Choice " + (k + 1); cpPicture(im, c.img, "c" + i + "." + k); b.appendChild(im); }   // (getPicture's key for a picture choice)
+    if (c.img) { var im = el("img"); im.alt = "Choice " + (k + 1); im.draggable = false; cpPicture(im, c.img, "c" + i + "." + k); b.appendChild(im); }   // (getPicture's key for a picture choice; a click picks it, never opens it)
     if (c.t) b.appendChild(el("span", null, c.t));
     box.appendChild(b);
   });
@@ -1483,7 +1598,8 @@ function wireTried(i, item) {
   var warn = el("div", "lastwarn"); warn.id = "lw" + i; warn.hidden = true; warn.setAttribute("role", "note");
   warn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>';
   warn.appendChild(el("span", null, q.kind === "short" ? "Last try! Check your work before you press Check." :
-    q.kind === "truefalse" ? "One try only! Read the statement carefully before you press Check." : "Last try! Read every choice carefully before you press Check."));
+    q.kind === "truefalse" ? "One try only! Read the statement carefully before you press Check." :
+    q.kind === "dropdown" ? "Last try! Check every box before you press Check." : "Last try! Read every choice carefully before you press Check."));
   var area = document.getElementById("a" + i);
   area.parentNode.insertBefore(warn, area);
   btn.addEventListener("click", function () { tryCheck(i); });
@@ -1492,6 +1608,14 @@ function wireTried(i, item) {
     blockPaste(inp, i);
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); tryCheck(i); } });
     inp.addEventListener("input", function () { if (!pending[i]) setMeta(i, inp.value.trim() ? "Press Check (or Enter) to use a try." : "", "#b45f06"); });
+  } else if (q.kind === "dropdown") {
+    area.addEventListener("change", function (e) {
+      var s = e.target;
+      if (!s || !s.classList || !s.classList.contains("ddsel") || S.locked || pending[i]) return;
+      ddCur(i)[Number(s.getAttribute("data-k"))] = s.value;
+      paintTried(i, S.results[i]);
+      setMeta(i, ddAnswer(i) ? "Press Check to use a try." : "", "#b45f06");
+    });
   } else {
     document.getElementById("a" + i).addEventListener("click", function (e) {
       var b = e.target.closest ? e.target.closest("button.choicebtn") : null;
@@ -1549,6 +1673,8 @@ function paintTried(i, res) {
   if (q.kind === "short") {
     var inp = document.getElementById("s" + i);
     if (inp) { inp.className = "shortbox" + (t.rightTry ? " correct" : t.used ? " incorrect" : ""); inp.disabled = locked || done; }
+  } else if (q.kind === "dropdown") {
+    paintDrop(i, res, done, locked);
   } else {
     var box = document.getElementById("a" + i), wrong = res.wrong || [], right = Number(res.right) || 0;
     if (box) {
@@ -1592,8 +1718,8 @@ function triesRetry(call, ok, fail, onRetry, delays, attempt) {
 function tryCheck(i) {
   var q = S.questions[i], res = S.results[i] || {}, t = res.tries || {};
   if (S.locked || pending[i] || t.done) return;
-  var ans = q.kind === "short" ? document.getElementById("s" + i).value.replace(/\s+/g, " ").trim() : (triedPick[i] ? String(triedPick[i]) : "");
-  if (!ans) { setMeta(i, q.kind === "short" ? "Type your answer first." : "Pick an answer first.", "#cc0000"); return; }
+  var ans = q.kind === "short" ? document.getElementById("s" + i).value.replace(/\s+/g, " ").trim() : q.kind === "dropdown" ? ddAnswer(i) : (triedPick[i] ? String(triedPick[i]) : "");
+  if (!ans) { setMeta(i, q.kind === "short" ? "Type your answer first." : q.kind === "dropdown" ? "Choose an answer in every box. (That didn't use a try.)" : "Pick an answer first.", "#cc0000"); return; }
   if (t.needHint && !hintSeen[i]) { setMeta(i, HINT_SENTENCE, "#cc0000"); paintTried(i, res); return; }
   var lost = triedLost[i], id = lost && lost.ans === ans ? lost.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 10), seen = hintSeen[i] || "";
   var quick = !!S.quickTries;
@@ -1677,7 +1803,7 @@ function resetMine() {
     note("Erasing your answers…");
     api.run("resetMyAnswers", [], function () {
       S.locked = true;   // nothing more saves from this copy of the page
-      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, #finishBtn").forEach(function (x) { x.disabled = true; });
+      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, select.ddsel, #finishBtn").forEach(function (x) { x.disabled = true; });
       if (CP_SITE) { note("Your answers are erased. Starting over…"); setTimeout(function () { location.reload(); }, 600); }
       else note("Your answers are erased. Reload this page (the reload button, or Ctrl+R) to start over.");
     }, function (err) { if (b) b.disabled = false; showError(err); });
@@ -2108,7 +2234,7 @@ function render() {
     var qt = el("div", "qtext");
     qt.appendChild(el("span", "qnum", qLabel(i + 1)));
     if (q.points && S.showPoints) qt.appendChild(el("span", "qpts", (Math.round(q.points * 100) / 100) + (q.points === 1 ? " point" : " points")));
-    qt.appendChild(document.createTextNode(q.text));
+    appendQuestionText(qt, q);   // (the LIMITED TRIES block: a dropdown question shows only the lines before its first ___)
     if (q.img && !(q.boxes && q.boxes.length) && !q.draw) {
       var fig = el("figure", "qimg");
       var im = el("img"); im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
@@ -3011,7 +3137,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.06c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.06d";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

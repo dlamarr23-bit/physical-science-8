@@ -1,7 +1,32 @@
-auto-grading-activity v2026.11.06c
+auto-grading-activity v2026.11.06d
 
-Optional update: a Reset my answers button for your own copy of the assignment (only you see it).
+Optional update: dropdown questions (sentences with dropdowns, like IXL) and picture choices 2 to a row.
 
+- New Answer type: dropdown, for practice like IXL's "Use tables and graphs" skill (sentences with dropdowns in them). Type ___ (three
+  underscores) in the Question where each dropdown goes. A line break you type in the cell (Ctrl+Enter) starts a new line, so each sentence
+  can sit on its own line; the lines before the first ___ show in the gray question box.
+- Every dropdown offers the options in the Choice columns, in that order (never shuffled), and starts on "Choose". Right choice: one answer
+  for each ___, in order, separated by commas: 2, 3, 2 (choice numbers) or the words: 1/2, equal to, 1/2.
+- Table config (optional) on a dropdown row: a small table shown above the sentences, only for reading (no boxes, not graded), e.g.
+  {"cols":["Mammal","Mass (kg)","Speed (m/s)"],"rows":[["lion",125,16],["wildebeest",250,16]]}
+- One Check sends every box and counts as ONE try. It's right only when every box is right, and credit by try works as for multiple choice
+  (Settings: Tries for multiple choice). A box left on Choose uses no try ("Choose an answer in every box."), and neither do the same answers again.
+- After a wrong try, each box turns green (right: it stays set) or red, and the black bar shows the hint for each wrong box: Idea 1 hint for
+  box 1, Idea 2 hint for box 2, and so on (else that option's Choice feedback, else "That isn't the right answer."). Out of tries, every box
+  shows its right answer in green with the Explanation. The right answer of a wrong box never reaches the page before that.
+- Live Results shows a dropdown question like "1/2 | equal to | 1/4 | right on try 2". Check the Questions tab warns about a dropdown row with
+  no ___, a Right choice with the wrong number of answers or one that matches no option, and a Table config that isn't valid or has empty (null) cells.
+- Picture choices: a multiple choice question whose choices are ALL pictures (each Choice cell only a picture link) now shows them 2 to a row
+  (1 on a phone), bigger, with a thick outline like IXL: blue for the pick, red for a wrong try, green for the right one. Clicking a picture
+  picks it. Use it for "Select the graph that shows ...". Live Results names a picture by its file name when its link is a web address
+  (like "C. (picture: KE mass - curve)"); a Drive link still shows "(picture)".
+- To use it: paste the new Code.gs and Index, then New version. No Set up / repair needed (no new Settings rows or columns). A question with
+  more than 4 options needs a Choice 5 column (and Choice 6 for 6): type the header in an empty column at the end of the Questions tab.
+- Students who open this assignment through the class website (Class Pass) get the new page as soon as it is published; dropdown questions
+  also need the new Code.gs. A sheet with no dropdown or picture questions looks exactly the same.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06c (optional), if this sheet skipped it:
 - New: Reset my answers, for your own copy. When you open the assignment yourself (signed in as the account that owns this sheet),
   "Signed in as ..." is followed by "Your own copy: Reset my answers". It asks first, then erases only YOUR answers (tries, hints, drafts,
   turned in), so you can try the assignment again from the start, like a student. Students never see the button, and the sheet refuses

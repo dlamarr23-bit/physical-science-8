@@ -1,7 +1,12 @@
-net-force-escape-room v2026.11.06c
+net-force-escape-room v2026.11.06d
 
 Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to the escape room. (2026.11.06d adds dropdown questions and picture choices 2 to a row to the Self-Check pages. The escape
+  room page doesn't show them, so its sheet treats a dropdown row as a typed answer, and Check the Questions tab says so.)
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06c (optional), if this sheet skipped it:
 - No changes to the escape room. (2026.11.06c adds a Reset my answers button for the teacher on the Self-Check pages; the escape room page doesn't have it.)
 - Your questions, answer keys, settings and student work are not touched.
 

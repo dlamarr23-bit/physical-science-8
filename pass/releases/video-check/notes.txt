@@ -1,7 +1,10 @@
-video-check v2026.11.06c
+video-check v2026.11.06d
 
 Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+• No changes to this kind's code or page (the 2026.11.06d change is dropdown questions and picture choices on the Self-Check pages).
+
+Also from 2026.11.06c (optional), if this sheet skipped it:
 • No changes to this kind's code or page (the 2026.11.06c change is a Reset my answers button on the Self-Check pages).
 
 Also from 2026.11.06b (optional), if this sheet skipped it:

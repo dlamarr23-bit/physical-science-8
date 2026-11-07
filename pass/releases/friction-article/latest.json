@@ -1,7 +1,7 @@
 {
   "kind": "friction-article",
-  "version": "2026.11.06c",
-  "optional": "a Reset my answers button for your own copy of the assignment (only you see it).",
+  "version": "2026.11.06d",
+  "optional": "dropdown questions (sentences with dropdowns, like IXL) and picture choices 2 to a row.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

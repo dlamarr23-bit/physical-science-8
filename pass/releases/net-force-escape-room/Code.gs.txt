@@ -107,6 +107,9 @@
  * with each try (Credit by try: 100%, 90%, 80%; Credit when never answered right: 50%), see feedback for the
  * wrong choice they picked, and open a hint (the light bulb) before trying again. The right answer and the
  * Explanation show only once the question is done. See LIMITED TRIES further down.
+ * DROPDOWNS (like IXL): type  dropdown  and put ___ in the question where each dropdown goes (Ctrl+Enter
+ * starts a new line). Every dropdown offers the Choice columns; Right choice has one answer per ___, in
+ * order (2, 3, 2). Table config can show a small table above the sentences. One Check = one try.
  *
  * SECTION PICTURES: a picture right under a blue section strip (not tied to any
  * question): on the row that starts the section, paste a Drive share link in
@@ -172,8 +175,8 @@ var CLASS_START_TIMES = "1 = 8:10 AM, 6 = 9:10 AM, 2 = 10:18 AM, 3 = 11:26 AM, 5
 // Last days with a different bell schedule: a weekday, a date (12/17/2026) or a quarter (Q2), a colon, then period = time.
 // Separate changes with semicolons. Priority: a date beats a quarter, which beats a weekday. "none" = always the usual times.
 var CLOSE_TIME_CHANGES = "Thursday: 1 = 8:10 AM, 5 = 9:10 AM, 6 = 10:33 AM, 2 = 11:26 AM, 3 = 12:54 PM";
-// ---------- Limited tries: Answer type choice, truefalse or short (see LIMITED TRIES) ----------
-var TRIES_CHOICE       = 2;                 // tries for a multiple choice question (a question's Tries column can change it)
+// ---------- Limited tries: Answer type choice, truefalse, short or dropdown (see LIMITED TRIES) ----------
+var TRIES_CHOICE       = 2;                 // tries for a multiple choice or dropdown question (a question's Tries column can change it)
 var TRIES_TF           = 1;                 // tries for a true/false question
 var TRIES_SHORT        = 3;                 // tries for a short answer question
 var TRY_CREDIT         = "100%, 90%, 80%";  // credit when the first right answer comes on try 1, 2, 3 (tries past the list use the last one)
@@ -251,7 +254,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "net-force-escape-room";   // a one-off Self-Check with its own page (self-check\custom\net-force-escape-room\)
-var SKILL_VERSION = "2026.11.06c";
+var SKILL_VERSION = "2026.11.06d";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -309,7 +312,7 @@ var SETTING_DEFS = [
 ];
 // Limited tries (Answer type choice, truefalse or short; see LIMITED TRIES): a Self-Check's rows, not a review game's.
 var TRY_SETTING_DEFS = [
-  ["Tries for multiple choice", "TRIES_CHOICE", "number", "Only for questions whose Answer type is choice. How many tries a student gets. A question's own Tries column (in the Questions tab) changes it for that question."],
+  ["Tries for multiple choice", "TRIES_CHOICE", "number", "Only for questions whose Answer type is choice or dropdown. How many tries a student gets. A question's own Tries column (in the Questions tab) changes it for that question."],
   ["Tries for true/false", "TRIES_TF", "number", "Only for questions whose Answer type is truefalse. How many tries a student gets (1 = one try, since there are only two choices)."],
   ["Tries for short answers", "TRIES_SHORT", "number", "Only for questions whose Answer type is short (a one-line answer checked by its key words). How many tries a student gets."],
   ["Credit by try", "TRY_CREDIT", "label", "The share of a question's points when the student's first right answer comes on try 1, try 2, try 3 ..., separated by commas, e.g. 100%, 90%, 80%. Tries past the end of the list use the last one. Only for choice, truefalse and short questions."],
@@ -510,6 +513,8 @@ function parseQuestions_(rows) {
     if (tk && !triesPage_()) { warnings.push(at + ": Answer type \"" + ty + "\" (limited tries) needs the one-column or two-column Self-Check page, so it's a typed answer here."); tk = ""; ty = ""; }
     var picks = tk === "choice" || tk === "truefalse" ? triedChoices_(r, choiceCols, fbCols, cell(r, c.right), tk, at, warnings) : null;
     if ((tk === "choice" || tk === "truefalse") && !picks) continue;   // too few choices, or no usable Right choice (triedChoices_ said why)
+    var drop = tk === "dropdown" ? dropdownFrom_(r, choiceCols, fbCols, cell(r, c.right), q, at, warnings) : null;
+    if (tk === "dropdown" && !drop) continue;   // no ___, too few choices, or a Right choice that doesn't fit (dropdownFrom_ said why)
     if (pendingSec) { pendingSec.before = items.length; sections.push(pendingSec); pendingSec = null; }
     var item = { q: q, criteria: [] };
     if (game) {
@@ -519,6 +524,22 @@ function parseQuestions_(rows) {
     } else if (tk) {
       item.kind = tk;
       if (picks) { item.choices = picks.choices; item.right = picks.right; }
+      if (drop) {   // DROPDOWNS: the options (every dropdown offers them all), one right option per ___, box N's hint = Idea N hint, a table to show
+        item.choices = drop.choices; item.right = drop.right; item.blanks = drop.right.length;
+        var dh = [];
+        for (var bk = 0; bk < item.blanks; bk++) {
+          var idc = ideas.filter(function (x) { return x.n === bk + 1; })[0];
+          dh.push(idc ? cell(r, idc.hint).slice(0, 1000) : "");
+        }
+        while (dh.length && !dh[dh.length - 1]) dh.pop();
+        if (dh.length) item.dhints = dh;
+        ideas.forEach(function (x) {
+          if (cell(r, x.keys)) warnings.push(at + " is a dropdown question, so its Idea " + x.n + " key words are ignored (Right choice grades it; Idea " + x.n + " hint is what students see when box " + x.n + " is wrong).");
+          else if (x.n > item.blanks && cell(r, x.hint)) warnings.push(at + ": Idea " + x.n + " hint is for box " + x.n + ", but the question has " + item.blanks + (item.blanks === 1 ? " box" : " boxes") + " (___), so it's ignored.");
+        });
+        var tcv = cell(r, c.table);
+        if (tcv) { var dt = displayTable_(tcv); if (dt.table) item.dtable = dt.table; if (dt.warn) warnings.push(at + ": " + dt.warn); }
+      }
       if (cell(r, c.explain)) item.explain = cell(r, c.explain).slice(0, 1000);
       else warnings.push(at + " has no Explanation, so students only see that it's done. Type a short reason in Explanation (they see it once they get it right or run out of tries).");
       var tv = cell(r, c.tries);
@@ -537,7 +558,7 @@ function parseQuestions_(rows) {
     }
     if (Object.keys(hints).length) {
       if (tk) item.hints = hints;
-      else if (!game) warnings.push(at + " has hints, but hints only show on choice, truefalse and short questions (Answer type), so they're ignored.");
+      else if (!game) warnings.push(at + " has hints, but hints only show on choice, truefalse, short and dropdown questions (Answer type), so they're ignored.");
     }
     if (isDrawType_(ty)) { item.upload = true; item.draw = true; }
     else if (isUploadType_(ty)) item.upload = true;
@@ -546,7 +567,7 @@ function parseQuestions_(rows) {
       if (tc.table) item.table = tc.table;
       else warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): " + tc.error + " So it's a typed answer for now.");
     }
-    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
+    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, dropdown, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
     var ms = parseInt(cell(r, c.sentences), 10);
     if (ms > 0) item.minSentences = Math.min(ms, 20);
     if (/^(x|yes|y|true|1)$/i.test(cell(r, c.short))) item.short = true;
@@ -571,6 +592,7 @@ function parseQuestions_(rows) {
       else warnings.push("Row " + rowNo + ": the question button link must start with https:// or be a timer like timer:120 (seconds)");
     }
     ideas.forEach(function (idea) {
+      if (item.kind === "dropdown") return;   // (its Idea hints are its boxes' hints, read above)
       var keys = cell(r, idea.keys), hint = cell(r, idea.hint);
       if (!keys) {
         if (hint) warnings.push("Row " + rowNo + " (Q" + (items.length + 1) + "): Idea " + idea.n + " has a hint but no key words, so it's ignored.");
@@ -595,9 +617,10 @@ function parseQuestions_(rows) {
       if (need.every(function (g) { return g[0] === "!"; })) warnings.push(at + " has only NOT words, so it shows up on every answer that leaves those words out. Add the words that show the wrong idea, like  second, sec + NOT cm, meter.");
       (item.mis = item.mis || []).push({ nudge: hint || "Part of your answer isn't right. Reread it and rethink that part.", need: need });
     });
-    if (item.kind && item.kind !== "short") {   // choice and true/false: graded by Right choice only
-      if (item.criteria.length || item.mis) warnings.push(at + " is a " + (item.kind === "choice" ? "multiple choice" : "true/false") + " question, so its Idea and Misconception key words are ignored (Right choice grades it).");
-      if (item.boxes) warnings.push(at + " is a " + (item.kind === "choice" ? "multiple choice" : "true/false") + " question, so its picture boxes are ignored.");
+    if (item.kind && item.kind !== "short") {   // choice, true/false and dropdown: graded by Right choice only
+      var kn = { choice: "multiple choice", truefalse: "true/false", dropdown: "dropdown" }[item.kind];
+      if (item.criteria.length || item.mis) warnings.push(at + " is a " + kn + " question, so its " + (item.kind === "dropdown" ? "Misconception" : "Idea and Misconception") + " key words are ignored (Right choice grades it).");
+      if (item.boxes) warnings.push(at + " is a " + kn + " question, so its picture boxes are ignored.");
       item.criteria = []; delete item.mis; delete item.boxes;
     }
     if (item.kind === "short") {
@@ -682,13 +705,99 @@ function choicesFrom_(r, cols, rightText, at, warnings) {
   return { choices: choices, right: right.sort(function (a, b) { return a - b; }) };
 }
 
-/** A Self-Check's Answer type with limited tries: "choice", "truefalse" or "short" (see LIMITED TRIES), or "" for any other. */
+/** A Self-Check's Answer type with limited tries: "choice", "truefalse", "short" or "dropdown" (see LIMITED TRIES), or "" for any other. */
 function triedKind_(ty) {
   ty = String(ty || "").trim().toLowerCase();
   if (/^(choice|choices|multiple choice|multiple-choice|mc|mcq)$/.test(ty)) return "choice";
   if (/^(truefalse|true\/false|true-false|true false|true or false|tf|t\/f)$/.test(ty)) return "truefalse";
   if (/^(short|short answer)$/.test(ty)) return "short";
+  if (/^(dropdown|dropdowns|drop down|drop downs|drop-down|drop-downs)$/.test(ty)) return "dropdown";
   return "";
+}
+/** DROPDOWNS (2026.11.06d, Donny's IXL practice): a dropdown row -> { choices: [{ t, fb }], right: [the right option for each ___, 0-based] },
+ *  or null (and a warning) when students can't answer it yet. Every ___ (3 or more underscores) in the question is one dropdown, in order,
+ *  and every dropdown offers all the Choice cells (never shuffled). Right choice: one answer per ___, separated by commas: choice
+ *  numbers (2, 3, 2) or the options' own words (1/2, equal to, 1/2); separate them with | when an option has a comma in it. */
+function dropdownFrom_(r, cols, fbCols, rightText, q, at, warnings) {
+  function text(ci) { return ci == null || ci === -1 ? "" : String(r[ci] == null ? "" : r[ci]).trim(); }
+  var blanks = (String(q).match(/_{3,}/g) || []).length, choices = [], place = {};
+  if (!blanks) { warnings.push(at + " is a dropdown question with no ___ (three underscores) in it, so students don't see it yet. Type ___ in the question where each dropdown goes."); return null; }
+  if (!cols.length) { warnings.push(at + " is a dropdown question, but the Questions tab has no Choice 1, Choice 2 ... columns. Run Set up / repair sheets to add them."); return null; }
+  cols.forEach(function (ci, k) {
+    var v = text(ci), f = text(fbCols[k]);
+    if (!v) { if (f) warnings.push(at + ": Choice " + (k + 1) + " feedback has no Choice " + (k + 1) + " to go with, so it's ignored."); return; }
+    if (/^\S+$/.test(v) && /^https:\/\//.test(v) && imageUrl_(v)) warnings.push(at + ": Choice " + (k + 1) + " is a link, but a dropdown can only show words, so students see the link itself.");
+    var ch = { t: v.slice(0, 200) };
+    if (f) ch.fb = f.slice(0, 1000);
+    place[k] = choices.length;
+    choices.push(ch);
+  });
+  if (choices.length < 2) { warnings.push(at + " is a dropdown question with " + (choices.length ? "only one choice" : "no choices") + ", so students don't see it yet. Type the options every dropdown offers in Choice 1, Choice 2 ..."); return null; }
+  var s = String(rightText == null ? "" : rightText).trim();
+  if (!s) { warnings.push(at + ": the Right choice cell is empty, so students don't see this dropdown question yet. Type one answer for each ___, in order, separated by commas, like 2, 3, 2 (or the words: 1/2, equal to, 1/2)."); return null; }
+  var parts = s.split(s.indexOf("|") !== -1 ? /\s*\|\s*/ : /\s*[,;]\s*/).filter(function (p) { return p !== ""; }), right = [], bad = [];
+  parts.forEach(function (p) {
+    var low = p.toLowerCase().replace(/\s+/g, " "), byText = -1, n = -1;
+    choices.forEach(function (ch, j) { if (byText === -1 && ch.t.toLowerCase().replace(/\s+/g, " ") === low) byText = j; });
+    if (/^\d$/.test(p) && place.hasOwnProperty(Number(p) - 1)) {
+      n = place[Number(p) - 1];
+      if (byText !== -1 && byText !== n) warnings.push(at + ": Right choice \"" + p + "\" is read as Choice " + p + " (" + choices[n].t + "), not the option \"" + choices[byText].t + "\". Use the choice numbers to be sure.");
+    } else n = byText;
+    if (n === -1) bad.push(p);
+    right.push(n);
+  });
+  if (bad.length) { warnings.push(at + ": Right choice " + bad.map(function (b) { return "\"" + b + "\""; }).join(", ") + " doesn't match one of its " + choices.length + " choices, so students don't see this dropdown question yet. Use the choice numbers (2 = Choice 2) or the choices' own words."); return null; }
+  if (right.length !== blanks) { warnings.push(at + ": the Right choice cell has " + right.length + (right.length === 1 ? " answer" : " answers") + ", but the question has " + blanks + " ___ " + (blanks === 1 ? "box" : "boxes") + ", so students don't see it yet. Type one answer for each ___, in order, separated by commas."); return null; }
+  if (choices[right[0]].fb && right.every(function (m) { return m === right[0]; })) warnings.push(at + ": \"" + choices[right[0]].t + "\" is the right answer in every box, so its Choice feedback is never shown.");
+  return { choices: choices, right: right };
+}
+/** A dropdown question's Table config: a small table shown above its sentences, display only (no boxes, not graded, no graph):
+ *  {"cols":["Mammal","Mass (kg)"],"rows":[["lion",125],["wildebeest",250]]} -> { table: { cols, rows (all text) }, warn }. */
+function displayTable_(text) {
+  var t;
+  try { t = JSON.parse(text); } catch (e) { return { table: null, warn: "the Table config isn't valid JSON (check the quotes, commas and brackets), so the table is left out. Example: {\"cols\":[\"Mammal\",\"Mass (kg)\"],\"rows\":[[\"lion\",125],[\"wildebeest\",250]]}" }; }
+  if (!t || !Array.isArray(t.cols) || !t.cols.length || !Array.isArray(t.rows)) return { table: null, warn: "the Table config needs \"cols\" (the column names) and \"rows\" (a list of rows), so the table is left out." };
+  var n = Math.min(t.cols.length, 12), empty = 0;
+  function txt(v) { if (v == null || v === "") { empty++; return ""; } return String(v).slice(0, 200); }
+  var out = { cols: t.cols.slice(0, n).map(txt), rows: t.rows.slice(0, 40).map(function (row) {
+    var r = Array.isArray(row) ? row.slice(0, n) : [row];
+    while (r.length < n) r.push(null);
+    return r.map(txt);
+  }) };
+  return { table: out, warn: empty ? "the Table config has " + empty + " empty " + (empty === 1 ? "cell" : "cells") + " (null). A dropdown's table is only for reading (students don't type in it), so " + (empty === 1 ? "it shows" : "they show") + " blank." : "" };
+}
+/** A dropdown try ("2,3,1") -> the option picked in each box (0-based), -1 for a box left blank or a number out of range. */
+function dropPicks_(item, answer) {
+  var p = String(answer == null ? "" : answer).split(/\s*,\s*/), out = [];
+  for (var k = 0; k < item.blanks; k++) {
+    var n = /^\d+$/.test(p[k] || "") ? Number(p[k]) - 1 : -1;
+    out.push(n >= 0 && n < item.choices.length ? n : -1);
+  }
+  return out;
+}
+/** One dropdown try: right only when every box is right. A wrong try names what to fix in each wrong box: box N's Idea N hint, else that
+ *  option's Choice feedback, else "That isn't the right answer." (Box N: in front when more than one box is wrong). marks = each box right or not. */
+function dropGrade_(item, answer) {
+  var p = dropPicks_(item, answer), wrong = [];
+  if (p.indexOf(-1) !== -1) return { status: "blank", message: "" };
+  var marks = p.map(function (n, k) { if (n !== item.right[k]) wrong.push(k); return n === item.right[k]; });
+  if (!wrong.length) return { status: "correct", message: "That's right!", marks: marks };
+  var said = wrong.map(function (k) { return (item.dhints && item.dhints[k]) || item.choices[p[k]].fb || ""; });
+  var msg = said.every(function (m) { return !m; })
+    ? (wrong.length === 1 ? "That isn't the right answer." : "The red boxes aren't the right answers yet.")
+    : wrong.map(function (k, j) { return (wrong.length > 1 ? "Box " + (k + 1) + ": " : "") + (said[j] || "That isn't the right answer."); }).join(" ");
+  return { status: wrong.length < p.length ? "partial" : "incorrect", message: msg, marks: marks };
+}
+/** "That didn't use a try" notes for a try that isn't a new one. */
+var DROP_BLANK_NOTE = "Choose an answer in every box. (That didn't use a try.)";
+function repeatNote_(item) { return item.kind === "dropdown" ? "You already tried those answers. (That didn't use a try.)" : TRY_REPEAT_NOTE; }
+/** The name of a picture choice for the teacher, from an https picture address ("KE mass - curve" from .../KE%20mass%20-%20curve.png); "" for a Drive link. */
+function pictureName_(u) {
+  u = String(u || "");
+  if (/drive\.google\.com/.test(u)) return "";
+  var m = /\/([^\/?#]+?)(\.(png|jpe?g|gif|webp|svg|bmp))?(?:[?#].*)?$/i.exec(u), s = "";
+  try { s = m ? decodeURIComponent(m[1]) : ""; } catch (e) { s = m ? m[1] : ""; }
+  return s.replace(/[_+]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
 }
 /** A Self-Check choice or true/false row: { choices: [{ t, img, fb }], right: [0-based] }, or null (and a warning) when students can't
  *  answer it yet. fb = what a student sees after picking that wrong choice (its "Choice N feedback" cell). A true/false question's
@@ -1147,13 +1256,13 @@ function seedConfigTabs_() {
     qs = qs || ss.insertSheet(SH_QUESTIONS, 0);
     var ideaCount = IDEA_COLS, misCount = MIS_COLS, choiceCount = TRY_CHOICE_COLS;
     ITEMS.forEach(function (it) {
-      ideaCount = Math.max(ideaCount, it.criteria.length); misCount = Math.max(misCount, (it.mis || []).length);
+      ideaCount = Math.max(ideaCount, it.criteria.length, Math.min(20, (it.dhints || []).length)); misCount = Math.max(misCount, (it.mis || []).length);
       if (it.kind && it.choices) choiceCount = Math.max(choiceCount, Math.min(6, it.choices.length));
     });
     var head = [Q_COLS.section, Q_COLS.secLabel, Q_COLS.secUrl, Q_COLS.secImg, Q_COLS.secCap, Q_COLS.q, Q_COLS.img, Q_COLS.cap, Q_COLS.btnLabel, Q_COLS.btnUrl, Q_COLS.boxes];
     for (var n = 1; n <= ideaCount; n++) head.push("Idea " + n + " hint", "Idea " + n + " key words");
     head.push(Q_COLS.type, Q_COLS.table, Q_COLS.sentences, Q_COLS.short, Q_COLS.points);
-    var tryCols = triesPage_();   // LIMITED TRIES: choice and truefalse questions' columns, then every tried question's
+    var tryCols = triesPage_();   // LIMITED TRIES: choice, truefalse and dropdown questions' columns, then every tried question's
     if (tryCols) {
       for (n = 1; n <= choiceCount; n++) head.push("Choice " + n, "Choice " + n + " feedback");
       head.push(Q_COLS.right, Q_COLS.explain, Q_COLS.tries, Q_COLS.hintClue, Q_COLS.hintEx, Q_COLS.hintVideo);
@@ -1167,10 +1276,12 @@ function seedConfigTabs_() {
                  ql ? ql.label : "", ql ? ql.url : "", boxesText_(it.boxes)];
       for (var n = 0; n < ideaCount; n++) {
         var cr = it.criteria[n];
+        if (!cr && it.kind === "dropdown") { row.push((it.dhints || [])[n] || "", ""); continue; }   // a dropdown: Idea N hint = box N's hint
         row.push(cr ? (cr.row ? "[" + cr.row + "] " : "") + cr.nudge : "", cr ? keyWordsText_(cr.need) : "");
       }
       row.push(it.kind ? it.kind : it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : "",
-               it.table ? JSON.stringify(it.table.graph ? { graph: it.table.graph } : it.table.lab ? { lab: it.table.lab } : tableConfigOut_(it.table)) : "",
+               it.table ? JSON.stringify(it.table.graph ? { graph: it.table.graph } : it.table.lab ? { lab: it.table.lab } : tableConfigOut_(it.table)) :
+               it.kind === "dropdown" && it.dtable ? JSON.stringify(it.dtable) : "",
                it.minSentences || "", it.short ? "x" : "", it.points == null ? "" : it.points);
       if (tryCols) {
         var tfc = it.kind === "truefalse" ? [{ t: "TRUE" }, { t: "FALSE" }].map(function (c, k) { var own = (it.choices || [])[k]; return own && own.fb ? { t: c.t, fb: own.fb } : c; }) : null;
@@ -1216,7 +1327,7 @@ function seedConfigTabs_() {
       if (h === Q_COLS.boxes) return "OPTIONAL: type-in boxes placed ON the picture, one per line:\n  Source Object: 43, 39.5, 21, 10\n= label: left, top, width, height (all % of the picture; height optional).\nBox 1 is graded by Idea 1, box 2 by Idea 2, etc. Each box colors itself. Leave blank for a normal answer box.";
       if (h === Q_COLS.img) return "Upload the picture to Google Drive, Share > Hart District: anyone with the link, then paste the link here.";
       if (/key words$/.test(h)) return "Words that show this idea. Commas mean OR:  zero, balanced\nA + means AND:  vector, arrow + same, equal  (needs one word from each side).\nWord starts count: accelerat matches accelerate/acceleration.\nStart a group with capital NOT to forbid words:  chip + NOT stack, tower\nSpecial words: #num = any number;  ^if = the answer must START with if.\nSpecial groups: @2of a, b, c = at least 2 of these words;  @3sentences = at least 3 complete sentences;  @clear = clearly written (3+ sentences, each with a capital letter and 4+ words, ending with a period).\nLeave every key-word cell blank for a question where any thoughtful answer counts.";
-      if (/hint$/.test(h)) return "What students see when this idea is missing from their answer. To group ideas under a rubric row, start the hint with the row name in brackets, like [Use of Data] Cite a number from your table. Students then see their score for each row (Use of Data 1/2).";
+      if (/hint$/.test(h)) return "What students see when this idea is missing from their answer. On a dropdown question, Idea 1 hint is what they see when box 1 (the first ___) is wrong, Idea 2 hint for box 2, and so on (no key words needed).To group ideas under a rubric row, start the hint with the row name in brackets, like [Use of Data] Cite a number from your table. Students then see their score for each row (Use of Data 1/2).";
       if (h === Q_COLS.type) return TYPE_NOTE_;
       if (h === Q_COLS.table) return TABLE_NOTE_;
       if (h === Q_COLS.sentences) return "OPTIONAL: the fewest complete sentences an answer needs to turn green, e.g. 3. A sentence ends with a period (or ! or ?) and has at least 3 words.";
@@ -1265,11 +1376,11 @@ function seedConfigTabs_() {
 /** The notes on the LIMITED TRIES columns of a Self-Check's Questions tab ("" = not one of them). */
 function tryColNote_(h) {
   h = String(h || "");
-  if (/^Choice \d+$/.test(h)) return "Only for Answer type choice: one answer choice (its words, or a picture link alone). Students see the choices as buttons, shuffled for each student (Settings: Shuffle answer choices). Leave extra Choice cells blank. A truefalse question's choices are always TRUE and FALSE, so its Choice cells can stay blank.";
-  if (/^Choice \d+ feedback$/.test(h)) return "OPTIONAL, for choice and truefalse questions: what a student sees after picking this choice when it's WRONG. Coach them toward the right idea, e.g. That's mass x velocity (7 x 4). Did you square the velocity? On a truefalse question, Choice 1 feedback is for TRUE and Choice 2 feedback for FALSE. The right choice's feedback is never shown (the Explanation is).";
-  if (h === Q_COLS.right) return "For choice and truefalse questions: the number of the right choice (2 = Choice 2), or the right choice's own words. A truefalse question: TRUE or FALSE. One right choice per question. Students never see it until they answer right or run out of tries.";
-  if (h === Q_COLS.explain) return "For choice, truefalse and short questions: shown once the question is done (answered right, or out of tries), like a short reason why the right answer is right. Never shown before that.";
-  if (h === Q_COLS.tries) return "OPTIONAL, for choice, truefalse and short questions: how many tries this question gets (a whole number, 1 to 10). Blank = Settings (Tries for multiple choice, Tries for true/false, Tries for short answers).";
+  if (/^Choice \d+$/.test(h)) return "Only for Answer type choice or dropdown: one answer choice (its words, or a picture link alone). Students see the choices as buttons, shuffled for each student (Settings: Shuffle answer choices). When every choice is a picture, they show 2 to a row. Leave extra Choice cells blank. A truefalse question's choices are always TRUE and FALSE, so its Choice cells can stay blank. A dropdown question: the options every dropdown offers, in this order (never shuffled, words only).";
+  if (/^Choice \d+ feedback$/.test(h)) return "OPTIONAL, for choice and truefalse questions: what a student sees after picking this choice when it's WRONG. Coach them toward the right idea, e.g. That's mass x velocity (7 x 4). Did you square the velocity? On a truefalse question, Choice 1 feedback is for TRUE and Choice 2 feedback for FALSE. The right choice's feedback is never shown (the Explanation is). On a dropdown question it's shown for a wrong box that has no Idea hint.";
+  if (h === Q_COLS.right) return "For choice and truefalse questions: the number of the right choice (2 = Choice 2), or the right choice's own words. A truefalse question: TRUE or FALSE. One right choice per question. A dropdown question: one answer for each ___, in order, separated by commas, like 2, 3, 2 (or the words: 1/2, equal to, 1/2). Students never see it until they answer right or run out of tries.";
+  if (h === Q_COLS.explain) return "For choice, truefalse, short and dropdown questions: shown once the question is done (answered right, or out of tries), like a short reason why the right answer is right. Never shown before that.";
+  if (h === Q_COLS.tries) return "OPTIONAL, for choice, truefalse, short and dropdown questions: how many tries this question gets (a whole number, 1 to 10). Blank = Settings (Tries for multiple choice, also used by dropdowns, Tries for true/false, Tries for short answers).";
   if (h === Q_COLS.hintClue) return "OPTIONAL, for choice, truefalse and short questions: a clue students can open from the light bulb (Give me a clue). Point toward the answer without giving it away. Hints never cost points. A question with no hints has no light bulb.";
   if (h === Q_COLS.hintEx) return "OPTIONAL, for choice, truefalse and short questions: a worked example of a similar problem, opened from the light bulb (Show me an example).";
   if (h === Q_COLS.hintVideo) return "OPTIONAL, for choice, truefalse and short questions: an https:// link (a YouTube video is fine) that opens in a new tab from the light bulb (Watch a video).";
@@ -1339,8 +1450,8 @@ var SEC_IMG_NOTE_ = "OPTIONAL: a picture shown right under this row's blue secti
 var POINTS_NOTE_ = "OPTIONAL: what this question is worth. Blank = 1, the same as every other question. The grade out of Points possible (Settings) is split by points, so a question worth 10 counts ten times as much as one worth 1. A question with key words earns its points by how many of its ideas the answer shows (3 of 5 ideas = 60% of its points; a table or picture boxes work the same way); a question with no key words earns them by its color (green all, yellow the Credit for yellow share, red the Credit for red share). Tip: make the points add up to Points possible (Settings) and set Full credit at to 100%.";
 var MIS_HINT_NOTE_ = "OPTIONAL: what students see when their answer shows this WRONG idea (the misconception's key words are in it), e.g. Seconds only measure time. Speed also needs a distance unit, like cm. Coach them toward the right idea instead of just saying it's wrong. They see it as  Check this: ...  and the box can't turn green until they fix that part.";
 var MIS_KEYS_NOTE_ = "OPTIONAL: words that show a common WRONG idea (misconception) for this question. Typed the same way as the Idea key words: commas mean OR, + means AND, capital NOT forbids words. Example for the units of speed (a time unit with no distance unit):\n  second, sec + NOT cm, meter, mile, per\nWhen an answer has these words, the student sees this misconception's hint, and the box can't turn green (it earns at most the yellow share of its points). Only typed answers are checked (not tables, picture boxes or uploads). Leave blank when there's no common wrong idea. Try it with Self-Check > Test an answer against the key.";
-var TABLE_NOTE_ = "Only for Answer type  table. JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
-var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count). These show their Explanation once done, and their Hint columns under a light bulb. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
+var TABLE_NOTE_ = "For Answer type  dropdown: OPTIONAL, a small table shown above the sentences, only for reading (no boxes, not graded, no graph), e.g.\n{\"cols\":[\"Mammal\",\"Mass (kg)\",\"Speed (m/s)\"],\"rows\":[[\"lion\",125,16],[\"wildebeest\",250,16]]}\nFor Answer type  table: JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
+var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count), or  dropdown  for sentences with dropdowns in them (like IXL): type ___ in the question where each dropdown goes (Ctrl+Enter starts a new line), the options in the Choice columns, and one Right choice per ___ (2, 3, 2); one Check sends them all. These show their Explanation once done, and their Hint columns under a light bulb. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
 
 /** Existing Settings tab: add any settings that are newer than the tab (existing values are never changed).
     Returns how many rows were added. */
@@ -1400,7 +1511,7 @@ function checkQuestionsTab() {
   if (anyPoints && Math.abs(pointsSum - MAX_POINTS) > 0.001) CONFIG_WARNINGS_.push("Points: the questions are worth " + (Math.round(pointsSum * 100) / 100) + " in all, but Points possible (Settings) is " + MAX_POINTS + ". The grade is scaled to Points possible, so they don't have to match, but they usually should.");
   SpreadsheetApp.getUi().alert((isGame_() ? "Found " + ITEMS.length + " multiple choice questions (" + ITEMS.filter(function (it) { return it.right.length > 1; }).length + " of them select all that apply), " + SECTIONS.length + " sections." :
     "Found " + ITEMS.length + " questions, " + SECTIONS.length + " sections, " + crit + " key ideas, " + mis + (mis === 1 ? " misconception" : " misconceptions") + "." +
-    (ITEMS.some(isTried_) ? " " + ITEMS.filter(isTried_).length + " of the questions have limited tries (" + ["choice", "truefalse", "short"].map(function (k) { var n = ITEMS.filter(function (it) { return isTried_(it) && it.kind === k; }).length; return n ? n + " " + k : ""; }).filter(String).join(", ") + ")." : "")) + "\n\n" +
+    (ITEMS.some(isTried_) ? " " + ITEMS.filter(isTried_).length + " of the questions have limited tries (" + ["choice", "truefalse", "short", "dropdown"].map(function (k) { var n = ITEMS.filter(function (it) { return isTried_(it) && it.kind === k; }).length; return n ? n + " " + k : ""; }).filter(String).join(", ") + ")." : "")) + "\n\n" +
     (CONFIG_WARNINGS_.length ? "Check these:\n• " + CONFIG_WARNINGS_.join("\n• ") : "No problems found."));
 }
 
@@ -1638,6 +1749,11 @@ function turnIn(token) {
 // Credit when never answered right (50%) for a question tried but never right, 0 for one never tried (tryState_). After a wrong
 // try the student opens a hint (the light bulb: a clue, an example or a video, from the question's Hint columns) before trying
 // again (Settings: Open a hint before trying again). Hints never cost points.
+// DROPDOWNS (2026.11.06d, Donny rebuilding IXL's "Use tables and graphs" skill, whose 4-in-a-row score resets after one slip): Answer type
+// dropdown = sentences with a dropdown at each ___ (dropdownFrom_), every dropdown offering the Choice columns, an optional table above
+// (displayTable_). One Check sends every box as one try ("2,3,1", the option numbers); it's right only when every box is right
+// (dropGrade_). After a wrong try the page gets which boxes were right (marks) and keeps those green; the right answers of the wrong
+// boxes come only once the question is done. Tries: Settings "Tries for multiple choice".
 // tryAnswer is the only way to answer these (inside the script lock, so every try is counted once); openHint records each hint.
 // rec.tries[idx] = { a: [each try's answer, in order], h: [{ k: "clue" | "example" | "video", after: tries used when it was opened }],
 // id: the last try's attemptId }; rec.answers[idx] = the latest try; rec.statuses[idx] = the question's color (green = right,
@@ -1647,7 +1763,7 @@ function turnIn(token) {
 function isTried_(it) { return !!(it && it.kind) && triesPage_(); }
 /** The tries a question gets: its Tries column, else the Settings row for its kind (1 to 10). */
 function maxTries_(it) {
-  var n = Math.floor(Number(it.tries || (it.kind === "choice" ? TRIES_CHOICE : it.kind === "truefalse" ? TRIES_TF : TRIES_SHORT)));
+  var n = Math.floor(Number(it.tries || (it.kind === "choice" || it.kind === "dropdown" ? TRIES_CHOICE : it.kind === "truefalse" ? TRIES_TF : TRIES_SHORT)));
   return n >= 1 ? Math.min(n, 10) : 1;
 }
 /** Settings "Credit by try" ("100%, 90%, 80%") -> [1, 0.9, 0.8]. */
@@ -1670,6 +1786,7 @@ function tryGrade_(item, answer) {
   answer = String(answer == null ? "" : answer).trim();
   if (!answer) return { status: "blank", message: "" };
   if (item.kind === "short") return shortGrade_(item, answer);
+  if (item.kind === "dropdown") return dropGrade_(item, answer);
   var n = choicePicks_(item, answer)[0];
   if (n == null) return { status: "blank", message: "" };
   if (n === item.right[0]) return { status: "correct", message: "That's right!" };
@@ -1714,28 +1831,37 @@ function triedFeedback_(idx, rec) {
   var item = ITEMS[idx], t = rec && rec.tries ? rec.tries[idx] : null, st = tryState_(idx, t), a = t && t.a ? t.a : [];
   var out = { status: st.status, message: "", credit: st.credit,
               tries: { used: st.used, max: st.max, left: st.left, needHint: st.needHint, done: st.done, rightTry: st.rightTry } };
-  if (item.choices) out.wrong = a.map(function (x) { return choicePicks_(item, x)[0]; })
+  var drop = item.kind === "dropdown";
+  if (item.choices && !drop) out.wrong = a.map(function (x) { return choicePicks_(item, x)[0]; })
                                  .filter(function (n, k, all) { return n != null && n !== item.right[0] && all.indexOf(n) === k; }).map(function (n) { return n + 1; });
   if (!st.used) return out;
   var last = a[st.used - 1];
+  if (drop) {   // DROPDOWNS: the last try's picks (the student's own) and which boxes were right, like IXL; never a wrong box's right answer while it's open
+    var lp = dropPicks_(item, last);
+    out.picks = lp.map(function (n) { return n + 1; });
+    out.marks = lp.map(function (n, k) { return n === item.right[k]; });
+  }
   if (st.rightTry) {
     out.message = "That's right!" + (st.rightTry > 1 ? " Right on try " + st.rightTry + ", so it earns " + Math.round(st.credit * 100) + "%." : "");
   } else if (st.done) {
-    var picked = item.choices ? item.choices[choicePicks_(item, last)[0]] : null;
-    out.message = (picked && picked.fb ? picked.fb + " " : "") + "You're out of tries for this one." + (item.choices ? " The right answer is shown in green." : "");
+    var picked = item.choices && !drop ? item.choices[choicePicks_(item, last)[0]] : null;
+    out.message = (picked && picked.fb ? picked.fb + " " : "") + "You're out of tries for this one." + (drop ? " The right answers are shown in green." : item.choices ? " The right answer is shown in green." : "");
   } else {
     out.message = tryGrade_(item, last).message;
   }
   if (st.done) {
-    if (item.choices) out.right = item.right[0] + 1;
+    if (drop) out.right = item.right.map(function (n) { return n + 1; });
+    else if (item.choices) out.right = item.right[0] + 1;
     if (item.explain) { out.explain = item.explain; out.message += " " + item.explain; }
   }
   return out;
 }
-/** A try's answer as the teacher reads it: "D. mass and velocity", "FALSE", or the typed words. */
+/** A try's answer as the teacher reads it: "D. mass and velocity", "C. (picture: KE mass - curve)", "FALSE", "1/2 | equal to | 1/4", or the typed words. */
 function answerText_(item, a) {
   if (!item.choices) return String(a == null ? "" : a);
+  if (item.kind === "dropdown") return dropPicks_(item, a).map(function (n) { return n === -1 ? "(blank)" : item.choices[n].t; }).join(" | ");
   var n = choicePicks_(item, a)[0];
+  if (n != null && item.choices[n].img && pictureName_(item.choices[n].img)) return String.fromCharCode(65 + n) + ". (picture: " + pictureName_(item.choices[n].img) + ")";
   return n == null ? "" : item.kind === "truefalse" ? item.choices[n].t : choiceText_(item, a);
 }
 /** Live Results cell: "D. mass and velocity | right on try 2 | hint: clue", "C. 28 J | out of tries (2) | hints: clue, video". */
@@ -1788,7 +1914,11 @@ function tryRequest_(idx, answer, attemptId, hintSeen, token) {
   if (!(idx >= 0 && idx < ITEMS.length) || !isTried_(ITEMS[idx])) throw new Error("Unknown question.");
   var item = ITEMS[idx], email = currentStudent_(token);
   answer = String(answer == null ? "" : answer).trim();
-  if (item.choices) {
+  if (item.kind === "dropdown") {   // "2,3,1": one option number for each box, in order
+    var dp = answer.split(/\s*,\s*/);
+    if (dp.length !== item.blanks || !dp.every(function (x) { return /^\d+$/.test(x) && +x >= 1 && +x <= item.choices.length; })) return { note: DROP_BLANK_NOTE };
+    answer = dp.map(Number).join(",");
+  } else if (item.choices) {
     var cn = /^\d+$/.test(answer) ? Number(answer) : 0;
     if (!(cn >= 1 && cn <= item.choices.length)) throw new Error("NOTRY: Pick an answer first.");
     answer = String(cn);
@@ -1829,7 +1959,7 @@ function quickTry(idx, answer, attemptId, hintSeen, token) {
   rec.tries[p.idx] = t;
   if (t.ids.indexOf(p.id) !== -1) return { result: triedFeedback_(p.idx, rec), counted: true, again: true };   // sent twice: the same result
   var ok = tryAllowed_(p.item, p.idx, t, p.answer, p.seen);
-  if (ok.repeat) return { result: triedFeedback_(p.idx, rec), counted: false, note: TRY_REPEAT_NOTE };
+  if (ok.repeat) return { result: triedFeedback_(p.idx, rec), counted: false, note: repeatNote_(p.item) };
   wait.push({ id: p.id, a: p.answer, k: p.hk });
   putWaitingTries_(p.email, p.idx, wait);   // it counts from now on
   rec.tries[p.idx] = withWaiting_(p.idx, rec.tries[p.idx], [wait[wait.length - 1]]);
@@ -1866,7 +1996,7 @@ function tryAnswer(idx, answer, attemptId, hintSeen, token) {
       try {
         todo.forEach(function (x, k) {
           var ok = tryAllowed_(item, idx, t, x.a, x.seen);
-          if (ok.repeat) { if (k === todo.length - 1) note = TRY_REPEAT_NOTE; return; }
+          if (ok.repeat) { if (k === todo.length - 1) note = repeatNote_(item); return; }
           if (x.k && !t.h.some(function (h) { return h.after >= ok.st.used; })) t.h.push({ k: x.k, after: ok.st.used });   // openHint hadn't landed yet
           t.a.push(x.a); if (x.id) t.ids.push(x.id); t.id = x.id;
           made.push(x.a);
@@ -2359,8 +2489,10 @@ function questionsForClient_() {
              table: it.table ? { cols: it.table.cols, rows: it.table.rows, lab: it.table.lab || null, graph: it.table.graph || null, pairs: !!it.table.pairs, origin: !!it.table.origin, noGraph: !!it.table.noGraph } : null, minSentences: it.minSentences || 0,
              points: it.points == null ? null : it.points,
              choices: it.choices ? it.choices.map(function (c) { return { t: c.t, img: imageUrl_(c.img) }; }) : null,   // never which one is right (nor a choice's feedback)
-             multi: !!(it.choices && it.right.length > 1),   // "Select all correct options" (not how many)
-             kind: isTried_(it) ? it.kind : "",   // LIMITED TRIES: "choice", "truefalse" or "short" ("" = everything else)
+             multi: !!(it.choices && it.kind !== "dropdown" && it.right.length > 1),   // "Select all correct options" (not how many)
+             kind: isTried_(it) ? it.kind : "",   // LIMITED TRIES: "choice", "truefalse", "short" or "dropdown" ("" = everything else)
+             blanks: isTried_(it) && it.kind === "dropdown" ? it.blanks : 0,   // DROPDOWNS: how many ___ (the page counts them too)
+             dtable: isTried_(it) && it.dtable ? { cols: it.dtable.cols, rows: it.dtable.rows } : null,   // a dropdown's table, display only
              hints: isTried_(it) && it.hints ? { clue: it.hints.clue || "", example: it.hints.example || "", video: it.hints.video || "" } : null,   // the light bulb (hints never cost points)
              boxes: (it.boxes || []).map(function (b) { return { label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }; }),
              links: (it.links || []).filter(function (l) { return l && buttonUrl_(l.url); }) };
@@ -4780,7 +4912,9 @@ function testAnswer() {
   if (it.table && it.table.graph) { ui.alert("Q" + n + " is a graph of the numbers students type in " + it.table.graph.lines.map(function (L) { return "Q" + L.from; }).join(" and ") + ". Try it on the student page: each axis label colors itself (Idea 1 checks the x-axis label, Idea 2 the y-axis label" + (graphHasTop_(it) ? ", Idea 3 the top axis label" : "") + ")."); return; }
   if (it.table) { ui.alert("Q" + n + " is a data table with a graph. Try it on the student page: the table, the title and the two axis labels each color themselves (Ideas 1 to 3 check the title, x-axis and y-axis labels)."); return; }
   if (it.upload) { ui.alert("Q" + n + " is a " + (it.draw ? "drawing" : "picture upload") + ". It isn't graded: it turns green once the student saves one."); return; }
-  var how = isTried_(it) && it.choices
+  var how = isTried_(it) && it.kind === "dropdown"
+    ? "\n\nType the choice number for each of its " + it.blanks + " boxes, in order, separated by commas (like 2, 3, 2):\n" + it.choices.map(function (c, k) { return (k + 1) + ". " + c.t; }).join("\n")
+    : isTried_(it) && it.choices
     ? "\n\nType the number of a choice to try it:\n" + it.choices.map(function (c, k) { return (k + 1) + ". " + (c.img ? "(picture)" : c.t); }).join("\n")
     : isTried_(it) ? "\n\nType a sample student answer (one try; " + (isNumberQ_(it) ? "a number question: 25, 25 J and 25.0 all read 25" : "no minimum length") + "):"
     : it.boxes && it.boxes.length
@@ -4789,7 +4923,7 @@ function testAnswer() {
     : "\n\nType a sample student answer:";
   var a = ui.prompt("Q" + n, it.q + how, ui.ButtonSet.OK_CANCEL);
   if (a.getSelectedButton() !== ui.Button.OK) return;
-  var r = feedbackFor_(n - 1, a.getResponseText());
+  var r = feedbackFor_(n - 1, it.kind === "dropdown" ? a.getResponseText().replace(/\s+/g, "") : a.getResponseText());
   if (isTried_(it)) {   // one try: right or not, and the feedback a student would see for it
     ui.alert("Q" + n + ", that try would be:  " + ({ correct: "RIGHT", partial: "NOT RIGHT YET (part of it)", incorrect: "NOT RIGHT", blank: "NOT AN ANSWER" })[r.status] + "\n\n" + (r.message || "(nothing to grade)") +
       (r.status === "correct" ? "" : "\n\nStudents get " + maxTries_(it) + (maxTries_(it) === 1 ? " try" : " tries") + " on this question.") + (it.explain ? "\n\nExplanation (shown once it's done): " + it.explain : ""));
