@@ -3108,10 +3108,23 @@ function graphBox(i) {
     zone.appendChild(key);
   }
   zone.appendChild(el("div", "labnote", "The points come from your numbers in " + graphFroms(i) + ". Change a number there and the graph changes too." +
-    (C.lines.some(function (L) { return L.col != null; }) ? " Mass goes up the side and volume goes along the bottom." : "") +
-    (C.origin ? " Every line starts at 0, 0." : "")));
+    graphColNote(C) + (C.origin ? " Every line starts at 0, 0." : "")));
   setTimeout(function () { drawGraphQ(i); }, 0);
   return zone;
+}
+/** For a graph of data table columns: which columns go where, named from the tables' own headers without their units
+    ("Mass goes up the side and Volume goes along the bottom."). "" for a graph of typed boxes. */
+function graphColNote(C) {
+  var cols = C.lines.filter(function (L) { return L.col != null; });
+  if (!cols.length) return "";
+  function name(L, k) {
+    var q = S.questions[L.from - 1], t = q && q.table, c = t && t.cols ? t.cols[k] : "";
+    return String(c == null ? "" : c).replace(/\s*\([^)]*\)\s*$/, "").trim();
+  }
+  var bot = cols.filter(function (L) { return !L.top; })[0], top = cols.filter(function (L) { return L.top; })[0];
+  var up = name(cols[0], cols[0].col), b = bot ? name(bot, bot.xcol) : "", t = top ? name(top, top.xcol) : "";
+  if (!up || !b) return "";
+  return " " + up + " goes up the side and " + b + " goes along the bottom" + (t ? ", with " + t + " along the top." : ".");
 }
 function paintGraph(i, parts) {
   document.getElementById("a" + i).className = "graphzone";
