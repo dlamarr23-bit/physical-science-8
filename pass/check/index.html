@@ -173,7 +173,13 @@
   .padcolors { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px; }
   button.padcolor { width:26px; height:26px; padding:0; border-radius:50%; border:1.5px solid #999; }
   button.padcolor.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
-  .padpick { width:34px; height:26px; padding:0; border:1.5px solid #999; border-radius:4px; background:#fff; cursor:pointer; }
+  /* "Any color": a rainbow circle (the color picker is laid over it, invisible); after a pick, its middle shows that color */
+  .padpickwrap { position:relative; display:inline-flex; align-items:center; gap:6px; padding:2px 10px 2px 2px; border:1.5px solid #999; border-radius:999px; background:#fff; color:#111; font-size:13px; font-weight:700; cursor:pointer; }
+  .padpickwrap.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; }
+  .padpickring { position:relative; flex:none; width:24px; height:24px; border-radius:50%; background:conic-gradient(#ff3b30, #ff9500, #ffd60a, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); }
+  .padpickdot { position:absolute; inset:6px; border-radius:50%; border:1.5px solid rgba(0,0,0,.35); display:none; }
+  .padpickwrap.picked .padpickdot { display:block; }
+  .padpickwrap input.padpick { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; border:0; opacity:0; cursor:pointer; }
   .padwrap { position:relative; line-height:0; }
   canvas.padcanvas { display:block; width:100%; height:auto; aspect-ratio: 1000 / 650; border:2px solid #111; border-radius:6px; background:#fff;
                      touch-action:none; cursor:crosshair; }
@@ -400,6 +406,8 @@
   html[data-theme="dark"] button.padbtn.on { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
   html[data-theme="dark"] button.padcolor { border-color:#8a9099; }
   html[data-theme="dark"] button.padcolor.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
+  html[data-theme="dark"] .padpickwrap { background:#14171c; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] .padpickwrap.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
   html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
   html[data-theme="dark"] .dropzone .dzbox { background:rgba(0,0,0,.2); border-color:#8a9099; }
   html[data-theme="dark"] .dropzone .dzbox span { color:#b6bcc6; }
@@ -2386,12 +2394,19 @@ function drawBox(i) {
   var colors = el("div", "padcolors");
   PAD_COLORS.forEach(function (c, k) {
     var b = el("button", "padcolor" + (k === 0 ? " on" : "")); b.type = "button"; b.style.background = c; b.title = "Color " + (k + 1); b.setAttribute("aria-label", "Color " + c);
-    b.addEventListener("click", function () { P.color = c; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.toggle("on", x === b); }); });
+    b.addEventListener("click", function () { P.color = c; colors.querySelectorAll(".padcolor, .padpickwrap").forEach(function (x) { x.classList.toggle("on", x === b); }); });
     colors.appendChild(b);
   });
+  var pickWrap = el("label", "padpickwrap"), ring = el("span", "padpickring"), dot = el("span", "padpickdot");
   var pick = el("input", "padpick"); pick.type = "color"; pick.value = "#1f2430"; pick.title = "Pick any color"; pick.setAttribute("aria-label", "Pick any color");
-  pick.addEventListener("input", function () { P.color = pick.value; colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.remove("on"); }); });
-  colors.appendChild(pick);
+  pick.addEventListener("input", function () {
+    P.color = pick.value; dot.style.background = pick.value;
+    colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.remove("on"); });
+    pickWrap.classList.add("on", "picked");
+  });
+  ring.appendChild(dot); pickWrap.appendChild(ring); pickWrap.appendChild(document.createTextNode("Any color")); pickWrap.appendChild(pick);
+  pickWrap.title = "Pick any color";
+  colors.appendChild(pickWrap);
   var wrap = el("div", "padwrap"), cv = el("canvas", "padcanvas"); cv.width = P.w; cv.height = P.h;
   cv.setAttribute("aria-label", "Drawing area for question " + (i + 1)); cv.setAttribute("role", "img");
   wrap.appendChild(cv);
