@@ -1,4 +1,4 @@
-reading-activity v2026.11.11
+reading-activity v2026.11.11b
 
 Optional update: nothing new for this kind of sheet (this release fixes Video Check's live lessons); it carries everything from 2026.11.10c.
 

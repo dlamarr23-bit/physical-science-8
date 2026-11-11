@@ -1,4 +1,4 @@
-video-check v2026.11.11
+video-check v2026.11.11b
 
 LIVE LESSONS: questions reach every device on time, and the projector's video can't buffer.
 
@@ -8,12 +8,13 @@ LIVE LESSONS: questions reach every device on time, and the projector's video ca
   with the exact moment the projector will stop, and shows it by its own clock at that moment. Nobody sees a question before the video
   stops for it.
 • A device whose check is turned away at a busy moment now tries again in about half a second (it used to wait 2 to 3 seconds).
-• THE VIDEO IS SAVED ON YOUR COMPUTER BEFORE CLASS (Google Drive videos). As soon as you open the live lesson screen, it starts saving
-  the whole video on that computer and shows how far along it is: "Saving the video on this computer so it can't buffer in class: 45%".
-  Wait for 100% ("The video is saved on this computer") before you start the video. In class the video then plays from your computer,
-  not through the sheet, so it can't stall while 35 devices are using the sheet. It stays saved, so the next period starts at once.
-  If you start early, it still plays and keeps saving ahead while it plays.
-• Open the live lesson screen in a regular Chrome window. A private or Incognito window often can't save the video; the screen says so.
+• NO WAITING, AND THE VIDEO CAN'T STALL (Google Drive videos). Press Start live lesson as soon as you like. The video starts in a few
+  seconds, as before. While it plays, the live lesson screen saves the rest of the video on your computer, well ahead of where the
+  class is watching, and shows how far along it is. Once a part is saved it plays from your computer, not through the sheet, so 35
+  devices using the sheet can't stall it. It stays saved, so later periods on that computer play from the saved copy.
+• Students watching on their own (at home or in class) are not affected: their video starts in a few seconds and streams, as before.
+• A regular Chrome window can save the video. A private or Incognito window often can't; the video then streams as before, and the
+  screen says so.
 • To update: paste the new Code.gs and Index (or Update now on the Launchpad), then Deploy > Manage deployments > pencil > New version.
   The live lesson screen and school Chromebooks use the sheet's own copy of the page, so the sheet needs the new version too.
 

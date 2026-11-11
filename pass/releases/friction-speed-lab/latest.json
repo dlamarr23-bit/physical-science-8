@@ -1,6 +1,6 @@
 {
   "kind": "friction-speed-lab",
-  "version": "2026.11.11",
+  "version": "2026.11.11b",
   "optional": "nothing new for this kind of sheet (this release fixes Video Check's live lessons); it carries everything from 2026.11.10c.",
   "files": {
     "Code.gs": "Code.gs.txt",

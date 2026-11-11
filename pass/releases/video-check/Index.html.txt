@@ -2623,8 +2623,8 @@ function paintVideoSave() {
   var pct = Math.floor(100 * s.have / Math.max(1, s.all));
   box.hidden = false;
   box.textContent = s.state === "done" ? "The video is saved on this computer. It plays from here in class, so it won't buffer." :
-    s.state === "nosave" ? "This window can't save the video on this computer (a private or Incognito window often can't), so it will stream during the lesson. For a lesson with no buffering, open this screen in a regular Chrome window." :
-    "Saving the video on this computer so it can't buffer in class: " + pct + "%. Wait for 100% before you start the video.";
+    s.state === "nosave" ? "This window can't save the video on this computer (a private or Incognito window often can't), so it streams during the lesson, as before. A regular Chrome window can save it." :
+    "Saving the video on this computer while it plays, so it can't buffer in class: " + pct + "%. No need to wait: start whenever you're ready.";
 }
 function startLive(period) {
   withRetry(call("liveStart", [period]), function (live) { T.live = live; renderTeacherLive(false); }, showError);
