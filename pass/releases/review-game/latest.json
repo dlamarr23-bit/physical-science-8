@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.11b",
-  "optional": "nothing new for this kind of sheet (this release fixes Video Check's live lessons); it carries everything from 2026.11.10c.",
+  "version": "2026.11.11c",
+  "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

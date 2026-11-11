@@ -740,6 +740,7 @@ var CP_CROS = /\bCrOS\b/.test(navigator.userAgent);
 // The probe page loads inside Google's page, so its answer usually comes before that page's load event: elsewhere
 // 1.5 s after the load is plenty (it was 4 s). Chromebooks wait longer: at school it's almost always "yes", and a slow
 // start on Google's side shouldn't send a whole class to the sign-in card.
+var CP_KNOWN_DAYS = 30;   // a Chromebook that passed the check skips it for this long (see cpPassBoot)
 var CP_PROBE_MAX_MS = 15000, CP_PROBE_AFTER_LOAD_MS = CP_CROS ? 8000 : 1500, CP_PROBE_SKIP_MS = 5000;
 function cpProbe(done) {
   var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
@@ -884,9 +885,23 @@ function cpPassBoot() {
   // if it ends up signing in here: a class opening at once makes about half as many trips to the sheet. Elsewhere it asks now.
   if (!CP_CROS) getInfo();
   if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
+  // A Chromebook where Google knew the student before (classpass-known, kept CP_KNOWN_DAYS) skips the check and goes straight to the
+  // plain link (2026.11.11c): the check is a trip to the sheet of its own, so a class opening at once makes half as many trips and
+  // each student waits a few seconds less. If the same device is back here within 10 minutes the assignment may not have opened,
+  // so it is forgotten and the check runs as before.
+  var kk = "classpass-known", wk0 = "classpass-went:" + CP_APP, knownAt = CP_CROS ? Number(cpGet(kk)) || 0 : 0;
+  if (knownAt && Date.now() - knownAt >= 0 && Date.now() - knownAt < CP_KNOWN_DAYS * 86400000) {
+    if (Date.now() - (Number(cpGet(wk0)) || 0) > 600000) {
+      cpStep(3, "Opening your assignment…");
+      cpLog("this Chromebook passed the school sign-in check before: straight to the assignment");
+      cpPut(wk0, String(Date.now()));
+      return cpGo(CP_EXEC, true);
+    }
+    cpPut(kk, null); cpPut(wk0, null);
+  }
   cpStep(1, "Checking your school sign-in…");
   cpProbe(function (known) {
-    if (known === 1) return cpGo(CP_EXEC, true);
+    if (known === 1) { if (CP_CROS) cpPut(kk, String(Date.now())); return cpGo(CP_EXEC, true); }
     if (known === 0 && CP_CROS) {
       // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
       // But if this device was just sent on the same way and is back, the assignment may not have opened: let the student choose.
@@ -974,35 +989,69 @@ function cpNeedSignIn(state) {
 }
 
 /* ---------- pictures ----------
-   On the class website a Google Drive picture comes through the sheet (getPicture): Drive only shows a picture shared
-   with the district to a browser whose FIRST Google account is a school one. Two at a time, each once. */
-var cpPics = {}, cpPicQ = [], cpPicBusy = 0;
+   On the class website a Google Drive picture comes through the sheet: Drive only shows a picture shared with the district
+   to a browser whose FIRST Google account is a school one. A page that sets CP_HOST.pictures gets them ALL in one trip
+   (getPictures, 2026.11.11c: one answer carries every picture, already shrunk and kept in the sheet's short-term cache; a class of
+   36 made one trip per picture per student before). Anything that trip doesn't bring (an older sheet, a picture too big for it,
+   a page without CP_HOST.pictures) comes by itself (getPicture), two at a time, each once.
+   On the sheet's own /exec page a Drive picture loads straight from Drive; if Drive refuses it (a class asking for the same
+   pictures at once can be turned away), it comes through the sheet instead. */
+var cpPics = {}, cpPicQ = [], cpPicBusy = 0, cpPicAll = 0;   // cpPicAll: 0 = the one-trip answer isn't asked for yet, 1 = on its way, 2 = done
+var CP_PIC_TYPES = /^image\/(png|jpeg|gif|webp|bmp)$/, CP_PIC_FAILED = "The picture didn't load. Reload the page to try again.";
 function cpPicture(img, src, idx) {
-  if (!CP_SITE || !/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (!/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (!CP_SITE) {
+    img.addEventListener("error", function once() {
+      img.removeEventListener("error", once);
+      cpLog("Drive didn't show picture " + idx + ": asking the sheet for it");
+      cpPicQ.push({ img: img, src: "", idx: idx });
+      cpPicNext();
+    });
+    img.src = cpImgUrl(src);
+    return;
+  }
   if (cpPics[idx]) { img.src = cpPics[idx]; return; }
   cpPicQ.push({ img: img, src: src, idx: idx });
+  if (CP_HOST.pictures && cpPicAll === 0) cpPicBundle(0);
   cpPicNext();
 }
+/** A picture the sheet sent, as an address the page can show (a blob: address also opens in a new tab), or "". Never a page or a script. */
+function cpPicUrl(r) {
+  if (!r || !CP_PIC_TYPES.test(String(r.mime)) || typeof r.data !== "string") return "";
+  try {
+    var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+  } catch (e) { return ""; }
+}
+/** Every picture in one trip (and again from where the last answer stopped, while there are more). */
+function cpPicBundle(from) {
+  cpPicAll = 1;
+  function done() { cpPicAll = 2; cpPicNext(); }
+  cpRun("getPictures", [from], function (r) {
+    var p = r && r.pics && typeof r.pics === "object" ? r.pics : {};
+    Object.keys(p).forEach(function (k) { if (!cpPics[k]) { var u = cpPicUrl(p[k]); if (u) cpPics[k] = u; } });
+    cpPicQ = cpPicQ.filter(function (job) { if (!cpPics[job.idx]) return true; job.img.src = cpPics[job.idx]; return false; });
+    var next = r ? Math.floor(Number(r.next)) || 0 : 0;
+    if (next > from) cpPicBundle(next); else done();
+  }, done);   // an older sheet, or a busy one: one at a time, as before
+}
 function cpPicNext() {
+  if (cpPicAll === 1) return;   // the one-trip answer is on its way: what it doesn't bring is asked for after it
   while (cpPicBusy < 2 && cpPicQ.length) (function (job) {
     if (cpPics[job.idx]) { job.img.src = cpPics[job.idx]; return; }
     cpPicBusy++;
     cpRetry(cpCall("getPicture", [job.idx]), function (r) {
       cpPicBusy--;
-      if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") {   // never a page or a script
-        job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return;
-      }
-      try {
-        var bin = atob(r.data), bytes = new Uint8Array(bin.length);
-        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        cpPics[job.idx] = URL.createObjectURL(new Blob([bytes], { type: r.mime }));   // a blob: address also opens in a new tab
-      } catch (e) { job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return; }
-      job.img.src = cpPics[job.idx];
+      var u = cpPicUrl(r);
+      if (!u) { job.img.alt = CP_PIC_FAILED; cpPicNext(); return; }
+      cpPics[job.idx] = u;
+      job.img.src = u;
       cpPicNext();
     }, function (err) {
       cpPicBusy--;
-      if (/Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
-      else job.img.alt = "The picture didn't load. Reload the page to try again.";
+      if (job.src && /Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
+      else job.img.alt = CP_PIC_FAILED;
       cpPicNext();
     });
   })(cpPicQ.shift());

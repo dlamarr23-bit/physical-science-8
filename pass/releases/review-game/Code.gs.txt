@@ -247,7 +247,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "review-game";   // a one-off Self-Check with its own page (self-check\custom\review-game\)
-var SKILL_VERSION = "2026.11.11b";
+var SKILL_VERSION = "2026.11.11c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1496,6 +1496,7 @@ function checkQuestionsTab() {
   clearConfigCache_();
   CONFIG_LOADED_ = false; CONFIG_WARNINGS_ = [];
   loadConfig_();
+  try { warmPictures_(true); } catch (e) {}   // FAST PICTURES: a picture changed in Drive shows up now, not in up to 6 hours
   var crit = ITEMS.reduce(function (a, it) { return a + it.criteria.length; }, 0), mis = ITEMS.reduce(function (a, it) { return a + (it.mis || []).length; }, 0);
   var qd = parseQuarterDates_(QUARTER_END_DATES), pt = parsePeriodTimes_(CLASS_START_TIMES);
   if (qd.bad.length) CONFIG_WARNINGS_.push("Settings: couldn't read these quarter end dates: " + qd.bad.join(", ") + " (use month/day/year, like 10/16/2026).");
@@ -2920,7 +2921,7 @@ var API_ = { getStudentState: getStudentState, gradeAnswer: gradeAnswer, checkAn
              turnIn: turnIn, getPicture: getPicture, signOut: signOut, classPass: classPass,
              uploadPicture: uploadPicture, getMyUpload: getMyUpload, getArticle: getArticle, getArticlePicture: getArticlePicture,
              sendSignInCode: sendSignInCode, verifySignInCode: verifySignInCode, signInWithGoogle: signInWithGoogle,
-             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint, quickTry: quickTry, resetMyAnswers: resetMyAnswers };
+             answerChoice: answerChoice, startOver: startOver, getLeaderboard: getLeaderboard, tryAnswer: tryAnswer, openHint: openHint, quickTry: quickTry, resetMyAnswers: resetMyAnswers, getPictures: getPictures };
 var API_NO_TOKEN_ = { classPass: true, sendSignInCode: true, verifySignInCode: true, signInWithGoogle: true };
 
 /**
@@ -2994,13 +2995,73 @@ function perHour_(what, email, max, secs) {
   if (n >= max) throw new Error("BUSY: That's a lot for now. Wait a few minutes, then reload the page.");
   cachePut_(k, n + 1, secs);
 }
-var PICTURE_MAX_BYTES = 8 * 1024 * 1024;
+// FAST PICTURES (2026.11.11c, Donny: pictures were slow for a class of 36, and he wants to use as many as he likes).
+// 1. A big picture is sent as Drive's own smaller copy (PICTURE_WIDTH pixels wide: what a page shows anyway), so a 5 MB photo travels
+//    as about 200 KB, and the size of the file in Drive no longer matters. A small picture, or a GIF (it may move), goes as it is.
+// 2. Each one is kept in the short-term cache for PICTURE_CACHE_SECS (6 hours, the longest the cache allows), and the hourly check
+//    puts back any that dropped out (warmPictures_), so students read the cache and not Drive.
+// 3. The class website's page asks for all of them in one trip (getPictures) instead of one trip per picture.
+var PICTURE_MAX_BYTES = 8 * 1024 * 1024;     // a picture sent as it is (no smaller copy to be had) can be this big at most
+var PICTURE_WIDTH = 1600;                    // the smaller copy's width in pixels
+var PICTURE_SMALL_BYTES = 400 * 1024;        // a picture this small is sent as it is
+var PICTURE_CACHE_SECS = 21600;
+var PICTURES_MAX_CHARS = 2500000;            // one getPictures answer carries about this much; the page asks again for the rest
+var PICTURES_MAX_MS = 8000;                  // ... or stops after this long (pictures not in the cache yet are read from Drive)
+var PICTURE_TYPES = /^image\/(png|jpeg|gif|webp|bmp)$/;
+var DRIVE_PIC_RE = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|thumbnail\?id=)([\w-]{20,})/;
+/** The Drive file ID in a picture link, or "" (another https picture loads on the page directly). */
+function drivePicId_(u) { var m = DRIVE_PIC_RE.exec(String(u || "")); return m ? m[1] : ""; }
+/** Every Drive picture the page shows, in page order: [{ key, id }]. key is what the page calls it: "s0" a section picture,
+ *  "4" question 5's picture, "c4.2" question 5's picture choice 3. */
+function pictureKeys_() {
+  var out = [], secAt = {};
+  SECTIONS.forEach(function (s, k) { var id = drivePicId_(s.img); if (id) (secAt[s.before] = secAt[s.before] || []).push({ key: "s" + k, id: id }); });
+  ITEMS.forEach(function (it, i) {
+    if (secAt[i]) out = out.concat(secAt[i]);
+    var id = drivePicId_(it.img);
+    if (id) out.push({ key: String(i), id: id });
+    (it.choices || []).forEach(function (c, k) { var cid = drivePicId_(c.img); if (cid) out.push({ key: "c" + i + "." + k, id: cid }); });
+  });
+  return out;
+}
+/** Drive's own smaller copy of a picture (PICTURE_WIDTH wide), or null when Drive has none to give. */
+function smallerPicture_(id) {
+  try {
+    var r = UrlFetchApp.fetch("https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w" + PICTURE_WIDTH,
+      { headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) return null;
+    var blob = r.getBlob(), mime = String(blob.getContentType() || "").split(";")[0].trim().toLowerCase(), bytes = blob.getBytes();
+    if (!PICTURE_TYPES.test(mime) || !bytes.length || bytes.length > PICTURE_MAX_BYTES) return null;
+    return { mime: mime, data: Utilities.base64Encode(bytes) };
+  } catch (e) { return null; }
+}
+/** One Drive picture as { mime, data (base64) }: from the short-term cache, else from Drive (and into the cache).
+ *  fresh = read it from Drive again even when a copy is kept. Throws "Unknown picture." for a file that isn't a picture. */
+function pictureData_(id, fresh) {
+  var hit = fresh ? null : bigCacheGet_("pic:" + id), cut = hit ? hit.indexOf("|") : -1;
+  if (cut > 0) return { mime: hit.slice(0, cut), data: hit.slice(cut + 1) };
+  var file, mime, size = 0, out = null;
+  try { file = DriveApp.getFileById(id); mime = String(file.getMimeType() || ""); size = Number(file.getSize()) || 0; }
+  catch (e) { throw new Error("BUSY: Couldn't read the picture from Drive right now (" + e.message + ")."); }
+  if (!/^image\//.test(mime)) throw new Error("Unknown picture.");   // never a page, a PDF or a script
+  var asIs = PICTURE_TYPES.test(mime) && size <= PICTURE_MAX_BYTES;
+  if (!(asIs && (size <= PICTURE_SMALL_BYTES || mime === "image/gif"))) out = smallerPicture_(id);
+  if (!out) {
+    if (!asIs) throw new Error("Unknown picture.");
+    var bytes;
+    try { bytes = file.getBlob().getBytes(); } catch (e) { throw new Error("BUSY: Couldn't read the picture from Drive right now (" + e.message + ")."); }
+    if (bytes.length > PICTURE_MAX_BYTES) throw new Error("Unknown picture.");
+    out = { mime: mime, data: Utilities.base64Encode(bytes) };
+  }
+  bigCachePut_("pic:" + id, out.mime + "|" + out.data, PICTURE_CACHE_SECS);
+  return out;
+}
 function getPicture(idx, token) {
   loadConfig_();
   var email = currentStudent_(token);
   perHour_("pic", email, 300);
   var sm = /^s(\d+)$/.exec(String(idx)), it;   // "s0", "s1": a section picture (under a blue strip)
-  var cm = /^c(\d+)\.(\d+)$/.exec(String(idx));   // "c4.2": a review game question's picture choice (question 5, choice 3)
+  var cm = /^c(\d+)\.(\d+)$/.exec(String(idx));   // "c4.2": a picture choice (question 5, choice 3)
   if (sm) { it = SECTIONS[Number(sm[1])]; if (!it || !it.img) throw new Error("Unknown picture."); }
   else if (cm) { var cq = ITEMS[Number(cm[1])]; it = cq && cq.choices ? cq.choices[Number(cm[2])] : null; if (!it || !it.img) throw new Error("Unknown picture."); }
   else {
@@ -3008,20 +3069,35 @@ function getPicture(idx, token) {
     it = ITEMS[idx];
     if (!(idx >= 0 && idx < ITEMS.length) || !it.img) throw new Error("Unknown picture.");
   }
-  var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|thumbnail\?id=)([\w-]{20,})/.exec(String(it.img));
-  if (!m) throw new Error("Unknown picture.");   // other https pictures load on the page directly
-  // Kept in the short-term cache for an hour, so a class opening the page reads each picture from Drive about once, not once per student.
-  var hit = bigCacheGet_("pic:" + m[1]), cut = hit ? hit.indexOf("|") : -1;
-  if (cut > 0) return { mime: hit.slice(0, cut), data: hit.slice(cut + 1) };
-  var blob;
-  try { blob = DriveApp.getFileById(m[1]).getBlob(); } catch (e) { throw new Error("BUSY: Couldn't read the picture from Drive right now (" + e.message + ")."); }
-  var mime = String(blob.getContentType() || "");
-  if (!/^image\/(png|jpeg|gif|webp|bmp)$/.test(mime)) throw new Error("Unknown picture.");
-  var bytes = blob.getBytes();
-  if (bytes.length > PICTURE_MAX_BYTES) throw new Error("Unknown picture.");
-  var data = Utilities.base64Encode(bytes);
-  bigCachePut_("pic:" + m[1], mime + "|" + data, 3600);
-  return { mime: mime, data: data };
+  var id = drivePicId_(it.img);
+  if (!id) throw new Error("Unknown picture.");   // other https pictures load on the page directly
+  return pictureData_(id);
+}
+/** Every Drive picture on the page in one trip (the class website's page asks once, then again from "next" while there are more):
+ *  { pics: { "<key>": { mime, data } }, next: where to carry on (0 = that was all), n: how many there are }. A picture that can't
+ *  be read is left out; the page then asks for it by itself (getPicture), which says why. */
+function getPictures(from, token) {
+  loadConfig_();
+  var email = currentStudent_(token);
+  perHour_("pics", email, 200);
+  var keys = pictureKeys_(), pics = {}, sum = 0, next = 0, t0 = Date.now();
+  from = Math.max(0, Math.floor(Number(from)) || 0);
+  for (var k = from; k < keys.length; k++) {
+    if (k > from && (sum >= PICTURES_MAX_CHARS || Date.now() - t0 > PICTURES_MAX_MS)) { next = k; break; }
+    try { var p = pictureData_(keys[k].id); pics[keys[k].key] = p; sum += p.data.length; } catch (e) { /* the page asks for this one by itself */ }
+  }
+  return { pics: pics, next: next, n: keys.length };
+}
+/** Puts every picture that isn't in the short-term cache back in it (the hourly check), or reads them all from Drive again
+ *  (fresh: Set up / repair sheets and Check the Questions tab, so a picture changed in Drive shows up). Returns how many it read. */
+function warmPictures_(fresh) {
+  var seen = {}, read = 0, t0 = Date.now();
+  pictureKeys_().forEach(function (p) {
+    if (seen[p.id] || Date.now() - t0 > 120000) return;
+    seen[p.id] = true;
+    try { if (fresh || bigCacheGet_("pic:" + p.id) == null) { pictureData_(p.id, true); read++; } } catch (e) {}
+  });
+  return read;
 }
 
 // ============================== ARTICLE FROM A GOOGLE DOC (side-by-side reading pages) ==============================
@@ -3040,7 +3116,7 @@ var ARTICLE_MAX_PIC_BYTES = 3 * 1024 * 1024;  // a bigger picture is left out (a
 var ARTICLE_MAX_TOTAL_BYTES = 12 * 1024 * 1024;
 var ARTICLE_MAX_PICS = 60;
 var ARTICLE_IMG_TYPES = /^image\/(png|jpeg|gif|webp|bmp)$/;
-var ARTICLE_MAX_WIDTH = 460;                  // pictures are shown at most this many pixels wide
+var ARTICLE_MAX_WIDTH = 1000;                 // a picture is shown as wide as it is in the Doc, up to this many pixels (460 until 2026.11.11c; the page never lets it pass its column)
 
 /** The Doc's id from a pasted link (or the bare id), or "". */
 function docIdOf_(link) {
@@ -3109,8 +3185,9 @@ function getArticlePicture(idx, token) {
   var meta = articleMeta_();
   idx = Number(idx);
   if (!meta || !(idx >= 0 && idx < meta.pics.length)) throw new Error("Unknown picture.");
-  var p = meta.pics[idx];
-  return { mime: p.mime, data: readChunks_(openSS_().getSheetByName(SH_ARTICLE), p, p.len) };
+  var p = meta.pics[idx], ck = "artpic:" + meta.v + ":" + idx, data = bigCacheGet_(ck);   // kept for 6 hours, so a class reads the hidden tab about once
+  if (data == null || data.length !== p.len) { data = readChunks_(openSS_().getSheetByName(SH_ARTICLE), p, p.len); bigCachePut_(ck, data, 21600); }
+  return { mime: p.mime, data: data };
 }
 
 /** Menu: Self-Check > Update the article from the Google Doc. */
@@ -4292,6 +4369,7 @@ function setupSheets() {
   rebuildLive_();
   renderSummary_();
   if (courses_().length && !parseQuarterDates_(QUARTER_END_DATES).list.length) { try { fetchQuarters_(); } catch (e) {} }   // quarter end dates from Classroom
+  try { warmPictures_(true); } catch (e) {}   // FAST PICTURES: read every picture from Drive now, so the first student doesn't wait for it
   try { ensureTimer_(); } catch (e) {}   // the quiet hourly check (automatic grades + Self-Check Hub status)
   writeHubStatus_();
   var picNote = "";
@@ -4874,6 +4952,7 @@ function autoUploadGrades(e) {
     if (props_().getProperty("ROSTER_STALE") && courses_().length) { requireClassroom_(); refreshRoster_(); writeClassStatus_(openSS_()); }
   } catch (err) {}
   try { articleAutoRefresh_(); } catch (err) {}   // a reading page's article follows its Google Doc
+  try { warmPictures_(false); } catch (err) {}    // FAST PICTURES: every picture stays in the short-term cache
   try { syncWebsiteBoard_(); } catch (err) {}     // a review game's points in progress go to the website leaderboard
   if (AUTO_GRADES) {
     requireClassroom_();

@@ -1,5 +1,16 @@
-video-check v2026.11.11b
+video-check v2026.11.11c
 
+Optional update: Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check.
+
+- Chromebooks open faster. The first time, the student link checks out of sight that Google knows the student, then opens the lesson.
+  After that, the same Chromebook skips the check for 30 days and goes straight to the lesson: one trip to the sheet instead of two.
+  If the same Chromebook is back at the link within 10 minutes, the check runs again. This is in the class website's page, so it works
+  as soon as the website is published, with no paste.
+- If Google Drive turns a question's picture away on the sheet's own link, the picture now comes through the sheet instead of staying blank
+  (this part needs the new Index pasted).
+- Your questions, settings and student work are not touched.
+
+Also from 2026.11.11b, if this sheet skipped it:
 LIVE LESSONS: questions reach every device on time, and the projector's video can't buffer.
 
 • QUESTIONS ON EVERY SCREEN AT THE SAME MOMENT. Before, every student's device asked the sheet for the question in the same half second

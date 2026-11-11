@@ -1,8 +1,24 @@
-net-force-escape-room v2026.11.11b
+net-force-escape-room v2026.11.11c
 
-Optional update: nothing new for this kind of sheet (this release fixes Video Check's live lessons); it carries everything from 2026.11.10c.
+- Faster pictures for a whole class. A big picture now travels as a smaller copy that Google Drive makes (1600 pixels wide, what the page
+  shows anyway), so a 5 MB photo is sent as about 200 KB. The size of the file in Drive no longer matters: there is no 8 MB limit any more
+  (only a picture Drive can't make a smaller copy of still has it). Small pictures and GIFs are sent as they are.
+- The sheet keeps each picture ready for 6 hours (it was 1 hour), and the hourly check puts back any that dropped out, so students get the
+  kept copy and the sheet doesn't read Drive again for every class.
+- Changed a picture file in Drive but kept the same link? Run Self-Check > Check the Questions tab for problems (or Set up / repair sheets):
+  it reads every picture again right away. A new link shows up by itself.
+- Chromebooks open faster. The first time, the student link checks out of sight that Google knows the student, then opens the assignment.
+  After that, the same Chromebook skips the check for 30 days and goes straight to the assignment: one trip to the sheet instead of two, so a
+  class of 36 opening together makes half as many trips. If the same Chromebook is back at the link within 10 minutes, the check runs again.
+- If Google Drive turns a picture away on the sheet's own link (it can when a whole class asks for the same pictures at once), the picture
+  now comes through the sheet instead of staying blank.
+- The escape room's own page is unchanged (its pictures are built into the page).
+- To use it: Update now on the Launchpad, or paste the new Code.gs and Index and make a New version. No Set up / repair needed (no new
+  Settings rows or columns) and no new permission.
+- The class website's pages work with a sheet that hasn't been updated yet (pictures then come one at a time, as before).
+- Your questions, answer keys, settings and student work are not touched.
 
-From 2026.11.10c, if this sheet skipped it:
+Also from 2026.11.10c (optional), if this sheet skipped it:
 
 - Step 1 (Self-Check > 1. Link Google Classroom classes) now opens a Classes tab with a checkbox next to each of your Classroom classes.
   Tick every class getting this assignment. Each tick is saved right away (a note at the bottom right says so). Untick a class to unlink it.

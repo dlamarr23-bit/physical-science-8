@@ -39,7 +39,7 @@
   .item { margin: 0 0 18px; border: 1px solid #bbb; background:#fff; }
   .qtext { background: var(--q); font-weight:700; font-size: 15px; padding: 10px 12px; line-height:1.45; }
   .qimg { margin: 10px 0 2px; }
-  .qimg img { display:block; max-width:100%; max-height:420px; border:2px solid #111; border-radius:4px; background:#fff; cursor: zoom-in; }
+  .qimg img { display:block; max-width:100%; max-height:min(720px, 85vh); border:2px solid #111; border-radius:4px; background:#fff; cursor: zoom-in; }
   .qimg figcaption { font-weight:400; font-style:italic; font-size:13px; color:#333; margin-top:4px; }
   .qlinks { margin-top: 8px; }
   a.simbtn { display:inline-block; margin: 0 8px 8px 0; padding: 9px 16px; border:2px solid #1b4587; border-radius: 6px;
@@ -354,6 +354,13 @@
   .hintpanel { padding:10px 12px; background:#fff8dc; border-top:1px solid #e3cf86; font-size:14px; line-height:1.5; }
   .hintpanel p { margin:0 0 6px; } .hintpanel p:last-child { margin-bottom:0; }
   .hintmenu[hidden], .hintpanel[hidden] { display:none; }
+  /* a bigger look at a picture (zoomPicture, 2026.11.11c): the picture over the whole page; a click on it switches between fitting the screen and its full size */
+  img.canzoom { cursor: zoom-in; }
+  .piczoom { position:fixed; inset:0; z-index:80; background:rgba(0,0,0,.86); overflow:auto; display:flex; padding:54px 16px 16px; }
+  .piczoom img { display:block; margin:auto; max-width:100%; max-height:calc(100vh - 70px); background:#fff; border-radius:4px; cursor:zoom-in; }
+  .piczoom.full img { max-width:none; max-height:none; cursor:zoom-out; }
+  .piczoom .piczoombar { position:fixed; top:8px; right:12px; display:flex; align-items:center; gap:10px; color:#fff; font-size:13px; font-weight:600; }
+  .piczoom .piczoombar button { background:#fff; color:#111; border:2px solid #fff; border-radius:6px; padding:5px 14px; font-size:14px; }
   html[data-theme="dark"] .choicebox { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] button.choicebtn { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
   html[data-theme="dark"] button.choicebtn:hover:not(:disabled) { background:#203050; }
@@ -536,7 +543,7 @@
   .artfig figcaption { font-weight:600; font-size:13px; line-height:1.4; margin-bottom:5px; }
   .artwide { text-align:center; } .artwide img { margin:0 auto; }
   .artpair { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:4px 16px; align-items:start; margin:0 0 12px; }
-  .artpair .artfig img { width:100%; max-width:440px; }
+  .artpair .artfig img { width:100%; max-width:700px; }
   .artq { font-weight:700; margin:0 0 6px; }
   .arta { background:#eef3fc; border-left:4px solid #3c78d8; border-radius:0 6px 6px 0; padding:8px 12px; margin-bottom:14px; }
   .artvids { margin:14px 0 4px; }
@@ -734,7 +741,7 @@
 <script>
 /** Student calls that carry this browser's sign-in token, and how many arguments come before it.
     Missing arguments are filled with null so the token always lands in the same place. */
-var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1,
+var TOKEN_ARGS = { getStudentState: 0, gradeAnswer: 2, checkAnswer: 2, saveDraft: 2, turnIn: 0, signOut: 0, getPicture: 1, getPictures: 1,
                    uploadPicture: 3, getMyUpload: 1, tryAnswer: 4, openHint: 2, quickTry: 4, resetMyAnswers: 0, getArticle: 0, getArticlePicture: 1 };
 
 /* ============================== CLASS PASS (@@CLASSPASS-BEGIN) ==============================
@@ -1243,6 +1250,7 @@ var CP_CROS = /\bCrOS\b/.test(navigator.userAgent);
 // The probe page loads inside Google's page, so its answer usually comes before that page's load event: elsewhere
 // 1.5 s after the load is plenty (it was 4 s). Chromebooks wait longer: at school it's almost always "yes", and a slow
 // start on Google's side shouldn't send a whole class to the sign-in card.
+var CP_KNOWN_DAYS = 30;   // a Chromebook that passed the check skips it for this long (see cpPassBoot)
 var CP_PROBE_MAX_MS = 15000, CP_PROBE_AFTER_LOAD_MS = CP_CROS ? 8000 : 1500, CP_PROBE_SKIP_MS = 5000;
 function cpProbe(done) {
   var over = false, f = document.createElement("iframe"), t1 = 0, t2 = 0, t3 = 0;
@@ -1387,9 +1395,23 @@ function cpPassBoot() {
   // if it ends up signing in here: a class opening at once makes about half as many trips to the sheet. Elsewhere it asks now.
   if (!CP_CROS) getInfo();
   if (tab || q.get("signin") === "1" || cpMe()) return signIn("");
+  // A Chromebook where Google knew the student before (classpass-known, kept CP_KNOWN_DAYS) skips the check and goes straight to the
+  // plain link (2026.11.11c): the check is a trip to the sheet of its own, so a class opening at once makes half as many trips and
+  // each student waits a few seconds less. If the same device is back here within 10 minutes the assignment may not have opened,
+  // so it is forgotten and the check runs as before.
+  var kk = "classpass-known", wk0 = "classpass-went:" + CP_APP, knownAt = CP_CROS ? Number(cpGet(kk)) || 0 : 0;
+  if (knownAt && Date.now() - knownAt >= 0 && Date.now() - knownAt < CP_KNOWN_DAYS * 86400000) {
+    if (Date.now() - (Number(cpGet(wk0)) || 0) > 600000) {
+      cpStep(3, "Opening your assignment…");
+      cpLog("this Chromebook passed the school sign-in check before: straight to the assignment");
+      cpPut(wk0, String(Date.now()));
+      return cpGo(CP_EXEC, true);
+    }
+    cpPut(kk, null); cpPut(wk0, null);
+  }
   cpStep(1, "Checking your school sign-in…");
   cpProbe(function (known) {
-    if (known === 1) return cpGo(CP_EXEC, true);
+    if (known === 1) { if (CP_CROS) cpPut(kk, String(Date.now())); return cpGo(CP_EXEC, true); }
     if (known === 0 && CP_CROS) {
       // A Chromebook the check couldn't see into. Almost always a school one (only the school account), so go on.
       // But if this device was just sent on the same way and is back, the assignment may not have opened: let the student choose.
@@ -1477,35 +1499,69 @@ function cpNeedSignIn(state) {
 }
 
 /* ---------- pictures ----------
-   On the class website a Google Drive picture comes through the sheet (getPicture): Drive only shows a picture shared
-   with the district to a browser whose FIRST Google account is a school one. Two at a time, each once. */
-var cpPics = {}, cpPicQ = [], cpPicBusy = 0;
+   On the class website a Google Drive picture comes through the sheet: Drive only shows a picture shared with the district
+   to a browser whose FIRST Google account is a school one. A page that sets CP_HOST.pictures gets them ALL in one trip
+   (getPictures, 2026.11.11c: one answer carries every picture, already shrunk and kept in the sheet's short-term cache; a class of
+   36 made one trip per picture per student before). Anything that trip doesn't bring (an older sheet, a picture too big for it,
+   a page without CP_HOST.pictures) comes by itself (getPicture), two at a time, each once.
+   On the sheet's own /exec page a Drive picture loads straight from Drive; if Drive refuses it (a class asking for the same
+   pictures at once can be turned away), it comes through the sheet instead. */
+var cpPics = {}, cpPicQ = [], cpPicBusy = 0, cpPicAll = 0;   // cpPicAll: 0 = the one-trip answer isn't asked for yet, 1 = on its way, 2 = done
+var CP_PIC_TYPES = /^image\/(png|jpeg|gif|webp|bmp)$/, CP_PIC_FAILED = "The picture didn't load. Reload the page to try again.";
 function cpPicture(img, src, idx) {
-  if (!CP_SITE || !/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (!/^https:\/\/drive\.google\.com\/thumbnail\?/.test(String(src))) { if (cpImgUrl(src)) img.src = cpImgUrl(src); return; }
+  if (!CP_SITE) {
+    img.addEventListener("error", function once() {
+      img.removeEventListener("error", once);
+      cpLog("Drive didn't show picture " + idx + ": asking the sheet for it");
+      cpPicQ.push({ img: img, src: "", idx: idx });
+      cpPicNext();
+    });
+    img.src = cpImgUrl(src);
+    return;
+  }
   if (cpPics[idx]) { img.src = cpPics[idx]; return; }
   cpPicQ.push({ img: img, src: src, idx: idx });
+  if (CP_HOST.pictures && cpPicAll === 0) cpPicBundle(0);
   cpPicNext();
 }
+/** A picture the sheet sent, as an address the page can show (a blob: address also opens in a new tab), or "". Never a page or a script. */
+function cpPicUrl(r) {
+  if (!r || !CP_PIC_TYPES.test(String(r.mime)) || typeof r.data !== "string") return "";
+  try {
+    var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+  } catch (e) { return ""; }
+}
+/** Every picture in one trip (and again from where the last answer stopped, while there are more). */
+function cpPicBundle(from) {
+  cpPicAll = 1;
+  function done() { cpPicAll = 2; cpPicNext(); }
+  cpRun("getPictures", [from], function (r) {
+    var p = r && r.pics && typeof r.pics === "object" ? r.pics : {};
+    Object.keys(p).forEach(function (k) { if (!cpPics[k]) { var u = cpPicUrl(p[k]); if (u) cpPics[k] = u; } });
+    cpPicQ = cpPicQ.filter(function (job) { if (!cpPics[job.idx]) return true; job.img.src = cpPics[job.idx]; return false; });
+    var next = r ? Math.floor(Number(r.next)) || 0 : 0;
+    if (next > from) cpPicBundle(next); else done();
+  }, done);   // an older sheet, or a busy one: one at a time, as before
+}
 function cpPicNext() {
+  if (cpPicAll === 1) return;   // the one-trip answer is on its way: what it doesn't bring is asked for after it
   while (cpPicBusy < 2 && cpPicQ.length) (function (job) {
     if (cpPics[job.idx]) { job.img.src = cpPics[job.idx]; return; }
     cpPicBusy++;
     cpRetry(cpCall("getPicture", [job.idx]), function (r) {
       cpPicBusy--;
-      if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") {   // never a page or a script
-        job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return;
-      }
-      try {
-        var bin = atob(r.data), bytes = new Uint8Array(bin.length);
-        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        cpPics[job.idx] = URL.createObjectURL(new Blob([bytes], { type: r.mime }));   // a blob: address also opens in a new tab
-      } catch (e) { job.img.alt = "The picture didn't load. Reload the page to try again."; cpPicNext(); return; }
-      job.img.src = cpPics[job.idx];
+      var u = cpPicUrl(r);
+      if (!u) { job.img.alt = CP_PIC_FAILED; cpPicNext(); return; }
+      cpPics[job.idx] = u;
+      job.img.src = u;
       cpPicNext();
     }, function (err) {
       cpPicBusy--;
-      if (/Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
-      else job.img.alt = "The picture didn't load. Reload the page to try again.";
+      if (job.src && /Unknown request/.test(String((err && err.message) || err))) job.img.src = job.src;   // a sheet from before Class Pass
+      else job.img.alt = CP_PIC_FAILED;
       cpPicNext();
     });
   })(cpPicQ.shift());
@@ -1517,6 +1573,7 @@ function cpPicNext() {
 var CP_HOST = {
   tokenKey: "selfcheck-signin",   // the /exec page's own sign-in (the class website keeps one per assignment: classpass:<id>)
   tokenArgs: TOKEN_ARGS,
+  pictures: true,   // on the class website every Drive picture comes in one trip (getPictures; see cpPicture)
   /** Empties the page for a sign-in card: the assignment itself stays hidden until someone is signed in. */
   clear: function (title) {
     document.getElementById("loading").hidden = true;
@@ -1927,6 +1984,36 @@ function resetMine() {
     }, function (err) { if (b) b.disabled = false; showError(err); });
   }, "Erase my answers", "Cancel");
 }
+/* ---------- a bigger look at a picture (2026.11.11c) ----------
+   Donny: pictures were too small to read, most of all in the narrow question column of the two-column page. A click on a question's,
+   a section's or the article's picture now shows it over the whole page (it used to open a new tab): first fitted to the screen, and a
+   click on it switches to its full size (scroll to move around) and back. Close, the Esc key, or a click beside the picture closes it.
+   Not for a picture with type-in boxes on it, a picture choice (a click picks it) or a drawing pad's picture. */
+function zoomOnClick(img) {
+  img.classList.add("canzoom");
+  img.title = "Click to make this picture bigger";
+  img.addEventListener("click", function () { var u = cpImgUrl(img.currentSrc || img.src); if (u) zoomPicture(u, img.alt); });
+}
+function zoomPicture(src, alt) {
+  var old = document.getElementById("picZoom"); if (old) old.remove();
+  var box = el("div", "piczoom"), bar = el("div", "piczoombar"), tip = el("span", null, "Click the picture for its full size"), shut = el("button", null, "Close");
+  var im = el("img"), back = document.activeElement;
+  box.id = "picZoom"; box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true"); box.setAttribute("aria-label", "Picture, shown bigger");
+  shut.type = "button"; im.alt = alt || "Picture"; im.src = src;
+  bar.appendChild(tip); bar.appendChild(shut); box.appendChild(bar); box.appendChild(im);
+  function close() { document.removeEventListener("keydown", key); box.remove(); try { if (back && back.focus) back.focus({ preventScroll: true }); } catch (e) {} }
+  function key(e) { if (e.key === "Escape") close(); }
+  im.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var full = box.classList.toggle("full");
+    tip.textContent = full ? "Click the picture to fit it on the screen" : "Click the picture for its full size";
+  });
+  shut.addEventListener("click", close);
+  box.addEventListener("click", function (e) { if (e.target === box) close(); });
+  document.addEventListener("keydown", key);
+  document.body.appendChild(box);
+  shut.focus();
+}
 /* ============================== (@@TRIES-END) ============================== */
 
 function simButton(l) {
@@ -2107,6 +2194,7 @@ function loadArticlePics(root, pics) {
   Array.prototype.forEach.call(root.querySelectorAll("img[data-pic]"), function (img) {
     var i = Number(img.getAttribute("data-pic"));
     if (!pics[i]) { img.remove(); return; }
+    zoomOnClick(img);   // a click shows it big (2026.11.11c)
     if (typeof pics[i].data === "string" && pics[i].data && artPicShow(img, pics[i])) return;
     artPicQ.push({ img: img, i: i });
   });
@@ -2337,7 +2425,7 @@ function render() {
         var sf = el("figure", "qimg secimg");
         var sim = el("img"); sim.alt = sec[i].imgCaption || ("Picture for " + sec[i].title); sim.loading = "lazy";
         cpPicture(sim, sec[i].img, "s" + secNo[i]);
-        sim.addEventListener("click", function () { var u = cpImgUrl(this.src); if (u) window.open(u, "_blank", "noopener"); });
+        zoomOnClick(sim);   // a click shows it big, on this page (the LIMITED TRIES block)
         sf.appendChild(sim);
         if (sec[i].imgCaption) sf.appendChild(el("figcaption", null, sec[i].imgCaption));
         box.appendChild(sf);
@@ -2357,7 +2445,7 @@ function render() {
       var fig = el("figure", "qimg");
       var im = el("img"); im.alt = q.imgCaption || ("Picture for question " + (i + 1)); im.loading = "lazy";
       cpPicture(im, q.img, i);
-      im.addEventListener("click", function () { var u = cpImgUrl(im.src); if (u) window.open(u, "_blank", "noopener"); });
+      zoomOnClick(im);
       fig.appendChild(im);
       if (q.imgCaption) fig.appendChild(el("figcaption", null, q.imgCaption));
       qt.appendChild(fig);
@@ -3268,7 +3356,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.11b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.11c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
