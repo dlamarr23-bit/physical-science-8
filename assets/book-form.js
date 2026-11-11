@@ -5,8 +5,10 @@
    double-spaced summary, and adds a picture of the AR test. Each answer box has its own word goal; together they come
    to about one page (GOAL_WORDS).
 
-   - The page reads its questions from its own HTML: every [data-col] is one column in the sheet, in page order.
-     .bf-q.req boxes must be filled in; a textarea's data-min is its fewest words.
+   - The book questions come from the sheet's Questions tab (Donny, 2026-11-11: "I also want to be able to edit the
+     questions directly"); see "the questions" below. Every [data-col] is one answer: its id (the sheet finds the column
+     by it) and data-head (the question, which titles the column). .bf-q.req boxes must be filled in; a textarea's
+     data-min is its fewest words.
    - Name and period come from the Class Pass sign-in (PS8Pass.view().me) when the boxes are empty.
    - The book is picked from the Extra Credit list (the same Google Sheet extra-credit.html reads, with that page's
      saved copy as the fallback), only books of this form's kind; "My book isn't on the list" takes a typed title.
@@ -74,8 +76,11 @@
     var v = window.PS8Pass && window.PS8Pass.view ? window.PS8Pass.view() : null;
     return v && v.me && v.me.name ? String(v.me.name) : "";
   }
+  // answers to questions not on the page right now (the Questions tab changed): kept in the draft until it is turned in
+  var extraFields = {};
   function draftData(){
     var d = {v: 1, id: state.id, t: changedAt, who: passName(), book: state.book, own: state.own, fields: {}};
+    Object.keys(extraFields).forEach(function(k){ d.fields[k] = extraFields[k]; });
     $$("[data-keep]").forEach(function(el){
       var k = el.getAttribute("data-keep");
       d.fields[k] = el.type === "checkbox" ? el.checked : el.value;
@@ -106,16 +111,9 @@
     state.picture = d.picture || null;
     changedAt = Number(d.t) || 0;
     var f = d.fields || {};
-    $$("[data-keep]").forEach(function(el){
-      var k = el.getAttribute("data-keep");
-      if(!(k in f)) return;
-      if(el.type === "checkbox") el.checked = Boolean(f[k]);
-      else { if(el.tagName === "SELECT") ensureOption(el, f[k]); el.value = f[k]; }
-    });
-    $$("[data-col].bf-chips, [data-col].bf-stars").forEach(function(g){
-      var k = "pick:" + g.getAttribute("data-col");
-      if(k in f) setPick(g, f[k] || "");
-    });
+    extraFields = {};
+    Object.keys(f).forEach(function(k){ extraFields[k] = f[k]; });
+    restoreFields(f);
   }
   function clearDraft(){ try { localStorage.removeItem(DRAFT + kind); } catch(e){ /* nothing kept */ } }
   // words written in a draft's answers (to choose between two different forms, one from each computer)
@@ -284,18 +282,121 @@
     if(link){ link.hidden = !SHEET_URL; if(SHEET_URL) link.href = SHEET_URL; }
   }
 
+  /* ---------------- the questions (the sheet's Questions tab) ----------------
+     The questions after "Your book and AR test" come from the Extra Credit Book Forms sheet's Questions tab
+     (EXEC_URL?questions=1, the sheet's doGet), one list per form: {part, partNote, q, hint, starter, type, choices,
+     min, required, id}. The page draws the last list it got (QKEY, this browser) or the built-in one
+     (.bf-default-questions, made by class-tools/book-forms/build.js from questions.json), then the sheet's list as
+     soon as it answers, keeping what the student has written (answers are kept by question id). */
+  var QKEY = "ps8-bookform-questions-v1:" + kind;
+  var STAR_SAY = ["", "Not for me", "It was OK", "Good", "Really good", "Loved it!"];
+  var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
+  var texts = [], questionsShown = "";
+  function goodList(l){
+    return Array.isArray(l) && l.length > 0 && l.every(function(q){ return q && typeof q.id === "string" && q.id && typeof q.q === "string" && q.q && typeof q.type === "string"; });
+  }
+  function builtInQuestions(){ try { var l = JSON.parse($(".bf-default-questions").textContent); return goodList(l) ? l : []; } catch(e){ return []; } }
+  function cachedQuestions(){ try { var l = JSON.parse(localStorage.getItem(QKEY)); return goodList(l) ? l : null; } catch(e){ return null; } }
+  function sheetQuestions(){
+    if(!EXEC_URL) return Promise.resolve(null);
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 15000);
+    return fetch(EXEC_URL + "?questions=1", {cache: "no-store", signal: ctl ? ctl.signal : undefined})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ var l = j && j.ok && j.questions && j.questions[kind]; return goodList(l) ? l : null; })
+      .catch(function(){ return null; })
+      .then(function(l){ clearTimeout(timer); return l; });
+  }
+  function qHTML(q, n){
+    var tid = "t-q" + n, id = esc(q.id), head = esc(q.q), min = Math.max(0, Number(q.min) || 0);
+    var choices = Array.isArray(q.choices) ? q.choices : [];
+    var top = '<div class="bf-q' + (q.required === false ? "" : " req") + '">' +
+      '<p class="bf-title" id="' + tid + '">' + head + "</p>" +
+      (q.hint ? '<p class="bf-help">' + esc(q.hint) + "</p>" : "") +
+      (q.starter ? '<p class="bf-starter">Try starting with: <i>' + esc(q.starter) + "</i></p>" : "");
+    var keep = ' data-col="' + id + '" data-keep="' + id + '" data-head="' + head + '"';
+    if(q.type === "Choice") return top + '<div class="bf-chips" data-col="' + id + '" data-head="' + head + '" aria-labelledby="' + tid + '">' +
+      choices.map(function(c){ return '<button class="bf-chip" type="button">' + esc(c) + "</button>"; }).join("") + "</div></div>";
+    if(q.type === "Stars") return top + '<div class="bf-stars" data-col="' + id + '" data-head="' + head + '" aria-labelledby="' + tid + '"></div></div>';
+    if(q.type === "Short answer") return top + '<input class="bf-input bf-short"' + keep + ' aria-labelledby="' + tid + '" placeholder="Your answer" maxlength="300"></div>';
+    if(q.type === "Several answers") return top + '<div class="bf-multi">' + choices.map(function(c, i){
+      var sub = esc(q.id + " " + (i + 1)), subHead = esc(q.q + " (" + c + ")");
+      return '<div><label for="' + tid + "-" + i + '">' + esc(c) + '</label><textarea class="bf-text" id="' + tid + "-" + i + '" data-col="' + sub +
+        '" data-keep="' + sub + '" data-head="' + subHead + '" data-min="' + min + '" placeholder="Your answer" maxlength="1000"></textarea></div>';
+    }).join("") + "</div></div>";
+    return top + '<textarea class="bf-text' + (min >= 30 ? " big" : "") + '"' + keep + ' data-min="' + min + '" aria-labelledby="' + tid + '" placeholder="Your answer" maxlength="4000"></textarea></div>';
+  }
+  function renderQuestions(list){
+    var box = $(".bf-questions");
+    if(!box) return;
+    var html = "", part = null, num = 2;
+    list.forEach(function(q, n){
+      if(q.part !== part){
+        part = q.part;
+        num++;
+        html += '<div class="bf-part"><span class="bf-part-num">' + num + "</span><h2>" + esc(part || "Questions") + "</h2></div>" +
+          (q.partNote ? '<p class="bf-part-help">' + esc(q.partNote) + "</p>" : "");
+      }
+      html += qHTML(q, n);
+    });
+    box.innerHTML = html;
+    var lastNum = $(".bf-last-num");
+    if(lastNum) lastNum.textContent = num + 1;
+    $$("textarea.bf-text", box).forEach(function(t){
+      var c = document.createElement("div");
+      c.className = "bf-count";
+      t.insertAdjacentElement("afterend", c);
+      t._count = c;
+    });
+    $$(".bf-stars[data-col]", box).forEach(function(g){
+      g.setAttribute("role", "radiogroup");
+      var h = "";
+      for(var i = 1; i <= 5; i++) h += '<button type="button" class="bf-star-btn" role="radio" aria-checked="false" data-v="' + i + '" aria-label="' + i + (i === 1 ? " star" : " stars") + '">' + STAR + "</button>";
+      g.innerHTML = h + '<span class="bf-stars-say"></span>';
+    });
+    $$(".bf-chips[data-col]", box).forEach(function(g){
+      g.setAttribute("role", "radiogroup");
+      $$(".bf-chip", g).forEach(function(b){ b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("data-v", b.textContent.trim()); });
+    });
+    addErrs(box);
+    texts = $$("textarea.bf-text");
+    questionsShown = JSON.stringify(list);
+  }
+  // the sheet's questions changed while the page was open: draw them again, keeping every answer by its question id
+  function redrawQuestions(list){
+    var keep = draftData().fields;
+    renderQuestions(list);
+    restoreFields(keep);
+    paintAll();
+  }
+  function restoreFields(f){
+    $$("[data-keep]").forEach(function(el){
+      var k = el.getAttribute("data-keep");
+      if(!(k in f)) return;
+      if(el.type === "checkbox") el.checked = Boolean(f[k]);
+      else { if(el.tagName === "SELECT") ensureOption(el, f[k]); el.value = f[k]; }
+    });
+    $$("[data-col].bf-chips, [data-col].bf-stars").forEach(function(g){
+      var k = "pick:" + g.getAttribute("data-col");
+      if(k in f) setPick(g, f[k] || "");
+    });
+  }
+  function addErrs(inside){
+    $$(".bf-q.req", inside).forEach(function(q){
+      if(!$(".bf-err", q)){ var e = document.createElement("div"); e.className = "bf-err"; e.setAttribute("role", "alert"); q.appendChild(e); }
+    });
+  }
+  renderQuestions(cachedQuestions() || builtInQuestions());
+
   /* ---------------- answer boxes: growing, word counts ---------------- */
-  var texts = $$("textarea.bf-text");
   function grow(t){ t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
-  texts.forEach(function(t){
-    var c = document.createElement("div");
-    c.className = "bf-count";
-    c.setAttribute("aria-live", "polite");
-    t.insertAdjacentElement("afterend", c);
-    t._count = c;
-    t.addEventListener("input", function(){ grow(t); paintCount(t); paintMeter(); });
+  root.addEventListener("input", function(e){
+    var t = e.target;
+    if(!t.classList || !t.classList.contains("bf-text")) return;
+    grow(t); paintCount(t); paintMeter();
   });
   function paintCount(t){
+    if(!t._count) return;
     var n = countWords(t.value), min = Number(t.getAttribute("data-min")) || 0;
     var met = min ? n >= min : n > 0;
     t._count.classList.toggle("met", met && n > 0);
@@ -313,18 +414,6 @@
   }
 
   /* ---------------- one-pick buttons and stars ---------------- */
-  var STAR_SAY = ["", "Not for me", "It was OK", "Good", "Really good", "Loved it!"];
-  var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
-  $$(".bf-stars[data-col]").forEach(function(g){
-    g.setAttribute("role", "radiogroup");
-    var html = "";
-    for(var i = 1; i <= 5; i++) html += '<button type="button" class="bf-star-btn" role="radio" aria-checked="false" data-v="' + i + '" aria-label="' + i + (i === 1 ? " star" : " stars") + '">' + STAR + "</button>";
-    g.innerHTML = html + '<span class="bf-stars-say"></span>';
-  });
-  $$(".bf-chips[data-col]").forEach(function(g){
-    g.setAttribute("role", "radiogroup");
-    $$(".bf-chip", g).forEach(function(b){ b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("data-v", b.textContent.trim()); });
-  });
   function setPick(g, v){
     g.setAttribute("data-value", v);
     if(g.classList.contains("bf-stars")){
@@ -610,7 +699,10 @@
     var boxes = $$("textarea.bf-text", q);
     var shortOnes = boxes.filter(function(t){ return countWords(t.value) < (Number(t.getAttribute("data-min")) || 1); });
     if(!shortOnes.length) return "";
-    if(boxes.length > 1) return "Each one needs at least " + boxes[0].getAttribute("data-min") + " words.";
+    if(boxes.length > 1){
+      var each = Number(boxes[0].getAttribute("data-min")) || 0;
+      return each > 1 ? "Each one needs at least " + each + " words." : "Each one needs an answer.";
+    }
     var have = countWords(shortOnes[0].value);
     return have ? "Write a little more: at least " + shortOnes[0].getAttribute("data-min") + " words (you have " + have + ")." : REQUIRED;
   }
@@ -649,7 +741,8 @@
       if(el.classList.contains("bf-stars")) v = el.getAttribute("data-value") ? el.getAttribute("data-value") + " out of 5" : "";
       else if(el.classList.contains("bf-chips")) v = el.getAttribute("data-value") || "";
       else v = el.value.trim();
-      return {col: col, value: v};
+      // col = the question's id (the sheet finds its column by it); head = the question, which titles that column
+      return {col: col, head: el.getAttribute("data-head") || col, value: v};
     });
   }
   function message(){
@@ -722,6 +815,8 @@
     var keep = {first: first.value, last: last.value, period: period.value};
     state = blank();
     changedAt = 0;
+    extraFields = {};
+    $$(".bf-short").forEach(function(el){ el.value = ""; });
     cloud.sentPic = null;
     cloud.dirty = false;
     cloud.saved = 0;
@@ -758,7 +853,8 @@
       while(countWords(out.join(" ")) < (Number(t.getAttribute("data-min")) || 10)) out.push(s);
       t.value = out.join(" ");
     });
-    $$("[data-col].bf-chips").forEach(function(g){ if(!g.getAttribute("data-value")) setPick(g, $(".bf-chip", g).getAttribute("data-v")); });
+    $$(".bf-short").forEach(function(el){ if(!el.value.trim()) el.value = "Sample answer"; });
+    $$("[data-col].bf-chips").forEach(function(g){ if(!g.getAttribute("data-value") && $(".bf-chip", g)) setPick(g, $(".bf-chip", g).getAttribute("data-v")); });
     $$("[data-col].bf-stars").forEach(function(g){ if(!g.getAttribute("data-value")) setPick(g, "4"); });
     $$("[data-own-words]").forEach(function(el){ el.checked = true; });
     if(!state.picture){
@@ -786,6 +882,12 @@
   if(local) applyDraft(local);
   paintAll();
   paintSaved();
+  // the Questions tab's questions, if they differ from the ones drawn
+  sheetQuestions().then(function(list){
+    if(!list) return;
+    try { localStorage.setItem(QKEY, JSON.stringify(list)); } catch(e){ /* drawn now, fetched again next time */ }
+    if(JSON.stringify(list) !== questionsShown) redrawQuestions(list);
+  });
   if(window.PS8Pass){
     var v = window.PS8Pass.view();
     fromPass(v); teacherLook(v); cloudLoad();
