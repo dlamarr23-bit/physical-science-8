@@ -1,6 +1,23 @@
-video-check v2026.11.10c
+video-check v2026.11.11
 
-Optional update: step 1 becomes checkboxes with no typing, and step 3 can upload one class at a time.
+LIVE LESSONS: questions reach every device on time, and the projector's video can't buffer.
+
+• QUESTIONS ON EVERY SCREEN AT THE SAME MOMENT. Before, every student's device asked the sheet for the question in the same half second
+  when the video stopped. Google only answers 30 of those at once for one teacher account, so in a class of more than about 28 the
+  rest were turned away and got the question several seconds late. Now each device is handed the coming question a few seconds early,
+  with the exact moment the projector will stop, and shows it by its own clock at that moment. Nobody sees a question before the video
+  stops for it.
+• A device whose check is turned away at a busy moment now tries again in about half a second (it used to wait 2 to 3 seconds).
+• THE VIDEO IS SAVED ON YOUR COMPUTER BEFORE CLASS (Google Drive videos). As soon as you open the live lesson screen, it starts saving
+  the whole video on that computer and shows how far along it is: "Saving the video on this computer so it can't buffer in class: 45%".
+  Wait for 100% ("The video is saved on this computer") before you start the video. In class the video then plays from your computer,
+  not through the sheet, so it can't stall while 35 devices are using the sheet. It stays saved, so the next period starts at once.
+  If you start early, it still plays and keeps saving ahead while it plays.
+• Open the live lesson screen in a regular Chrome window. A private or Incognito window often can't save the video; the screen says so.
+• To update: paste the new Code.gs and Index (or Update now on the Launchpad), then Deploy > Manage deployments > pencil > New version.
+  The live lesson screen and school Chromebooks use the sheet's own copy of the page, so the sheet needs the new version too.
+
+From 2026.11.10c, if this sheet skipped it:
 
 • Step 1 (Video Check > 1. Link Google Classroom classes) now opens a Classes tab with a checkbox next to each of your Classroom classes.
   Tick every class getting this video. Each tick is saved right away (a note at the bottom right says so). Untick a class to unlink it.

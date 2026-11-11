@@ -1,6 +1,8 @@
-auto-grading-activity v2026.11.10c
+auto-grading-activity v2026.11.11
 
-Optional update: step 1 becomes checkboxes with no typing, and step 3 can upload one class at a time.
+Optional update: nothing new for this kind of sheet (this release fixes Video Check's live lessons); it carries everything from 2026.11.10c.
+
+From 2026.11.10c, if this sheet skipped it:
 
 - Step 1 (Self-Check > 1. Link Google Classroom classes) now opens a Classes tab with a checkbox next to each of your Classroom classes.
   Tick every class getting this assignment. Each tick is saved right away (a note at the bottom right says so). Untick a class to unlink it.

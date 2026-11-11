@@ -109,7 +109,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
 // SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
 var SKILL_NAME = "video-check";
-var SKILL_VERSION = "2026.11.10c";
+var SKILL_VERSION = "2026.11.11";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1388,14 +1388,14 @@ function liveInfo_() {
  *  on their next check without waiting for the screen's own liveOpen. Before then, pages only learn the time. */
 function applyNext_(live, next) {
   if (!live || !next || next.id !== live.id) return;
-  if (Date.now() < next.at) { live.next = next.at; return; }
+  if (Date.now() < next.at) { live.next = next.at; live.nextQ = next.q; return; }
   if (live.q >= 0) return;
   live.q = next.q;
   live.opened = live.opened || [];
   if (live.opened.indexOf(next.q) === -1) live.opened.push(next.q);
 }
 function saveLive_(live, done) {
-  if (live) { live = JSON.parse(JSON.stringify(live)); delete live.next; }   // worked out again on every read
+  if (live) { live = JSON.parse(JSON.stringify(live)); delete live.next; delete live.nextQ; }   // worked out again on every read
   var p = props_();
   if (live) p.setProperty("LIVE", JSON.stringify(live)); else p.deleteProperty("LIVE");
   p.setProperty("LIVE_DONE", JSON.stringify(done || {}));
@@ -1418,7 +1418,14 @@ function livePoll(token) {
   var mine = !!(L.live && p && String(p.period) === String(L.live.period));
   if (mine) { var c = cache_(); try { if (c) c.put("seen:" + L.live.id + ":" + email, "1", LIVE_CACHE_SECS); } catch (e) {} }
   var open = !mine && (isTeacher_(email) || !WAIT_FOR_LIVE || !L.linked || !!(p && L.done[String(p.period)]));
-  return { on: mine, id: mine ? L.live.id : "", q: mine ? L.live.q : -1, opened: mine ? (L.live.opened || []) : [], open: open,
+  // soon (2026.11.11): in the last REVEAL_EARLY_SECS before the stop, the coming question rides along with its moment, so the
+  // page shows it by its own clock when the projector stops. Before, the whole class checked in the same half second, and
+  // Google runs only 30 checks at once for one account: with more than about 28 students the rest were refused and got the
+  // question seconds late. (A page watching on its own gets a question this early too: revealQuestion.)
+  var left = mine && L.live.next && L.live.q < 0 ? L.live.next - Date.now() : 0;
+  var soon = left > 0 && left <= REVEAL_EARLY_SECS * 1000 && ITEMS[L.live.nextQ]
+    ? { q: L.live.nextQ, at: L.live.next, question: questionsForClient_(false)[L.live.nextQ] } : null;
+  return { on: mine, soon: soon, id: mine ? L.live.id : "", q: mine ? L.live.q : -1, opened: mine ? (L.live.opened || []) : [], open: open,
            next: mine && L.live.next ? L.live.next : 0, now: Date.now(),
            question: mine && L.live.q >= 0 && ITEMS[L.live.q] ? questionsForClient_(false)[L.live.q] : null };   // only the one the teacher just opened
 }

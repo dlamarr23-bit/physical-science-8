@@ -1376,25 +1376,37 @@ function VideoStore(v) {
     return inflight[n];
   };
   /** Saves every piece on this device in the background, one at a time, so the next visit starts at once. */
-  self.saveAll = function () {
-    var n = 0;
-    (function next() {
-      if (self.dead || self.noSave || n >= v.chunks) return;
-      var i = n++;
-      self.isSaved(i).then(function (have) {
-        if (have) return next();
-        // Unhurried: this only fills in parts that were skipped, and a whole class shares the server.
-        self.get(i).then(function () { setTimeout(next, CP_SITE ? 3000 : 1000); }, function () { setTimeout(next, 5000); n = Math.min(n, i); });
+  /** onProgress(piecesSaved, pieces, "saving" | "done" | "nosave") and quick (two pieces at a time, no pause) are for the
+      live lesson screen, which saves the whole video on the teacher's computer before class (2026.11.11). */
+  self.saveAll = function (onProgress, quick) {
+    if (onProgress) self.onSave = onProgress;
+    if (self.savingAll) return;
+    self.savingAll = true;
+    var n = 0, have = 0, busy = 0, again = [];
+    function tell(state) { if (self.onSave) self.onSave(have, v.chunks, state); }
+    function next() {
+      if (self.dead || !self.savingAll) return;
+      if (self.noSave) { self.savingAll = false; tell("nosave"); return; }
+      if (n >= v.chunks && !again.length) { if (!busy) { self.savingAll = false; tell("done"); } return; }
+      var i = again.length ? again.shift() : n++;
+      busy++;
+      self.isSaved(i).then(function (isIn) {
+        if (isIn) { busy--; have++; tell("saving"); return next(); }
+        // Unhurried for students: this only fills in parts that were skipped, and a whole class shares the server.
+        self.get(i).then(function () { busy--; have++; tell("saving"); setTimeout(next, quick ? 0 : CP_SITE ? 3000 : 1000); },
+                         function () { busy--; again.push(i); setTimeout(next, 5000); });
       });
-    })();
+    }
+    next();
+    if (quick) next();
   };
 }
 
 function drivePlayer(host, v, opt, P, playFile) {
-  var store = new VideoStore(v), msg = el("div", "vmsg", "Loading the video…"), stopped = false, current = null;
+  var store = opt.store || new VideoStore(v), msg = el("div", "vmsg", "Loading the video…"), stopped = false, current = null;
   msg.style.zIndex = 2; msg.style.pointerEvents = "none";
   host.appendChild(msg);
-  P.destroy = function () { stopped = true; store.dead = true; if (current) current(); };
+  P.destroy = function () { stopped = true; if (!opt.store) store.dead = true; if (current) current(); };   // (the live screen's store keeps saving)
   function say(t) { msg.textContent = t; if (!msg.parentNode) host.appendChild(msg); }
   function quiet() { if (msg.parentNode) msg.parentNode.removeChild(msg); }
   function broken() {
@@ -1989,12 +2001,16 @@ function renderStudentLive() {
   window.onResultHook = function () { drawLiveChips(); };
   showLiveQ();
   updateProgress();
+  var bad = 0;   // checks in a row that failed
+  dropLiveSoon(); liveSelf = -1;
   (function poll(ms) {
     timers.push(setTimeout(function () {
       var sent = Date.now();
       api.run("livePoll", [], function (r) {
+        bad = 0;
         noteLiveClock(r, sent);
         if (!r || !r.on) {
+          dropLiveSoon();
           // The teacher ended the live lesson: open the video on this device right away.
           var q = S.live.q;
           if (q >= 0 && Q(q).type === "open" && answerOf(q) && answerOf(q) !== saved[q]) check(q, false);
@@ -2002,17 +2018,28 @@ function renderStudentLive() {
           setTimeout(studentBoot, savesRunning() ? 2500 : 600);
           return;
         }
-        var changed = r.q !== S.live.q;
+        // soon = the coming question and its moment (a sheet on 2026.11.11 or newer): this page shows it by its own clock.
+        var rq = r.q, soon = rq < 0 && r.soon && r.soon.question ? r.soon : null;
+        if (soon && liveSelf === soon.q && S.live.q === soon.q) rq = soon.q;   // already showing it: the sheet answered a moment before the stop
+        else if (soon) armLiveSoon(soon);
+        else dropLiveSoon();
+        if (r.q >= 0 || !soon) liveSelf = -1;
+        var changed = rq !== S.live.q;
         S.live.opened = r.opened || [];
-        if (r.question && r.q >= 0) S.questions[r.q] = r.question;   // the question the teacher just opened (never sooner)
+        if (rq >= 0 && S.live.opened.indexOf(rq) === -1) S.live.opened.push(rq);
+        if (r.question && r.q >= 0) S.questions[r.q] = r.question;   // the question the teacher just opened
         if (changed) {
           var old = S.live.q;
           if (old >= 0 && Q(old).type === "open" && answerOf(old) && answerOf(old) !== saved[old]) check(old, false);   // teacher moved on: keep what was typed
-          S.live.q = r.q;
+          S.live.q = rq;
           showLiveQ();
         } else drawLiveChips();
         poll(livePollDelay(r));
-      }, function (err) { if (isSignInError(err)) signedOutMidway(); poll(); });   // keeps polling: it works again once they sign back in
+      }, function (err) {
+        if (isSignInError(err)) { signedOutMidway(); poll(); return; }   // keeps polling: it works again once they sign back in
+        bad++;
+        poll(bad <= 3 ? 400 + Math.floor(Math.random() * 800) : undefined);   // a refused check (a busy moment) tries again quickly
+      });
     }, ms != null ? ms : 2200 + Math.floor(Math.random() * 1200)));
   })();
 }
@@ -2030,9 +2057,30 @@ function noteLiveClock(r, sent) {
    at once (Google limits how many checks can run at the same time). */
 function livePollDelay(r) {
   var normal = 2200 + Math.floor(Math.random() * 1200);
-  if (!r || !r.next || r.q >= 0) return normal;
+  if (!r || !r.next || r.q >= 0 || r.soon) return normal;   // with soon, the question is already here: no timed check
   var send = r.next - liveClock.off - liveClock.rtt / 2 + 60 + Math.floor(Math.random() * 600);
   return Math.max(150, Math.min(normal, send - Date.now()));
+}
+/* The coming question, sent a few seconds early with the moment the projector stops (livePoll's soon). The page opens it
+   at that moment by its own clock, so a whole class gets it together without everyone asking the sheet at once.
+   liveSelf = the question this page opened that way, until the sheet's own answer says it is open (or was cancelled). */
+var liveSoon = null, liveSoonTimer = 0, liveSelf = -1;
+function dropLiveSoon() { clearTimeout(liveSoonTimer); liveSoonTimer = 0; liveSoon = null; }
+function armLiveSoon(soon) {
+  var at = soon.at - liveClock.off + 80;   // on this device's clock (a hair late, never early)
+  if (liveSoon && liveSoon.q === soon.q && Math.abs(liveSoon.at - at) < 150) { liveSoon.question = soon.question; return; }
+  dropLiveSoon();
+  var mine = liveSoon = { q: soon.q, at: at, question: soon.question };
+  liveSoonTimer = setTimeout(function () {
+    if (liveSoon !== mine) return;
+    liveSoon = null; liveSoonTimer = 0;
+    if (!S || !S.live || S.live.q >= 0 || !document.getElementById("livehost")) return;
+    S.questions[mine.q] = mine.question;
+    S.live.q = mine.q; liveSelf = mine.q;
+    S.live.opened = S.live.opened || [];
+    if (S.live.opened.indexOf(mine.q) === -1) S.live.opened.push(mine.q);
+    showLiveQ();
+  }, Math.max(0, at - Date.now()));
 }
 var liveShown = -1;
 function showLiveQ(forced) {
@@ -2546,6 +2594,9 @@ function renderTeacherHome(msg) {
     tb.appendChild(body);
     app.appendChild(tb);
   }
+  var vs = el("div", "banner blue"); vs.id = "vsave"; vs.hidden = true;
+  app.appendChild(vs);
+  saveTeacherVideo();
   var pv = btn("Preview the video with its questions (students don't see this)", "secondary", function () { renderTeacherLive(true); });
   pv.style.marginTop = "14px";
   app.appendChild(pv);
@@ -2554,6 +2605,26 @@ function renderTeacherHome(msg) {
     lb.appendChild(el("b", null, "Student link: ")); lb.appendChild(document.createTextNode(T.studentLink));
     app.appendChild(lb);
   }
+}
+/* The live lesson screen saves the whole Drive video on this computer (2026.11.11), so in class it plays from here and
+   can't buffer, however busy the sheet is with the students' devices. It starts as soon as this screen opens and keeps
+   going during the lesson; the player reads the same saved pieces (opt.store). */
+var teacherStore = null, teacherSave = null;
+function saveTeacherVideo() {
+  var v = T && T.video;
+  if (!v || v.kind !== "drive" || !v.chunkBytes || v.error || !window.indexedDB) return;
+  if (!teacherStore) teacherStore = new VideoStore(v);
+  paintVideoSave();
+  teacherStore.saveAll(function (have, all, state) { teacherSave = { have: have, all: all, state: state }; paintVideoSave(); }, true);
+}
+function paintVideoSave() {
+  var box = document.getElementById("vsave"), s = teacherSave;
+  if (!box || !s) return;
+  var pct = Math.floor(100 * s.have / Math.max(1, s.all));
+  box.hidden = false;
+  box.textContent = s.state === "done" ? "The video is saved on this computer. It plays from here in class, so it won't buffer." :
+    s.state === "nosave" ? "This window can't save the video on this computer (a private or Incognito window often can't), so it will stream during the lesson. For a lesson with no buffering, open this screen in a regular Chrome window." :
+    "Saving the video on this computer so it can't buffer in class: " + pct + "%. Wait for 100% before you start the video.";
 }
 function startLive(period) {
   withRetry(call("liveStart", [period]), function (live) { T.live = live; renderTeacherLive(false); }, showError);
@@ -2600,9 +2671,12 @@ function renderTeacherLive(preview) {
   var times = el("div", "times"); times.innerHTML = '<span id="tNow">0:00</span><span id="tEnd"></span>';
   app.appendChild(times);
   app.appendChild(el("div", "skipnote", "Tip: the video stops by itself at each question. Enter, Page Down, or a presentation clicker also presses Continue. Click a numbered dot to jump to a question."));
+  var vsl = el("div", "skipnote"); vsl.id = "vsave"; vsl.hidden = true;
+  app.appendChild(vsl);
+  saveTeacherVideo();
   lastT = null; armed = {};
   T.questions.forEach(function (q, i) { armed[i] = true; });
-  P = makePlayer(stage, v, { start: VS, onReady: function () { drawTeacherMarkers(); }, onError: function (m) { showError(m); } });
+  P = makePlayer(stage, v, { start: VS, store: teacherStore, onReady: function () { drawTeacherMarkers(); }, onError: function (m) { showError(m); } });
   timers.push(setInterval(tickTeacher, 200));
   if (!preview) {
     pollTeacher();
