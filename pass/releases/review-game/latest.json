@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.06d",
-  "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
+  "version": "2026.11.10",
+  "optional": "new Settings row Questions per try: each student gets a random set of questions from the bank each time they play.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

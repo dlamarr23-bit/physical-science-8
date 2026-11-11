@@ -183,6 +183,7 @@ var SHUFFLE_CHOICES    = true;              // true = each student gets the answ
 var SHUFFLE_QUESTIONS  = false;             // true = each student gets the questions in their own order (a Self-Check: within each blue section; a review game: a new order each try)
 // ---------- Review game only (a sheet whose SKILL_NAME is "review-game"; see REVIEW GAME) ----------
 var START_OVER        = true;  // true = students can Start Over; their best try is the grade
+var QUESTIONS_PER_TRY = 0;     // how many questions each try gets, picked at random from the Questions tab (a new mix every Start Over); 0 = every question
 var WEBSITE_BOARD_URL = "";    // the class website whose Leaderboard shows review game points, e.g. https://vocabulary-room901.pages.dev
 var WEBSITE_BOARD_KEY = "";    // the Review game key from that Leaderboard page (blank = game points stay in this sheet)
 
@@ -251,7 +252,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-speed-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-speed-lab\)
-var SKILL_VERSION = "2026.11.06d";
+var SKILL_VERSION = "2026.11.10";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -267,6 +268,8 @@ var LIVE_EMAIL_COL = 3;
 var FIRST_Q_COL = LIVE_FIXED.length + 1;
 var ROSTER_HEADERS = ["Period", "Name", "Email", "Classroom user ID", "Course ID"];
 var SUMMARY_HEADERS = ["Question", "Prompt", "Green", "Yellow", "Red", "Blank", "% green (all periods)", "% right on the first try"];
+/** The Question Summary's first columns: a review game has Times given after Blank (QUESTIONS PER TRY: not every try has every question). */
+function summaryHeads_() { var h = SUMMARY_HEADERS.slice(); if (isGame_()) h.splice(6, 0, "Times given"); return h; }
 
 
 // ============================== LIVE CONFIG (Questions + Settings tabs) ==============================
@@ -322,6 +325,7 @@ var SHUFFLE_QUESTIONS_DEF = ["Shuffle question order", "SHUFFLE_QUESTIONS", "boo
 // A review game's own Settings rows (only a review-game sheet has them).
 var GAME_SETTING_DEFS = [
   ["Students can start over", "START_OVER", "bool", "Checked = students see a Start Over button that clears their answers so they can try the whole game again. Their BEST try is their grade (in this sheet and in Classroom), and their best game points stay on the leaderboard. Unchecked = one try only (they can still leave and pick up where they left off)."],
+  ["Questions per try", "QUESTIONS_PER_TRY", "number", "How many questions each student gets each time they play, picked at random from the Questions tab (a new mix every Start Over). Blank or 0 = every question."],
   SHUFFLE_QUESTIONS_DEF,
   ["Website leaderboard address", "WEBSITE_BOARD_URL", "text", "The class website whose Leaderboard page shows Review game points, like https://vocabulary-room901.pages.dev (just the address, nothing after .dev)."],
   ["Website leaderboard key", "WEBSITE_BOARD_KEY", "text", "Paste the Review game key from that website's Leaderboard page (sign in there as the teacher, then open Review game key at the bottom). Then each student's best game points go on the website's Leaderboard when they finish a game, and every hour for games still in progress. Blank = the points show only inside this game."]
@@ -1506,7 +1510,9 @@ function checkQuestionsTab() {
   var pointsSum = 0, anyPoints = false;
   ITEMS.forEach(function (it) { if (ungraded_(it)) return; pointsSum += it.points == null ? 1 : it.points; if (it.points != null) anyPoints = true; });
   if (anyPoints && Math.abs(pointsSum - MAX_POINTS) > 0.001) CONFIG_WARNINGS_.push("Points: the questions are worth " + (Math.round(pointsSum * 100) / 100) + " in all, but Points possible (Settings) is " + MAX_POINTS + ". The grade is scaled to Points possible, so they don't have to match, but they usually should.");
-  SpreadsheetApp.getUi().alert((isGame_() ? "Found " + ITEMS.length + " multiple choice questions (" + ITEMS.filter(function (it) { return it.right.length > 1; }).length + " of them select all that apply), " + SECTIONS.length + " sections." :
+  var per = perTry_(), bank = gameQuestions_(),
+      perText = !isGame_() || !per ? "" : per < bank ? " Each try gets " + per + " of the " + bank + " questions at random." : " Questions per try is " + per + ", so each try gets all " + bank + " questions.";
+  SpreadsheetApp.getUi().alert((isGame_() ? "Found " + ITEMS.length + " multiple choice questions (" + ITEMS.filter(function (it) { return it.right.length > 1; }).length + " of them select all that apply), " + SECTIONS.length + " sections." + perText :
     "Found " + ITEMS.length + " questions, " + SECTIONS.length + " sections, " + crit + " key ideas, " + mis + (mis === 1 ? " misconception" : " misconceptions") + "." +
     (ITEMS.some(isTried_) ? " " + ITEMS.filter(isTried_).length + " of the questions have limited tries (" + ["choice", "truefalse", "short", "dropdown"].map(function (k) { var n = ITEMS.filter(function (it) { return isTried_(it) && it.kind === k; }).length; return n ? n + " " + k : ""; }).filter(String).join(", ") + ")." : "")) + "\n\n" +
     (CONFIG_WARNINGS_.length ? "Check these:\n• " + CONFIG_WARNINGS_.join("\n• ") : "No problems found."));
@@ -1587,7 +1593,7 @@ function getStudentState(token) {
     now: Date.now(),
     showGrade: SHOW_GRADE_TO_STUDENTS,
     showPoints: !!SHOW_POINTS,   // the "2 points" tag next to each question (the page still uses Points for the running grade)
-    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best }, due).grade, maxPoints: MAX_POINTS,
+    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best, game: rec.game }, due).grade, maxPoints: MAX_POINTS,
     shuffleChoices: !!SHUFFLE_CHOICES,   // LIMITED TRIES: the page shuffles choice questions' buttons per student (true/false never)
     shuffleQuestions: !isGame_() && !!SHUFFLE_QUESTIONS,   // 2026.11.06b: each student's own question order, within each section (the page's questionOrder)
     quickTries: true,   // 2026.11.06b: the page checks a try with quickTry, then saves it with tryAnswer (FAST CHECK); an older sheet has only tryAnswer
@@ -2089,6 +2095,13 @@ function openHint(idx, kind, token) {
 // a wrong first pick to itself and sends only the second one. Here they are only counted off, like the others.
 // Start Over (Settings "Students can start over") keeps the best try in rec.best, so the grade is the best try (workGrade_),
 // and rec.topPoints keeps the most points from any try (the leaderboards). Finishing a game marks it turned in.
+// QUESTIONS PER TRY (Settings "Questions per try", 2026.11.10): each try gets QUESTIONS_PER_TRY of the bank at random, kept in
+// rec.game.set (sorted question numbers, 0-based), first the ones the last try didn't have. Everything that counts questions counts
+// only the try's set: done, the grade (40 of 40 right = full credit), Green/Red/Blank, the best try (rec.best.set), the on-time copy
+// (rec.onTime.set), the website row and the power-ups. A try with no set means the first QUESTIONS_PER_TRY questions, or every
+// question when the setting is 0 or the bank is no bigger (so a sheet's work from before 2026.11.10 keeps its grade). A try's set
+// is stored with its first answer (newSet_ is the same for the same student and try, so the page and the sheet agree before that)
+// and right away on Start Over (a fresh random one then).
 // The website leaderboard (Settings "Website leaderboard address" and "key"): each student's top points, and right answers in the
 // best try, go to <address>/api/review/results when they finish a game, and every hour for games in progress (syncWebsiteBoard_).
 var GAME_BASE = 500, GAME_STREAK_STEP = 100, GAME_STREAK_MAX = 5, GAME_POWER_EVERY = 4;
@@ -2121,30 +2134,67 @@ function choiceText_(item, answer) {
 }
 
 function newGame_(attempt) { return { points: 0, streak: 0, bestStreak: 0, answered: 0, right: 0, powers: {}, attempt: attempt || 1 }; }
-function gameOf_(rec) { if (!rec.game) rec.game = newGame_(1); return rec.game; }
-function gameQuestions_() { var n = 0; ITEMS.forEach(function (it) { if (it.choices) n++; }); return n; }
+/** This try's game. email: a try not started yet (no answers, no set) gets its questions here (see QUESTIONS PER TRY). */
+function gameOf_(rec, email) {
+  if (!rec.game) rec.game = newGame_(1);
+  var g = rec.game;
+  if (email && !g.set && !g.answered) {
+    var set = newSet_("set|" + String(email).toLowerCase() + "|" + g.attempt, g.attempt > 1 ? trySet_(null) : null);
+    if (set) g.set = set;
+  }
+  return g;
+}
+/** The game's questions (0-based question numbers, in the Questions tab's order). */
+function gameIdx_() { var out = []; ITEMS.forEach(function (it, i) { if (it.choices) out.push(i); }); return out; }
+function gameQuestions_() { return gameIdx_().length; }
+/** Settings "Questions per try" as a whole number (0 = every question). */
+function perTry_() { var n = Math.floor(Number(QUESTIONS_PER_TRY) || 0); return n > 0 ? n : 0; }
+/** The questions in a try: its own set, else (no set) the first QUESTIONS_PER_TRY questions, or all of them. */
+function trySet_(set) {
+  if (Array.isArray(set) && set.length) {
+    var mine = set.filter(function (i) { return ITEMS[i] && ITEMS[i].choices; });
+    if (mine.length) return mine;
+  }
+  var all = gameIdx_(), n = perTry_();
+  return n && n < all.length ? all.slice(0, n) : all;
+}
+/** The questions a piece of work counts: a record (rec.game.set), a best try or an on-time copy (.set). null = not a review game. */
+function workSet_(work) { return isGame_() ? trySet_(work.game ? work.game.set : work.set) : null; }
+function setMap_(list) { var m = {}; (list || []).forEach(function (i) { m[i] = true; }); return m; }
+/** A new try's questions: QUESTIONS_PER_TRY of the bank (sorted), mixed by seed, first the ones not in prev (the last try's).
+ *  null = every question is in each try (Questions per try blank or 0, or no smaller than the bank). */
+function newSet_(seed, prev) {
+  var all = gameIdx_(), n = perTry_();
+  if (!n || n >= all.length) return null;
+  var was = setMap_(prev), mix = {};
+  all.forEach(function (i) { mix[i] = parseInt(quickHash_(seed + "|" + i), 36); });
+  all.sort(function (a, b) { return (was[a] ? 1 : 0) - (was[b] ? 1 : 0) || mix[a] - mix[b] || a - b; });
+  return all.slice(0, n).sort(function (a, b) { return a - b; });
+}
 /** Every question of this try answered. */
-function gameDone_(rec) { return ITEMS.every(function (it, i) { return !it.choices || !!rec.answers[i]; }); }
-/** A try as the page shows it: right answers, questions, percent right. */
-function trySummary_(statuses, answers) {
-  var right = 0, n = 0;
-  ITEMS.forEach(function (it, i) { if (!it.choices) return; n++; if ((statuses || [])[i] === "correct") right++; });
-  var f = creditFrac_(statuses || [], answers);
-  return { right: right, total: n, pct: Math.round((f || 0) * 100) };
+function gameDone_(rec) { return trySet_(rec.game && rec.game.set).every(function (i) { return !!rec.answers[i]; }); }
+/** A try as the page shows it: right answers, questions, percent right. set = the try's stored set (see trySet_). */
+function trySummary_(statuses, answers, set) {
+  var list = trySet_(set), right = 0;
+  list.forEach(function (i) { if ((statuses || [])[i] === "correct") right++; });
+  var f = creditFrac_(statuses || [], answers, null, list);
+  return { right: right, total: list.length, pct: Math.round((f || 0) * 100) };
 }
 /** What the game page needs about this student's game (getStudentState, answerChoice, startOver).
  *  keys: each question's right choices, scrambled (choiceKey_), so the page can say right or wrong the moment a choice is
  *  clicked (Donny, 2026-10-26: the trip to the sheet took 2 to 3 seconds) while answerChoice still saves and grades every answer.
  *  A student could only find the answers by working through the page's code; Donny chose instant over that. */
 function gameStateFor_(rec, email) {
-  var g = gameOf_(rec), salt = g.attempt + "|" + String(email || "").toLowerCase();
+  var g = gameOf_(rec, email), salt = g.attempt + "|" + String(email || "").toLowerCase(), set = trySet_(g.set), mine = setMap_(set);
   return { points: g.points, streak: g.streak, bestStreak: g.bestStreak, answered: g.answered, powers: g.powers, attempt: g.attempt,
-           topPoints: Math.max(rec.topPoints || 0, g.points), best: rec.best ? trySummary_(rec.best.statuses, rec.best.answers) : null,
-           now: trySummary_(rec.statuses, rec.answers), done: gameDone_(rec),
+           topPoints: Math.max(rec.topPoints || 0, g.points), best: rec.best ? trySummary_(rec.best.statuses, rec.best.answers, rec.best.set) : null,
+           now: trySummary_(rec.statuses, rec.answers, g.set), done: gameDone_(rec),
+           set: set,   // this try's questions (QUESTIONS PER TRY): the page shows only these
+           perTry: perTry_(),
            startOver: !!START_OVER, shuffleQ: !!SHUFFLE_QUESTIONS, shuffleC: !!SHUFFLE_CHOICES,
            website: websiteBoardOn_(), powerEvery: GAME_POWER_EVERY,
            rules: { base: GAME_BASE, step: GAME_STREAK_STEP, max: GAME_STREAK_MAX },
-           salt: salt, keys: ITEMS.map(function (it, i) { return it.choices ? choiceKey_(salt, i, it.right) : ""; }) };
+           salt: salt, keys: ITEMS.map(function (it, i) { return it.choices && mine[i] ? choiceKey_(salt, i, it.right) : ""; }) };   // (only this try's questions)
 }
 /** cyrb53, a quick 53-bit hash (the game page has the very same function, quickHash). */
 function quickHash_(str) {
@@ -2174,8 +2224,9 @@ function answerChoice(idx, picks, power, token) {
   if (isClosed_(close)) throw new Error(closedError_(close));
   var lock = lockOrBusy_(20000), out, fresh = false;
   try {
-    var rec = readRecord_(email) || newRecord_(), g = gameOf_(rec);
+    var rec = readRecord_(email) || newRecord_(), g = gameOf_(rec, email);
     if (LOCK_AFTER_TURN_IN && rec.turnedIn && !rec.answers[idx]) throw new Error("You already finished this game, so it's locked.");
+    if (!setMap_(trySet_(g.set))[idx]) throw new Error("This question isn't part of your game. Reload the page.");   // (QUESTIONS PER TRY)
     if (rec.answers[idx]) {
       out = { result: choiceFeedback_(item, rec.answers[idx]), again: true, gained: 0, power: "", earned: "", game: gameStateFor_(rec, email), grade: lateGrade_(rec, due).grade };
     } else {
@@ -2193,7 +2244,7 @@ function answerChoice(idx, picks, power, token) {
       g.bestStreak = Math.max(g.bestStreak, g.streak);
       g.answered++;
       var earned = "";
-      if (g.answered % GAME_POWER_EVERY === 0 && g.answered < gameQuestions_()) {
+      if (g.answered % GAME_POWER_EVERY === 0 && g.answered < trySet_(g.set).length) {   // (none after the try's last question)
         earned = GAME_POWERS[Math.floor(Math.random() * GAME_POWERS.length)];
         g.powers[earned] = (g.powers[earned] || 0) + 1;
       }
@@ -2231,13 +2282,15 @@ function startOver(token) {
   if (isClosed_(close)) throw new Error(closedError_(close));
   var lock = lockOrBusy_(20000), out;
   try {
-    var rec = readRecord_(email) || newRecord_(), g = gameOf_(rec);
+    var rec = readRecord_(email) || newRecord_(), g = gameOf_(rec, email);
     if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already finished this game, so it's locked.");
     keepOnTimeCopy_(rec, due);
     keepBest_(rec);
     var fresh = newRecord_();
     rec.answers = fresh.answers; rec.statuses = fresh.statuses;
     rec.game = newGame_(g.attempt + 1);
+    var set = newSet_(Math.random() + "|" + Date.now() + "|" + email, trySet_(g.set));   // a new mix of questions, first the ones the last try didn't have
+    if (set) rec.game.set = set;
     rec.updated = new Date().toISOString();
     writeRecord_(email, rec);
     renderLiveRow_(email, rec, roster, due);
@@ -2253,8 +2306,11 @@ function startOver(token) {
 function keepBest_(rec) {
   var g = gameOf_(rec);
   if (!g.answered) return;
-  var now = creditFrac_(rec.statuses, rec.answers) || 0, was = rec.best ? creditFrac_(rec.best.statuses, rec.best.answers) || 0 : -1;
-  if (now >= was) rec.best = { answers: rec.answers.slice(), statuses: rec.statuses.slice(), attempt: g.attempt, points: g.points, at: rec.updated };
+  var now = creditFrac_(rec.statuses, rec.answers, null, workSet_(rec)) || 0, was = rec.best ? creditFrac_(rec.best.statuses, rec.best.answers, null, workSet_(rec.best)) || 0 : -1;
+  if (now >= was) {
+    rec.best = { answers: rec.answers.slice(), statuses: rec.statuses.slice(), attempt: g.attempt, points: g.points, at: rec.updated };
+    if (g.set) rec.best.set = g.set.slice();   // the questions that try had (QUESTIONS PER TRY), so it's graded over them
+  }
 }
 
 /** The in-game leaderboard: the top points in the student's own period and in every period, plus where they stand. */
@@ -2310,8 +2366,8 @@ function websiteBoardOn_() {
 }
 /** One student's row for the website: top points, right answers and questions in their best try. */
 function websiteRow_(email, rec) {
-  var fNow = creditFrac_(rec.statuses, rec.answers) || 0, fBest = rec.best ? creditFrac_(rec.best.statuses, rec.best.answers) || 0 : -1;
-  var t = fBest > fNow ? trySummary_(rec.best.statuses, rec.best.answers) : trySummary_(rec.statuses, rec.answers);
+  var fNow = creditFrac_(rec.statuses, rec.answers, null, workSet_(rec)) || 0, fBest = rec.best ? creditFrac_(rec.best.statuses, rec.best.answers, null, workSet_(rec.best)) || 0 : -1;
+  var t = fBest > fNow ? trySummary_(rec.best.statuses, rec.best.answers, rec.best.set) : trySummary_(rec.statuses, rec.answers, rec.game && rec.game.set);
   return { email: email, points: Math.max(rec.topPoints || 0, rec.game ? rec.game.points || 0 : 0), right: t.right, total: t.total, pct: t.pct,
            passed: Math.max(fNow, fBest) >= FULL_CREDIT_AT - 1e-9 };   // full credit (Settings "Full credit at")
 }
@@ -3343,19 +3399,20 @@ function statusesOf_(results) { return results.map(function (r) { return r.statu
 /** Colors -> grade out of MAX_POINTS. See SETTINGS for the knobs. A question counts 1 unless the Questions tab gives it Points;
  *  one that has Points earns the share of its ideas the answer shows (answers = the checked answers), or its color's credit when
  *  it has no key words to count. */
-function gradeFor_(statuses, answers, tries) {
-  var frac = creditFrac_(statuses, answers, tries);
+function gradeFor_(statuses, answers, tries, only) {
+  var frac = creditFrac_(statuses, answers, tries, only);
   if (frac == null) return 0;
   var pts = Math.min(1, frac / FULL_CREDIT_AT) * MAX_POINTS;
   return Math.round(Math.round(pts / ROUND_TO) * ROUND_TO * 1000) / 1000;   // (the outer round: 96 x 0.1 is 9.600000000000001 in JavaScript)
 }
 /** The share of the possible credit this work earned (0 to 1), or null when nothing is graded. See gradeFor_.
- *  tries = rec.tries: a question with limited tries earns its tries' credit (see LIMITED TRIES), times its Points as usual. */
-function creditFrac_(statuses, answers, tries) {
-  var earned = 0, total = 0;
+ *  tries = rec.tries: a question with limited tries earns its tries' credit (see LIMITED TRIES), times its Points as usual.
+ *  only = the questions to count (a review game's try: see QUESTIONS PER TRY); left out = every question. */
+function creditFrac_(statuses, answers, tries, only) {
+  var earned = 0, total = 0, mine = only ? setMap_(only) : null;
   for (var i = 0; i < ITEMS.length; i++) {
     var it = ITEMS[i];
-    if (ungraded_(it)) continue;   // picture uploads and graphs with no label boxes aren't graded
+    if (ungraded_(it) || (mine && !mine[i])) continue;   // picture uploads and graphs with no label boxes aren't graded
     var w = it.points == null ? 1 : it.points, st = statuses[i] || "blank", c = CREDIT[st] || 0;
     if (isTried_(it)) c = tryState_(i, tries ? tries[i] : null).credit;
     else if (it.points != null && st !== "blank" && answers) {
@@ -3369,14 +3426,15 @@ function creditFrac_(statuses, answers, tries) {
 
 /** A student's grade (no late penalty): the work on the page now, or a review game's best earlier try (rec.best), whichever is higher. */
 function workGrade_(work) {
-  var g = gradeFor_(work.statuses || [], work.answers, work.tries);
-  if (work.best) g = Math.max(g, gradeFor_(work.best.statuses || [], work.best.answers, work.best.tries));
+  var g = gradeFor_(work.statuses || [], work.answers, work.tries, workSet_(work));   // (a review game: over the try's own questions)
+  if (work.best) g = Math.max(g, gradeFor_(work.best.statuses || [], work.best.answers, work.best.tries, workSet_(work.best)));
   return g;
 }
 
-function counts_(statuses) {
-  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
-  for (var i = 0; i < ITEMS.length; i++) if (!ungraded_(ITEMS[i])) c[statuses[i] || "blank"]++;
+/** Green / yellow / red / blank. only = the questions to count (a review game's try), left out = every question. */
+function counts_(statuses, only) {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 }, mine = only ? setMap_(only) : null;
+  for (var i = 0; i < ITEMS.length; i++) if (!ungraded_(ITEMS[i]) && (!mine || mine[i])) c[statuses[i] || "blank"]++;
   return c;
 }
 
@@ -3450,6 +3508,7 @@ function keepOnTimeCopy_(rec, due) {
   if (due && !rec.onTime && Date.now() > due) {
     rec.onTime = { answers: rec.answers.slice(), statuses: rec.statuses.slice(), taken: new Date().toISOString() };
     if (rec.best) rec.onTime.best = rec.best;   // a review game's best try so far counts as on time too
+    if (rec.game && rec.game.set) rec.onTime.set = rec.game.set.slice();   // ...graded over the questions its try had (QUESTIONS PER TRY)
     if (rec.tries) rec.onTime.tries = JSON.parse(JSON.stringify(rec.tries));   // limited tries: the tries made by the due date
   }
 }
@@ -3909,12 +3968,12 @@ function logEvent_(email, idx, status, answer) {
 function liveRowData_(email, rec, p, due) {
   p = p || {};
   var info = lateGrade_(rec, due);
-  var c = counts_(rec.statuses);
+  var c = counts_(rec.statuses, workSet_(rec));   // (a review game: out of the try's own questions)
   var drafts = rec.drafts || [];
   var anyDraft = drafts.some(function (d) { return d != null; });
   var status = rec.turnedIn ? "Turned in" : ((rec.checks || anyDraft) ? "In progress" : "Not started");
   if (isGame_() && rec.game) {   // a review game: how far this try is, and the best try when they started over
-    var g = rec.game, now = trySummary_(rec.statuses, rec.answers), best = rec.best ? trySummary_(rec.best.statuses, rec.best.answers) : null;
+    var g = rec.game, now = trySummary_(rec.statuses, rec.answers, g.set), best = rec.best ? trySummary_(rec.best.statuses, rec.best.answers, rec.best.set) : null;
     status = (g.attempt > 1 ? "Try " + g.attempt + ": " : "") + (gameDone_(rec) ? "finished, " + now.pct + "%" : g.answered + " of " + now.total + " answered") +
              (best ? " (best try " + best.pct + "%)" : "");
   }
@@ -3975,9 +4034,13 @@ function renderSummary_() {
   var recs = allRecords_(), roster = readRoster_(), sh = sheet_(SH_SUMMARY), rows = [];
   var started = Object.keys(recs).filter(function (k) { return recs[k].checks; });
   var periods = periodList_();
+  var game = isGame_(), inTry = {};   // a review game: each student's try has only its own questions (QUESTIONS PER TRY)
+  if (game) started.forEach(function (k) { inTry[k] = setMap_(workSet_(recs[k])); });
   for (var i = 0; i < ITEMS.length; i++) {
-    var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 }, byP = {};
+    var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 }, byP = {}, given = 0;
     started.forEach(function (k) {
+      if (game && !inTry[k][i]) return;   // not in this student's try: not a blank
+      given++;
       var s = recs[k].statuses[i] || "blank";
       c[s]++;
       var p = roster[k] ? String(roster[k].period) : "";
@@ -3992,14 +4055,17 @@ function renderSummary_() {
     }
     var row = ["Q" + (i + 1), ITEMS[i].q.slice(0, 90) + "…", c.correct, c.partial, c.incorrect, c.blank,
                answered ? c.correct / answered : "", first];
+    if (game) row.splice(6, 0, given);   // Times given: how many students' tries have this question
     periods.forEach(function (p) { var b = byP[String(p)]; row.push(b && b.n ? b.g / b.n : ""); });
     rows.push(row);
   }
-  var headers = SUMMARY_HEADERS.concat(periods.map(function (p) { return "P" + p + " % green"; }));
+  var headers = summaryHeads_().concat(periods.map(function (p) { return "P" + p + " % green"; })), pctFrom = game ? 8 : 7;
   sh.clearContents();
   sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#c9daf8");
+  if (!rows.length) return;
   sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
-  sh.getRange(2, 7, rows.length, headers.length - 6).setNumberFormat("0%");
+  if (game) sh.getRange(2, 7, rows.length, 1).setNumberFormat("0");
+  sh.getRange(2, pctFrom, rows.length, headers.length - pctFrom + 1).setNumberFormat("0%");
 }
 
 // ============================== TEACHER MENU ==============================
@@ -4234,7 +4300,7 @@ function ensureSheets_() {
   }
   // Sort/filter arrows on every column (Period, Student, Grade, ...).
   if (!live.getFilter()) live.getRange(1, 1, live.getMaxRows(), LIVE_FIXED.length + ITEMS.length).createFilter();
-  mk(SH_SUMMARY, SUMMARY_HEADERS, [80, 420, 60, 60, 60, 60, 150, 170]);
+  mk(SH_SUMMARY, summaryHeads_(), isGame_() ? [80, 420, 60, 60, 60, 60, 90, 150, 170] : [80, 420, 60, 60, 60, 60, 150, 170]);
   mk(SH_ROSTER, ROSTER_HEADERS, [60, 180, 240, 180, 140]);
   mk(SH_LOG, ["Time", "Period", "Student", "Email", "Question", "Color", "Answer"], [140, 60, 160, 200, 70, 80, 600]);
   mk(SH_STATE, ["Email", "Record (JSON)"]).hideSheet();

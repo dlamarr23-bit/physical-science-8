@@ -1,7 +1,32 @@
-review-game v2026.11.06d
+review-game v2026.11.10
 
-Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
+Optional update: new Settings row Questions per try: each student gets a random set of questions from the bank each time they play.
 
+- New Settings row "Questions per try" (right after "Students can start over"): how many questions each student gets each time
+  they play, picked at random from the Questions tab. Every Start Over brings a new mix, first the questions they didn't get the
+  last time. So a student who writes down the answers and plays again gets different questions. Blank or 0 = every question, the
+  way the game works now.
+- The grade is still out of Points possible, and it counts only the questions in that try: 40 right out of 40 is full credit, and
+  Full credit at works the same way (70% of 40 = 28 right). The best try is still the grade.
+- Answering every question of the try finishes the game and turns it in, as before. Power-ups still come every 4 answers.
+- The game page counts only the try's questions ("3 / 40", "40 questions remaining", "34 of 40 right").
+- Live Results still has a column for every question in the Questions tab (Q1 to Q91). A question that isn't in a student's try
+  stays blank there. Status says how far the try is, like "Try 2: 28 of 40 answered (best try 85%)", and Green, Red and Blank count
+  only the try's questions.
+- Question Summary has a new column, Times given: how many students' tries have that question. Green, Red, Blank and % green count
+  only those students (a question that wasn't in a student's try doesn't count as blank).
+- Self-Check > Check the Questions tab for problems tells you how it's set, like "Each try gets 40 of the 91 questions at random."
+- Work students did before this update keeps its grade: a try from before counts the first questions in the Questions tab (as many
+  as Questions per try), which are the questions the game had then. So add new questions BELOW the ones you have (never in between),
+  and set Questions per try before students play the new questions. A student partway through an old try finishes those same
+  questions; their next Start Over brings the new mix.
+- To use it: paste BOTH new files (Code.gs and Index), then New version, then run Self-Check > Set up / repair sheets (it adds the row,
+  set to 0). Then type the number in the row. (With the new Code.gs but the old Index, students who open the sheet's own link would
+  see every question, and answers to questions outside their try wouldn't save.) Students who open the game through the class
+  website (Class Pass) get the new page as soon as it is published.
+- Your questions, settings, scores and leaderboard are not touched.
+
+Also from 2026.11.06d (optional), if this sheet skipped it:
 - No changes to the review game. (2026.11.06d adds dropdown questions and picture choices 2 to a row to the Self-Check pages.)
 - Your questions, settings, scores and leaderboard are not touched.
 

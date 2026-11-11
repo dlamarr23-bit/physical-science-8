@@ -1266,11 +1266,18 @@ function choiceOrder(i) {
   var keep = q.choices.some(function (c) { return /\b(all|none|both|neither) of (the|these)\b|^(true|false|yes|no)$/i.test(String(c.t || "").trim()); });
   return keep ? idx : shuffled(idx, S.email + "|c|" + i);
 }
+/** This try's questions in this student's order. Settings "Questions per try": the sheet sends the try's set (S.game.set) and only
+ *  those questions are played and counted ("3 / 40"); a sheet from before 2026.11.10 sends no set = every question. */
 function makeOrder() {
-  var idx = [];
-  S.questions.forEach(function (q, i) { if (q.choices) idx.push(i); });
+  var idx = [], set = Array.isArray(S.game.set) ? S.game.set.map(Number) : null;
+  S.questions.forEach(function (q, i) { if (q.choices && (!set || set.indexOf(i) !== -1)) idx.push(i); });
   ORDER = S.game.shuffleQ ? shuffled(idx, S.email + "|q|" + S.game.attempt) : idx;
 }
+function inTry(i) { return ORDER.indexOf(i) !== -1; }
+/** Each try gets only some of the questions (a new mix after Start Over). */
+function mixedTries() { return Array.isArray(S.game.set) && S.game.set.length < S.questions.filter(function (q) { return q.choices; }).length; }
+/** The sheet refused an answer to a question that isn't in this try (another tab started over, or Settings changed). */
+function notInGame(err) { return /isn't part of your game/.test(String((err && err.message) || err || "")); }
 function answered(i) { var r = S.results[i]; return !!(r && r.status && r.status !== "blank"); }
 function nextQuestion() { for (var k = 0; k < ORDER.length; k++) if (!answered(ORDER[k])) return ORDER[k]; return -1; }
 function answeredCount() { return ORDER.filter(answered).length; }
@@ -1313,7 +1320,7 @@ function showError(err) {
   if (!S) return cpFail(err);
   var box = $("msg"); box.innerHTML = "";
   var e = el("div", "errorBox", m + " ");
-  e.appendChild(el("span", null, "If it keeps happening, reload the page (your answers are saved)."));
+  if (!/Reload the page\.$/.test(m)) e.appendChild(el("span", null, "If it keeps happening, reload the page (your answers are saved)."));
   box.appendChild(e);
   window.scrollTo(0, 0);
 }
@@ -1713,6 +1720,7 @@ function flushSaves() {
     saving = false;
     if (cpIsSignInError(err)) { signedOutMidway(); return; }   // stays in line: sent once they sign in again
     if (closedMidway(err)) { SAVE_Q = []; keepPending(); return; }
+    if (notInGame(err)) { SAVE_Q.shift(); keepPending(); showError(err); flushSaves(); return; }   // never saves: don't send it again
     toast(null, "Your answers are still saving. Check your internet connection.", 4000);
     clearTimeout(saveRetry); saveRetry = setTimeout(flushSaves, 15000);
   });
@@ -1770,7 +1778,7 @@ function resumePending() {
   var list = [];
   try { list = JSON.parse(localStorage.getItem(pendKey()) || "[]") || []; } catch (e) { list = []; }
   list.forEach(function (job) {
-    if (!job || job.attempt !== S.game.attempt || !S.questions[job.i] || !S.questions[job.i].choices || answered(job.i)) return;
+    if (!job || job.attempt !== S.game.attempt || !S.questions[job.i] || !S.questions[job.i].choices || !inTry(job.i) || answered(job.i)) return;
     var picks = (job.picks || []).map(function (n) { return n - 1; }), right = rightOf(job.i);
     S.results[job.i] = { status: right && sameSet(picks, right) ? "correct" : "incorrect", picks: picks, right: right || [], explain: "" };
     SAVE_Q.push(job);
@@ -1939,7 +1947,7 @@ function reviewList() {
 }
 function confirmStartOver() {
   var best = S.game.best, now = S.game.now, keep = Math.max(best ? best.pct : 0, now && now.total ? now.pct : 0);
-  askConfirm("Start over? All of your answers will be cleared so you can try every question again. " +
+  askConfirm("Start over? All of your answers will be cleared so you can " + (mixedTries() ? "play again with a new mix of questions. " : "try every question again. ") +
     (keep ? "Your best try so far (" + keep + "%) still counts for your grade." : "Your best try counts for your grade."), function () { whenSaved(doStartOver); }, "Start Over");
 }
 function doStartOver() {

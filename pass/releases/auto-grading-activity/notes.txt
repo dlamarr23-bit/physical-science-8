@@ -1,7 +1,11 @@
-auto-grading-activity v2026.11.06d
+auto-grading-activity v2026.11.10
 
-Optional update: dropdown questions (sentences with dropdowns, like IXL) and picture choices 2 to a row.
+Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
 
+- No changes to this kind of sheet. (2026.11.10 adds a Questions per try row to the review game.)
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.06d (optional), if this sheet skipped it:
 - New Answer type: dropdown, for practice like IXL's "Use tables and graphs" skill (sentences with dropdowns in them). Type ___ (three
   underscores) in the Question where each dropdown goes. A line break you type in the cell (Ctrl+Enter) starts a new line, so each sentence
   can sit on its own line; the lines before the first ___ show in the gray question box.

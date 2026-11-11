@@ -1,7 +1,7 @@
 {
   "kind": "auto-grading-activity",
-  "version": "2026.11.06d",
-  "optional": "dropdown questions (sentences with dropdowns, like IXL) and picture choices 2 to a row.",
+  "version": "2026.11.10",
+  "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",
