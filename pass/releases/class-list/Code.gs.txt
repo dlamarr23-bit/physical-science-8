@@ -8,7 +8,8 @@
  *   Classes tab        Every active Google Classroom class you teach. Tick Show for the classes whose students
  *                      should sign in and appear on the leaderboard. "Shows as" is what the site calls the class:
  *                      a period number (4) or a name (Test). A class you have not decided on yet says New.
- *   Students tab       Made by this sheet from the ticked classes. Don't type here: it is rewritten every sync.
+ *   Students tab       Made by this sheet from the ticked classes, rewritten every sync. Don't type here, except in the
+ *                      Nickname column (yellow): a nickname takes the place of the first name on the site, and stays.
  *   Added by hand tab  Students who are not in a ticked class (or a fix to a name or period). Type them here.
  *   Settings tab       The site key (from the website's Leaderboard page) and the other choices.
  *   Log tab            What the sheet sent, and every code update the Launchpad made.
@@ -32,14 +33,15 @@
  */
 
 var CL_NAME = "class-list";
-var CL_VERSION = "2026.11.10b";
+var CL_VERSION = "2026.11.10c";
 var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
 var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
 var SCRIPT_API = "https://script.googleapis.com/v1/";
 
 var TAB_CLASSES = "Classes", TAB_STUDENTS = "Students", TAB_EXTRA = "Added by hand", TAB_SETTINGS = "Settings", TAB_LOG = "Log";
 var CLASS_HEADS = ["Show", "Class", "Shows as", "Students", "Status", "Course ID"];
-var STUDENT_HEADS = ["Shows as", "First name", "Last name", "Email", "Class"];
+var STUDENT_HEADS = ["Shows as", "First name", "Nickname", "Last name", "Email", "Class"];
+var NICK_COL = 3, NICK_FILL = "#fff9db";   // the one column of the Students tab you type in (2026.11.10c)
 var EXTRA_HEADS = ["Shows as", "First name", "Last name", "Email", "Note"];
 var LOG_HEADS = ["When", "What", "What happened"];
 var STRIP = "#c9daf8", NEW_FILL = "#fff2cc", LOG_MAX = 600;
@@ -72,7 +74,7 @@ function about() {
   say_("Class List " + CL_VERSION,
     "This sheet is the class list for your class website's Class Pass and Leaderboard.\n\n" +
     "1. Classes tab: tick Show for each class whose students should sign in. Shows as = the period number (4) or a name (Test).\n" +
-    "2. Added by hand tab: anyone else (or a fix to a name or period).\n" +
+    "2. Added by hand tab: anyone else (or a fix to a name or period). Students tab, Nickname column: a name to use instead of the first name.\n" +
     "3. Class List > Sync now sends it to the site. It also syncs by itself every hour.\n\n" +
     "The Assignment Launchpad uses this sheet to update your assignment sheets' code (Update now on a card).");
 }
@@ -129,14 +131,14 @@ function log_(what, result) {
 function setup() {
   var ss = ss_();
   tab_(ss, TAB_CLASSES, CLASS_HEADS, [60, 380, 110, 90, 150, 140]);
-  tab_(ss, TAB_STUDENTS, STUDENT_HEADS, [90, 140, 160, 260, 320]);
+  tab_(ss, TAB_STUDENTS, STUDENT_HEADS, [90, 140, 140, 160, 260, 320]);
   tab_(ss, TAB_EXTRA, EXTRA_HEADS, [90, 140, 160, 260, 320]);
   tab_(ss, TAB_LOG, LOG_HEADS, [150, 320, 620]);
   settingsTab_(ss);
   var cl = ss.getSheetByName(TAB_CLASSES);
   cl.getRange(1, 3).setNote("What the website calls this class: a period number (4) or a name (Test). \"Period 4\" is saved as 4.");
   cl.getRange(1, 5).setNote("New = a class you have not decided on yet. It goes away when you change Show or Shows as, or press Sync now.");
-  ss.getSheetByName(TAB_STUDENTS).getRange(1, 1).setNote("Made by the sheet from the ticked classes. Don't type here: it is rewritten every sync. Use the Added by hand tab.");
+  studentHeads_(ss.getSheetByName(TAB_STUDENTS));
   ss.getSheetByName(TAB_EXTRA).getRange(1, 1).setNote("Students who are not in a ticked Classroom class, or a fix to a name or period (a row here wins over Classroom). Shows as = the period number or name.");
   // the hourly sync
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === "hourly") ScriptApp.deleteTrigger(t); });
@@ -302,14 +304,62 @@ function buildList_() {
   var list = order.map(function (e) { return byEmail[e]; });
   list.sort(function (a, b) { return ((Number(a.period) || 99) - (Number(b.period) || 99)) || a.period.localeCompare(b.period) || a.last.localeCompare(b.last) || a.first.localeCompare(b.first); });
   var st = ss_().getSheetByName(TAB_STUDENTS);
+  var nick = readNicknames_(st);
+  list.forEach(function (s) { s.nick = nick[s.email] || ""; });
   if (st) {
-    if (st.getLastRow() > 1) st.getRange(2, 1, st.getLastRow() - 1, STUDENT_HEADS.length).clearContent();
+    var wide = Math.max(STUDENT_HEADS.length, st.getLastColumn());
+    if (st.getLastRow() > 1) st.getRange(2, 1, st.getLastRow() - 1, wide).clearContent().setBackground(null);
+    studentHeads_(st);
     if (list.length) {
       st.getRange(2, 1, list.length, 1).setNumberFormat("@");
-      st.getRange(2, 1, list.length, STUDENT_HEADS.length).setValues(list.map(function (s) { return [s.period, s.first, s.last, s.email, s.from]; }));
+      st.getRange(2, 1, list.length, STUDENT_HEADS.length).setValues(list.map(function (s) { return [s.period, s.first, s.nick, s.last, s.email, s.from]; }));
+      st.getRange(2, NICK_COL, list.length, 1).setBackground(NICK_FILL);
     }
   }
+  keepNicknames_(nick, list);
   return { students: list, classes: classes };
+}
+
+/* ---------- nicknames (Donny, 2026-11-10) ----------
+   The Students tab's Nickname column is the one you type in: a nickname takes the place of the student's first name on the site
+   (Class Pass's "Signed in as" and the leaderboard's "First L."). The tab is rewritten every sync, so each sync first reads the
+   nicknames typed there (by Email, wherever the columns are) and writes them back. They are also kept in Script properties
+   (NICKNAMES), so a student who leaves a ticked class and comes back keeps theirs. Clearing the cell clears the nickname. */
+
+/** The Students tab's header row (with the Nickname column marked as the one to type in). Also gives an older tab its Nickname column. */
+function studentHeads_(st) {
+  if (!st) return;
+  st.getRange(1, 1, 1, STUDENT_HEADS.length).setValues([STUDENT_HEADS]).setFontWeight("bold").setBackground(STRIP).setFontFamily("Poppins");
+  st.getRange(1, NICK_COL).setBackground("#ffe599");
+  st.getRange(1, 1).setNote("Made by the sheet from the ticked classes and the Added by hand tab, and rewritten every sync. Don't type here, EXCEPT in the Nickname column.");
+  st.getRange(1, NICK_COL).setNote("Type a nickname here to use it instead of the first name on the website (Class Pass and the leaderboard). The sheet keeps it every sync. Clear the cell to go back to the first name.");
+}
+
+/** email -> nickname: the ones kept before, then what the Students tab's Nickname column says now (a cleared cell clears one). */
+function readNicknames_(st) {
+  var kept = {};
+  try { kept = JSON.parse(props_().getProperty("NICKNAMES") || "{}") || {}; } catch (e) { kept = {}; }
+  if (!st || st.getLastRow() < 2 || !st.getLastColumn()) return kept;
+  var heads = st.getRange(1, 1, 1, st.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim().toLowerCase(); });
+  var ni = heads.indexOf("nickname"), ei = heads.indexOf("email");
+  if (ni === -1 || ei === -1) return kept;   // a tab from before nicknames
+  st.getRange(2, 1, st.getLastRow() - 1, heads.length).getValues().forEach(function (r) {
+    var e = String(r[ei]).trim().toLowerCase(), n = String(r[ni]).replace(/\s+/g, " ").trim().slice(0, 40);
+    if (!/^[^@\s]+@[^@\s]+$/.test(e)) return;
+    if (n) kept[e] = n; else delete kept[e];
+  });
+  return kept;
+}
+
+/** Saves the nicknames (only the students on the list when there are too many to keep them all). */
+function keepNicknames_(nick, list) {
+  var text = JSON.stringify(nick);
+  if (text.length > 8500) {
+    var now = {};
+    list.forEach(function (s) { if (nick[s.email]) now[s.email] = nick[s.email]; });
+    text = JSON.stringify(now);
+  }
+  props_().setProperty("NICKNAMES", text);
 }
 
 /* ============================== sending it to the site ============================== */
@@ -349,7 +399,7 @@ function sync_(o) {
   if (!key) return { ok: false, error: "The Settings tab has no Site key yet." };
   var built;
   try { built = buildList_(); } catch (e) { log_("Sync", "Google Classroom did not answer: " + e.message); return { ok: false, error: "Google Classroom did not answer: " + e.message }; }
-  var list = built.students.map(function (s) { return { email: s.email, first: s.first, last: s.last, period: s.period }; });
+  var list = built.students.map(function (s) { return { email: s.email, first: s.nick || s.first, last: s.last, period: s.period }; });   // a nickname is the first name on the site
   if (!list.length) return { ok: false, error: "No students: tick Show for at least one class in the Classes tab (or add students by hand)." };
   var classes = built.classes.map(function (c) { return { name: c.name.slice(0, 120), showsAs: c.show ? showsAs_(c.showsAs, c.name) : "", show: c.show, count: c.show ? Number(c.count) || 0 : 0 }; });
   var helper = { url: props_().getProperty("WEBAPP_URL") || "", version: CL_VERSION, name: CL_NAME };
