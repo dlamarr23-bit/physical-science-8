@@ -533,6 +533,12 @@ document.addEventListener("DOMContentLoaded", function(){
       u.bad = false;
     }, function(err){
       u.bad = true;
+      if(err.code === "NEED_SCRIPT_ID"){   // code older than 2026.11.10b: the Launchpad needs its Script ID once
+        u.text = "One more step, only this first time: this sheet's code is older than 2026.11.10b, so the Launchpad needs to know where its code lives. " +
+          "1. Click Results sheet below. 2. In the sheet: Extensions > Apps Script. 3. Copy that tab's whole address (it has /projects/ in it). " +
+          "4. Back here: Edit, paste it in Script ID, Save. 5. Update now.";
+        return;
+      }
       u.text = (u.fn === "undo" ? "Not undone: " : "Not updated: ") + err.message +
         (err.code === "NEED_SCRIPT_ID" ? "" : err.code === "API_OFF" || err.code === "KEY" || err.code === "NO_KEY" ? "" : " You can still update it by hand: in the sheet, " + menuOf(codes[id] && codes[id].kind) + " > Check for skill updates.");
     }).then(function(){
@@ -602,7 +608,7 @@ document.addEventListener("DOMContentLoaded", function(){
       t.appendChild(document.createTextNode(" (signed in as the teacher): open Class list from a Google Sheet at the bottom."));
       return;
     }
-    if(!helper.url){ p("Your Class List sheet sends the class list, but it has no web app yet, so Update now can't use it. Open the sheet and choose Class List > Set up (it says what's missing, like turning on the Google Apps Script API)."); return; }
+    if(!helper.url){ p("Your Class List sheet sends the class list, but it hasn't told the site its web app yet, so Update now can't use it. In the Class List sheet, choose Class List > Sync now, then reload this page. (If its Settings tab has no Web app address, choose Class List > Set up first: it says what's missing, like turning on the Google Apps Script API.)"); return; }
     var have = helper.live || helper.version || "", web = newest && typeof newest["class-list"] === "string" ? newest["class-list"] : "";
     if(helper.helloError) p("The Class List sheet didn't answer: " + helper.helloError, "lp-ready");
     if(selfUp && selfUp.state === "running"){ p("Updating the Class List sheet. This takes about half a minute..."); return; }
@@ -985,7 +991,7 @@ document.addEventListener("DOMContentLoaded", function(){
     fUnit.setAttribute("list", "lpUnits"); fUnit.maxLength = 60;
     box.appendChild(datalist("lpUnits", units));
     // only for Update now on a sheet whose code is too old to say where it lives (2026-11-10)
-    var fScript = field(box, "Script ID (only if Update now asks for it)", "In the sheet: Extensions > Apps Script > Project Settings (the gear on the left) > Script ID, then Copy.", input("lpFScript", "text", a.script, ""));
+    var fScript = field(box, "Script ID (only if Update now asks for it)", "In the sheet: Extensions > Apps Script, then copy that tab's whole address and paste it here (or the Script ID from Project Settings, the gear).", input("lpFScript", "text", a.script, "https://script.google.com/u/0/home/projects/.../edit"));
     fScript.maxLength = 110; fScript.spellcheck = false;
 
     var msg = el("p", "cp-msg"); msg.setAttribute("role", "status");
@@ -1027,8 +1033,10 @@ document.addEventListener("DOMContentLoaded", function(){
       if(sheet === null) return bad("That does not look like a Google Sheet's address. Open the sheet and copy the address from the top of the tab.", fSheet);
       if(!title) return bad("Give it a title.", fTitle);
       if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
-      var script = fScript.value.trim();
-      if(script && !/^[\w-]{20,100}$/.test(script)) return bad("That does not look like a Script ID (letters, numbers, - and _, like 1AbC...). Copy it again from Project Settings.", fScript);
+      // the Apps Script tab's whole address (script.google.com/home/projects/<id>/edit or .../d/<id>/edit) or the Script ID itself
+      var script = fScript.value.trim(), inUrl = /script\.google\.com\/(?:u\/\d+\/)?(?:home\/projects|d|macros\/d)\/([\w-]{20,100})/.exec(script);
+      if(inUrl) script = inUrl[1];
+      if(script && !/^[\w-]{20,100}$/.test(script)) return bad("That does not look like a Script ID. In the sheet: Extensions > Apps Script, then copy the whole address of that tab and paste it here.", fScript);
       var it = { id: a.id || newId(), title: title, kind: (fKind.value === "__other__" ? fKindNew.value : fKind.value).trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
       if(script) it.script = script;
       // the same assignment can't go on twice

@@ -1,15 +1,18 @@
-class-list v2026.11.10c
+class-list v2026.11.10d
 
-- New: a Nickname column in the Students tab (yellow, right after First name). Type a nickname there and the website uses it instead of
-  the student's first name (Class Pass's "Signed in as" and the leaderboard's names, like "Avi A."). It is the one column of the Students tab
-  you type in: every sync rewrites the rest of the tab but keeps the nicknames, and a student who leaves a ticked class and comes back keeps
-  theirs. Clear the cell to go back to the first name. A new or changed nickname goes to the site with the next sync (Sync now, or within the hour).
+- Fix: Class List > Set up now sends the class list and the web app's address to the site by itself (when the Site key is already in the
+  Settings tab). Before, a first Sync made before the web app existed left the Launchpad saying the sheet "has no web app yet" until the
+  next sync. (Class List > Sync now fixes that on an older sheet too.)
+- Clearer steps when the Launchpad needs an assignment sheet's Script ID (sheets on code older than 2026.11.10b, once): in that sheet,
+  Extensions > Apps Script, copy that tab's whole address, then Edit the card and paste it in Script ID.
 - To get it: on the Assignment Launchpad, Class List sheet box > Update now (or in this sheet: Class List > Update this sheet's code).
-  The Nickname column shows up at the next sync. No new permission is needed.
+  No new permission is needed.
+
+Also from 2026.11.10c, if this sheet skipped it:
+- A Nickname column in the Students tab (yellow, right after First name). A nickname takes the place of the student's first name on the
+  website (Class Pass and the leaderboard). Every sync keeps it; clear the cell to go back to the first name.
 
 Also from 2026.11.10b, if this sheet skipped it:
-- The Class List sheet holds the class list for your class website's Class Pass sign-in and Leaderboard, so you no longer paste the roster
-  on the Leaderboard page. Classes tab: tick Show for the classes on the site; Shows as = the period number (4) or a name (Test).
-- Added by hand tab: anyone else, or a fix to a name or period. Class List > Sync now sends the list; it also syncs every hour when something
-  changed, and asks first before taking more than half the students off the site.
+- The Class List sheet holds the class list for your class website's Class Pass sign-in and Leaderboard. Classes tab: tick Show; Shows as =
+  the period number or a name. Added by hand tab: anyone else. Class List > Sync now sends it; it also syncs every hour when something changed.
 - It is also the Assignment Launchpad's helper: Update now on a card updates that assignment sheet's code and student link; Undo puts it back.

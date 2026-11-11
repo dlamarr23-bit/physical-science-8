@@ -33,7 +33,7 @@
  */
 
 var CL_NAME = "class-list";
-var CL_VERSION = "2026.11.10c";
+var CL_VERSION = "2026.11.10d";
 var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
 var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
 var SCRIPT_API = "https://script.googleapis.com/v1/";
@@ -155,6 +155,11 @@ function setup() {
     notes.push(w.made ? "Made the web app the Launchpad uses." : "The Launchpad's web app is ready.");
   } catch (e) {
     notes.push(e.code === "API_OFF" ? "One more thing, for the Launchpad's Update now buttons: " + e.message + " Then run Class List > Set up again." : "Web app: " + e.message);
+  }
+  // with the key in already, the site hears about the web app now (2026.11.10d: a first sync made before the web app left the Launchpad without it)
+  if (siteKey_()) {
+    var sent = sync_({});
+    notes.push(sent.ok ? "Sent the class list and the web app's address to the site. " + sent.text : "The class list was not sent: " + sent.error);
   }
   say_("Class List is set up",
     notes.join("\n\n") + "\n\nNext:\n" +
@@ -588,8 +593,8 @@ function updateAssignment_(req) {
     if (!KIND.test(kind)) throw coded_("BAD", "The sheet did not say what kind it is.");
     if (info.sheetKind && info.sheetKind !== kind) throw coded_("WRONG_KIND", "This sheet has the wrong code pasted in. Fix that by hand first (see the card).");
     var sid = String(info.scriptId || req.script || "");
-    if (!SCRIPT_ID.test(sid)) throw coded_("NEED_SCRIPT_ID", "This sheet's code is too old to tell the Launchpad where its code lives. Edit this card and paste its Script ID " +
-      "(in the sheet: Extensions > Apps Script > Project Settings, the gear on the left > Script ID), or update it by hand once.");
+    if (!SCRIPT_ID.test(sid)) throw coded_("NEED_SCRIPT_ID", "This sheet's code is older than 2026.11.10b, so the Launchpad needs to know where its code lives, once. In the sheet: " +
+      "Extensions > Apps Script, copy that tab's whole address, then Edit this card and paste it in Script ID. Or update it by hand once.");
     var rel = release_(kind);
     if (rel.version === String(info.version)) return { already: true, kind: kind, version: rel.version };
     if (rel.version < String(info.version)) throw coded_("NEWER", "This sheet has newer code (" + info.version + ") than the newest release (" + rel.version + "). Nothing was changed.");
