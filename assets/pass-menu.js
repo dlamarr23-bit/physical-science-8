@@ -34,8 +34,13 @@
    STUDENT VIEW with Leave student view; the button keeps the teacher's picture with an orange ring. The choice is kept
    in this browser (ps8-student-view = "1") and the page reloads when it changes, so everything on it redraws.
 
+   Report bugs & feedback (Donny, 2026-11-11): every menu but the teacher's has it, and so does the end of each page's
+   footer. It opens the panel in assets/feedback.js, which sends a report or an idea through the bridge; the teacher
+   reads them on feedback.html (Feedback inbox, in his menu). Special permission (the same day): an account that is not
+   on the class list can still sign in when it is in SPECIAL in the vocabulary site's game-server/src/board.js.
+
    window.PS8Pass: view(), onChange(fn), ask(message) (a question for the bridge; resolves with its answer),
-   theme(), setTheme("light" | "dark"), studentView(), setStudentView(on). */
+   theme(), setTheme("light" | "dark"), studentView(), setStudentView(on), feedback() (opens the panel). */
 (function(){
   "use strict";
 
@@ -377,27 +382,34 @@
         if(again) again.focus();
       });
     }
+    function feedbackItem(){
+      item("Report bugs & feedback", null, "cp-drop-fb").addEventListener("click", function(){ closeMenu(); openFeedback(); });
+    }
     if(sv){
       item("Leaderboard", p + "leaderboard.html");
       item("Review sets", p + "flashcards.html");
       darkItem();
+      feedbackItem();
       item("Leave student view", null, "cp-drop-leave").addEventListener("click", function(){ closeMenu(); setStudentView(false); });
     } else if(!signedIn(view)){
       item("Sign in").addEventListener("click", function(){ closeMenu(); signIn(); });
       item("Leaderboard", p + "leaderboard.html");
       darkItem();
+      feedbackItem();
       item("Teacher sign in", null, "cp-drop-quiet").addEventListener("click", function(){ closeMenu(); teacherDialog(); });
     } else {
       if(view.teacher && window.PS8Text && window.PS8Text.canEdit()){
         item("Edit this page", null, "cp-drop-edit").addEventListener("click", function(){ closeMenu(); window.PS8Text.edit(); });
       }
       if(view.teacher) item("Assignment Launchpad", p + "launchpad.html");
+      if(view.teacher) item("Feedback inbox", p + "feedback.html");
       if(view.teacher) item("Student view").addEventListener("click", function(){ closeMenu(); setStudentView(true); });
       if(view.teacher) item("Guest code").addEventListener("click", function(){ closeMenu(); guestCodeDialog(); });
       if(view.me || view.teacher) item("Leaderboard", p + "leaderboard.html");
       item("Review sets", p + "flashcards.html");
       if(view.teacher) item("Host a game", p + "flashcards.html?go=live");
       darkItem();
+      if(!view.teacher) feedbackItem();
       item("Sign out", null, "cp-drop-out").addEventListener("click", function(){ closeMenu(); signOut(); });
     }
     wrap.appendChild(drop);
@@ -432,6 +444,12 @@
   /* ---------- the sign-in screen ---------- */
   // Covers a page with html.cp-gate-on (the line in its <head>) until someone is signed in.
   var cover = null, coverMsg = null;
+  // Google's "G" (its four colors), drawn here so the button needs no picture file
+  var GOOGLE_G = '<svg viewBox="0 0 48 48" width="22" height="22" focusable="false">' +
+    '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>' +
+    '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>' +
+    '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
+    '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
   function gate(){
     var root = document.documentElement;
     if(!root.classList.contains("cp-gate-on")) return;
@@ -453,12 +471,17 @@
     pic.src = p + "assets/mascot.png";
     pic.alt = "";
     card.appendChild(pic);
-    card.appendChild(el("span", "cp-tag", "Class Pass"));
     var h = el("h1", "cp-gate-title", "Sign in to use this site");
     h.id = "cpGateTitle";
     card.appendChild(h);
     card.appendChild(el("p", "cp-gate-text", "Mr. LaMarr’s Physical Science Classroom is for his students. Sign in with your school Google account."));
-    var go = el("button", "btn cp-gate-go", "Sign in with Class Pass");
+    // the button ends in Google's G on a white circle, like Google's own sign-in button (Donny, 2026-11-11)
+    var go = el("button", "btn cp-gate-go");
+    go.appendChild(el("span", "cp-gate-go-text", "Sign in with Class Pass"));
+    var g = el("span", "cp-gate-g");
+    g.setAttribute("aria-hidden", "true");
+    g.innerHTML = GOOGLE_G;
+    go.appendChild(g);
     go.type = "button";
     go.addEventListener("click", signIn);
     card.appendChild(go);
@@ -518,6 +541,30 @@
     document.body.insertBefore(cover, bar ? bar.nextSibling : document.body.firstChild);
   }
 
+  /* ---------- Report bugs & feedback (Donny, 2026-11-11) ---------- */
+  // The panel lives in assets/feedback.js, fetched the first time someone opens it. The menu (everyone but the
+  // teacher, who has Feedback inbox there) and a link at the end of each page's footer open it.
+  var fbLoading = false;
+  function openFeedback(){
+    if(window.PS8Feedback) { window.PS8Feedback.open(); return; }
+    if(fbLoading) return;
+    fbLoading = true;
+    var s = document.createElement("script");
+    s.src = prefix() + "assets/feedback.js";
+    s.onload = function(){ fbLoading = false; if(window.PS8Feedback) window.PS8Feedback.open(); };
+    s.onerror = function(){ fbLoading = false; s.remove(); toast("The feedback form did not open. Check the internet connection, then try again.", true); };
+    document.head.appendChild(s);
+  }
+  function footerLink(){
+    var line = document.querySelector("footer .container") || document.querySelector("footer");
+    if(!line || line.querySelector(".fb-foot")) return;
+    line.appendChild(document.createTextNode(" · "));
+    var b = el("button", "fb-foot", "Report bugs & feedback");
+    b.type = "button";
+    b.addEventListener("click", openFeedback);
+    line.appendChild(b);
+  }
+
   window.PS8Pass = {
     view: function(){ return shown(); },
     studentView: studentView,
@@ -527,12 +574,14 @@
     toast: toast,
     teacherSignIn: teacherDialog,
     theme: theme,
-    setTheme: setTheme
+    setTheme: setTheme,
+    feedback: openFeedback
   };
 
   function init(){
     draw();
     gate();
+    footerLink();
     document.addEventListener("click", function(e){ if(wrap && !wrap.contains(e.target)) closeMenu(); });
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
     startBridge();

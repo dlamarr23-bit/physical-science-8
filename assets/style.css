@@ -206,7 +206,7 @@ html[data-theme="dark"] .cp-drop-leave{ color:#ffa26b; }
 .cp-drop-dark[aria-pressed="true"] .cp-switch{ background:var(--accent); }
 .cp-drop-dark[aria-pressed="true"] .cp-switch::after{ transform:translateX(16px); }
 html[data-theme="dark"] .cp-switch{ background:#3a4052; }
-/* the bar is never wider than the page now, so the Sign in button skips its Class Pass tag at every width (the sign-in card still shows it) */
+/* the bar is never wider than the page now, so the Sign in button skips its Class Pass tag at every width */
 .cp-chip .cp-tag{ display:none; } .cp-chip{ padding:7px 14px; }
 @media (max-width:760px){ .cp-avatar{ width:34px; height:34px; font-size:.95rem; } .cp-chip{ padding:6px 12px; font-size:.85rem; } }
 /* the teacher password window */
@@ -239,7 +239,7 @@ html[data-theme="dark"] .cp-switch{ background:#3a4052; }
 /* ---- the Class Pass sign-in screen (pass-menu.js). The line in a page's <head> puts html.cp-gate-on on, and
    html.cp-locked when this browser has no sign-in on record; everything but the top bar, the sign-in screen
    and its windows is hidden until someone signs in. ---- */
-html.cp-locked body > *:not(.topbar):not(.cp-gate):not(.cp-dlg-back):not(.cp-toast){ display:none !important; }
+html.cp-locked body > *:not(.topbar):not(.cp-gate):not(.cp-dlg-back):not(.cp-toast):not(.fb){ display:none !important; }
 html.cp-locked .menu-btn{ display:none; }
 .cp-gate{ display:none; }
 html.cp-locked .cp-gate{ display:flex; justify-content:center; padding:48px 16px 72px; }
@@ -247,10 +247,13 @@ html.cp-locked .cp-gate{ display:flex; justify-content:center; padding:48px 16px
   width:440px; max-width:100%; background:var(--card); border:1px solid var(--line); border-radius:20px;
   box-shadow:var(--shadow); padding:28px 28px 22px; text-align:center;
 }
-.cp-gate-pic{ display:block; width:96px; height:auto; margin:0 auto 14px; border-radius:16px; }
-.cp-gate-title{ margin:12px 0 8px; font-size:1.6rem; }
+.cp-gate-pic{ display:block; width:176px; max-width:60%; height:auto; margin:0 auto 6px; border-radius:20px; }
+.cp-gate-title{ margin:10px 0 8px; font-size:1.6rem; }
 .cp-gate-text{ margin:0 0 18px; color:var(--ink-soft); line-height:1.5; }
-.cp-gate-go{ width:100%; font-size:1rem; padding:13px 18px; }
+/* the button: its words in the middle, Google's G on a white circle at the right end (like Google's own button) */
+.cp-gate-go{ position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:52px; font-size:1rem; padding:12px 56px; }
+.cp-gate-g{ position:absolute; right:6px; top:50%; transform:translateY(-50%); width:40px; height:40px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; }
+.cp-gate-g svg{ display:block; }
 .cp-gate-help{ display:inline-block; margin-top:12px; font-size:.88rem; font-weight:600; }
 .cp-gate-guest{ margin-top:20px; padding-top:18px; border-top:1px solid var(--line); text-align:left; }
 .cp-gate-guest label{ display:block; margin-bottom:8px; font-weight:700; font-size:.9rem; }
@@ -259,6 +262,71 @@ html.cp-locked .cp-gate{ display:flex; justify-content:center; padding:48px 16px
 .cp-gate-row .btn{ flex:none; padding:10px 18px; }
 .cp-gate-teacher{ display:block; margin:16px auto 0; border:0; background:none; padding:4px 2px; font:inherit; font-size:.8rem; font-weight:600; color:var(--ink-soft); text-decoration:underline; cursor:pointer; }
 .cp-gate-teacher:hover{ color:var(--accent-dark); }
+
+/* ---- Report bugs & feedback (assets/feedback.js, opened from the Class Pass menu and the footer link) ---- */
+.cp-drop-fb{ border-top:1px solid var(--line); }
+.fb-foot{ border:0; background:none; padding:0; font:inherit; font-weight:700; color:var(--accent-dark); text-decoration:underline; cursor:pointer; }
+.fb-foot:hover{ text-decoration-thickness:2px; }
+:root{ --fb-edge:#c3c8d4; --fb-on:#e8eef8; }
+html[data-theme="dark"]{ --fb-edge:#3f465a; --fb-on:#1f2c44; }
+html.fb-open{ overflow:hidden; }
+.fb[hidden]{ display:none; }
+.fb{ position:fixed; inset:0; z-index:125; }
+.fb.fb-away{ visibility:hidden; }
+.fb-back{ position:absolute; inset:0; background:rgba(15,23,42,.35); opacity:0; transition:opacity .25s; }
+.fb-panel{
+  position:absolute; top:0; right:0; bottom:0; width:430px; max-width:100%; display:flex; flex-direction:column;
+  background:var(--card); color:var(--ink); box-shadow:-15px 0 40px rgba(0,0,0,.22); transform:translateX(100%); transition:transform .25s ease;
+}
+.fb.show .fb-back{ opacity:1; }
+.fb.show .fb-panel{ transform:none; }
+.fb-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 18px 14px 22px; border-bottom:1px solid var(--line); flex:none; }
+.fb-title{ margin:0; font-size:1.2rem; font-weight:800; }
+.fb-x{ border:0; background:none; font-size:1.7rem; line-height:1; color:var(--ink); cursor:pointer; padding:4px 10px; border-radius:8px; }
+.fb-x:hover{ background:var(--accent-tint); color:var(--accent-dark); }
+.fb-body, .fb-thanks{ flex:1 1 auto; overflow-y:auto; padding:6px 22px 26px; }
+.fb-body[hidden], .fb-thanks[hidden]{ display:none; }
+.fb-label{ display:block; margin:18px 0 8px; font-weight:700; font-size:.95rem; line-height:1.35; color:var(--ink); }
+.fb-field[hidden]{ display:none; }
+.fb-kinds{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fb-kind{
+  min-height:50px; padding:8px 10px; border:1.5px solid var(--fb-edge); border-radius:12px; background:var(--card); color:var(--ink);
+  font:inherit; font-weight:600; font-size:.95rem; line-height:1.25; cursor:pointer;
+}
+.fb-kind:hover{ border-color:var(--accent); }
+.fb-kind[aria-pressed="true"]{ background:var(--fb-on); border:2px solid var(--accent); color:var(--accent-dark); font-weight:700; }
+.fb-input{
+  display:block; width:100%; font:inherit; font-size:.95rem; color:var(--ink); background:var(--card);
+  padding:11px 14px; border:1.5px solid var(--fb-edge); border-radius:10px;
+}
+.fb-input:focus, .fb-kind:focus-visible, .fb-shot:focus-visible{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-tint); }
+.fb-text{ min-height:120px; resize:vertical; line-height:1.5; }
+.fb-input[aria-invalid="true"]{ border-color:#b3261e; box-shadow:0 0 0 3px rgba(179,38,30,.15); }
+html[data-theme="dark"] .fb-input[aria-invalid="true"]{ border-color:#ff9b93; }
+.fb-note{ margin:8px 0 0; font-size:.82rem; line-height:1.45; color:var(--ink-soft); }
+.fb-shot{
+  display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px 14px;
+  border:1.5px solid var(--fb-edge); border-radius:10px; background:var(--card); color:var(--accent-dark);
+  font:inherit; font-weight:600; font-size:.95rem; cursor:pointer;
+}
+.fb-shot[hidden]{ display:none; }
+.fb-shot:hover{ border-color:var(--accent); background:var(--accent-tint); }
+.fb-pic[hidden]{ display:none; }
+.fb-pic img{ display:block; width:100%; max-height:240px; object-fit:contain; background:var(--paper-soft); border:1.5px solid var(--fb-edge); border-radius:10px; }
+.fb-pic-btns{ display:flex; gap:16px; margin-top:6px; }
+.fb-link{ border:0; background:none; padding:4px 0; font:inherit; font-size:.88rem; font-weight:700; color:var(--accent-dark); text-decoration:underline; cursor:pointer; }
+.fb-add{ display:block; margin-top:6px; font-weight:600; font-size:.84rem; }
+.fb-who{ margin:18px 0 0; padding:10px 12px; border-radius:10px; background:var(--paper-soft); font-size:.85rem; line-height:1.45; color:var(--ink-soft); }
+.fb-send-row{ display:flex; align-items:center; justify-content:flex-end; gap:14px; margin-top:18px; }
+.fb-msg{ flex:1 1 auto; margin:0; line-height:1.4; }
+.fb-send{ flex:none; padding:12px 30px; }
+.fb-send:disabled{ opacity:.6; cursor:default; }
+.fb-thanks{ text-align:center; padding-top:48px; outline:none; }
+.fb-thanks-big{ margin:0 0 8px; font-size:1.6rem; font-weight:800; color:var(--ink); }
+.fb-thanks-text{ margin:0 auto 22px; max-width:300px; color:var(--ink-soft); line-height:1.5; }
+.fb-thanks-btns{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+@media (max-width:480px){ .fb-body, .fb-thanks{ padding-left:16px; padding-right:16px; } .fb-head{ padding-left:16px; } }
+@media (prefers-reduced-motion:reduce){ .fb-panel, .fb-back{ transition:none; } }
 
 /* ---------------- the teacher changing a page's words (page-text.js) ---------------- */
 body.pt-editing{ padding-bottom:140px; }

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Feedback inbox · Physical Science 8</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script src="/assets/icons.js" defer></script>
+<script src="/assets/app.js" defer></script>
+<script src="/assets/pass-menu.js" defer></script>
+<style>
+  /* the Feedback inbox's own look (the panel students send from is in style.css, .fb) */
+  .fi{ max-width:860px; }
+  .fi h1{ font-size:1.9rem; margin:0 0 4px; }
+  .fi-sub{ color:var(--ink-soft); margin:0 0 18px; }
+  .fi-tools{ display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; margin-bottom:16px; }
+  .fi-chips{ display:flex; flex-wrap:wrap; gap:6px; flex:1 1 auto; }
+  .fi-chip{ border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:6px 14px; font:inherit; font-size:.86rem; font-weight:600; cursor:pointer; }
+  .fi-chip.on{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .fi-quiet{ border:0; background:none; padding:4px 2px; font:inherit; font-size:.86rem; font-weight:700; color:var(--accent-dark); text-decoration:underline; cursor:pointer; }
+  .fi-box{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:0; }
+  .fi-list{ display:grid; gap:14px; }
+  .fi-card{ background:var(--card); border:1px solid var(--line); border-left:5px solid #c2410c; border-radius:14px; padding:16px 18px; box-shadow:var(--shadow-sm); }
+  .fi-card.idea{ border-left-color:#1d6ea5; }
+  .fi-card.done{ opacity:.72; border-left-color:var(--line); }
+  .fi-top{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:.85rem; color:var(--ink-soft); }
+  .fi-tag{ display:inline-block; font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 9px; border-radius:999px; color:#fff; background:#c2410c; }
+  .fi-card.idea .fi-tag{ background:#1d6ea5; }
+  .fi-card.done .fi-tag{ background:#6b7280; }
+  .fi-who{ margin:8px 0 0; font-weight:700; }
+  .fi-who small{ font-weight:500; color:var(--ink-soft); margin-left:6px; }
+  .fi-facts{ margin:6px 0 0; padding:0; list-style:none; font-size:.88rem; color:var(--ink-soft); }
+  .fi-facts b{ color:var(--ink); font-weight:600; }
+  .fi-text{ margin:10px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.55; }
+  .fi-pic{ margin-top:12px; }
+  .fi-pic img{ display:block; max-width:100%; max-height:320px; border:1px solid var(--line); border-radius:10px; cursor:zoom-in; background:var(--paper-soft); }
+  .fi-btns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .fi-btn{ padding:7px 14px; border-radius:999px; font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; border:1.5px solid var(--accent); background:var(--accent); color:var(--on-accent); }
+  .fi-btn.alt{ background:var(--card); color:var(--ink); border-color:var(--line); }
+  .fi-btn.alt:hover{ border-color:var(--accent); color:var(--accent-dark); }
+  .fi-btn:disabled{ opacity:.6; cursor:default; }
+  .fi-zoom{ position:fixed; inset:0; z-index:140; background:rgba(8,12,22,.86); display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; outline:none; }
+  .fi-zoom img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  html[data-theme="dark"] .fi-card{ border-left-color:#e8590c; }
+  html[data-theme="dark"] .fi-card.idea{ border-left-color:#389adc; }
+  html[data-theme="dark"] .fi-card.done{ border-left-color:var(--line); }
+  @media (max-width:480px){ .fi h1{ font-size:1.5rem; } .fi-card{ padding:14px; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/index.html" style="text-decoration:none;">
+            <img class="mascot" src="/assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
+      <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
+    </a>
+    <nav class="inline-links" aria-label="Site">
+      <a href="/index.html">Home</a>
+      <a href="/flashcards.html">Review</a>
+      <a href="/sims.html">Sims</a>
+      <a href="/extra-credit.html">Extra Credit</a>
+      <a href="/glossary.html">Glossary</a>
+      <a href="/leaderboard.html" class="nav-board">Leaderboard</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="/energy-of-motion.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="/frames-of-reference.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="/speed-and-distance-time-graphs.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="/inertia-and-net-forces.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="/energy-transfer-via-friction.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="/mass-and-acceleration.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="/collisions-and-newtons-third-law.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/gravity-and-energy-related-to-position.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="/gravitational-potential-energy.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="/universal-law-of-gravity.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="/gravitational-potential-energy-to-kinetic-energy.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/electricity-and-magnetism.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="/magnetism.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="/electromagnetic-fields.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/waves-transmitting-energy-and-information.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="/intro-to-wave-properties.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="/light-waves.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="/waves-and-information-technology.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/thermal-energy-and-heat-flow.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="/energy-transfer-and-temperature.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="/changes-in-energy-at-the-molecular-level.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="/phase-changes-and-energy-transfer.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/chemical-energy-and-reactions.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="/molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="/physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="/conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="/synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<main class="container fi">
+  <h1>Feedback inbox</h1>
+  <p class="fi-sub">Bug reports and ideas sent with Report bugs &amp; feedback (in the Class Pass menu and at the bottom of each page). Only you can see this page.</p>
+  <p class="cp-msg" id="fiStatus" role="status">Opening your inbox...</p>
+
+  <div class="fi-box" id="fiLocked" hidden>
+    <p id="fiLockedText">This page is only for Mr. LaMarr. Sign in with the teacher password to see the reports.</p>
+    <button class="btn" type="button" id="fiSignIn">Teacher sign in</button>
+  </div>
+
+  <div id="fiMain" hidden>
+    <div class="fi-tools">
+      <div class="fi-chips" id="fiChips" role="group" aria-label="Show"></div>
+      <button class="fi-quiet" type="button" id="fiRefresh">Check for new ones</button>
+      <button class="fi-quiet" type="button" id="fiTry">See the form students use</button>
+    </div>
+    <div class="fi-list" id="fiList"></div>
+  </div>
+</main>
+<script>
+/* The Feedback inbox (Donny, 2026-11-11): every bug report and idea sent from this site's "Report bugs & feedback"
+   panel (assets/feedback.js), for the teacher only. The reports are kept with the class leaderboard on the
+   vocabulary site (/api/feedback, teacher only) and come here through the Class Pass bridge (PS8Pass.ask
+   "feedbackList", "feedbackPicture", "feedbackDone", "feedbackDelete"; see pass-menu.js and book-bridge.js).
+   New ones are on top. Done moves a report out of New; Delete removes it for good. Screenshots load as their
+   reports scroll into view; click one to see it bigger. The 400 newest are kept (the oldest done ones go first). */
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var reports = [], show = "new", loaded = false, loading = false;
+  var pics = {}, picWait = {};
+  var TASK_DONE = {yes: "Yes", hard: "Yes, but it was hard", no: "No"};
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+  function status(text, bad){ var s = $("fiStatus"); s.className = "cp-msg" + (bad ? " bad" : ""); s.textContent = text || ""; }
+  function plural(n, word){ return n + " " + word + (n === 1 ? "" : "s"); }
+
+  /* ---------- who is looking ---------- */
+  function locked(){
+    reports = []; loaded = false;
+    $("fiMain").hidden = true;
+    $("fiLocked").hidden = false;
+    $("fiList").textContent = "";
+    var sv = Boolean(window.PS8Pass.studentView && window.PS8Pass.studentView());
+    $("fiLockedText").textContent = sv ? "You are in student view, and students can't open this page. Leave student view to see the reports."
+      : "This page is only for Mr. LaMarr. Sign in with the teacher password to see the reports.";
+    $("fiSignIn").textContent = sv ? "Leave student view" : "Teacher sign in";
+    status("");
+  }
+  function load(){
+    if(loading) return;
+    loading = true;
+    $("fiLocked").hidden = true;
+    status(loaded ? "Checking..." : "Opening your inbox...");
+    window.PS8Pass.ask({type: "feedbackList"}).then(function(d){
+      got(d);
+      status("");
+    }, function(err){
+      if(err.status === 401) return locked();
+      status(err.message + " Reload the page to try again.", true);
+    }).then(function(){ loading = false; });
+  }
+  function got(d){
+    reports = Array.isArray(d.reports) ? d.reports : [];
+    loaded = true;
+    $("fiMain").hidden = false;
+    draw();
+  }
+  function look(v){ if(v && v.teacher){ if(!loaded) load(); } else locked(); }
+  $("fiSignIn").addEventListener("click", function(){
+    if(window.PS8Pass.studentView && window.PS8Pass.studentView()) window.PS8Pass.setStudentView(false);
+    else window.PS8Pass.teacherSignIn();
+  });
+  $("fiRefresh").addEventListener("click", load);
+  $("fiTry").addEventListener("click", function(){ window.PS8Pass.feedback(); });
+
+  /* ---------- drawing ---------- */
+  function when(ms){
+    var d = new Date(ms);
+    var text = d.toLocaleString("en-US", {weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+    var mins = Math.round((Date.now() - ms) / 60000);
+    var ago = mins < 1 ? "just now" : mins < 60 ? plural(mins, "minute") + " ago" : mins < 1440 ? plural(Math.round(mins / 60), "hour") + " ago" : plural(Math.round(mins / 1440), "day") + " ago";
+    return text + " (" + ago + ")";
+  }
+  function whoText(r){
+    if(r.who === "teacher") return "You (signed in as the teacher)";
+    if(r.who === "student") return (r.name || "A student") + (r.period ? ", period " + r.period : "");
+    if(r.who === "special") return (r.name || "Someone") + " (special permission)";
+    if(r.who === "guest") return "A guest (signed in with the guest code)";
+    return "Not signed in";
+  }
+  // "Chromebook, Chrome 131" from the browser's description
+  function device(ua){
+    ua = String(ua || "");
+    var sys = /CrOS/.test(ua) ? "Chromebook" : /iPad/.test(ua) ? "iPad" : /iPhone/.test(ua) ? "iPhone" : /Android/.test(ua) ? "Android"
+      : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "";
+    var m, app = "";
+    if((m = /Edg\/(\d+)/.exec(ua))) app = "Edge " + m[1];
+    else if((m = /(?:Chrome|CriOS)\/(\d+)/.exec(ua))) app = "Chrome " + m[1];
+    else if((m = /(?:Firefox|FxiOS)\/(\d+)/.exec(ua))) app = "Firefox " + m[1];
+    else if((m = /Version\/(\d+).*Safari/.exec(ua))) app = "Safari " + m[1];
+    return [sys, app].filter(Boolean).join(", ");
+  }
+  function chips(){
+    var box = $("fiChips");
+    box.textContent = "";
+    var fresh = reports.filter(function(r){ return !r.done; }).length;
+    [["new", "New (" + fresh + ")"], ["done", "Done (" + (reports.length - fresh) + ")"], ["all", "All (" + reports.length + ")"]].forEach(function(c){
+      var b = el("button", "fi-chip" + (show === c[0] ? " on" : ""), c[1]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(show === c[0]));
+      b.addEventListener("click", function(){ show = c[0]; draw(); });
+      box.appendChild(b);
+    });
+  }
+  var seen = "IntersectionObserver" in window ? new IntersectionObserver(function(list){
+    list.forEach(function(e){ if(e.isIntersecting){ seen.unobserve(e.target); picture(e.target); } });
+  }, {rootMargin: "300px"}) : null;
+  function draw(){
+    chips();
+    var list = $("fiList");
+    list.textContent = "";
+    var rows = reports.filter(function(r){ return show === "all" || (show === "done" ? r.done : !r.done); });
+    if(!rows.length){
+      list.appendChild(el("p", "fi-box", show === "new" ? "No new reports. When a student sends one, it shows up here." : show === "done" ? "Nothing marked done yet." : "No reports yet. When a student sends one, it shows up here."));
+      return;
+    }
+    rows.forEach(function(r){ list.appendChild(card(r)); });
+  }
+  function card(r){
+    var c = el("article", "fi-card" + (r.kind === "idea" ? " idea" : "") + (r.done ? " done" : ""));
+    var top = el("div", "fi-top");
+    top.appendChild(el("span", "fi-tag", r.kind === "idea" ? "Idea" : "Bug"));
+    top.appendChild(el("span", null, when(r.at)));
+    c.appendChild(top);
+    var who = el("p", "fi-who", whoText(r));
+    if(r.email) who.appendChild(el("small", null, r.email));
+    c.appendChild(who);
+    var facts = el("ul", "fi-facts");
+    function fact(label, value, link){
+      if(!value) return;
+      var li = el("li");
+      li.appendChild(document.createTextNode(label + ": "));
+      if(link){
+        var a = el("a", null, value);
+        a.href = link;
+        a.target = "_blank";
+        a.rel = "noopener";
+        li.appendChild(a);
+      } else li.appendChild(el("b", null, value));
+      facts.appendChild(li);
+    }
+    fact(r.kind === "idea" ? "About" : "Trying to", r.task);
+    if(r.kind !== "idea") fact("Finished it", TASK_DONE[r.finished] || "");
+    var page = String(r.page || "");
+    var path = page.replace(/^https?:\/\/[^\/]+/, "") || "/";
+    var title = String(r.title || "").replace(/\s*·\s*Physical Science 8\s*$/, "");
+    fact("Page", title ? title + " (" + path + ")" : path, /^https?:\/\//.test(page) ? page : "");
+    fact("Computer", [device(r.browser), r.screen ? "window " + r.screen : ""].filter(Boolean).join(", "));
+    c.appendChild(facts);
+    c.appendChild(el("p", "fi-text", r.text));
+    if(r.pic){
+      var holder = el("div", "fi-pic");
+      holder.dataset.id = String(r.id);
+      var b = el("button", "fi-quiet", "Show screenshot");
+      b.type = "button";
+      b.addEventListener("click", function(){ picture(holder); });
+      holder.appendChild(b);
+      c.appendChild(holder);
+      if(pics[r.id]) picture(holder); else if(seen) seen.observe(holder);
+    }
+    var btns = el("div", "fi-btns");
+    var mark = el("button", "fi-btn", r.done ? "Move back to New" : "Mark done");
+    mark.type = "button";
+    mark.addEventListener("click", function(){ change(mark, {type: "feedbackDone", reportId: r.id, done: !r.done}); });
+    btns.appendChild(mark);
+    var del = el("button", "fi-btn alt", "Delete");
+    del.type = "button";
+    del.addEventListener("click", function(){
+      if(!window.confirm("Delete this report? It can't be brought back.")) return;
+      change(del, {type: "feedbackDelete", reportId: r.id});
+    });
+    btns.appendChild(del);
+    c.appendChild(btns);
+    return c;
+  }
+  function change(btn, msg){
+    btn.disabled = true;
+    window.PS8Pass.ask(msg).then(got, function(err){
+      btn.disabled = false;
+      if(err.status === 401) return locked();
+      status(err.message, true);
+    });
+  }
+  function showPic(holder, data){
+    holder.textContent = "";
+    var img = el("img");
+    img.src = data;
+    img.alt = "Screenshot sent with this report";
+    img.title = "Click to see it bigger";
+    img.addEventListener("click", function(){ zoom(data); });
+    holder.appendChild(img);
+  }
+  function picture(holder){
+    var id = Number(holder.dataset.id);
+    if(pics[id]) return showPic(holder, pics[id]);
+    if(picWait[id]) return;
+    picWait[id] = true;
+    var b = holder.querySelector("button");
+    if(b){ b.disabled = true; b.textContent = "Loading screenshot..."; }
+    window.PS8Pass.ask({type: "feedbackPicture", reportId: id}, 30000).then(function(d){
+      delete picWait[id];
+      if(!d.picture){ holder.textContent = "(no screenshot)"; return; }
+      pics[id] = d.picture;
+      // the list may have been drawn again meanwhile: show it wherever it is now
+      var now = document.querySelector('.fi-pic[data-id="' + id + '"]');
+      if(now) showPic(now, d.picture);
+    }, function(err){
+      delete picWait[id];
+      var now = document.querySelector('.fi-pic[data-id="' + id + '"] button');
+      if(now){ now.disabled = false; now.textContent = "Show screenshot (" + err.message + ")"; }
+    });
+  }
+  function zoom(data){
+    var z = el("div", "fi-zoom");
+    z.setAttribute("role", "dialog");
+    z.setAttribute("aria-label", "Screenshot. Click or press Escape to close.");
+    z.tabIndex = -1;
+    var img = el("img");
+    img.src = data;
+    img.alt = "Screenshot sent with this report";
+    z.appendChild(img);
+    function shut(){ z.remove(); document.removeEventListener("keydown", key); }
+    function key(e){ if(e.key === "Escape") shut(); }
+    z.addEventListener("click", shut);
+    document.addEventListener("keydown", key);
+    document.body.appendChild(z);
+    z.focus();
+  }
+
+  // pass-menu.js is deferred, so it runs after this script: start once the page has loaded
+  function start(){
+    window.PS8Pass.onChange(look);
+    look(window.PS8Pass.view());
+  }
+  if(window.PS8Pass) start();
+  else document.addEventListener("DOMContentLoaded", start);
+})();
+</script>
+</body>
+</html>
