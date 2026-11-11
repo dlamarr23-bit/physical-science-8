@@ -365,24 +365,30 @@ html[data-theme="dark"] .cbg-ready h3{ color:#f3e7b3; }
 .cbd-toast b{ display:block; font-size:15px; font-weight:500; }
 .cbd-toast small{ font-size:13px; color:#555; }
 
-/* side by side */
-.cbd-snap{ position:absolute; left:300px; top:150px; width:560px; height:360px; background:#fff; border-radius:8px; box-shadow:0 14px 40px rgba(0,0,0,.4); overflow:hidden; z-index:8; }
-.cbd-snap.is-half{ left:0 !important; top:0 !important; width:600px; height:627px; border-radius:0; box-shadow:none; transition:all .5s ease; }
-.cbd-snap.right{ left:600px; top:0; width:600px; height:627px; border-radius:0; box-shadow:none; border-left:2px solid #2f3a4f; }
-.cbd-snap .cbd-tabs{ height:34px; }
-.cbd-snap .cbd-tab{ height:28px; width:250px; font-size:12px; }
-.cbd-snap .cbd-bar{ height:36px; font-size:15px; }
-.cbd-snap .cbd-url{ height:24px; font-size:12px; }
-.cbd-snapbody{ position:absolute; left:0; right:0; top:70px; bottom:0; padding:18px; }
-.cbd-snapbody.form{ background:#f0ebf8; }
-.cbd-snapbody.doc{ background:#f0f3f8; }
-.cbd-snapbody .cbd-mini{ background:#fff; border:1px solid #dadce0; border-radius:8px; padding:14px 18px; max-width:420px; margin:0 auto 10px; }
-.cbd-snapbody.form .cbd-mini:first-child{ border-top:8px solid #673ab7; }
-.cbd-shade{ position:absolute; left:600px; top:0; width:600px; height:627px; background:rgba(18,28,48,.5); display:grid; place-items:center; z-index:7; }
-.cbd-pick{ width:420px; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4); }
-.cbd-pick small{ display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; background:#dde3ea; font-size:12px; }
-.cbd-pick .cbd-snapbody{ position:static; height:230px; }
-.cbd-pick.is-pressed{ box-shadow:0 0 0 4px #a8c7fa; }
+/* Chrome split view: the tab menu, the joined tab, and two pages in one window */
+.cbd-tabmenu{ left:390px; top:30px; width:310px; }
+.cbd-tm-ic{ display:flex; align-items:center; gap:10px; }
+.cbd-tm-ic svg{ width:16px; height:16px; color:#444; }
+.cbd-tab.is-pressed{ background:rgba(255,255,255,.7); }
+.cbd-tabsplit{ width:420px; padding:0 6px; gap:4px; }
+.cbd-tabsplit > span{ flex:1; display:flex; align-items:center; gap:8px; height:25px; padding:0 10px; border-radius:6px; background:#e8f0fe; overflow:hidden; white-space:nowrap; }
+.cbd-tabsplit > span + span{ background:#f1f3f4; }
+.cbd-tabsplit b{ margin-left:4px; }
+.cbd-split{ position:absolute; inset:0; background:#dde3ea; display:flex; padding:6px; z-index:5; }
+.cbd-pane{ flex:1; position:relative; border-radius:10px; overflow:hidden; background:#fff; min-width:0; }
+.cbd-pane:first-child{ flex:0 0 582px; box-shadow:0 0 0 2px #a8c7fa; }
+.cbd-splitbar{ flex:0 0 12px; display:grid; place-items:center; }
+.cbd-splitbar i{ width:4px; height:44px; border-radius:2px; background:#5f6b7c; }
+.cbd-splitbar.is-pressed i{ background:#0b57d0; }
+.cbd-panebody{ position:absolute; inset:0; padding:22px; }
+.cbd-panebody.form{ background:#f0ebf8; }
+.cbd-panebody.doc{ background:#f0f3f8; }
+.cbd-panebody .cbd-mini{ background:#fff; border:1px solid #dadce0; border-radius:8px; padding:16px 20px; max-width:440px; margin:0 auto 12px; }
+.cbd-panebody .cbd-mini h4{ font-size:20px; margin-bottom:10px; }
+.cbd-panebody .cbd-mini i{ height:9px; margin-bottom:8px; }
+.cbd-panebody .cbd-mini .t span{ height:24px; }
+.cbd-panebody .cbd-mini .fq{ font-size:15px; }
+.cbd-panebody.form .cbd-mini:first-child{ border-top:8px solid #673ab7; }
 
 /* tablet: the keyboard on the screen and handwriting */
 .cbd-osk{ position:absolute; left:0; right:0; top:360px; height:267px; background:#e3e7ee; z-index:8; padding:6px 120px 10px; display:flex; flex-direction:column; gap:6px; box-shadow:0 -4px 14px rgba(0,0,0,.15); }

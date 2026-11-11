@@ -61,11 +61,8 @@
 
   /* ---------- the drawing ---------- */
   var MINI_DOC = '<div class="cbd-mini"><h4>Weekend weather</h4><i style="width:70%"></i><div class="t"><span></span><span></span><span></span><span></span><span></span><span></span></div><i style="width:55%"></i></div>';
-  var MINI_FORM = '<div class="cbd-mini"><h4>Weekend weather</h4><i style="width:60%"></i></div><div class="cbd-mini"><i style="width:75%"></i><i style="width:45%;margin-top:14px;background:#9aa0a6;height:2px"></i></div>';
-  function chromeTop(tab, icon, url){
-    return '<div class="cbd-tabs"><span class="cbd-tab"><i class="cbd-ic ' + icon + '"></i><span>' + tab + '</span><b>&times;</b></span><span class="cbd-ctl"><i>&minus;</i><i>&#9633;</i><i>&times;</i></span></div>' +
-      '<div class="cbd-bar"><span>&larr;</span><span>&rarr;</span><span>&#8635;</span><div class="cbd-url">' + url + '</div></div>';
-  }
+  var MINI_FORM = '<div class="cbd-mini"><h4>Weekend weather</h4><i style="width:60%"></i></div><div class="cbd-mini"><p class="fq">Which day was warmer? Explain your answer.</p><i style="width:55%;margin-top:18px;background:#9aa0a6;height:2px"></i></div>';
+  var SPLIT_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 5v14" stroke="currentColor" stroke-width="2"/></svg>';
 
   var DESK =
   '<div class="cbd" data-k="desk">' +
@@ -76,9 +73,12 @@
     '<div class="cbd-tabs">' +
       '<span class="cbd-tab" data-k="tab1"><i class="cbd-ic" data-k="tab-ic"></i><span data-k="tab-name"></span><b>&times;</b></span>' +
       '<span class="cbd-tab back" data-k="tab2" data-sc><i class="cbd-ic form"></i><span>Weather answers - Google Forms</span><b>&times;</b></span>' +
+      '<span class="cbd-tab cbd-tabsplit" data-k="tab-split" data-sc><span><i class="cbd-ic"></i>Weekend weather</span><span><i class="cbd-ic form"></i>Weather answers</span><b>&times;</b></span>' +
       '<span class="cbd-newtab">+</span><span class="cbd-ctl"><i>&minus;</i><i>&#9633;</i><i>&times;</i></span>' +
     '</div>' +
     '<div class="cbd-bar"><span>&larr;</span><span>&rarr;</span><span>&#8635;</span><div class="cbd-url" data-k="url"></div><span class="cbd-avatar">S</span><span>&#8942;</span></div>' +
+    '<div class="cbd-menu cbd-tabmenu" data-k="tabmenu" data-sc><span>New tab to the right</span><span data-k="tm-split"><span class="cbd-tm-ic">' + SPLIT_IC + 'Add tab to new split view</span></span><span>Add tab to group<em>&rsaquo;</em></span><span>Move tab to new window</span><hr>' +
+      '<span>Reload<em>Ctrl+R</em></span><span>Duplicate</span><span>Pin</span><span>Mute site</span><hr><span>Close<em>Ctrl+W</em></span><span>Close other tabs</span><span>Close tabs to the right</span></div>' +
     '<div class="cbd-content">' +
 
       /* Google Docs */
@@ -128,6 +128,13 @@
           '<div class="cbd-mfoot"><span class="cbd-send">Send</span></div></div>' +
       '</div>' +
 
+      /* Chrome split view: two tabs side by side in one window */
+      '<div class="cbd-split" data-k="split" data-sc>' +
+        '<div class="cbd-pane" data-k="pane-a"><div class="cbd-panebody doc">' + MINI_DOC + '</div></div>' +
+        '<span class="cbd-splitbar" data-k="split-bar"><i></i></span>' +
+        '<div class="cbd-pane" data-k="pane-b"><div class="cbd-panebody form">' + MINI_FORM + '</div></div>' +
+      '</div>' +
+
       '<i class="cbd-empty" data-k="empty-spot"></i>' +
       '<div class="cbd-menu cbd-ctx" data-k="ctx" data-sc><span>Back<em>Alt+Left arrow</em></span><span class="off">Forward<em>Alt+Right arrow</em></span><span>Reload<em>Ctrl+R</em></span><hr>' +
         '<span>Save as...<em>Ctrl+S</em></span><span>Print...<em>Ctrl+P</em></span><span>Cast...</span><hr>' +
@@ -143,11 +150,6 @@
       '</div>' +
     '</div>' +
   '</div>' +
-
-  /* side by side */
-  '<div class="cbd-snap" data-k="snap-a" data-sc>' + chromeTop('Weather answers - Google Forms', 'form', 'docs.google.com/forms/d/e/weather-answers') + '<div class="cbd-snapbody form">' + MINI_FORM + '</div></div>' +
-  '<div class="cbd-shade" data-k="snap-shade" data-sc><div class="cbd-pick" data-k="snap-pick"><small><i class="cbd-ic"></i>Weekend weather - Google Docs</small><div class="cbd-snapbody doc">' + MINI_DOC + '</div></div></div>' +
-  '<div class="cbd-snap right" data-k="snap-b" data-sc>' + chromeTop('Weekend weather - Google Docs', '', 'docs.google.com/document/d/weekend-weather') + '<div class="cbd-snapbody doc">' + MINI_DOC + '</div></div>' +
 
   /* tablet: the keyboard on the screen */
   '<div class="cbd-osk" data-k="osk" data-sc><div class="cbd-osk-bar"><i>' + SVG.smile + '</i><i data-k="osk-pen">' + SVG.pen + '</i><i>' + SVG.mic + '</i><i>' + SVG.gear + '</i><b>&#8964;</b></div>' +
@@ -281,7 +283,8 @@
         });
         return ui;
       },
-      place: function(k, x, y){ var el = q(k); el.style.left = x === undefined ? "" : x + "px"; el.style.top = y === undefined ? "" : y + "px"; return ui; },
+      // Split view: where the bar between the two pages is (x in the drawing).
+      splitAt: function(x){ q("pane-a").style.flex = "0 0 " + (x - 12) + "px"; return ui; },
       scale: function(k, f){ q(k).style.transform = f === 1 ? "" : "scale(" + f + ")"; return ui; },
       // Select-to-speak: the words are highlighted, then each one lights up as it is read.
       selectAll: function(){ return ui.cls("rw", "is-sel"); },
@@ -334,7 +337,8 @@
       Array.prototype.forEach.call(desk.querySelectorAll('[class*="is-"]'), function(el){
         Array.prototype.slice.call(el.classList).forEach(function(c){ if (c.indexOf("is-") === 0 && !el.closest('[data-k="set-home"]')) el.classList.remove(c); });
       });
-      ui.spanish(false).doc("assign").place("snap-a").scale("pg-pub", 1);
+      ui.spanish(false).doc("assign").scale("pg-pub", 1);
+      q("pane-a").style.flex = "";
       q("cap-sel").style.cssText = ""; q("cap-btn").style.cssText = "";
       qa("ink-svg")[0].querySelectorAll(".cbd-stroke").forEach(function(p){ var n = p.getTotalLength(); p.style.strokeDasharray = n; p.style.strokeDashoffset = n; });
       ["spot", "touch1", "touch2", "cross"].forEach(function(k){ hide(q(k), true); });

@@ -33,7 +33,7 @@
   function s2sDoc(ui){ return ui.page("doc").show("sts-s2s"); }
   function dictForm(ui){ return ui.page("form").show("sts-mic"); }
   function twoTabs(ui){ return ui.page("doc").show("tab2"); }
-  function floating(ui){ return ui.page("doc").show("snap-a").place("snap-a", 300, 200); }
+  function splitView(ui){ return ui.page("doc").show("tab1", false).show("tab-split").show("split"); }
 
   // Click the time, then the gear: the first two steps of Settings.
   var OPEN_SETTINGS = [
@@ -315,30 +315,26 @@
 
     "side-by-side": {
       title: "Side by side",
-      ready: ["Open both pages in Chrome."],
+      ready: ["Open the article and the questions as two tabs in Chrome.", "Click the tab you want on the left."],
       ask: "Are both pages showing?",
-      yes: "To make one full screen again, click it and press alt + =.",
-      no: ["Drag the tab all the way off the row of tabs before you let go.", "Click the window you want to move first.", "Only one window moved? Click the other one and press alt + ] to put it on the right."],
+      yes: "Click a page to work in it. Each side scrolls by itself.",
+      no: ["Right-click the other tab, not the one you are on.", "No Add tab to new split view in the menu? Update your Chromebook, or use alt + [ and alt + ] on two windows."],
       steps: [
         {
-          title: "Drag a tab down, off the row of tabs", where: "It turns into its own window.",
+          title: "Right-click the <b>other tab</b>", where: "Use the tab for the page you want beside this one.", how: TWO,
+          label: "Chrome, with two tabs open", scene: twoTabs, focus: "tab2", pad: [300, 170], maxZoom: 2,
+          do: [{ type: "right", target: "tab2", tip: [0.45, 0.55], tag: "below", tagText: "Right-click here", after: function(ui){ ui.show("tabmenu"); }, zoom: "tabmenu", zoomPad: [170, 30], ring: "tm-split", ringText: "Then this", ringSide: "side" }]
+        },
+        {
+          title: "Click <b>Add tab to new split view</b>", where: "Both pages show side by side in one window.", how: TAP,
+          label: "Chrome: the tab menu", scene: function(ui){ return twoTabs(ui).show("tabmenu").cls("tab2", "is-pressed"); }, focus: "tabmenu", pad: [170, 30], maxZoom: 2,
+          do: [{ type: "click", target: "tm-split", tip: [0.7, 0.55], tag: "side", after: function(ui){ ui.show("tabmenu", false).show("tab2", false); splitView(ui); }, zoom: "out", ring: "tab-split", ringText: "One tab, two pages", ringSide: "below" }]
+        },
+        {
+          title: "Drag the <b>bar in the middle</b>", where: "Give the article or the questions more room.",
           how: { kind: "drag", text: "Press the touchpad down and slide." },
-          label: "Chrome, with two tabs open", scene: twoTabs,
-          do: [{
-            type: "drag", from: [400, 20], to: [450, 215], target: "tab2", tag: "below", tagText: "Drag this tab",
-            move: function(ui, p, x, y){ if (p > 0.12) ui.show("tab2", false).show("snap-a").place("snap-a", x - 150, y - 15); }
-          }]
-        },
-        {
-          title: "Press <b>alt + [</b>", where: "The window fills the left half.",
-          how: { kind: "keys", text: "Hold alt. Then tap [ (left bracket)." },
-          label: "ChromeOS", scene: floating,
-          do: [{ type: "keys", keys: ["alt", "["], after: function(ui){ ui.place("snap-a").cls("snap-a", "is-half").show("win", false).show("snap-shade"); }, ring: "snap-pick", ringText: "Your other windows", ringSide: "above" }]
-        },
-        {
-          title: "Click the <b>other window</b>", where: "It fills the right half.", how: TAP,
-          label: "ChromeOS", scene: function(ui){ return ui.page("doc").show("snap-a").cls("snap-a", "is-half").show("win", false).show("snap-shade"); }, focus: "snap-pick", pad: [140, 110], maxZoom: 1.6,
-          do: [{ type: "click", target: "snap-pick", tip: [0.6, 0.6], after: function(ui){ ui.show("snap-shade", false).show("snap-b"); }, zoom: "out", ring: null }]
+          label: "Chrome split view", scene: splitView,
+          do: [{ type: "drag", from: [594, 360], to: [700, 360], target: "split-bar", tag: "side", tagText: "Drag this", move: function(ui, p, x){ ui.splitAt(x); } }]
         }
       ]
     },
