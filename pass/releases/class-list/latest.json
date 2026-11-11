@@ -1,0 +1,10 @@
+{
+  "kind": "class-list",
+  "version": "2026.11.10b",
+  "optional": "",
+  "files": {
+    "Code.gs": "Code.gs.txt",
+    "appsscript.json": "appsscript.json.txt",
+    "What changed.txt": "notes.txt"
+  }
+}

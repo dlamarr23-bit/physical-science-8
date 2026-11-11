@@ -77,7 +77,9 @@
   var frame = document.getElementById("vocabFrame");
   function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
   function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
-  frame.src = VOCAB + "/leaderboard/?theme=" + theme();
+  // student view (the Class Pass menu, 2026-11-10): the teacher sees the framed page the way a student does
+  function sv(){ try { return localStorage.getItem("ps8-student-view") === "1" ? "1" : "0"; } catch(e){ return "0"; } }
+  frame.src = VOCAB + "/leaderboard/?theme=" + theme() + "&sv=" + sv();
   window.addEventListener("ps8:theme", tellTheme);
   window.addEventListener("message", function(e){
     if(e.origin === VOCAB && e.source === frame.contentWindow && e.data && e.data.vocabSite) tellTheme();

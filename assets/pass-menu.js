@@ -27,8 +27,15 @@
    the default), and a line in each page's <head> puts html[data-theme="dark"] on before the page draws.
    Pages that show something in a frame hear about a change from the "ps8:theme" event (sims.html).
 
+   Student view (Donny, 2026-11-10): the teacher's menu has Student view. The teacher stays signed in, but every
+   page acts as if a student were looking: view() says {student: true} and no teacher, so Edit this page, the
+   Launchpad, the Guest code and Host a game are gone, the Launchpad is locked, and the framed Review and Leaderboard
+   pages hide the teacher's tools (their address gets ?sv=1, see the vocabulary site's editor.js). The menu then says
+   STUDENT VIEW with Leave student view; the button keeps the teacher's picture with an orange ring. The choice is kept
+   in this browser (ps8-student-view = "1") and the page reloads when it changes, so everything on it redraws.
+
    window.PS8Pass: view(), onChange(fn), ask(message) (a question for the bridge; resolves with its answer),
-   theme(), setTheme("light" | "dark"). */
+   theme(), setTheme("light" | "dark"), studentView(), setStudentView(on). */
 (function(){
   "use strict";
 
@@ -39,8 +46,21 @@
     try { var v = JSON.parse(localStorage.getItem(VIEW_KEY)); if(v && typeof v === "object") return {me: v.me || null, teacher: Boolean(v.teacher), guest: Boolean(v.guest)}; } catch(e){ /* no storage */ }
     return {me: null, teacher: false, guest: false};
   }
-  function signedIn(v){ return Boolean(v.me || v.teacher || v.guest); }
+  function signedIn(v){ return Boolean(v.me || v.teacher || v.guest || v.student); }
   function saveView(v){ try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch(e){ /* a per-browser convenience only */ } }
+
+  /* ---------- student view: the teacher, looking the way a student does ---------- */
+  var SV_KEY = "ps8-student-view";
+  function svChosen(){ try { return localStorage.getItem(SV_KEY) === "1"; } catch(e){ return false; } }
+  function studentView(){ return Boolean(view.teacher && svChosen()); }
+  // what the pages are told: in student view nobody is the teacher, but someone is signed in (so no sign-in screen)
+  function shown(){ return studentView() ? {me: null, teacher: false, guest: false, student: true} : view; }
+  function setStudentView(on){
+    try { if(on) localStorage.setItem(SV_KEY, "1"); else localStorage.removeItem(SV_KEY); } catch(e){ /* this page only */ }
+    location.reload();
+  }
+  // changed in another tab of this site
+  window.addEventListener("storage", function(e){ if(e.key === SV_KEY && view.teacher) location.reload(); });
 
   var view = readView();
   var listeners = [];
@@ -132,9 +152,12 @@
   });
 
   function setView(v){
+    var was = JSON.stringify(shown());
     var changed = JSON.stringify(v) !== JSON.stringify(view);
     view = v;
-    if(changed){ draw(); gate(); listeners.forEach(function(fn){ try { fn(view); } catch(e){ /* one listener's problem */ } }); }
+    if(!changed) return;
+    draw(); gate();
+    if(JSON.stringify(shown()) !== was) listeners.forEach(function(fn){ try { fn(shown()); } catch(e){ /* one listener's problem */ } });
   }
 
   /* ---------- signing in and out ---------- */
@@ -174,6 +197,7 @@
     }).then(function(){ if(signingIn === job) signingIn = null; });
   }
   function signOut(){
+    try { localStorage.removeItem(SV_KEY); } catch(e){ /* nothing kept */ }
     if(view.me) send({type: "signOut"});
     if(view.guest) send({type: "guestOut"});
     if(view.teacher){
@@ -301,6 +325,7 @@
     var p = prefix();
     var open = wrap.classList.contains("open");
     wrap.textContent = "";
+    var sv = studentView();
     var who = view.teacher ? "the teacher" : view.me ? (view.me.name + (view.me.period ? ", period " + view.me.period : "")) : view.guest ? "a guest" : "";
     var btn;
     if(!signedIn(view)){
@@ -309,7 +334,7 @@
       btn.appendChild(el("span", "cp-who", "Sign in"));
       btn.setAttribute("aria-label", "Class Pass: sign in for the leaderboard. Open the menu.");
     } else {
-      btn = el("button", "cp-avatar" + (view.teacher ? " cp-avatar-teacher" : ""));
+      btn = el("button", "cp-avatar" + (view.teacher ? " cp-avatar-teacher" : "") + (sv ? " cp-avatar-sv" : ""));
       if(view.teacher){
         var pic = el("img", "cp-avatar-pic");
         pic.src = p + "assets/teacher-avatar.png";
@@ -320,7 +345,8 @@
       } else {
         btn.textContent = "G";
       }
-      btn.setAttribute("aria-label", "Class Pass: signed in as " + who + ". Open the menu.");
+      btn.setAttribute("aria-label", sv ? "Student view: you see the site the way a student does. Open the menu." : "Class Pass: signed in as " + who + ". Open the menu.");
+      if(sv) btn.title = "Student view";
     }
     btn.type = "button";
     btn.setAttribute("aria-haspopup", "true");
@@ -329,8 +355,8 @@
 
     var drop = el("div", "cp-drop");
     var head = el("div", "cp-drop-who");
-    head.appendChild(el("span", "cp-tag", "Class Pass"));
-    head.appendChild(el("p", null, who ? "Signed in as " + who : "Sign in with your school Google account so your games count on the leaderboard."));
+    head.appendChild(el("span", "cp-tag" + (sv ? " cp-tag-sv" : ""), sv ? "Student view" : "Class Pass"));
+    head.appendChild(el("p", null, sv ? "You see the site the way a student does. You are still signed in." : who ? "Signed in as " + who : "Sign in with your school Google account so your games count on the leaderboard."));
     drop.appendChild(head);
     function item(text, href, cls){
       var a = el(href ? "a" : "button", "cp-drop-item" + (cls ? " " + cls : ""), text);
@@ -351,7 +377,12 @@
         if(again) again.focus();
       });
     }
-    if(!signedIn(view)){
+    if(sv){
+      item("Leaderboard", p + "leaderboard.html");
+      item("Review sets", p + "flashcards.html");
+      darkItem();
+      item("Leave student view", null, "cp-drop-leave").addEventListener("click", function(){ closeMenu(); setStudentView(false); });
+    } else if(!signedIn(view)){
       item("Sign in").addEventListener("click", function(){ closeMenu(); signIn(); });
       item("Leaderboard", p + "leaderboard.html");
       darkItem();
@@ -361,6 +392,7 @@
         item("Edit this page", null, "cp-drop-edit").addEventListener("click", function(){ closeMenu(); window.PS8Text.edit(); });
       }
       if(view.teacher) item("Assignment Launchpad", p + "launchpad.html");
+      if(view.teacher) item("Student view").addEventListener("click", function(){ closeMenu(); setStudentView(true); });
       if(view.teacher) item("Guest code").addEventListener("click", function(){ closeMenu(); guestCodeDialog(); });
       if(view.me || view.teacher) item("Leaderboard", p + "leaderboard.html");
       item("Review sets", p + "flashcards.html");
@@ -487,7 +519,9 @@
   }
 
   window.PS8Pass = {
-    view: function(){ return view; },
+    view: function(){ return shown(); },
+    studentView: studentView,
+    setStudentView: setStudentView,
     onChange: function(fn){ listeners.push(fn); },
     ask: ask,
     toast: toast,

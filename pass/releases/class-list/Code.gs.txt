@@ -1,0 +1,653 @@
+/**
+ * CLASS LIST for Mr. LaMarr's class website (Donny, 2026-11-10).
+ *
+ * One Google Sheet holds the class list for the website's Class Pass sign-in and Leaderboard
+ * (vocabulary-room901.pages.dev, shown inside physical-science-8.pages.dev). It replaces pasting the roster
+ * on the Leaderboard page.
+ *
+ *   Classes tab        Every active Google Classroom class you teach. Tick Show for the classes whose students
+ *                      should sign in and appear on the leaderboard. "Shows as" is what the site calls the class:
+ *                      a period number (4) or a name (Test). A class you have not decided on yet says New.
+ *   Students tab       Made by this sheet from the ticked classes. Don't type here: it is rewritten every sync.
+ *   Added by hand tab  Students who are not in a ticked class (or a fix to a name or period). Type them here.
+ *   Settings tab       The site key (from the website's Leaderboard page) and the other choices.
+ *   Log tab            What the sheet sent, and every code update the Launchpad made.
+ *
+ * Every hour it looks at Google Classroom again and sends the list when it changed. Class List > Sync now
+ * sends it at once.
+ *
+ * LAUNCHPAD HELPER: this sheet is also deployed as a web app (Class List > Set up makes the deployment), so the
+ * Assignment Launchpad (physical-science-8.pages.dev/launchpad) can update an assignment sheet's code for you:
+ * it copies the newest release from the class website (/pass/releases/<kind>/) into that sheet's Apps Script
+ * project and switches its web app to the new version, so students keep the same link. Before it changes
+ * anything it saves the old code as a version, so Undo puts it back. It only ever installs released code from
+ * the class website, never code sent to it, and it only answers a request that carries the site key.
+ * It needs the Google Apps Script API turned on once: script.google.com/home/usersettings.
+ *
+ * Update now (the Launchpad's Class List box) or Class List > Update this sheet's code installs a newer
+ * release of THIS code the same way.
+ *
+ * appsscript.json must be the one from the same release (Project Settings > Show "appsscript.json"): it lists
+ * the permissions the sheet asks for and turns on the Classroom service.
+ */
+
+var CL_NAME = "class-list";
+var CL_VERSION = "2026.11.10b";
+var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
+var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
+var SCRIPT_API = "https://script.googleapis.com/v1/";
+
+var TAB_CLASSES = "Classes", TAB_STUDENTS = "Students", TAB_EXTRA = "Added by hand", TAB_SETTINGS = "Settings", TAB_LOG = "Log";
+var CLASS_HEADS = ["Show", "Class", "Shows as", "Students", "Status", "Course ID"];
+var STUDENT_HEADS = ["Shows as", "First name", "Last name", "Email", "Class"];
+var EXTRA_HEADS = ["Shows as", "First name", "Last name", "Email", "Note"];
+var LOG_HEADS = ["When", "What", "What happened"];
+var STRIP = "#c9daf8", NEW_FILL = "#fff2cc", LOG_MAX = 600;
+// [label, key, default, what it does]
+var SETTING_DEFS = [
+  ["Site key", "SITE_KEY", "", "Paste the Class list key from the website's Leaderboard page (sign in there as the teacher, then open Class list at the bottom). It lets this sheet change the class list on the site, and the Launchpad use this sheet. Keep it to yourself."],
+  ["Tick new classes by themselves when the name includes", "AUTO_TICK", "", "Optional, like LaMarr. A new Classroom class whose name has these letters is ticked for you (still marked New, so you see it). Blank = new classes start unticked."],
+  ["Sync every hour", "HOURLY", true, "Checked = every hour the sheet looks at Google Classroom and sends the class list to the site when it changed."],
+  ["Last sync", "LAST_SYNC", "", "Filled in by the sheet."],
+  ["Web app (for the Launchpad)", "WEBAPP_SHOWN", "", "Filled in by Class List > Set up. The Launchpad finds it by itself."]
+];
+
+/* ============================== menu ============================== */
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu("Class List")
+    .addItem("Sync now (send the class list to the site)", "syncNow")
+    .addItem("Get my Google Classroom classes again", "refreshClassesMenu")
+    .addSeparator()
+    .addItem("Set up (first time, or to repair)", "setup")
+    .addItem("Update this sheet's code", "updateMyCode")
+    .addItem("About this sheet", "about")
+    .addToUi();
+}
+
+/** A box in the sheet (never on the web app). */
+function say_(title, text) { SpreadsheetApp.getUi().alert(title, text, SpreadsheetApp.getUi().ButtonSet.OK); }
+
+function about() {
+  say_("Class List " + CL_VERSION,
+    "This sheet is the class list for your class website's Class Pass and Leaderboard.\n\n" +
+    "1. Classes tab: tick Show for each class whose students should sign in. Shows as = the period number (4) or a name (Test).\n" +
+    "2. Added by hand tab: anyone else (or a fix to a name or period).\n" +
+    "3. Class List > Sync now sends it to the site. It also syncs by itself every hour.\n\n" +
+    "The Assignment Launchpad uses this sheet to update your assignment sheets' code (Update now on a card).");
+}
+
+/* ============================== settings ============================== */
+
+function ss_() { return SpreadsheetApp.getActiveSpreadsheet(); }
+function props_() { return PropertiesService.getScriptProperties(); }
+
+/** { SITE_KEY: "...", AUTO_TICK: "...", HOURLY: true, ... } from the Settings tab (defaults for missing rows). */
+function settings_() {
+  var out = {};
+  SETTING_DEFS.forEach(function (d) { out[d[1]] = d[2]; });
+  var sh = ss_().getSheetByName(TAB_SETTINGS);
+  if (!sh || sh.getLastRow() < 2) return out;
+  var byLabel = {};
+  SETTING_DEFS.forEach(function (d) { byLabel[d[0].toLowerCase()] = d[1]; });
+  sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    var k = byLabel[String(r[0]).trim().toLowerCase()];
+    if (k) out[k] = r[1];
+  });
+  return out;
+}
+function setSetting_(key, value) {
+  var sh = ss_().getSheetByName(TAB_SETTINGS);
+  if (!sh) return;
+  var label = SETTING_DEFS.filter(function (d) { return d[1] === key; })[0][0].toLowerCase();
+  var rows = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues() : [];
+  for (var i = 0; i < rows.length; i++) if (String(rows[i][0]).trim().toLowerCase() === label) { sh.getRange(i + 2, 2).setValue(value); return; }
+}
+function yes_(v) { return v === true || /^(true|yes|y|1|on|checked)$/i.test(String(v).trim()); }
+function siteKey_() { var k = String(settings_().SITE_KEY || "").trim().toLowerCase(); return /^[0-9a-f]{64}$/.test(k) ? k : ""; }
+function same_(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a.length !== b.length || !a.length) return false;
+  var d = 0;
+  for (var i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+function when_() { return Utilities.formatDate(new Date(), Session.getScriptTimeZone() || "America/Los_Angeles", "M/d/yyyy h:mm a"); }
+
+function log_(what, result) {
+  try {
+    var sh = ss_().getSheetByName(TAB_LOG);
+    if (!sh) return;
+    sh.insertRowAfter(1);
+    sh.getRange(2, 1, 1, 3).setValues([[when_(), String(what).slice(0, 300), String(result).slice(0, 1000)]]);
+    if (sh.getLastRow() > LOG_MAX + 1) sh.deleteRows(LOG_MAX + 2, sh.getLastRow() - LOG_MAX - 1);
+  } catch (e) { /* the log is only a record */ }
+}
+
+/* ============================== set up ============================== */
+
+function setup() {
+  var ss = ss_();
+  tab_(ss, TAB_CLASSES, CLASS_HEADS, [60, 380, 110, 90, 150, 140]);
+  tab_(ss, TAB_STUDENTS, STUDENT_HEADS, [90, 140, 160, 260, 320]);
+  tab_(ss, TAB_EXTRA, EXTRA_HEADS, [90, 140, 160, 260, 320]);
+  tab_(ss, TAB_LOG, LOG_HEADS, [150, 320, 620]);
+  settingsTab_(ss);
+  var cl = ss.getSheetByName(TAB_CLASSES);
+  cl.getRange(1, 3).setNote("What the website calls this class: a period number (4) or a name (Test). \"Period 4\" is saved as 4.");
+  cl.getRange(1, 5).setNote("New = a class you have not decided on yet. It goes away when you change Show or Shows as, or press Sync now.");
+  ss.getSheetByName(TAB_STUDENTS).getRange(1, 1).setNote("Made by the sheet from the ticked classes. Don't type here: it is rewritten every sync. Use the Added by hand tab.");
+  ss.getSheetByName(TAB_EXTRA).getRange(1, 1).setNote("Students who are not in a ticked Classroom class, or a fix to a name or period (a row here wins over Classroom). Shows as = the period number or name.");
+  // the hourly sync
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === "hourly") ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger("hourly").timeBased().everyHours(1).create();
+
+  var notes = [];
+  try {
+    var n = refreshClasses_();
+    notes.push("Found " + n + " active Google Classroom class" + (n === 1 ? "" : "es") + " (Classes tab).");
+  } catch (e) { notes.push("Google Classroom: " + e.message); }
+  // the web app the Launchpad talks to
+  try {
+    var w = ensureWebApp_();
+    notes.push(w.made ? "Made the web app the Launchpad uses." : "The Launchpad's web app is ready.");
+  } catch (e) {
+    notes.push(e.code === "API_OFF" ? "One more thing, for the Launchpad's Update now buttons: " + e.message + " Then run Class List > Set up again." : "Web app: " + e.message);
+  }
+  say_("Class List is set up",
+    notes.join("\n\n") + "\n\nNext:\n" +
+    "1. Classes tab: tick Show for each class on the site, and check Shows as.\n" +
+    "2. Settings tab: paste the Site key (website > Leaderboard, signed in as the teacher > Class list).\n" +
+    "3. Class List > Sync now.");
+}
+
+function tab_(ss, name, heads, widths) {
+  var sh = ss.getSheetByName(name) || ss.insertSheet(name);
+  var have = sh.getLastColumn() ? sh.getRange(1, 1, 1, heads.length).getValues()[0] : [];
+  if (have.join("|") !== heads.join("|")) sh.getRange(1, 1, 1, heads.length).setValues([heads]);
+  sh.getRange(1, 1, 1, heads.length).setFontWeight("bold").setBackground(STRIP).setFontFamily("Poppins");
+  sh.setFrozenRows(1);
+  widths.forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  return sh;
+}
+
+function settingsTab_(ss) {
+  var sh = ss.getSheetByName(TAB_SETTINGS) || ss.insertSheet(TAB_SETTINGS);
+  if (!sh.getLastRow()) sh.getRange(1, 1, 1, 3).setValues([["Setting", "Value", "What it does"]]);
+  sh.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground(STRIP).setFontFamily("Poppins");
+  sh.setFrozenRows(1);
+  [300, 380, 560].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  var rows = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(function (r) { return String(r[0]).trim().toLowerCase(); }) : [];
+  SETTING_DEFS.forEach(function (d) {
+    var at = rows.indexOf(d[0].toLowerCase());
+    var row = at === -1 ? sh.getLastRow() + 1 : at + 2;
+    if (at === -1) { sh.getRange(row, 1, 1, 3).setValues([[d[0], d[2], d[3]]]); rows.push(d[0].toLowerCase()); }
+    else sh.getRange(row, 3).setValue(d[3]);
+    if (d[2] === true || d[2] === false) sh.getRange(row, 2).insertCheckboxes();
+  });
+  sh.getRange(2, 3, Math.max(1, sh.getLastRow() - 1), 1).setWrap(true);
+}
+
+/* ============================== Google Classroom ============================== */
+
+function refreshClassesMenu() {
+  var n = refreshClasses_();
+  say_("Google Classroom", "Found " + n + " active class" + (n === 1 ? "" : "es") + ". New ones say New in the Classes tab: tick Show for the ones on the site.");
+}
+
+/** Every active class you teach, in the order Classroom gives them. */
+function myClasses_() {
+  var all = [], tok;
+  do {
+    var resp = Classroom.Courses.list({ teacherId: "me", courseStates: ["ACTIVE"], pageToken: tok, pageSize: 100 });
+    all = all.concat(resp.courses || []);
+    tok = resp.nextPageToken;
+  } while (tok);
+  return all;
+}
+
+/** A period number from a class's name or section ("Science - Period 3", "P4", "2 - Science 8"), or "". */
+function guessPeriod_(c) {
+  var t = (c.section || "") + " " + (c.name || "");
+  var m = /(?:period|per\.?|pd\.?|\bp)\s*#?\s*(\d{1,2})\b/i.exec(t) || /\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:period|per|pd)\b/i.exec(t) || /^\s*(\d{1,2})\s*-/.exec(c.name || "");
+  return m ? String(Number(m[1])) : "";
+}
+
+/** "Period 4", "P4", "per. 4" -> "4"; anything else as typed (20 characters at most, the site's limit). */
+function showsAs_(v, name) {
+  var s = String(v == null ? "" : v).trim();
+  var m = /^(?:period|per\.?|pd\.?|p)\s*#?\s*(\d{1,2})$/i.exec(s);
+  if (m) s = String(Number(m[1]));
+  if (!s) s = String(name || "").trim();
+  return s.slice(0, 20);
+}
+
+/** The Classes tab's rows as objects (row = its row number). */
+function readClasses_() {
+  var sh = ss_().getSheetByName(TAB_CLASSES);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, CLASS_HEADS.length).getValues().map(function (r, i) {
+    return { row: i + 2, show: yes_(r[0]), name: String(r[1]).trim(), showsAs: String(r[2]).trim(), count: r[3], status: String(r[4]).trim(), id: String(r[5]).trim() };
+  }).filter(function (c) { return c.id; });
+}
+
+/** Brings the Classes tab up to date with Classroom: new classes come in marked New (ticked when AUTO_TICK matches), classes no longer active
+    go away, names follow Classroom. Your Show and Shows as choices stay. Returns how many classes there are. */
+function refreshClasses_() {
+  var live = myClasses_(), sh = ss_().getSheetByName(TAB_CLASSES);
+  if (!sh) throw new Error("Run Class List > Set up first.");
+  var old = {};
+  readClasses_().forEach(function (c) { old[c.id] = c; });
+  var auto = String(settings_().AUTO_TICK || "").trim().toLowerCase();
+  var rows = live.map(function (c) {
+    var name = c.name + (c.section && String(c.name).indexOf(c.section) === -1 ? " (" + c.section + ")" : "");
+    var was = old[c.id];
+    if (was) return [was.show, name, was.showsAs, was.show ? was.count : "", was.status, String(c.id)];
+    var tick = !!auto && name.toLowerCase().indexOf(auto) !== -1;
+    return [tick, name, guessPeriod_(c), "", tick ? "New (ticked by itself)" : "New", String(c.id)];
+  });
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, CLASS_HEADS.length).clearContent().setBackground(null);
+  if (rows.length) {
+    sh.getRange(2, 1, rows.length, CLASS_HEADS.length).setValues(rows);
+    sh.getRange(2, 1, rows.length, 1).insertCheckboxes();
+    sh.getRange(2, 3, rows.length, 1).setNumberFormat("@");
+    rows.forEach(function (r, i) { if (/^New/.test(r[4])) sh.getRange(i + 2, 1, 1, CLASS_HEADS.length).setBackground(NEW_FILL); });
+  }
+  return rows.length;
+}
+
+/** Changing Show or Shows as on a class decides it: its New goes away. */
+function onEdit(e) {
+  try {
+    var r = e && e.range, sh = r && r.getSheet();
+    if (!sh || sh.getName() !== TAB_CLASSES || r.getRow() < 2 || r.getColumn() > 3) return;
+    for (var row = r.getRow(); row <= r.getLastRow(); row++) {
+      var st = sh.getRange(row, 5);
+      if (/^New/.test(String(st.getValue()))) { st.setValue(""); sh.getRange(row, 1, 1, CLASS_HEADS.length).setBackground(null); }
+    }
+  } catch (err) { /* a convenience only */ }
+}
+
+/** The students of the ticked classes plus the Added by hand tab, one per email: [{ email, first, last, period, from }]. Also fills the
+    Students tab and each ticked class's Students count. A hand row wins; otherwise the first ticked class (top to bottom). */
+function buildList_() {
+  var classes = readClasses_(), sh = ss_().getSheetByName(TAB_CLASSES), byEmail = {}, order = [];
+  classes.forEach(function (c) {
+    if (!c.show) { sh.getRange(c.row, 4).setValue(""); return; }
+    var period = showsAs_(c.showsAs, c.name), n = 0, tok;
+    do {
+      var resp = Classroom.Courses.Students.list(c.id, { pageToken: tok, pageSize: 100 });
+      (resp.students || []).forEach(function (s) {
+        var p = s.profile || {}, nm = p.name || {}, email = String(p.emailAddress || "").trim().toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+$/.test(email)) return;
+        n++;
+        if (byEmail[email]) return;
+        var first = String(nm.givenName || "").trim(), last = String(nm.familyName || "").trim();
+        if (!first && nm.fullName) { var parts = String(nm.fullName).trim().split(/\s+/); first = parts.shift(); last = parts.join(" "); }
+        byEmail[email] = { email: email, first: first, last: last, period: period, from: c.name };
+        order.push(email);
+      });
+      tok = resp.nextPageToken;
+    } while (tok);
+    sh.getRange(c.row, 4).setValue(n);
+    c.count = n;
+  });
+  var ex = ss_().getSheetByName(TAB_EXTRA);
+  if (ex && ex.getLastRow() > 1) ex.getRange(2, 1, ex.getLastRow() - 1, EXTRA_HEADS.length).getValues().forEach(function (r) {
+    var email = String(r[3]).trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+$/.test(email)) return;
+    if (!byEmail[email]) order.push(email);
+    byEmail[email] = { email: email, first: String(r[1]).trim(), last: String(r[2]).trim(), period: showsAs_(r[0], ""), from: "Added by hand" + (r[4] ? ": " + String(r[4]).trim() : "") };
+  });
+  var list = order.map(function (e) { return byEmail[e]; });
+  list.sort(function (a, b) { return ((Number(a.period) || 99) - (Number(b.period) || 99)) || a.period.localeCompare(b.period) || a.last.localeCompare(b.last) || a.first.localeCompare(b.first); });
+  var st = ss_().getSheetByName(TAB_STUDENTS);
+  if (st) {
+    if (st.getLastRow() > 1) st.getRange(2, 1, st.getLastRow() - 1, STUDENT_HEADS.length).clearContent();
+    if (list.length) {
+      st.getRange(2, 1, list.length, 1).setNumberFormat("@");
+      st.getRange(2, 1, list.length, STUDENT_HEADS.length).setValues(list.map(function (s) { return [s.period, s.first, s.last, s.email, s.from]; }));
+    }
+  }
+  return { students: list, classes: classes };
+}
+
+/* ============================== sending it to the site ============================== */
+
+function syncNow() {
+  var ui = SpreadsheetApp.getUi();
+  if (!siteKey_()) { say_("Paste the Site key first", "Settings tab, Site key: paste the Class list key from the website (Leaderboard page, signed in as the teacher > Class list)."); return; }
+  try { refreshClasses_(); } catch (e) { say_("Google Classroom", e.message); return; }
+  clearNew_();
+  var r = sync_({});
+  if (!r.ok && r.tooMany) {
+    var go = ui.alert("Take students off the site?", r.error + "\n\nSend this class list anyway?", ui.ButtonSet.YES_NO);
+    if (go !== ui.Button.YES) return;
+    r = sync_({ force: true });
+  }
+  if (!r.ok) { say_("The class list was not sent", r.error); return; }
+  say_("Sent", r.text);
+}
+
+function clearNew_() {
+  var sh = ss_().getSheetByName(TAB_CLASSES);
+  readClasses_().forEach(function (c) { if (/^New/.test(c.status)) { sh.getRange(c.row, 5).setValue(""); sh.getRange(c.row, 1, 1, CLASS_HEADS.length).setBackground(null); } });
+}
+
+/** Every hour: Classroom again, and the class list to the site when it changed (or once a day anyway). Never asks anything. */
+function hourly() {
+  if (!yes_(settings_().HOURLY) || !siteKey_()) return;
+  try { refreshClasses_(); } catch (e) { log_("Hourly sync", "Google Classroom did not answer: " + e.message); return; }
+  sync_({ quiet: true });
+}
+
+/** Sends the class list. o.force: send even when it takes many students off; o.quiet: only when it changed (or a day went by).
+    Returns { ok, text } or { ok: false, error, tooMany }. */
+function sync_(o) {
+  o = o || {};
+  var key = siteKey_();
+  if (!key) return { ok: false, error: "The Settings tab has no Site key yet." };
+  var built;
+  try { built = buildList_(); } catch (e) { log_("Sync", "Google Classroom did not answer: " + e.message); return { ok: false, error: "Google Classroom did not answer: " + e.message }; }
+  var list = built.students.map(function (s) { return { email: s.email, first: s.first, last: s.last, period: s.period }; });
+  if (!list.length) return { ok: false, error: "No students: tick Show for at least one class in the Classes tab (or add students by hand)." };
+  var classes = built.classes.map(function (c) { return { name: c.name.slice(0, 120), showsAs: c.show ? showsAs_(c.showsAs, c.name) : "", show: c.show, count: c.show ? Number(c.count) || 0 : 0 }; });
+  var helper = { url: props_().getProperty("WEBAPP_URL") || "", version: CL_VERSION, name: CL_NAME };
+  var stamp = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify([list, classes, helper])));
+  var lastAt = Number(props_().getProperty("SENT_AT") || 0);
+  if (o.quiet && stamp === props_().getProperty("SENT_STAMP") && Date.now() - lastAt < 23 * 3600 * 1000) return { ok: true, text: "No change." };
+  var res = UrlFetchApp.fetch(SITE_URL + "/api/classlist/sync", { method: "post", contentType: "application/json", muteHttpExceptions: true,
+    payload: JSON.stringify({ key: key, students: list, classes: classes, helper: helper, force: !!o.force }) });
+  var body = {};
+  try { body = JSON.parse(res.getContentText()) || {}; } catch (e) { body = {}; }
+  var code = res.getResponseCode();
+  if (code !== 200) {
+    var err = body.error || ("The site answered " + code + ".");
+    log_(o.quiet ? "Hourly sync" : "Sync", "Not sent: " + err);
+    return { ok: false, error: err, tooMany: code === 409 };
+  }
+  props_().setProperty("SENT_STAMP", stamp);
+  props_().setProperty("SENT_AT", String(Date.now()));
+  var text = "The site has " + list.length + " student" + (list.length === 1 ? "" : "s") + " in " + classes.filter(function (c) { return c.show; }).length + " class" +
+    (classes.filter(function (c) { return c.show; }).length === 1 ? "" : "es") + "." +
+    (body.added ? " Added " + body.added + "." : "") + (body.removed ? " Took off " + body.removed + " (their results are kept)." : "");
+  setSetting_("LAST_SYNC", when_() + ": " + text);
+  log_(o.quiet ? "Hourly sync" : "Sync", text);
+  return { ok: true, text: text, students: list.length, added: body.added || 0, removed: body.removed || 0 };
+}
+
+/* ============================== the web app (for the Launchpad and the Leaderboard page) ============================== */
+
+function doGet() {
+  return HtmlService.createHtmlOutput("<p style='font-family:Arial,sans-serif'>Class List " + CL_VERSION + ": the helper for Mr. LaMarr's class website. Nothing to see here.</p>");
+}
+
+/** { fn, key, ... } -> { ok: true, result } or { ok: false, error, code }. Every request needs the site key. */
+function doPost(e) {
+  var out;
+  try {
+    var req = null;
+    try { req = JSON.parse((e && e.postData && e.postData.contents) || ""); } catch (err) { req = null; }
+    if (!req || typeof req.fn !== "string") throw coded_("BAD", "Unknown request.");
+    var key = siteKey_();
+    if (!key) throw coded_("NO_KEY", "The Class List sheet has no Site key yet. Paste it in its Settings tab.");
+    if (!same_(String(req.key || "").toLowerCase(), key)) { Utilities.sleep(600); throw coded_("KEY", "The Class List sheet's Site key does not match the website's. Paste the key again in its Settings tab."); }
+    var result;
+    if (req.fn === "hello") result = { name: CL_NAME, version: CL_VERSION, url: props_().getProperty("WEBAPP_URL") || "" };
+    else if (req.fn === "update") result = updateAssignment_(req);
+    else if (req.fn === "undo") result = undoAssignment_(req);
+    else if (req.fn === "updateSelf") result = updateSelf_(true);
+    else if (req.fn === "sync") { result = sync_({ force: false }); if (!result.ok) throw coded_(result.tooMany ? "TOO_MANY" : "SYNC", result.error); }
+    else throw coded_("BAD", "Unknown request.");
+    out = { ok: true, result: result };
+  } catch (err) {
+    out = { ok: false, error: String((err && err.message) || err), code: (err && err.code) || "" };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function coded_(code, message) { var e = new Error(message); e.code = code; return e; }
+
+/* ============================== the Apps Script API ============================== */
+
+/** One call to the Apps Script API as you (this sheet's own permission). Throws a plain-language error with .code. */
+function api_(method, path, body) {
+  var opts = { method: method, muteHttpExceptions: true, headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() } };
+  if (body) { opts.contentType = "application/json"; opts.payload = JSON.stringify(body); }
+  var res = UrlFetchApp.fetch(SCRIPT_API + path, opts), code = res.getResponseCode(), j = {};
+  try { j = JSON.parse(res.getContentText() || "{}") || {}; } catch (e) { j = {}; }
+  if (code >= 200 && code < 300) return j;
+  var msg = String((j.error && j.error.message) || "");
+  if (code === 403 && /apps script api|has not been used|not enabled|usersettings/i.test(msg)) {
+    throw coded_("API_OFF", "Turn on the Google Apps Script API once: open script.google.com/home/usersettings and switch Google Apps Script API to On (wait a minute after).");
+  }
+  if (code === 404) throw coded_("NOT_FOUND", "Google could not find that Apps Script project or student link.");
+  if (code === 403 || code === 401) throw coded_("DENIED", "Google said no" + (msg ? ": " + msg : ".") + " (Is this your sheet? Run Class List > Set up once to approve.)");
+  if (code === 429) throw coded_("BUSY", "Google is busy (too many updates at once). Wait a minute, then try again.");
+  throw coded_("API", "The Apps Script API answered " + code + (msg ? ": " + msg : "."));
+}
+
+/** This sheet's own web app: the one in Script properties, else one already made in Deploy, else a new one. */
+function ensureWebApp_() {
+  var sid = ScriptApp.getScriptId(), dep = props_().getProperty("DEPLOYMENT_ID"), made = false, found = null;
+  var list = api_("get", "projects/" + sid + "/deployments?pageSize=50").deployments || [];
+  list.forEach(function (d) {
+    var web = (d.entryPoints || []).filter(function (p) { return p.entryPointType === "WEB_APP" && p.webApp; })[0];
+    if (!web || !d.deploymentConfig || !d.deploymentConfig.versionNumber) return;
+    if (d.deploymentId === dep || !found) found = { id: d.deploymentId, url: web.webApp.url };
+  });
+  if (!found) {
+    var v = api_("post", "projects/" + sid + "/versions", { description: "Class List " + CL_VERSION });
+    var d = api_("post", "projects/" + sid + "/deployments", { versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "Class List web app (for the Launchpad)" });
+    var web = (d.entryPoints || []).filter(function (p) { return p.entryPointType === "WEB_APP" && p.webApp; })[0];
+    if (!web) throw coded_("NO_WEBAPP", "Google made the deployment without a web app. Check that appsscript.json is the one from the release, then run Set up again.");
+    found = { id: d.deploymentId, url: web.webApp.url };
+    made = true;
+  }
+  var url = String(found.url).replace(/^https:\/\/script\.google\.com\/a\/macros\/[^\/]+\//, "https://script.google.com/macros/");
+  props_().setProperty("DEPLOYMENT_ID", found.id);
+  props_().setProperty("WEBAPP_URL", url);
+  setSetting_("WEBAPP_SHOWN", url);
+  return { made: made, url: url, id: found.id };
+}
+
+/* ============================== updating an assignment sheet ============================== */
+
+var DEP_ID = /^AKfycb[\w-]{20,200}$/, SCRIPT_ID = /^[\w-]{20,100}$/, SHEET_ID = /^[\w-]{20,100}$/, KIND = /^[a-z0-9-]{3,40}$/, VER = /^\d{4}\.\d{2}\.\d{2}[a-z]?$/;
+
+/** What an assignment sheet says about itself: classPass("launchpad") on its web app. { ok, info } or { ok: false, why }. */
+function askSheet_(dep) {
+  var res;
+  try {
+    res = UrlFetchApp.fetch("https://script.google.com/macros/s/" + dep + "/exec", { method: "post", contentType: "text/plain;charset=utf-8", muteHttpExceptions: true,
+      followRedirects: true, payload: JSON.stringify({ fn: "classPass", args: ["launchpad"], token: "" }) });
+  } catch (e) { return { ok: false, why: "fail" }; }
+  var text = res.getContentText(), j = null;
+  try { j = JSON.parse(text); } catch (e) { j = null; }
+  if (!j) return { ok: false, why: /authoriz/i.test(text) ? "auth" : /doPost/.test(text) ? "old" : "fail" };
+  if (!j.ok) return { ok: false, why: /Unknown request/.test(String(j.error)) ? "old" : "fail", error: String(j.error || "") };
+  return j.result && j.result.version ? { ok: true, info: j.result } : { ok: false, why: "fail" };
+}
+
+function fetchText_(url) {
+  var r = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+  if (r.getResponseCode() !== 200) throw coded_("NO_RELEASE", "The class website did not send " + url.split("/").slice(-2).join("/") + ".");
+  return r.getContentText("UTF-8");
+}
+
+/** The newest release of a kind on the class website: { version, notes, files: { "Code.gs": text, ... } }. */
+function release_(kind) {
+  var base = RELEASES_URL + encodeURIComponent(kind) + "/", j = null;
+  try { j = JSON.parse(fetchText_(base + "latest.json")); } catch (e) { j = null; }
+  if (!j || j.kind !== kind || !VER.test(String(j.version)) || !j.files) throw coded_("NO_RELEASE", "The class website has no release for " + kind + ".");
+  var out = { version: String(j.version), files: {}, notes: "" };
+  Object.keys(j.files).forEach(function (label) {
+    var file = String(j.files[label] || "");
+    if (!/^[\w.-]+$/.test(file)) return;
+    if (label === "What changed.txt") { try { out.notes = fetchText_(base + file); } catch (e) {} return; }
+    out.files[label] = fetchText_(base + file);
+  });
+  return out;
+}
+
+/** Does that sheet keep its questions in its Questions tab? The sheet says so (2026.11.10b on), else look at the tab. null = can't tell. */
+function questionsInTab_(info, sheetId) {
+  if (typeof info.questionsInTab === "boolean") return info.questionsInTab;
+  if (!sheetId) return null;
+  try {
+    var qs = SpreadsheetApp.openById(sheetId).getSheetByName("Questions");
+    return !!qs && qs.getLastRow() > 1;
+  } catch (e) { return null; }
+}
+
+/** The project file for a release file: "Code.gs" -> the Code file (or the only server file), "Index.html" -> Index, "appsscript.json" -> the manifest. */
+function projectFile_(files, label) {
+  if (label === "appsscript.json") return files.filter(function (f) { return f.type === "JSON" && f.name === "appsscript"; })[0] || null;
+  var name = label.replace(/\.(gs|html)$/, ""), type = /\.html$/.test(label) ? "HTML" : "SERVER_JS";
+  var hit = files.filter(function (f) { return f.type === type && f.name === name; })[0];
+  if (hit) return hit;
+  var all = files.filter(function (f) { return f.type === type; });
+  return type === "SERVER_JS" && all.length === 1 ? all[0] : null;
+}
+
+function kindName_(k) {
+  return ({ "auto-grading-activity": "Self-Check", "reading-activity": "Reading page", "friction-article": "Friction Article", "friction-speed-lab": "Friction and Speed Lab",
+    "friction-sim-lab": "Friction Simulation Lab", "review-game": "Review Game", "net-force-escape-room": "Escape Room", "video-check": "Video Check", "class-list": "Class List" })[k] || k;
+}
+
+/**
+ * The Launchpad's Update now. req: { deployment (the AKfycb... in the student link), script (Script ID, when the sheet's code is too old to
+ * say it), sheet (the results sheet's ID), title (for the Log) }.
+ * 1. Ask the sheet what it is (kind, version, Script ID). 2. Get the newest release of that kind from the class website. 3. Save the
+ * project as it is now as a version (Undo goes back to it). 4. Put the release's Code.gs and Index.html in, keeping every other file.
+ * 5. Make a version of that and switch the student link's deployment to it (students switch only here). 6. Ask the sheet again.
+ */
+function updateAssignment_(req) {
+  var dep = String(req.deployment || ""), title = String(req.title || "").slice(0, 120) || "An assignment";
+  if (!DEP_ID.test(dep)) throw coded_("BAD", "That card has no student link to update.");
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) throw coded_("BUSY", "Another update is running. Try again in a minute.");
+  try {
+    var asked = askSheet_(dep);
+    if (!asked.ok) {
+      if (asked.why === "old") throw coded_("TOO_OLD", "This sheet's code is from before Class Pass, so it has to be updated by hand once (in the sheet: Self-Check > Check for skill updates).");
+      if (asked.why === "auth") throw coded_("NEEDS_OK", "The sheet is waiting for your OK: open it, run Self-Check > Set up / repair sheets and approve, then try again.");
+      throw coded_("NO_ANSWER", "The sheet did not answer (its deployment may not be open to Anyone).");
+    }
+    var info = asked.info, kind = String(info.kind || "");
+    if (!KIND.test(kind)) throw coded_("BAD", "The sheet did not say what kind it is.");
+    if (info.sheetKind && info.sheetKind !== kind) throw coded_("WRONG_KIND", "This sheet has the wrong code pasted in. Fix that by hand first (see the card).");
+    var sid = String(info.scriptId || req.script || "");
+    if (!SCRIPT_ID.test(sid)) throw coded_("NEED_SCRIPT_ID", "This sheet's code is too old to tell the Launchpad where its code lives. Edit this card and paste its Script ID " +
+      "(in the sheet: Extensions > Apps Script > Project Settings, the gear on the left > Script ID), or update it by hand once.");
+    var rel = release_(kind);
+    if (rel.version === String(info.version)) return { already: true, kind: kind, version: rel.version };
+    if (rel.version < String(info.version)) throw coded_("NEWER", "This sheet has newer code (" + info.version + ") than the newest release (" + rel.version + "). Nothing was changed.");
+    var code = rel.files["Code.gs"], page = rel.files["Index.html"];
+    if (!code || code.indexOf('var SKILL_NAME = "' + kind + '";') === -1 || code.indexOf('var SKILL_VERSION = "' + rel.version + '";') === -1) throw coded_("NO_RELEASE", "The release on the class website looks wrong. Nothing was changed.");
+    // a website release carries no starter questions: the sheet must have its own in its Questions tab
+    if (/^var ITEMS = \[\];/m.test(code)) {
+      var inTab = questionsInTab_(info, String(req.sheet || ""));
+      if (inTab === false) throw coded_("NO_QUESTIONS", "This sheet's questions are only in its code, so it has to be updated by hand: in the sheet, Self-Check > Set up / repair sheets, then Check for skill updates.");
+      if (inTab === null) throw coded_("NO_QUESTIONS", "The Launchpad could not check that this sheet's questions are in its Questions tab. Add its results sheet to this card (Edit), or update it by hand.");
+    }
+
+    var d = api_("get", "projects/" + sid + "/deployments/" + dep);
+    var prev = d.deploymentConfig && d.deploymentConfig.versionNumber;
+    if (!prev) throw coded_("HEAD", "That student link runs the newest saved code directly (a test deployment), so there is nothing to switch.");
+    var content = api_("get", "projects/" + sid + "/content"), files = content.files || [];
+    var cf = projectFile_(files, "Code.gs"), xf = page ? projectFile_(files, "Index.html") : null;
+    if (!cf) throw coded_("FILES", "Could not tell which file in that project is Code.gs. Update it by hand.");
+    if (page && !xf) throw coded_("FILES", "That project has no Index file. Update it by hand.");
+    var backup = api_("post", "projects/" + sid + "/versions", { description: "Before the Launchpad update to " + kind + " " + rel.version + " (" + when_() + ")" });
+    var next = files.map(function (f) {
+      var src = f === cf ? code : f === xf ? page : f.source;
+      return { name: f.name, type: f.type, source: src };
+    });
+    api_("put", "projects/" + sid + "/content", { scriptId: sid, files: next });
+    var made = api_("post", "projects/" + sid + "/versions", { description: kindName_(kind) + " " + rel.version + " (from the Launchpad)" });
+    api_("put", "projects/" + sid + "/deployments/" + dep, { deploymentConfig: { scriptId: sid, versionNumber: made.versionNumber, manifestFileName: d.deploymentConfig.manifestFileName || "appsscript",
+      description: kindName_(kind) + " " + rel.version } });
+    props_().setProperty("UNDO:" + dep, JSON.stringify({ script: sid, backup: backup.versionNumber, prev: prev, from: String(info.version), to: rel.version, kind: kind, at: Date.now() }));
+
+    var after = askSheet_(dep), out = { kind: kind, from: String(info.version), to: rel.version, undo: true };
+    if (after.ok) {
+      out.verified = String(after.info.version) === rel.version;
+      if (after.info.repair && after.info.repair.length) out.repair = after.info.repair;
+    } else out.needsOk = after.why === "auth";
+    log_(title, "Updated " + kindName_(kind) + " from " + info.version + " to " + rel.version + (out.needsOk ? ". It needs your OK in the sheet (Set up / repair sheets)." : out.repair ? ". Run Set up / repair sheets in it: " + out.repair.join(", ") : "."));
+    return out;
+  } catch (err) {
+    log_(title, "Not updated: " + err.message);
+    throw err;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Undo the last Launchpad update of that student link: the code goes back to what it was, and the link to the version students had. */
+function undoAssignment_(req) {
+  var dep = String(req.deployment || ""), title = String(req.title || "").slice(0, 120) || "An assignment";
+  if (!DEP_ID.test(dep)) throw coded_("BAD", "That card has no student link.");
+  var u = null;
+  try { u = JSON.parse(props_().getProperty("UNDO:" + dep) || "null"); } catch (e) { u = null; }
+  if (!u || !u.script || !u.backup || !u.prev) throw coded_("NO_UNDO", "There is no Launchpad update of this sheet to undo.");
+  var old = api_("get", "projects/" + u.script + "/content?versionNumber=" + u.backup);
+  api_("put", "projects/" + u.script + "/content", { scriptId: u.script, files: (old.files || []).map(function (f) { return { name: f.name, type: f.type, source: f.source }; }) });
+  var d = api_("get", "projects/" + u.script + "/deployments/" + dep);
+  api_("put", "projects/" + u.script + "/deployments/" + dep, { deploymentConfig: { scriptId: u.script, versionNumber: u.prev, manifestFileName: (d.deploymentConfig && d.deploymentConfig.manifestFileName) || "appsscript",
+    description: "Back to " + kindName_(u.kind) + " " + u.from } });
+  props_().deleteProperty("UNDO:" + dep);
+  log_(title, "Undid the update: back to " + u.from + ".");
+  return { kind: u.kind, to: u.from };
+}
+
+/* ============================== updating this sheet itself ============================== */
+
+/** Menu: Class List > Update this sheet's code. */
+function updateMyCode() {
+  try {
+    var r = updateSelf_(false);
+    if (r.already) say_("Up to date", "This sheet has the newest Class List code (" + CL_VERSION + ").");
+    else say_("Updated", "Class List is now " + r.to + ".\n\nReload this sheet (the new menu comes then). If Google asks you to approve, say yes." + (r.notes ? "\n\nWhat changed:\n" + r.notes : ""));
+  } catch (e) {
+    say_("Not updated", e.message);
+  }
+}
+
+/** This sheet's own code: the newest class-list release (Code.gs and appsscript.json), then its web app switches to it.
+    fromWeb: refuses a release that needs new permissions (only you can approve them, in the sheet). */
+function updateSelf_(fromWeb) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) throw coded_("BUSY", "Another update is running. Try again in a minute.");
+  try {
+    var rel = release_(CL_NAME);
+    if (rel.version <= CL_VERSION) return { already: true, version: CL_VERSION };
+    var code = rel.files["Code.gs"], man = rel.files["appsscript.json"];
+    if (!code || code.indexOf('var CL_NAME = "' + CL_NAME + '";') === -1 || code.indexOf('var CL_VERSION = "' + rel.version + '";') === -1) throw coded_("NO_RELEASE", "The release on the class website looks wrong. Nothing was changed.");
+    var sid = ScriptApp.getScriptId(), content = api_("get", "projects/" + sid + "/content"), files = content.files || [];
+    var cf = projectFile_(files, "Code.gs"), mf = projectFile_(files, "appsscript.json");
+    if (!cf || !mf) throw coded_("FILES", "Could not find this sheet's Code.gs and appsscript.json. Update it by hand.");
+    if (man) {
+      var want = [], have = [];
+      try { want = JSON.parse(man).oauthScopes || []; have = JSON.parse(mf.source).oauthScopes || []; } catch (e) { throw coded_("NO_RELEASE", "The release's appsscript.json looks wrong. Nothing was changed."); }
+      var added = want.filter(function (s) { return have.indexOf(s) === -1; });
+      if (added.length && fromWeb) throw coded_("NEEDS_OK", "This update asks for a new permission, which only you can approve: open the Class List sheet and choose Class List > Update this sheet's code.");
+    }
+    var dep = props_().getProperty("DEPLOYMENT_ID"), d = null;
+    if (dep) { try { d = api_("get", "projects/" + sid + "/deployments/" + dep); } catch (e) { d = null; } }
+    api_("post", "projects/" + sid + "/versions", { description: "Before the update to Class List " + rel.version + " (" + when_() + ")" });
+    api_("put", "projects/" + sid + "/content", { scriptId: sid, files: files.map(function (f) {
+      return { name: f.name, type: f.type, source: f === cf ? code : f === mf && man ? man : f.source };
+    }) });
+    var made = api_("post", "projects/" + sid + "/versions", { description: "Class List " + rel.version });
+    if (d && d.deploymentConfig && d.deploymentConfig.versionNumber) {
+      api_("put", "projects/" + sid + "/deployments/" + dep, { deploymentConfig: { scriptId: sid, versionNumber: made.versionNumber, manifestFileName: d.deploymentConfig.manifestFileName || "appsscript",
+        description: "Class List " + rel.version } });
+    }
+    log_("This sheet's code", "Updated Class List from " + CL_VERSION + " to " + rel.version + ".");
+    return { from: CL_VERSION, to: rel.version, notes: rel.notes };
+  } finally {
+    lock.releaseLock();
+  }
+}

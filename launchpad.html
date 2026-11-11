@@ -101,6 +101,19 @@
   .lp-dlg input:focus{ outline:none; border-color:var(--lp-btn); box-shadow:0 0 0 3px var(--lp-strip); }
   .lp-dlg .lp-two{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
   .lp-dlg .lp-btns{ margin-top:18px; justify-content:space-between; }
+  /* Update now (the Class List sheet updates a sheet's code) and the Class List sheet's own box */
+  .lp-up{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; font-size:13px; }
+  .lp-up-msg{ flex:1 1 100%; }
+  .lp-up-msg.good{ color:var(--lp-ok); font-weight:600; }
+  .lp-up-msg.bad{ background:var(--lp-need); border-left:4px solid var(--lp-needline); padding:6px 8px; border-radius:4px; color:var(--ink); }
+  .lp-up-msg.wait{ color:var(--ink-soft); font-style:italic; }
+  .lp-helper{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin:14px 0 4px; max-width:760px; }
+  .lp-helper h2{ font-size:16px; margin:0 0 6px; }
+  .lp-helper p{ margin:0 0 8px; font-size:14px; }
+  .lp-helper .lp-ready{ color:#c5221f; font-weight:700; }
+  html[data-theme="dark"] .lp-helper .lp-ready{ color:#f28b82; }
+  .lp-helper .lp-btns{ margin-top:4px; }
+  .lp-sure{ display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center; }
   @media (max-width:480px){ .lp h1{ font-size:1.5rem; } .lp-dlg .lp-two{ grid-template-columns:1fr; } }
 </style>
 </head>
@@ -153,7 +166,7 @@
   <p class="cp-msg" id="lpStatus" role="status">Opening your list...</p>
 
   <div class="lp-box" id="lpLocked" hidden>
-    <p>This page is only for Mr. LaMarr. Sign in with the teacher password to see the assignments.</p>
+    <p id="lpLockedText">This page is only for Mr. LaMarr. Sign in with the teacher password to see the assignments.</p>
     <button class="lp-btn big" type="button" id="lpSignIn">Teacher sign in</button>
   </div>
 
@@ -165,6 +178,7 @@
     </div>
     <div class="lp-chips" id="lpChips" role="group" aria-label="Filter by type"></div>
     <p class="lp-codesum" id="lpCodeSum" role="status"></p>
+    <div class="lp-helper" id="lpHelper" hidden></div>
     <div id="lpList"></div>
     <div class="lp-arrange" id="lpArrange" hidden>
       <span class="lp-say">Drag topics and cards where you want them, or use the arrows. A card stays in its topic (to move it to another topic, change its Group with Edit).</span>
@@ -212,7 +226,18 @@
    only within its topic); Save order sends the whole list once. A new card goes first in its topic, a new topic first
    on the page. A list last saved before this (ORDER_SINCE) opens newest first, as it used to show, until it is saved.
    The same code question also brings each sheet's Automatic grades and Full credit at settings (Self-Check
-   2026.10.29f and later answer classPass("launchpad") with them); a card shows them when its sheet sends them. */
+   2026.10.29f and later answer classPass("launchpad") with them); a card shows them when its sheet sends them.
+
+   Update now (Donny, 2026-11-10): the teacher's Class List Google Sheet (class-tools/class-list) is deployed as a
+   web app, and it can update an assignment sheet's code: it puts the newest release from /pass/releases/<kind>/ into
+   that sheet's Apps Script project and switches the student link's deployment to it (a backup version first, so Undo
+   puts it back). This page learns the sheet's address and key from the bridge ("classList", teacher only) and posts
+   {fn, key, deployment, script, sheet, title} to it. A card that needs an update (red or gray) gets Update now; the
+   code check line gets Update all (it asks once more on the page, no pop-up). One update runs at a time. A sheet
+   on code older than 2026.11.10b doesn't say its Script ID: Edit can keep one on the card (item.script). The box
+   above the list says how the Class List sheet is doing, and installs its own newer release (Update now there).
+   Updating by hand (in the sheet: Check for skill updates) works exactly as before.
+   Student view (the Class Pass menu): this page is locked, the way students see it. */
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
   var KINDS = ["Self-Check", "Reading", "Lab", "Video Check", "Review Game", "Escape Room"];
@@ -282,6 +307,11 @@ document.addEventListener("DOMContentLoaded", function(){
     $("lpMain").hidden = true;
     $("lpLocked").hidden = false;
     $("lpList").textContent = "";
+    // student view: the teacher sees the page the way a student would, with the way back
+    var sv = Boolean(window.PS8Pass.studentView && window.PS8Pass.studentView());
+    $("lpLockedText").textContent = sv ? "You are in student view, and students can't open this page. Leave student view to see your assignments."
+      : "This page is only for Mr. LaMarr. Sign in with the teacher password to see the assignments.";
+    $("lpSignIn").textContent = sv ? "Leave student view" : "Teacher sign in";
     status("");
   }
   function load(){
@@ -298,13 +328,17 @@ document.addEventListener("DOMContentLoaded", function(){
       $("lpMain").hidden = false;
       draw();
       checkCodes(false);
+      loadHelper();
     }, function(err){
       if(err.status === 401) return locked();
       status(err.message + " Reload the page to try again.", true);
     }).then(function(){ loading = false; });
   }
   function look(v){ if(v && v.teacher){ if(!loaded) load(); } else locked(); }
-  $("lpSignIn").addEventListener("click", function(){ window.PS8Pass.teacherSignIn(); });
+  $("lpSignIn").addEventListener("click", function(){
+    if(window.PS8Pass.studentView && window.PS8Pass.studentView()) window.PS8Pass.setStudentView(false);
+    else window.PS8Pass.teacherSignIn();
+  });
   window.PS8Pass.onChange(look);
   look(window.PS8Pass.view());
 
@@ -422,7 +456,174 @@ document.addEventListener("DOMContentLoaded", function(){
       again.addEventListener("click", function(){ checkCodes(true); });
       box.appendChild(again);
     }
+    var todo = needIds();
+    if(!n.checking && todo.length > 1 && helperReady()) box.appendChild(updateAllButton(todo));
     return n;
+  }
+
+  /* ---------- Update now: the Class List sheet updates a sheet's code ---------- */
+  // helper = what the site knows about the Class List sheet: {connected, url, key, version, synced, students} (+ live: the version it says itself)
+  var helper = null, updates = {}, upQueue = [], upBusy = false, allSure = false;
+  function helperReady(){ return Boolean(helper && helper.connected && helper.url && helper.key); }
+  function loadHelper(){
+    window.PS8Pass.ask({type: "classList"}).then(function(d){
+      helper = d || {};
+      drawHelper();
+      drawSoon();
+      if(helperReady()) hello();
+    }, function(err){
+      helper = {error: err.message};
+      drawHelper();
+    });
+  }
+  function hello(){
+    askHelper("hello", {}, 60000).then(function(r){ helper.live = String(r.version || ""); helper.helloError = ""; drawHelper(); },
+      function(err){ helper.helloError = err.message; drawHelper(); });
+  }
+  // one request to the Class List sheet's web app; it checks the key
+  function askHelper(fn, extra, ms){
+    var body = {fn: fn, key: helper.key};
+    Object.keys(extra || {}).forEach(function(k){ body[k] = extra[k]; });
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, ms || 180000);
+    return fetch(helper.url, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(body), signal: ctl ? ctl.signal : undefined})
+      .then(function(r){ return r.text(); }, function(){ throw new Error("The Class List sheet did not answer in time. Check the internet connection, then try again (Check again shows whether it worked)."); })
+      .then(function(text){
+        clearTimeout(timer);
+        var out = null;
+        try { out = JSON.parse(text); } catch(e){ /* not an answer from the code */ }
+        if(!out) throw new Error(/authoriz/i.test(text) ? "The Class List sheet is waiting for your OK: open it and choose Class List > Set up." : "The Class List sheet did not answer. Open it and choose Class List > Set up once.");
+        if(!out.ok){ var err = new Error(out.error || "The Class List sheet said no."); err.code = out.code || ""; throw err; }
+        return out.result || {};
+      }, function(err){ clearTimeout(timer); throw err; });
+  }
+  // the cards whose sheets need a code update (red), one per student link
+  function needIds(){
+    var out = [];
+    items.forEach(function(a){ var id = appId(a.link), note = id && codeNote(a); if(note && note.need && canUpdate(id) && out.indexOf(id) === -1) out.push(id); });
+    return out;
+  }
+  function canUpdate(id){
+    var c = codes[id], u = updates[id];
+    return Boolean(c && c.state === "done" && !(c.sheetKind && c.sheetKind !== c.kind) && !(u && (u.state === "waiting" || u.state === "running")));
+  }
+  function cardFor(id){ for(var i = 0; i < items.length; i++) if(appId(items[i].link) === id) return items[i]; return null; }
+  function queueUpdate(id, fn){
+    updates[id] = {state: "waiting", fn: fn || "update", text: "", undo: updates[id] && updates[id].undo};
+    upQueue.push(id);
+    drawSoon();
+    nextUpdate();
+  }
+  function nextUpdate(){
+    if(upBusy || !upQueue.length) return;
+    var id = upQueue.shift(), u = updates[id], a = cardFor(id);
+    if(!a){ delete updates[id]; nextUpdate(); return; }
+    upBusy = true;
+    u.state = "running";
+    drawSoon();
+    askHelper(u.fn, {deployment: id, script: a.script || "", sheet: a.sheet || "", title: a.title}).then(function(r){
+      if(u.fn === "undo"){ u.text = "Undone: the sheet and its student link are back to " + r.to + "."; u.undo = false; }
+      else if(r.already){ u.text = "Already up to date (" + r.version + ")."; }
+      else {
+        u.text = "✓ Updated from " + r.from + " to " + r.to + ". Students keep the same link." +
+          (r.needsOk ? " The sheet is waiting for your OK: open it, run " + menuOf(r.kind) + " > Set up / repair sheets and approve." : "") +
+          (r.repair && r.repair.length ? " Open the sheet and run " + menuOf(r.kind) + " > Set up / repair sheets once: it adds " + r.repair.join(", ") + "." : "");
+        u.undo = true;
+      }
+      u.bad = false;
+    }, function(err){
+      u.bad = true;
+      u.text = (u.fn === "undo" ? "Not undone: " : "Not updated: ") + err.message +
+        (err.code === "NEED_SCRIPT_ID" ? "" : err.code === "API_OFF" || err.code === "KEY" || err.code === "NO_KEY" ? "" : " You can still update it by hand: in the sheet, " + menuOf(codes[id] && codes[id].kind) + " > Check for skill updates.");
+    }).then(function(){
+      u.state = "done";
+      upBusy = false;
+      codes[id] = {state: "checking"};   // ask the sheet again what it runs now
+      queue.push(id);
+      pump();
+      drawSoon();
+      nextUpdate();
+    });
+  }
+  function menuOf(kind){ return kind === "video-check" ? "Video Check" : "Self-Check"; }
+  // under a card's code note: Update now / Undo, and what the last update said
+  function updateLine(a, note){
+    var id = appId(a.link), u = id && updates[id];
+    if(!id) return null;
+    var box = el("div", "lp-up");
+    if(u && u.state === "waiting") box.appendChild(el("span", "lp-up-msg wait", "Waiting for the update before it..."));
+    else if(u && u.state === "running") box.appendChild(el("span", "lp-up-msg wait", u.fn === "undo" ? "Putting the old code back. This takes about half a minute..." : "Updating this sheet's code. This takes about half a minute..."));
+    else if(u && u.text) box.appendChild(el("span", "lp-up-msg" + (u.bad ? " bad" : " good"), u.text));
+    if(note && (note.need || note.opt) && canUpdate(id) && helperReady()){
+      var go = el("button", "lp-btn", "Update now"); go.type = "button";
+      go.setAttribute("aria-label", "Update the code of " + a.title);
+      go.addEventListener("click", function(){ queueUpdate(id, "update"); });
+      box.appendChild(go);
+    }
+    if(u && u.undo && u.state === "done" && helperReady()){
+      var un = el("button", "lp-btn quiet", "Undo this update"); un.type = "button";
+      un.addEventListener("click", function(){ queueUpdate(id, "undo"); });
+      box.appendChild(un);
+    }
+    return box.childNodes.length ? box : null;
+  }
+  // Update all: asks once more on the page (no pop-up), then queues every red card
+  function updateAllButton(todo){
+    var wrap = el("span", "lp-sure");
+    if(!allSure){
+      var b = el("button", "lp-btn", "Update all " + todo.length); b.type = "button";
+      b.addEventListener("click", function(){ allSure = true; draw(); });
+      wrap.appendChild(b);
+      return wrap;
+    }
+    wrap.appendChild(el("span", null, "Update the code of all " + todo.length + " sheets that need it, one at a time?"));
+    var yes = el("button", "lp-btn", "Yes, update all " + todo.length); yes.type = "button";
+    yes.addEventListener("click", function(){ allSure = false; todo.forEach(function(id){ queueUpdate(id, "update"); }); });
+    var no = el("button", "lp-btn alt", "Cancel"); no.type = "button";
+    no.addEventListener("click", function(){ allSure = false; draw(); });
+    wrap.appendChild(yes);
+    wrap.appendChild(no);
+    return wrap;
+  }
+
+  // the Class List sheet's box: not set up yet, its own update (like the code check for a card), or all is well
+  var selfUp = null;   // its own update: {state: "running"} or {text, bad}
+  function drawHelper(){
+    var box = $("lpHelper");
+    box.textContent = "";
+    box.hidden = !helper;
+    if(!helper) return;
+    box.appendChild(el("h2", null, "Class List sheet"));
+    function p(text, cls){ var x = el("p", cls || null, text); box.appendChild(x); return x; }
+    if(helper.error){ p("Couldn't ask about your Class List sheet (" + helper.error + "). Update now needs it; reload the page to try again."); return; }
+    if(!helper.connected){
+      var t = p("Update now (on a card that needs a code update) needs your Class List sheet. It also keeps your class list for Class Pass and the Leaderboard. Set it up from the ");
+      var l = el("a", null, "Leaderboard page"); l.href = "/leaderboard.html"; t.appendChild(l);
+      t.appendChild(document.createTextNode(" (signed in as the teacher): open Class list from a Google Sheet at the bottom."));
+      return;
+    }
+    if(!helper.url){ p("Your Class List sheet sends the class list, but it has no web app yet, so Update now can't use it. Open the sheet and choose Class List > Set up (it says what's missing, like turning on the Google Apps Script API)."); return; }
+    var have = helper.live || helper.version || "", web = newest && typeof newest["class-list"] === "string" ? newest["class-list"] : "";
+    if(helper.helloError) p("The Class List sheet didn't answer: " + helper.helloError, "lp-ready");
+    if(selfUp && selfUp.state === "running"){ p("Updating the Class List sheet. This takes about half a minute..."); return; }
+    if(selfUp && selfUp.text) p(selfUp.text, selfUp.bad ? "lp-ready" : null);
+    if(have && web && have < web){
+      p("When Claude changes the Class List sheet's code, the change waits here until you press Update now. It copies the new code into the sheet's Apps Script project and switches its web app to it, so nothing else changes.");
+      p("An update is ready: version " + web + " (this sheet has " + have + ").", "lp-ready");
+      var bt = el("div", "lp-btns"), go = el("button", "lp-btn big", "Update now"); go.type = "button";
+      go.addEventListener("click", function(){
+        selfUp = {state: "running"};
+        drawHelper();
+        askHelper("updateSelf", {}).then(function(r){
+          selfUp = {text: r.already ? "Already up to date." : "✓ Updated the Class List sheet to " + r.to + "."};
+        }, function(err){ selfUp = {text: "Not updated: " + err.message, bad: true}; }).then(function(){ drawHelper(); hello(); });
+      });
+      bt.appendChild(go);
+      box.appendChild(bt);
+      return;
+    }
+    p("✓ Version " + (have || "?") + (web && have === web ? ", up to date" : "") + ". Class list: " + (helper.students || 0) + " students" +
+      (helper.synced ? ", sent " + new Date(helper.synced).toLocaleString([], {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}) : "") + ". Update now on a card uses this sheet.");
   }
 
   /* ---------- the list ---------- */
@@ -484,6 +685,8 @@ document.addEventListener("DOMContentLoaded", function(){
       " as " + dup.map(named).join(", ") + ". Use Edit > Remove on one of them."));
     var note = codeNote(a);
     if(note) c.appendChild(el("div", "lp-code" + (note.cls ? " " + note.cls : ""), note.text));
+    var up = updateLine(a, note);
+    if(up) c.appendChild(up);
     var link = okLink(a.link);
     if(!link) c.appendChild(el("div", "lp-nolink", "Student link not saved yet: in the sheet choose Self-Check > Show student link, then Edit here and paste it."));
     var bt = el("div", "lp-btns");
@@ -508,6 +711,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   function draw(){
     if(work) return drawArranging();
+    drawHelper();
     chips(codeSummary().need);
     var q = $("lpQ").value.trim().toLowerCase(), list = $("lpList");
     list.textContent = "";
@@ -601,7 +805,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(old) old.remove();
     work = items.slice(); moved = false;
     document.body.classList.add("lp-arranging");
-    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpFoot"].forEach(function(id){ $(id).style.display = "none"; });
+    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpHelper", "lpFoot"].forEach(function(id){ $(id).style.display = "none"; });
     $("lpArrange").hidden = false;
     $("lpOrderMsg").textContent = "";
     draw();
@@ -610,7 +814,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!work) return;
     work = null; moved = false; drag = null;
     document.body.classList.remove("lp-arranging");
-    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpFoot"].forEach(function(id){ $(id).style.display = ""; });
+    ["lpQ", "lpAdd", "lpOrder", "lpChips", "lpCodeSum", "lpHelper", "lpFoot"].forEach(function(id){ $(id).style.display = ""; });
     $("lpArrange").hidden = true;
     if(loaded) draw();
   }
@@ -780,6 +984,9 @@ document.addEventListener("DOMContentLoaded", function(){
     var fUnit = field(box, "Group", "Optional, e.g. Unit 1: Forces. Cards with the same group sit together.", input("lpFUnit", "text", a.unit));
     fUnit.setAttribute("list", "lpUnits"); fUnit.maxLength = 60;
     box.appendChild(datalist("lpUnits", units));
+    // only for Update now on a sheet whose code is too old to say where it lives (2026-11-10)
+    var fScript = field(box, "Script ID (only if Update now asks for it)", "In the sheet: Extensions > Apps Script > Project Settings (the gear on the left) > Script ID, then Copy.", input("lpFScript", "text", a.script, ""));
+    fScript.maxLength = 110; fScript.spellcheck = false;
 
     var msg = el("p", "cp-msg"); msg.setAttribute("role", "status");
     box.appendChild(msg);
@@ -820,7 +1027,10 @@ document.addEventListener("DOMContentLoaded", function(){
       if(sheet === null) return bad("That does not look like a Google Sheet's address. Open the sheet and copy the address from the top of the tab.", fSheet);
       if(!title) return bad("Give it a title.", fTitle);
       if(!link && !sheet) return bad("Paste the student link, the results sheet, or both.", fLink);
+      var script = fScript.value.trim();
+      if(script && !/^[\w-]{20,100}$/.test(script)) return bad("That does not look like a Script ID (letters, numbers, - and _, like 1AbC...). Copy it again from Project Settings.", fScript);
       var it = { id: a.id || newId(), title: title, kind: (fKind.value === "__other__" ? fKindNew.value : fKind.value).trim(), unit: fUnit.value.trim(), link: link, sheet: sheet, date: fDate.value || "" };
+      if(script) it.script = script;
       // the same assignment can't go on twice
       // (a card that was already a duplicate can still be edited; only a new match stops it)
       var was = editing ? twins(a, items) : [];

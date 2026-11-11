@@ -1,0 +1,13 @@
+class-list v2026.11.10b
+
+- The first Class List sheet. It holds the class list for your class website's Class Pass sign-in and Leaderboard, so you no longer
+  paste the roster on the Leaderboard page.
+- Classes tab: every active Google Classroom class you teach. Tick Show for the classes whose students should sign in and appear on the
+  leaderboard. Shows as = the period number (4) or a name (Test); "Period 4" is saved as 4. A class you have not decided on yet says New.
+- Students tab: made by the sheet from the ticked classes (don't type there). Added by hand tab: anyone else, or a fix to a name or period.
+- Class List > Sync now sends the list to the site. Every hour it checks Google Classroom and sends the list when it changed. If a sync would
+  take more than half the students off the site, it asks first (the hourly sync never does it by itself). Results of students taken off are kept.
+- It is also the Assignment Launchpad's helper: Update now on a card copies the newest release into that assignment sheet, makes a New
+  version and switches the student link to it. Undo puts the old code back. It needs the Google Apps Script API turned on once
+  (script.google.com/home/usersettings).
+- The Log tab lists every sync and every code update the Launchpad made.

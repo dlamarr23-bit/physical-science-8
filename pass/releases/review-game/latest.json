@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.10",
-  "optional": "new Settings row Questions per try: each student gets a random set of questions from the bank each time they play.",
+  "version": "2026.11.10b",
+  "optional": "lets your Assignment Launchpad update this sheet's code for you (Update now), with no copying and pasting.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

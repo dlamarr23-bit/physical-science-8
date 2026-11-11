@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.10",
-  "optional": "nothing changes for this kind of sheet. This release keeps every kind on the same version number.",
+  "version": "2026.11.10b",
+  "optional": "lets your Assignment Launchpad update this sheet's code for you (Update now), with no copying and pasting.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

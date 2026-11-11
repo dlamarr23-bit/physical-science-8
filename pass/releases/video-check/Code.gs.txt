@@ -108,7 +108,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Video Check > Check for skill updates (same system as Self-Check). Claude bumps
 // SKILL_VERSION (YYYY.MM.DD, plus a letter for a second change the same day) every time this code changes.
 var SKILL_NAME = "video-check";
-var SKILL_VERSION = "2026.11.10";
+var SKILL_VERSION = "2026.11.10b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -808,12 +808,19 @@ function signInState_() {
            googleClient: googleClient_(), code: !!ALLOW_SIGNIN_CODE, passLink: passLink_() };
 }
 
-/** The Class Pass page asks this first (no sign-in needed): what this sheet is, and how students may sign in. */
-function classPass() {
+/** The Class Pass page asks this first (no sign-in needed): what this sheet is, and how students may sign in.
+    The teacher's Assignment Launchpad asks classPass("launchpad"): UPDATE FROM THE LAUNCHPAD (2026.11.10b) also sends where this code
+    lives (its Script ID, nothing secret) and whether the questions are in the Questions tab, so the Class List sheet can update this
+    sheet's code for the teacher (a website release carries no questions). */
+function classPass(ask) {
   loadConfig_();
   var out = { classPass: 1, kind: SKILL_NAME, version: SKILL_VERSION, title: ASSIGNMENT_TITLE, domain: studentDomain_(readRoster_()),
            googleClient: googleClient_(), code: !!ALLOW_SIGNIN_CODE, minutes: SIGNIN_CODE_MINUTES };
   if (wrongKind_()) out.sheetKind = sheetKind_();   // PASTE SAFETY: the Launchpad shows "wrong code" (the student page stops in whoIs_)
+  if (ask === "launchpad") {
+    try { out.scriptId = ScriptApp.getScriptId(); } catch (e) {}
+    try { out.questionsInTab = questionsInTab_(); } catch (e) {}
+  }
   return out;
 }
 

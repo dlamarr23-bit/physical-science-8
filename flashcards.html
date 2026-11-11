@@ -84,12 +84,14 @@
   var pageTitle = document.title, siteName = pageTitle.split(" · ").pop();
   function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
   function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
+  // student view (the Class Pass menu, 2026-11-10): the teacher sees the framed page the way a student does
+  function sv(){ try { return localStorage.getItem("ps8-student-view") === "1" ? "1" : "0"; } catch(e){ return "0"; } }
   function open(){
     var go = (location.search.match(/[?&]go=(live|join|leaderboard)\b/) || [])[1];
     var code = (location.search.match(/[?&]code=([A-Za-z2-9]{6})\b/) || [])[1];
-    if(go){ frame.src = VOCAB + "/" + go + "/?theme=" + theme() + (go === "join" && code ? "&code=" + code.toUpperCase() : ""); return; }
+    if(go){ frame.src = VOCAB + "/" + go + "/?theme=" + theme() + "&sv=" + sv() + (go === "join" && code ? "&code=" + code.toUpperCase() : ""); return; }
     var m = location.pathname.match(/^\/flashcards(\/[\w\/.-]*)?$/);
-    frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + "?theme=" + theme() + location.hash;
+    frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + "?theme=" + theme() + "&sv=" + sv() + location.hash;
   }
   open();
   // a link to another folder or study mode of the same page changes only the part after #

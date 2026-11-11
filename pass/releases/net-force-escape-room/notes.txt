@@ -1,7 +1,20 @@
-net-force-escape-room v2026.11.10
+net-force-escape-room v2026.11.10b
 
-Optional update: nothing changes for this kind of sheet. This release keeps every kind on the same version number.
+Optional update: lets your Assignment Launchpad update this sheet's code for you (Update now), with no copying and pasting.
 
+- New: Update now on the Assignment Launchpad. Once your Class List sheet is set up, a card that says "Code needs updating" (or "Optional update")
+  gets an Update now button. It copies the newest release from the class website into this sheet's Apps Script project, makes a New version and
+  switches the student link to it, so students keep the same link. Undo puts the old code back. You can still update by hand
+  (Self-Check > Check for skill updates) whenever you like.
+- This code tells the Launchpad where it lives (its Script ID, nothing secret) and whether its questions are in the Questions tab (a release on
+  the class website carries no questions, so a sheet whose questions are only in its code is never updated this way). It also says when
+  Set up / repair sheets has Settings rows or columns to add, and the card then tells you to run it.
+- A sheet on older code can still be updated from the Launchpad: Edit its card and paste its Script ID (in the sheet: Extensions > Apps Script >
+  Project Settings, the gear on the left > Script ID). Or update it by hand this one time.
+- To use it: paste the new Code.gs and Index, then New version. No Set up / repair needed (no new Settings rows or columns).
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.10 (optional), if this sheet skipped it:
 - No changes to this kind of sheet. (2026.11.10 adds a Questions per try row to the review game.)
 - Your questions, answer keys, settings and student work are not touched.
 

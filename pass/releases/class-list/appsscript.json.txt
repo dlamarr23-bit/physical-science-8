@@ -1,0 +1,26 @@
+{
+  "timeZone": "America/Los_Angeles",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      { "userSymbol": "Classroom", "serviceId": "classroom", "version": "v1" }
+    ]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/script.projects",
+    "https://www.googleapis.com/auth/script.deployments",
+    "https://www.googleapis.com/auth/classroom.courses.readonly",
+    "https://www.googleapis.com/auth/classroom.rosters.readonly",
+    "https://www.googleapis.com/auth/classroom.profile.emails",
+    "https://www.googleapis.com/auth/userinfo.email"
+  ],
+  "webapp": {
+    "executeAs": "USER_DEPLOYING",
+    "access": "ANYONE_ANONYMOUS"
+  }
+}
