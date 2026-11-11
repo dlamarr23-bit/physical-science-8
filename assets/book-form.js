@@ -25,9 +25,9 @@
 
   // The Extra Credit Book Forms sheet's web app: its Deploy > Web app URL, ending in /exec.
   // Empty = not set up yet: the form keeps the answers in this browser and says it can't be turned in yet.
-  var EXEC_URL = "";
-  // The sheet itself (shown only to the teacher, as a link)
-  var SHEET_URL = "";
+  var EXEC_URL = "https://script.google.com/macros/s/AKfycbyH-o6gciZBDU4KkVKz9-d8JHyI2vikBkZETnkSADd8v7a-BNlcFeUALnk89AJ6XMwB/exec";
+  // The sheet itself, "Extra Credit Book Forms" (shown only to the teacher, as a link; students can't open it)
+  var SHEET_URL = "https://docs.google.com/spreadsheets/d/18FEuPeSee8-cH4XhsaxaIJjlPlTEff8WVJlqB7i-OjI/edit";
 
   var BOOK_SHEET = "16h2wTYYexj-FZ1xxdlCBCwt7WLL8cUBFWkaQ7KjwA2Y"; // the Extra Credit book list, as in extra-credit.html
   var GOAL_WORDS = 250;      // about one page, double-spaced
