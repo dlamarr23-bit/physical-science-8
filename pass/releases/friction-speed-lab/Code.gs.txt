@@ -31,8 +31,9 @@
  *      Google sign-in, which is why the access must be "Anyone". Only students
  *      on the Roster tab can sign in that way.
  *   6. Back in the Sheet: Self-Check > 1. Link Google Classroom classes
- *      Pick EVERY period getting this assignment (e.g. 1, 2, 4) and confirm
- *      each one's period number. Then:
+ *      The Classes tab opens with a checkbox for each class: tick EVERY
+ *      class getting this assignment (the period comes from the number in
+ *      front of the class name, e.g. "6 - Science" is period 6). Then:
  *                         Self-Check > 2. Create the assignment in each class
  *      (paste the /exec URL when asked). This makes a DRAFT assignment worth
  *      10 points, with the Class Pass link, in every linked class. In Classroom,
@@ -252,7 +253,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-speed-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-speed-lab\)
-var SKILL_VERSION = "2026.11.10b";
+var SKILL_VERSION = "2026.11.10c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -260,8 +261,8 @@ var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";  
 var SH_LIVE = "Live Results", SH_SUMMARY = "Question Summary", SH_ROSTER = "Roster",
     SH_LOG = "Answer Log", SH_STATE = "_data (do not edit)",
     SH_QUESTIONS = "Questions", SH_SETTINGS = "Settings", SH_UPLOADS = "Grade Uploads",
-    SH_HUB = "_hub (do not edit)";
-var FILL = { correct: "#d9ead3", partial: "#fff2cc", incorrect: "#f4cccc", blank: "#ffffff" };
+    SH_HUB = "_hub (do not edit)", SH_CLASSES = "Classes";
+var FILL ={ correct: "#d9ead3", partial: "#fff2cc", incorrect: "#f4cccc", blank: "#ffffff" };
 var LIVE_FIXED = ["Period", "Student", "Email", "Status", "Last activity", "Grade",
                   "Green", "Yellow", "Red", "Blank", "Checks"];
 var LIVE_EMAIL_COL = 3;
@@ -1529,6 +1530,8 @@ function onEdit(e) {
     } else if (n === SH_STATE) {   // a hand edit in the hidden _data tab: those students' short-term copies go (see readRecordQuick_)
       var r0 = Math.max(2, e.range.getRow()), r1 = e.range.getLastRow();
       if (r1 >= r0) cacheDel_(e.range.getSheet().getRange(r0, 1, r1 - r0 + 1, 1).getValues().map(function (v) { return recKey_(String(v[0]).toLowerCase()); }));
+    } else if (n === SH_CLASSES) {   // step 1's checkboxes: a tick is saved at once
+      classesEdited_(e);
     }
   } catch (err) { /* never block editing */ }
 }
@@ -4124,14 +4127,25 @@ function missingText_(m) {
 
 function onOpen() {
   if (wrongKind_()) return wrongKindMenu_("Self-Check");
+  buildMenu_();
+  try {   // new code pasted but Set up / repair sheets not run yet: say so
+    var m = missingPieces_();
+    if (m.settings.length || m.columns.length) SpreadsheetApp.getActiveSpreadsheet().toast("This sheet is missing " +
+      (m.settings.length + m.columns.length) + " newer option(s), like " + (m.settings[0] || m.columns[0]) +
+      ". Run Self-Check > Set up / repair sheets to add them.", "Self-Check", 15);
+  } catch (e) { /* never block opening the sheet */ }
+}
+
+/** The Self-Check menu. Built again after the linked classes change, so step 3 lists each class (uploadMenus_). */
+function buildMenu_() {
   if (isGame_()) return gameMenu_();
-  SpreadsheetApp.getUi().createMenu("Self-Check")
+  var ui = SpreadsheetApp.getUi();
+  var menu = ui.createMenu("Self-Check")
     .addItem("Set up / repair sheets", "setupSheets")
     .addSeparator()
-    .addItem("1. Link Google Classroom classes (all periods)", "linkClassroom")
-    .addItem("2. Create the assignment in each class (draft)", "createClassroomAssignment")
-    .addItem("3. Upload grades to Classroom (draft grades)", "uploadDraftGrades")
-    .addItem("3b. Upload grades AND return them to students", "uploadAndReturnGrades")
+    .addItem("1. Link Google Classroom classes (checkboxes)", "linkClassroom")
+    .addItem("2. Create the assignment in each class (draft)", "createClassroomAssignment");
+  uploadMenus_(ui, menu)
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Automatic grades after the due date")
       .addItem("Turn on", "autoGradesOn")
       .addItem("Show status", "autoGradesStatus")
@@ -4149,23 +4163,17 @@ function onOpen() {
     .addItem("Check for skill updates", "checkForSkillUpdates")
     .addItem("Start a new school year (clear student data)", "resetForNewYear")
     .addToUi();
-  try {   // new code pasted but Set up / repair sheets not run yet: say so
-    var m = missingPieces_();
-    if (m.settings.length || m.columns.length) SpreadsheetApp.getActiveSpreadsheet().toast("This sheet is missing " +
-      (m.settings.length + m.columns.length) + " newer option(s), like " + (m.settings[0] || m.columns[0]) +
-      ". Run Self-Check > Set up / repair sheets to add them.", "Self-Check", 15);
-  } catch (e) { /* never block opening the sheet */ }
 }
 
 /** A review game's menu: the same steps, without what only typed answers or reading pages use, plus the website leaderboard. */
 function gameMenu_() {
-  SpreadsheetApp.getUi().createMenu("Self-Check")
+  var ui = SpreadsheetApp.getUi();
+  var menu = ui.createMenu("Self-Check")
     .addItem("Set up / repair sheets", "setupSheets")
     .addSeparator()
-    .addItem("1. Link Google Classroom classes (all periods)", "linkClassroom")
-    .addItem("2. Create the assignment in each class (draft)", "createClassroomAssignment")
-    .addItem("3. Upload grades to Classroom (draft grades)", "uploadDraftGrades")
-    .addItem("3b. Upload grades AND return them to students", "uploadAndReturnGrades")
+    .addItem("1. Link Google Classroom classes (checkboxes)", "linkClassroom")
+    .addItem("2. Create the assignment in each class (draft)", "createClassroomAssignment");
+  uploadMenus_(ui, menu)
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Automatic grades after the due date")
       .addItem("Turn on", "autoGradesOn")
       .addItem("Show status", "autoGradesStatus")
@@ -4182,12 +4190,33 @@ function gameMenu_() {
     .addItem("Check for skill updates", "checkForSkillUpdates")
     .addItem("Start a new school year (clear student data)", "resetForNewYear")
     .addToUi();
+}
+
+/** Builds the menu again (after the linked classes change), so step 3 lists the right classes. Never fails the caller. */
+function refreshMenu_() {
+  try { if (!wrongKind_()) buildMenu_(); } catch (e) { /* the menu catches up the next time the sheet opens */ }
+}
+
+/** Step 3 and 3b as small menus: "All classes" first, then one item per linked period, so one class can be uploaded alone.
+ *  A menu item can only name a function, so each period number 0 to MENU_PERIODS_ has its own (uploadDraftP3, uploadReturnP3 ...). */
+var MENU_PERIODS_ = 12;
+function uploadMenus_(ui, menu) {
+  var draft = ui.createMenu("3. Upload grades to Classroom (draft grades)").addItem("All classes", "uploadDraftGrades");
+  var back = ui.createMenu("3b. Upload grades AND return them to students").addItem("All classes", "uploadAndReturnGrades");
+  var by = {};
   try {
-    var m = missingPieces_();
-    if (m.settings.length || m.columns.length) SpreadsheetApp.getActiveSpreadsheet().toast("This sheet is missing " +
-      (m.settings.length + m.columns.length) + " newer option(s), like " + (m.settings[0] || m.columns[0]) +
-      ". Run Self-Check > Set up / repair sheets to add them.", "Self-Check", 15);
-  } catch (e) { /* never block opening the sheet */ }
+    courses_().forEach(function (c) {
+      var p = String(c.period).trim();
+      if (!/^\d{1,2}$/.test(p) || Number(p) > MENU_PERIODS_) return;
+      (by[Number(p)] = by[Number(p)] || []).push(c.name);
+    });
+  } catch (e) { /* only All classes */ }
+  Object.keys(by).map(Number).sort(function (a, b) { return a - b; }).forEach(function (p) {
+    var label = "Period " + p + " only (" + by[p].join(", ") + ")";
+    draft.addItem(label, "uploadDraftP" + p);
+    back.addItem(label, "uploadReturnP" + p);
+  });
+  return menu.addSubMenu(draft).addSubMenu(back);
 }
 
 /** In a copy of the spreadsheet (File > Make a copy), the script's saved student link is still the ORIGINAL's. Forget it,
@@ -4344,11 +4373,33 @@ function periodList_() {
   return courses_().map(function (c) { return c.period; }).filter(function (p) { return p !== ""; })
     .sort(function (a, b) { return (Number(a) || 0) - (Number(b) || 0); });
 }
-/** Guess a period number from the class name/section, e.g. "Science - Period 3", "P4", "Per. 2". */
+/** Guess a period number from the class name/section: the number in front ("6 - Science", "3 Science"), else "Science - Period 3", "P4", "Per. 2". */
 function guessPeriod_(c) {
+  var front = /^\s*(\d{1,2})(?=\s|[-:.)|]|$)/.exec(c.name || "");
+  if (front) return front[1];
   var t = (c.section || "") + " " + (c.name || "");
   var m = /(?:period|per\.?|pd\.?|\bp)\s*#?\s*(\d{1,2})\b/i.exec(t) || /\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:period|per|pd)\b/i.exec(t) || /\b(\d)\b/.exec(t);
   return m ? m[1] : "";
+}
+
+// ---------- Step 1: tick the classes in the Classes tab (2026.11.10c) ----------
+// Step 1 lists every active Classroom class in the Classes tab, each with a checkbox (the linked ones ticked). A tick, an untick or a
+// typed period is saved at once by onEdit (a simple trigger, so it only reads the tab and saves the list: no Classroom calls there);
+// step 2 then loads the rosters and makes the assignment. The period is the number in front of the class name ("6 - Science" is 6).
+// No dialog with checkboxes: with more than one Google account signed in to the browser, a dialog's google.script.run fails.
+var CLASS_HEAD_ROW = 2;   // row 1 says what to do, row 2 has the headings, the classes start on row 3
+var CLASS_HEADS = ["Link", "Period", "Class", "Status", "Classroom ID"];
+
+function courseLabel_(c) { return c.name + (c.section ? " (" + c.section + ")" : ""); }
+function cleanPeriod_(v) { var p = String(v == null ? "" : v).trim(); return /^\d+$/.test(p) ? Number(p) : p; }
+function periodNum_(p) { return p === "" || p == null || isNaN(Number(p)) ? 99 : Number(p); }
+function byPeriod_(a, b) { return (periodNum_(a.period) - periodNum_(b.period)) || String(a.name).localeCompare(String(b.name)); }
+/** Classes unticked in the Classes tab that had the assignment: { courseId: { cwId, name, period } }, so ticking one again finds it. */
+function coursesOff_() { try { return JSON.parse(props_().getProperty("COURSES_OFF") || "{}"); } catch (e) { return {}; } }
+/** "Period 3", or "Periods 1, 3 and 6". A class with no period number shows as ?. */
+function periodsText_(list) {
+  var p = list.map(function (x) { return x === "" ? "?" : String(x); });
+  return p.length === 1 ? "Period " + p[0] : "Periods " + p.slice(0, -1).join(", ") + " and " + p[p.length - 1];
 }
 
 function linkClassroom() {
@@ -4361,37 +4412,113 @@ function linkClassroom() {
     all = all.concat(resp.courses || []);
     tok = resp.nextPageToken;
   } while (tok);
-  if (!all.length) { ui.alert("No active Classroom classes found where you're a teacher."); return; }
-  var list = all.map(function (c, i) { return (i + 1) + ". " + c.name + (c.section ? " (" + c.section + ")" : ""); }).join("\n");
-  var r = ui.prompt("Link Classroom classes",
-    "Type the numbers of ALL the classes getting this assignment, separated by commas (e.g. 1, 2, 4):\n\n" + list, ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() !== ui.Button.OK) return;
-  var picks = r.getResponseText().split(/[\s,]+/).map(function (x) { return parseInt(x, 10); })
-    .filter(function (n) { return n >= 1 && n <= all.length; });
-  if (!picks.length) { ui.alert("None of those were numbers from the list."); return; }
+  var ss = ss_();
+  applyClassesTab_(ss);   // ticks already in the tab count, even if onEdit couldn't save them
+  var linked = courses_(), on = {}, active = {}, rows = [];
+  linked.forEach(function (c) { on[String(c.id)] = c; });
+  all.forEach(function (c) {
+    var was = on[String(c.id)];
+    active[String(c.id)] = true;
+    rows.push([!!was, was ? was.period : guessPeriod_(c), courseLabel_(c), "", String(c.id)]);
+  });
+  linked.forEach(function (c) {   // linked, but no longer an active class (archived): listed too, so it can be unticked
+    if (!active[String(c.id)]) rows.push([true, c.period, c.name, "", String(c.id)]);
+  });
+  if (!rows.length) { ui.alert("No active Classroom classes found where you're a teacher."); return; }
+  rows.sort(function (a, b) { return (periodNum_(cleanPeriod_(a[1])) - periodNum_(cleanPeriod_(b[1]))) || String(a[2]).localeCompare(String(b[2])); });
+  var sh = classesSheet_(ss, rows.length);
+  sh.getRange(CLASS_HEAD_ROW + 1, 1, rows.length, CLASS_HEADS.length).setValues(rows);
+  writeClassStatus_(ss);
+  try { ss.setActiveSheet(sh); } catch (e) {}
+  refreshMenu_();
+  ss.toast("Tick every class getting this assignment (each tick is saved right away), then choose step 2.", "Step 1: Classes tab", 20);
+}
 
-  var prev = {};
-  courses_().forEach(function (c) { prev[c.id] = c; });
-  var linked = [];
-  for (var k = 0; k < picks.length; k++) {
-    var c = all[picks[k] - 1];
-    if (linked.some(function (x) { return x.id === c.id; })) continue;
-    var guess = (prev[c.id] && prev[c.id].period) || guessPeriod_(c);
-    var pr = ui.prompt("Period number",
-      "What period is \"" + c.name + (c.section ? " (" + c.section + ")" : "") + "\"?" +
-      (guess ? "\n\nLeave blank to use " + guess + "." : ""), ui.ButtonSet.OK_CANCEL);
-    if (pr.getSelectedButton() !== ui.Button.OK) return;
-    var period = pr.getResponseText().trim() || guess;
-    period = /^\d+$/.test(period) ? Number(period) : period;
-    linked.push({ id: c.id, name: c.name, period: period, cwId: prev[c.id] ? prev[c.id].cwId : "" });
-  }
-  linked.sort(function (a, b) { return (Number(a.period) || 99) - (Number(b.period) || 99); });
+/** The Classes tab, emptied below the headings and ready for n classes (checkboxes in Link, plain text in Classroom ID). */
+function classesSheet_(ss, n) {
+  var sh = ss.getSheetByName(SH_CLASSES) || ss.insertSheet(SH_CLASSES);
+  var last = sh.getLastRow();
+  if (last > CLASS_HEAD_ROW) sh.getRange(CLASS_HEAD_ROW + 1, 1, last - CLASS_HEAD_ROW, CLASS_HEADS.length).clearDataValidations().clearContent();
+  sh.getRange(1, 1, 1, 4).merge();
+  sh.getRange(1, 1).setValue("Tick every class getting this assignment. Each tick is saved right away; step 2 then makes the assignment in the ticked classes. " +
+    "The period is the number in front of the class name: type over it if it's wrong.")
+    .setFontWeight("bold").setWrap(true).setVerticalAlignment("middle").setFontFamily("Poppins");
+  sh.setRowHeight(1, 54);
+  sh.getRange(CLASS_HEAD_ROW, 1, 1, CLASS_HEADS.length).setValues([CLASS_HEADS])
+    .setFontWeight("bold").setBackground("#c9daf8").setFontFamily("Poppins");
+  sh.setFrozenRows(CLASS_HEAD_ROW);
+  [70, 70, 300, 420, 160].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  sh.getRange(CLASS_HEAD_ROW + 1, 5, n, 1).setNumberFormat("@");   // long Classroom IDs stay exact
+  sh.getRange(CLASS_HEAD_ROW + 1, 1, n, CLASS_HEADS.length).setFontFamily("Poppins").setVerticalAlignment("middle");
+  sh.getRange(CLASS_HEAD_ROW + 1, 1, n, 2).setHorizontalAlignment("center");
+  sh.getRange(CLASS_HEAD_ROW + 1, 1, n, 1).insertCheckboxes();
+  sh.hideColumns(5);
+  return sh;
+}
+
+/** Saves the Classes tab's ticks as the linked classes. Returns { linked, changed }, or null with no Classes tab.
+ *  Never calls Classroom and never opens the spreadsheet by ID: onEdit (a simple trigger) runs it with e.source. */
+function applyClassesTab_(ss) {
+  var sh = ss.getSheetByName(SH_CLASSES);
+  if (!sh || sh.getLastRow() <= CLASS_HEAD_ROW) return null;
+  var rows = sh.getRange(CLASS_HEAD_ROW + 1, 1, sh.getLastRow() - CLASS_HEAD_ROW, CLASS_HEADS.length).getValues();
+  var now = courses_(), off = coursesOff_(), was = {}, ticked = {}, linked = [];
+  now.forEach(function (c) { was[String(c.id)] = c; });
+  rows.forEach(function (r) {
+    var id = String(r[4] == null ? "" : r[4]).trim();
+    if (!id || ticked[id] || r[0] !== true) return;
+    ticked[id] = true;
+    var old = was[id] || off[id] || {};
+    linked.push({ id: id, name: String(r[2] || old.name || "").trim(), period: cleanPeriod_(r[1]), cwId: old.cwId || "" });
+  });
+  linked.sort(byPeriod_);
+  function key(list) { return JSON.stringify(list.map(function (c) { return [String(c.id), String(c.name), String(c.period), String(c.cwId || "")]; })); }
+  if (key(linked) === key(now)) return { linked: now, changed: false };
+  now.forEach(function (c) { if (!ticked[String(c.id)] && c.cwId) off[String(c.id)] = { cwId: c.cwId, name: c.name, period: c.period }; });
+  linked.forEach(function (c) { delete off[c.id]; });
+  props_().setProperty("COURSES_OFF", JSON.stringify(off));
+  props_().setProperty("ROSTER_STALE", "1");   // step 2 (or the hourly check) loads the new classes' students
   saveCourses_(linked);
-  var count = refreshRoster_();
-  try { loadConfig_(); if (!parseQuarterDates_(QUARTER_END_DATES).list.length) fetchQuarters_(); } catch (e) {}   // quarter end dates (Show quarter close times)
-  writeHubStatus_();
-  ui.alert("Linked " + linked.length + " class(es):\n" + describeCourses_(linked) +
-           "\n\n" + count + " students added to the Roster and Live Results tabs.\nNext: step 2 to create the assignment in each class.");
+  return { linked: linked, changed: true };
+}
+
+/** The Classes tab's Status column: linked or not, students on the Roster, and whether step 2 made the assignment. Never fails the caller. */
+function writeClassStatus_(ss) {
+  try {
+    var sh = ss.getSheetByName(SH_CLASSES);
+    if (!sh || sh.getLastRow() <= CLASS_HEAD_ROW) return;
+    var n = sh.getLastRow() - CLASS_HEAD_ROW, ids = sh.getRange(CLASS_HEAD_ROW + 1, 5, n, 1).getValues(), on = {}, kids = {};
+    courses_().forEach(function (c) { on[String(c.id)] = c; });
+    var r = ss.getSheetByName(SH_ROSTER);
+    if (r && r.getLastRow() > 1) r.getRange(2, 5, r.getLastRow() - 1, 1).getValues().forEach(function (v) { var k = String(v[0]); kids[k] = (kids[k] || 0) + 1; });
+    sh.getRange(CLASS_HEAD_ROW + 1, 4, n, 1).setValues(ids.map(function (v) {
+      var c = on[String(v[0]).trim()];
+      if (!c) return [""];
+      var k = kids[String(c.id)];
+      return [(c.period === "" ? "Linked. Type its period number in the Period column. " : "Linked. ") + (k ? k + " students. " : "") +
+              (c.cwId ? "Assignment made (step 2)." : "Next: step 2 makes the assignment here.")];
+    }));
+  } catch (e) { /* only a label */ }
+}
+
+/** onEdit in the Classes tab: a tick, an untick or a typed period is saved at once, and the Status column and step 3's menu follow. */
+function classesEdited_(e) {
+  if (wrongKind_() || e.range.getLastRow() <= CLASS_HEAD_ROW) return;
+  var lock = null;
+  try { lock = LockService.getScriptLock(); if (!lock.tryLock(10000)) lock = null; } catch (err) { lock = null; }
+  try {
+    var ss = e.source || SpreadsheetApp.getActiveSpreadsheet(), got = applyClassesTab_(ss);
+    if (!got) return;
+    writeClassStatus_(ss);
+    if (!got.changed) return;
+    refreshMenu_();
+    var todo = got.linked.filter(function (c) { return !c.cwId; }).map(function (c) { return c.period; });
+    ss.toast(got.linked.length ? "Linked: " + periodsText_(got.linked.map(function (c) { return c.period; })) + "." +
+               (todo.length ? " Next: step 2 makes the assignment in " + periodsText_(todo) + "." : "")
+             : "No classes are linked now. Tick the classes getting this assignment.", "Classes", 8);
+  } finally {
+    if (lock) unlock_(lock);
+  }
 }
 
 function describeCourses_(list) {
@@ -4402,13 +4529,18 @@ function describeCourses_(list) {
 
 function showLinkedClasses() {
   menuOnly_();
+  try { applyClassesTab_(ss_()); } catch (e) {}
   var list = courses_();
-  SpreadsheetApp.getUi().alert(list.length ? "Linked classes:\n" + describeCourses_(list) : "No classes linked yet. Use step 1.");
+  SpreadsheetApp.getUi().alert(list.length ? "Linked classes:\n" + describeCourses_(list) + "\n\nTo change them: step 1 (tick or untick them in the Classes tab)."
+                                           : "No classes linked yet. Use step 1.");
 }
 
 function refreshRoster() {
   menuOnly_();
+  var ss = ss_();
+  try { applyClassesTab_(ss); } catch (e) {}
   var n = refreshRoster_();
+  writeClassStatus_(ss);
   SpreadsheetApp.getUi().alert("Roster refreshed: " + n + " students.");
 }
 
@@ -4433,6 +4565,7 @@ function refreshRoster_() {
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, ROSTER_HEADERS.length).clearContent();
   if (rows.length) sh.getRange(2, 1, rows.length, ROSTER_HEADERS.length).setValues(rows);
   cacheDel_(["roster"]);
+  props_().deleteProperty("ROSTER_STALE");
   rebuildLive_();   // shows everyone, sorted by period then name, including students who haven't started
   renderSummary_();
   return rows.length;
@@ -4473,8 +4606,13 @@ function createClassroomAssignment() {
   loadConfig_();
   requireClassroom_();
   var ui = SpreadsheetApp.getUi();
+  var ss = ss_(), tab = applyClassesTab_(ss);   // the Classes tab's ticks (step 1)
   var list = courses_();
-  if (!list.length) { ui.alert("Do step 1 first (link your classes)."); return; }
+  if (!list.length) { ui.alert(tab ? "Tick at least one class in the Classes tab first (step 1)." : "Do step 1 first (link your classes)."); return; }
+  var count = refreshRoster_();   // every ticked class's students, so Live Results shows who hasn't started and they can sign in
+  try { if (!parseQuarterDates_(QUARTER_END_DATES).list.length) fetchQuarters_(); } catch (e) {}   // quarter end dates (Show quarter close times)
+  writeClassStatus_(ss);
+  list = courses_();
   var todo = list.filter(function (c) { return !c.cwId; });
   if (!todo.length) {
     var again = ui.alert("Every linked class already has this assignment:\n" + describeCourses_(list) +
@@ -4504,7 +4642,10 @@ function createClassroomAssignment() {
   });
   saveCourses_(list);
   writeHubStatus_();
+  writeClassStatus_(ss);
+  refreshMenu_();
   ui.alert((made.length ? "Draft assignment (" + MAX_POINTS + " points) created in:\n" + made.join("\n") +
+            "\n\n" + count + " students are in the Roster and Live Results tabs." +
             "\n\nIn Classroom, open each class > Classwork, find the draft, set the due date/topic, and click Assign." : "") +
            (errors.length ? "\n\nProblems:\n" + errors.join("\n") : ""));
 }
@@ -4512,18 +4653,46 @@ function createClassroomAssignment() {
 function uploadDraftGrades()     { menuOnly_(); uploadGrades_(false); }
 function uploadAndReturnGrades() { menuOnly_(); uploadGrades_(true); }
 
-function uploadGrades_(andReturn) {
+// Step 3 for one class (the period's item in the step 3 and 3b menus, see uploadMenus_). One function per period number, 0 to MENU_PERIODS_.
+function uploadDraftP0()  { menuOnly_(); uploadGrades_(false, 0); }   function uploadReturnP0()  { menuOnly_(); uploadGrades_(true, 0); }
+function uploadDraftP1()  { menuOnly_(); uploadGrades_(false, 1); }   function uploadReturnP1()  { menuOnly_(); uploadGrades_(true, 1); }
+function uploadDraftP2()  { menuOnly_(); uploadGrades_(false, 2); }   function uploadReturnP2()  { menuOnly_(); uploadGrades_(true, 2); }
+function uploadDraftP3()  { menuOnly_(); uploadGrades_(false, 3); }   function uploadReturnP3()  { menuOnly_(); uploadGrades_(true, 3); }
+function uploadDraftP4()  { menuOnly_(); uploadGrades_(false, 4); }   function uploadReturnP4()  { menuOnly_(); uploadGrades_(true, 4); }
+function uploadDraftP5()  { menuOnly_(); uploadGrades_(false, 5); }   function uploadReturnP5()  { menuOnly_(); uploadGrades_(true, 5); }
+function uploadDraftP6()  { menuOnly_(); uploadGrades_(false, 6); }   function uploadReturnP6()  { menuOnly_(); uploadGrades_(true, 6); }
+function uploadDraftP7()  { menuOnly_(); uploadGrades_(false, 7); }   function uploadReturnP7()  { menuOnly_(); uploadGrades_(true, 7); }
+function uploadDraftP8()  { menuOnly_(); uploadGrades_(false, 8); }   function uploadReturnP8()  { menuOnly_(); uploadGrades_(true, 8); }
+function uploadDraftP9()  { menuOnly_(); uploadGrades_(false, 9); }   function uploadReturnP9()  { menuOnly_(); uploadGrades_(true, 9); }
+function uploadDraftP10() { menuOnly_(); uploadGrades_(false, 10); }  function uploadReturnP10() { menuOnly_(); uploadGrades_(true, 10); }
+function uploadDraftP11() { menuOnly_(); uploadGrades_(false, 11); }  function uploadReturnP11() { menuOnly_(); uploadGrades_(true, 11); }
+function uploadDraftP12() { menuOnly_(); uploadGrades_(false, 12); }  function uploadReturnP12() { menuOnly_(); uploadGrades_(true, 12); }
+
+/** Step 3 / 3b: every linked class, or with a period number only that period's class(es). */
+function uploadGrades_(andReturn, period) {
   loadConfig_();
   requireClassroom_();
   var ui = SpreadsheetApp.getUi();
+  try { applyClassesTab_(ss_()); } catch (e) {}   // the Classes tab's ticks (step 1)
   var list = courses_().filter(function (c) { return c.cwId; });
   if (!list.length) { ui.alert("Do steps 1 and 2 first. Grades can only go to assignments created by step 2."); return; }
+  var one = period != null;
+  if (one) {
+    list = list.filter(function (c) { return String(c.period) === String(period); });
+    if (!list.length) {
+      ui.alert(courses_().some(function (c) { return String(c.period) === String(period); })
+        ? "Period " + period + " doesn't have this assignment yet. Do step 2 first."
+        : "No linked class is Period " + period + " now. Reload the sheet to update this menu.");
+      return;
+    }
+  }
   if (andReturn) {
-    var ok = ui.alert("This posts grades AND returns them in every linked class, so students will see their scores in Classroom right away. Continue?", ui.ButtonSet.YES_NO);
+    var ok = ui.alert("This posts grades AND returns them in " + (one ? "Period " + period + " (" + list.map(function (c) { return c.name; }).join(", ") + ")" : "every linked class") +
+                      ", so students will see their scores in Classroom right away. Continue?", ui.ButtonSet.YES_NO);
     if (ok !== ui.Button.YES) return;
   }
   var res = uploadGradesCore_(list, andReturn);
-  logUpload_("Manual", res, andReturn);
+  logUpload_(one ? "Manual, Period " + period : "Manual", res, andReturn);
   ui.alert("Grades " + (andReturn ? "uploaded and returned" : "uploaded as DRAFT grades (review and click Return in Classroom)") + ":\n" +
            res.lines.join("\n") + (res.errors.length ? "\n\nProblems:\n" + res.errors.slice(0, 10).join("\n") : ""));
 }
@@ -4707,6 +4876,9 @@ function autoUploadGrades(e) {
   } catch (err) {}
   loadConfig_();
   try { hubRequests_(); } catch (err) {}
+  try {   // classes ticked in the Classes tab but step 2 not run yet: load their students anyway (Class Pass signs in only Roster students)
+    if (props_().getProperty("ROSTER_STALE") && courses_().length) { requireClassroom_(); refreshRoster_(); writeClassStatus_(openSS_()); }
+  } catch (err) {}
   try { articleAutoRefresh_(); } catch (err) {}   // a reading page's article follows its Google Doc
   try { syncWebsiteBoard_(); } catch (err) {}     // a review game's points in progress go to the website leaderboard
   if (AUTO_GRADES) {
@@ -5022,7 +5194,9 @@ function resetForNewYear() {
     var sh = ss.getSheetByName(n);
     if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(1, sh.getLastColumn())).clearContent().setBackground(null);
   });
-  ["COURSES", "COURSE_ID", "COURSE_NAME", "COURSEWORK_ID", "AUTO_STATE", "DUE_DATES", "LATE_MAILED", "QUARTERS", "UPLOAD_FOLDER"].forEach(function (k) { props_().deleteProperty(k); });
+  var ct = ss.getSheetByName(SH_CLASSES);   // last year's ticks (step 1 lists this year's classes again)
+  if (ct) { try { ss.deleteSheet(ct); } catch (e) {} }
+  ["COURSES", "COURSE_ID", "COURSE_NAME", "COURSEWORK_ID", "AUTO_STATE", "DUE_DATES", "LATE_MAILED", "QUARTERS", "UPLOAD_FOLDER", "COURSES_OFF", "ROSTER_STALE"].forEach(function (k) { props_().deleteProperty(k); });
   var all = props_().getProperties(), gone = [];   // last year's Class Pass sign-ins (and their short-term copies)
   Object.keys(all).forEach(function (k) { if (k.indexOf("SIGNIN_") === 0) { props_().deleteProperty(k); gone.push(k); } });
   if (gone.length) cacheDel_(gone);
@@ -5032,6 +5206,7 @@ function resetForNewYear() {
   props_().setProperty("SSID", SpreadsheetApp.getActiveSpreadsheet().getId());
   renderSummary_();
   writeHubStatus_();
+  refreshMenu_();
   ui.alert("Cleared. Next: Self-Check > 1. Link Google Classroom classes (this year's periods), then step 2.\n" +
            "If you typed quarter end dates or class start times in the Settings tab, change them to this year's.\n" +
            "Your student link stays the same unless you made a new deployment.");

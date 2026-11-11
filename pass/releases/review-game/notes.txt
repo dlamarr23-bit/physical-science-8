@@ -1,7 +1,24 @@
-review-game v2026.11.10b
+review-game v2026.11.10c
 
-Optional update: lets your Assignment Launchpad update this sheet's code for you (Update now), with no copying and pasting.
+Optional update: step 1 becomes checkboxes with no typing, and step 3 can upload one class at a time.
 
+- Step 1 (Self-Check > 1. Link Google Classroom classes) now opens a Classes tab with a checkbox next to each of your Classroom classes.
+  Tick every class getting this assignment. Each tick is saved right away (a note at the bottom right says so). Untick a class to unlink it.
+  No more typing class numbers.
+- No more period questions: the period is the number in front of the class name ("6 - Science" is period 6). If one is ever wrong,
+  type the right number in the Period column of the Classes tab.
+- Step 2 now loads the ticked classes' students into the Roster and Live Results tabs (step 1 used to), then makes the assignment.
+  Ticked a class but skipped step 2? The hourly check loads its students within the hour, and Refresh roster from Classroom still works any time.
+- Step 3 and 3b are now small menus: "All classes" (the same as before), then one item per class, like "Period 6 only (6 - Science)",
+  so you can upload (or upload and return) one class's grades at a time. 3b still asks first, and names the class. The Grade Uploads tab
+  says which period was uploaded.
+- Unticking a class that already has the assignment leaves it in Classroom; tick the class again and the sheet finds the same assignment.
+- Start a new school year also clears the Classes tab (step 1 lists this year's classes again).
+- To use it: Update now on the Launchpad, or paste the new Code.gs and Index and make a New version. Then reload the sheet to see the
+  new menu. No Set up / repair needed. The first time you run step 1, the Classes tab shows the classes already linked, ticked.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.10b (optional), if this sheet skipped it:
 - New: Update now on the Assignment Launchpad. Once your Class List sheet is set up, a card that says "Code needs updating" (or "Optional update")
   gets an Update now button. It copies the newest release from the class website into this sheet's Apps Script project, makes a New version and
   switches the student link to it, so students keep the same link. Undo puts the old code back. You can still update by hand

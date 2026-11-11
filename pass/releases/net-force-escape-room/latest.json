@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.10b",
-  "optional": "lets your Assignment Launchpad update this sheet's code for you (Update now), with no copying and pasting.",
+  "version": "2026.11.10c",
+  "optional": "step 1 becomes checkboxes with no typing, and step 3 can upload one class at a time.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",
