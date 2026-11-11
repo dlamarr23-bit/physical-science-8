@@ -16,6 +16,9 @@
    - Everything is kept in this browser as it is typed (ps8-bookform-v1:<kind>) and cleared once the form is turned in.
      It keeps the Class Pass name too, and a different student signed in on the same computer starts with a blank form.
      Text pasted into an answer stays text; a picture pasted anywhere else becomes the AR test picture.
+   - A signed-in student's answers are also kept in their Class Pass account (Donny, 2026-11-11: "if a student does not
+     finish the form, will it save their progress if they open another computer?"), so they can finish on any
+     computer they sign in on. See "the student's Class Pass account" below.
    - Submit sends one JSON message (text/plain, so no preflight) to the Extra Credit Book Forms sheet's web app
      (class-tools/book-forms/Code.gs, EXEC_URL below). The id stays the same until it is saved, so a second click
      or a retry is saved only once.
@@ -50,44 +53,58 @@
   function fmtPts(n){ return n == null || n === "" ? "" : String(Math.round(Number(n) * 10) / 10); }
 
   /* ---------------- what the student has done so far ---------------- */
+  // A draft is {v, id, t, who, book, own, fields, picture}: t = when the student last changed it (that computer's
+  // clock), who = their Class Pass name. The same draft is kept on this computer and in their Class Pass account.
   var state = blank();
   function blank(){ return {v: 1, id: newId(), book: null, own: false, picture: null}; }
+  var changedAt = 0;
 
   var saveTimer = null;
+  // the student changed something: keep it on this computer at once, and in their account soon
   function save(){
+    changedAt = Date.now();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNow, 350);
+    cloud.dirty = true;
+    cloudSoon();
+    paintSaved();
   }
   // who is signed in to Class Pass, so a shared computer doesn't show one student's answers to the next
   function passName(){
     var v = window.PS8Pass && window.PS8Pass.view ? window.PS8Pass.view() : null;
     return v && v.me && v.me.name ? String(v.me.name) : "";
   }
-  function saveNow(){
-    var d = {v: 1, id: state.id, who: passName(), book: state.book, own: state.own, fields: {}, picture: state.picture};
+  function draftData(){
+    var d = {v: 1, id: state.id, t: changedAt, who: passName(), book: state.book, own: state.own, fields: {}};
     $$("[data-keep]").forEach(function(el){
       var k = el.getAttribute("data-keep");
       d.fields[k] = el.type === "checkbox" ? el.checked : el.value;
     });
     $$("[data-col].bf-chips, [data-col].bf-stars").forEach(function(g){ d.fields["pick:" + g.getAttribute("data-col")] = g.getAttribute("data-value") || ""; });
-    var text = JSON.stringify(d);
-    try { localStorage.setItem(DRAFT + kind, text); }
-    catch(e){ // most likely the picture is too big to keep here: keep the words
-      try { d.picture = null; localStorage.setItem(DRAFT + kind, JSON.stringify(d)); } catch(e2){ return; }
-    }
-    var s = $(".bf-saved");
-    if(s) s.textContent = "Your answers are saved on this computer.";
+    return d;
   }
-  function restore(){
+  function saveNow(){
+    var d = draftData();
+    d.picture = state.picture;
+    try { localStorage.setItem(DRAFT + kind, JSON.stringify(d)); }
+    catch(e){ // most likely the picture is too big to keep here: keep the words
+      try { d.picture = null; localStorage.setItem(DRAFT + kind, JSON.stringify(d)); } catch(e2){ /* no storage here */ }
+    }
+  }
+  function readLocal(){
     var d;
     try { d = JSON.parse(localStorage.getItem(DRAFT + kind)); } catch(e){ d = null; }
-    if(!d || d.v !== 1) return;
+    if(!d || d.v !== 1) return null;
     var now = passName();
-    if(d.who && now && d.who !== now) return; // another student's answers: start fresh (theirs are replaced on the first save)
-    state.id = d.id || state.id;
+    if(d.who && now && d.who !== now) return null; // another student's answers: start fresh (theirs are replaced on the first save)
+    return d;
+  }
+  function applyDraft(d){
+    state.id = d.id || newId();
     state.own = Boolean(d.own);
     state.book = d.book || null;
     state.picture = d.picture || null;
+    changedAt = Number(d.t) || 0;
     var f = d.fields || {};
     $$("[data-keep]").forEach(function(el){
       var k = el.getAttribute("data-keep");
@@ -96,11 +113,145 @@
       else { if(el.tagName === "SELECT") ensureOption(el, f[k]); el.value = f[k]; }
     });
     $$("[data-col].bf-chips, [data-col].bf-stars").forEach(function(g){
-      var v = f["pick:" + g.getAttribute("data-col")];
-      if(v) setPick(g, v);
+      var k = "pick:" + g.getAttribute("data-col");
+      if(k in f) setPick(g, f[k] || "");
     });
   }
   function clearDraft(){ try { localStorage.removeItem(DRAFT + kind); } catch(e){ /* nothing kept */ } }
+  // words written in a draft's answers (to choose between two different forms, one from each computer)
+  function draftWords(d){
+    var f = (d && d.fields) || {}, n = 0;
+    texts.forEach(function(t){ n += countWords(f[t.getAttribute("data-keep")]); });
+    return n;
+  }
+  function hasWork(){ return Boolean(changedAt || state.book || state.own || state.picture || totalWords()); }
+
+  /* ---------------- the student's Class Pass account: finish on any computer ----------------
+     A signed-in student's draft is also kept with their Class Pass sign-in on the vocabulary site (the bridge's
+     formDraft / saveFormDraft / formDone, its /api/pass/draft): CLOUD_FIRST after a change, then at most every
+     CLOUD_EVERY while they type, and at once when the page is hidden. The picture goes only when it changes.
+     When the page opens, the form waits (inert) until the account answers, then takes the newer draft: the same
+     form by its time, two different forms by the one with more words. A form turned in on another computer
+     (doneId) isn't picked up again here. The teacher and guests keep drafts on this computer only. */
+  var FORM = "book-" + kind;
+  var CLOUD_FIRST = 4000, CLOUD_EVERY = 15000, CLOUD_RETRY = 30000;
+  var PIC_CLOUD_MAX = 1750000; // characters; the account holds up to 1.8 million
+  var cloud = {on: false, loaded: false, loading: false, timer: null, busy: false, dirty: false, sentPic: null, last: 0, saved: 0, error: "", bigPic: false};
+  function isStudent(v){ return Boolean(v && v.me && !v.teacher && !v.student && window.PS8Pass && window.PS8Pass.ask); }
+  function picKey(p){ return p ? p.data.length + ":" + p.data.slice(-48) : ""; }
+  function clock(ms){ try { return new Date(ms).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"}); } catch(e){ return ""; } }
+  function cloudSoon(wait){
+    if(!cloud.on || !cloud.loaded || cloud.timer || !cloud.dirty) return;
+    var w = wait != null ? wait : Math.max(CLOUD_FIRST, CLOUD_EVERY - (Date.now() - cloud.last));
+    cloud.timer = setTimeout(function(){ cloud.timer = null; cloudSave(); }, w);
+  }
+  function cloudSave(){
+    if(!cloud.on || !cloud.loaded || !cloud.dirty || root.classList.contains("is-done")) return;
+    if(cloud.busy) return; // it saves again when this one is back
+    cloud.busy = true;
+    cloud.dirty = false;
+    var p = state.picture, key = picKey(p), big = Boolean(p && p.data.length > PIC_CLOUD_MAX);
+    var msg = {type: "saveFormDraft", form: FORM, draftId: state.id, data: JSON.stringify(draftData())};
+    if(key !== cloud.sentPic && !big) msg.picture = p ? JSON.stringify(p) : "";
+    window.PS8Pass.ask(msg, 60000).then(function(r){
+      if(r.turnedIn){ alreadyTurnedIn(); return; }
+      if("picture" in msg) cloud.sentPic = key;
+      cloud.saved = r.saved || Date.now();
+      cloud.error = "";
+      cloud.bigPic = big;
+    }, function(err){
+      cloud.dirty = true;
+      cloud.error = err && err.status === 401 ? "signed-out" : "offline";
+    }).then(function(){
+      cloud.busy = false;
+      cloud.last = Date.now();
+      paintSaved();
+      if(cloud.dirty) cloudSoon(cloud.error ? CLOUD_RETRY : undefined);
+    });
+  }
+  function cloudLoad(){
+    if(cloud.loaded || cloud.loading || !isStudent(window.PS8Pass && window.PS8Pass.view())) return;
+    cloud.loading = true;
+    cloud.on = true;
+    var form = $(".bf-form");
+    form.inert = true;
+    root.classList.add("is-loading");
+    note("Looking for answers you saved on another computer...", "wait");
+    var told = "";
+    window.PS8Pass.ask({type: "formDraft", form: FORM}, 20000).then(function(r){
+      var server = null;
+      if(r.draft){ try { server = JSON.parse(r.draft); if(r.picture) server.picture = JSON.parse(r.picture); } catch(e){ server = null; } }
+      if(server && server.v !== 1) server = null;
+      if(r.doneId && r.doneId === state.id && hasWork()){
+        startOver();
+        told = "You already turned in this form on another computer, so this is a new, blank one.";
+      }
+      var take = false;
+      if(server){
+        if(!hasWork()) take = true;
+        else if(server.id === state.id) take = (Number(server.t) || 0) > changedAt;
+        else take = draftWords(server) > totalWords();
+      }
+      if(take){
+        applyDraft(server);
+        paintAll();
+        saveNow();
+        cloud.sentPic = picKey(state.picture);
+        cloud.saved = r.saved || 0;
+        told = "Welcome back! Your answers saved " + (r.saved ? "at " + clock(r.saved) + " " : "") + "are here, so you can keep going.";
+      } else if(hasWork()){
+        cloud.dirty = true; // this computer has the newer answers: they go to the account
+      }
+      cloud.loaded = true;
+    }, function(err){
+      if(err && err.status === 401){ cloud.on = false; told = "Sign in with Class Pass again to save your answers to your account. For now they save on this computer."; }
+      else told = "Couldn't check your account for saved answers. Your answers still save on this computer; reload the page to try again.";
+      cloud.on = false;
+    }).then(function(){
+      cloud.loading = false;
+      form.inert = false;
+      root.classList.remove("is-loading");
+      note(told);
+      paintSaved();
+      cloudSoon(CLOUD_FIRST);
+    });
+  }
+  // another computer already turned this form in: start a new one here
+  function alreadyTurnedIn(){
+    startOver();
+    note("You already turned in this form on another computer, so this is a new, blank one.");
+    root.scrollIntoView({block: "start", behavior: "smooth"});
+  }
+  function paintSaved(){
+    var s = $(".bf-saved");
+    if(!s) return;
+    var t = "";
+    if(cloud.on && cloud.loaded){
+      if(cloud.error === "signed-out") t = "Saved on this computer only. Sign in with Class Pass again to save to your account.";
+      else if(cloud.error) t = "Saved on this computer. Couldn't reach your account just now; it will try again.";
+      else if(cloud.dirty || cloud.busy) t = "Saving to your Class Pass account...";
+      else if(cloud.saved) t = "Saved to your Class Pass account at " + clock(cloud.saved) + ". You can finish on any computer." +
+        (cloud.bigPic ? " (Your picture is too big to save there: add it again if you switch computers.)" : "");
+    } else if(changedAt) t = "Your answers are saved on this computer.";
+    s.textContent = t;
+  }
+  // a note at the top of the form (welcome back, still loading, ...)
+  function note(text, how){
+    var n = $(".bf-note");
+    if(!n){
+      n = document.createElement("div");
+      n.className = "bf-note";
+      n.setAttribute("role", "status");
+      n.setAttribute("data-no-edit", "");
+      var at = $(".bf-required-note");
+      at.parentNode.insertBefore(n, at);
+    }
+    n.textContent = text || "";
+    n.className = "bf-note" + (text ? " show" : "") + (how === "wait" ? " wait" : "");
+  }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden" && cloud.dirty && cloud.loaded){ clearTimeout(cloud.timer); cloud.timer = null; cloudSave(); }
+  });
 
   /* ---------------- name and period from Class Pass ---------------- */
   var first = $("[data-student=first]"), last = $("[data-student=last]"), period = $("[data-student=period]");
@@ -118,11 +269,13 @@
       if(!f) f = parts[0] || "";
       l = parts.slice(1).join(" ");
     }
+    // Class Pass names a student "Maya R." (the leaderboard's short name): an initial isn't a last name
+    if(/^[^\s.]{1,3}\.$/.test(l)) l = "";
     var changed = false;
     if(!first.value.trim() && f){ first.value = f; changed = true; }
     if(!last.value.trim() && l){ last.value = l; changed = true; }
     if(!period.value && me.period){ ensureOption(period, String(me.period)); period.value = String(me.period); changed = true; }
-    if(changed){ $$(".bf-q.bad").forEach(recheck); save(); }
+    if(changed){ $$(".bf-q.bad").forEach(recheck); saveNow(); } // filled in for them: not a change of theirs
   }
   function teacherLook(v){
     var t = Boolean(v && v.teacher && !v.student);
@@ -390,14 +543,20 @@
       img.onload = function(){
         var w = img.naturalWidth, h = img.naturalHeight;
         if(!w || !h){ URL.revokeObjectURL(url); rej(); return; }
-        var s = Math.min(1, MAX_SIDE / Math.max(w, h));
-        var c = document.createElement("canvas");
-        c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
-        var g = c.getContext("2d");
-        g.fillStyle = "#ffffff"; g.fillRect(0, 0, c.width, c.height);
-        g.drawImage(img, 0, 0, c.width, c.height);
+        // smaller and a little softer until it fits in the student's account (a busy phone photo can be big)
+        var side = MAX_SIDE, q = 0.85, d = "";
+        for(var tries = 0; tries < 4; tries++){
+          var s = Math.min(1, side / Math.max(w, h));
+          var c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+          var g = c.getContext("2d");
+          g.fillStyle = "#ffffff"; g.fillRect(0, 0, c.width, c.height);
+          g.drawImage(img, 0, 0, c.width, c.height);
+          d = c.toDataURL("image/jpeg", q);
+          if(d.length - d.indexOf(",") - 1 <= PIC_CLOUD_MAX) break;
+          side = Math.round(side * 0.8); q = Math.max(0.6, q - 0.08);
+        }
         URL.revokeObjectURL(url);
-        var d = c.toDataURL("image/jpeg", 0.85);
         res({type: "image/jpeg", data: d.slice(d.indexOf(",") + 1), name: file.name || "screenshot.jpg", shown: true});
       };
       img.onerror = function(){ URL.revokeObjectURL(url); rej(); };
@@ -472,15 +631,13 @@
     });
     return bad;
   }
-  root.addEventListener("input", function(e){
-    var q = e.target.closest && e.target.closest(".bf-q");
-    if(q) recheck(q);
-    save();
-  });
-  root.addEventListener("change", function(e){
-    var q = e.target.closest && e.target.closest(".bf-q");
-    if(q) recheck(q);
-    save();
+  ["input", "change"].forEach(function(type){
+    root.addEventListener(type, function(e){
+      if(e.target === search || e.target === fileIn) return; // looking for a book, or the picture (saved once it is ready)
+      var q = e.target.closest && e.target.closest(".bf-q");
+      if(q) recheck(q);
+      save();
+    });
   });
 
   /* ---------------- sending ---------------- */
@@ -546,6 +703,13 @@
   function turnedIn(sent){
     clearTimeout(saveTimer);
     clearDraft();
+    clearTimeout(cloud.timer);
+    cloud.timer = null;
+    cloud.dirty = false;
+    if(cloud.on){ // forget it in the account too, so another computer doesn't bring it back (one retry if offline)
+      var done = function(){ return window.PS8Pass.ask({type: "formDone", form: FORM, draftId: sent.id}, 30000); };
+      done().catch(function(){ setTimeout(function(){ done().catch(function(){}); }, 10000); });
+    }
     var d = $(".bf-done");
     $("h2", d).textContent = "Turned in! Thanks, " + sent.student.first + ".";
     $(".bf-done-book", d).textContent = sent.book.title;
@@ -553,9 +717,14 @@
     root.classList.add("is-done");
     root.scrollIntoView({block: "start", behavior: "smooth"});
   }
-  $(".bf-again").addEventListener("click", function(){
+  // a new, blank form (the name and period stay)
+  function startOver(){
     var keep = {first: first.value, last: last.value, period: period.value};
     state = blank();
+    changedAt = 0;
+    cloud.sentPic = null;
+    cloud.dirty = false;
+    cloud.saved = 0;
     $$("textarea.bf-text, [data-ar-score], [data-keep=ownTitle], [data-keep=ownAuthor]").forEach(function(el){ el.value = ""; });
     $$("[data-own-words]").forEach(function(el){ el.checked = false; });
     $$("[data-col].bf-chips, [data-col].bf-stars").forEach(function(g){ g.removeAttribute("data-value"); setPick(g, ""); });
@@ -565,6 +734,11 @@
     say("");
     root.classList.remove("is-done");
     saveNow();
+    paintSaved();
+  }
+  $(".bf-again").addEventListener("click", function(){
+    startOver();
+    note("");
     root.scrollIntoView({block: "start", behavior: "smooth"});
   });
 
@@ -608,12 +782,19 @@
     texts.forEach(function(t){ grow(t); paintCount(t); });
     paintMeter();
   }
-  restore();
+  var local = readLocal();
+  if(local) applyDraft(local);
   paintAll();
+  paintSaved();
   if(window.PS8Pass){
     var v = window.PS8Pass.view();
-    fromPass(v); teacherLook(v);
-    if(window.PS8Pass.onChange) window.PS8Pass.onChange(function(nv){ fromPass(nv); teacherLook(nv); });
+    fromPass(v); teacherLook(v); cloudLoad();
+    if(window.PS8Pass.onChange) window.PS8Pass.onChange(function(nv){
+      fromPass(nv); teacherLook(nv);
+      if(isStudent(nv)){ if(cloud.loaded) cloud.on = true; else cloudLoad(); }
+      else cloud.on = false; // signed out, or the teacher: this computer only
+      paintSaved();
+    });
   }
   window.addEventListener("resize", function(){ texts.forEach(grow); });
   // a textarea measured while the page was hidden (the Class Pass sign-in screen) is measured again once it shows

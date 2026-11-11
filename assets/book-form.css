@@ -47,6 +47,14 @@ html[data-theme="dark"] .bf[data-kind="fiction"]{ --bf-pick:#2b7e5d; }
 .bf-teacher b{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-dark); }
 .bf-teacher .btn{ padding:7px 14px; font-size:.82rem; margin-left:auto; }
 
+/* welcome back / looking for saved answers (book-form.js note()) */
+.bf-note{ display:none; margin:0 0 16px; padding:12px 16px; border-radius:10px; font-size:.92rem; font-weight:600; line-height:1.5;
+  background:var(--bf-pick-tint); color:var(--ink); border-left:5px solid var(--bf-pick); }
+.bf-note.show{ display:block; }
+.bf-note.wait::before{ content:""; display:inline-block; width:14px; height:14px; margin:0 10px -2px 0; border-radius:50%;
+  border:2.5px solid var(--bf-pick); border-right-color:transparent; animation:bfSpin .8s linear infinite; }
+@keyframes bfSpin{ to{ transform:rotate(360deg); } }
+.bf.is-loading .bf-form > :not(.bf-note):not(.bf-banner){ opacity:.55; }
 .bf-required-note{ margin:0 0 14px; font-size:.84rem; color:var(--bf-hint); font-weight:500; }
 .bf-required-note span{ color:var(--bf-star); font-weight:700; }
 
@@ -243,4 +251,4 @@ html[data-theme="dark"] .bf-msg.bad{ background:#3a1a1a; color:#ffb4ab; }
   .bf-chosen .btn{ margin-left:0; }
   .bf-saved{ margin-left:0; width:100%; }
 }
-@media (prefers-reduced-motion:reduce){ .bf-meter-fill, .bf-q{ transition:none; } }
+@media (prefers-reduced-motion:reduce){ .bf-meter-fill, .bf-q{ transition:none; } .bf-note.wait::before{ animation:none; } }
