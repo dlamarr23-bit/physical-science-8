@@ -33,7 +33,7 @@
  */
 
 var CL_NAME = "class-list";
-var CL_VERSION = "2026.11.10d";
+var CL_VERSION = "2026.11.10e";
 var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
 var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
 var SCRIPT_API = "https://script.googleapis.com/v1/";
@@ -407,7 +407,7 @@ function sync_(o) {
   var list = built.students.map(function (s) { return { email: s.email, first: s.nick || s.first, last: s.last, period: s.period }; });   // a nickname is the first name on the site
   if (!list.length) return { ok: false, error: "No students: tick Show for at least one class in the Classes tab (or add students by hand)." };
   var classes = built.classes.map(function (c) { return { name: c.name.slice(0, 120), showsAs: c.show ? showsAs_(c.showsAs, c.name) : "", show: c.show, count: c.show ? Number(c.count) || 0 : 0 }; });
-  var helper = { url: props_().getProperty("WEBAPP_URL") || "", version: CL_VERSION, name: CL_NAME };
+  var helper = { url: webApp_().url, version: CL_VERSION, name: CL_NAME };
   var stamp = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify([list, classes, helper])));
   var lastAt = Number(props_().getProperty("SENT_AT") || 0);
   if (o.quiet && stamp === props_().getProperty("SENT_STAMP") && Date.now() - lastAt < 23 * 3600 * 1000) return { ok: true, text: "No change." };
@@ -448,7 +448,7 @@ function doPost(e) {
     if (!key) throw coded_("NO_KEY", "The Class List sheet has no Site key yet. Paste it in its Settings tab.");
     if (!same_(String(req.key || "").toLowerCase(), key)) { Utilities.sleep(600); throw coded_("KEY", "The Class List sheet's Site key does not match the website's. Paste the key again in its Settings tab."); }
     var result;
-    if (req.fn === "hello") result = { name: CL_NAME, version: CL_VERSION, url: props_().getProperty("WEBAPP_URL") || "" };
+    if (req.fn === "hello") result = { name: CL_NAME, version: CL_VERSION, url: webApp_().url };
     else if (req.fn === "update") result = updateAssignment_(req);
     else if (req.fn === "undo") result = undoAssignment_(req);
     else if (req.fn === "updateSelf") result = updateSelf_(true);
@@ -480,6 +480,25 @@ function api_(method, path, body) {
   if (code === 403 || code === 401) throw coded_("DENIED", "Google said no" + (msg ? ": " + msg : ".") + " (Is this your sheet? Run Class List > Set up once to approve.)");
   if (code === 429) throw coded_("BUSY", "Google is busy (too many updates at once). Wait a minute, then try again.");
   throw coded_("API", "The Apps Script API answered " + code + (msg ? ": " + msg : "."));
+}
+
+/** This sheet's web app as it knows it now: { url, id } from Script properties, else from the Settings tab's "Web app (for the Launchpad)"
+    row (2026.11.10e: Donny's first sheet had the address there but not in Script properties, so it sent the site an empty one and the
+    Launchpad could not reach it). An address found in the tab is remembered. { url: "", id: "" } when there is none. */
+function webApp_() {
+  var re = /^https:\/\/script\.google\.com\/(?:a\/macros\/[^\/]+|macros)\/s\/(AKfycb[\w-]{20,200})\/exec$/;
+  var url = String(props_().getProperty("WEBAPP_URL") || "").trim(), m = re.exec(url);
+  if (!m) {
+    var shown = "";
+    try { shown = String(settings_().WEBAPP_SHOWN || "").trim(); } catch (e) {}
+    m = re.exec(shown);
+    if (!m) return { url: "", id: "" };
+    url = "https://script.google.com/macros/s/" + m[1] + "/exec";
+    props_().setProperty("WEBAPP_URL", url);
+  }
+  url = "https://script.google.com/macros/s/" + m[1] + "/exec";
+  if (!props_().getProperty("DEPLOYMENT_ID")) props_().setProperty("DEPLOYMENT_ID", m[1]);
+  return { url: url, id: props_().getProperty("DEPLOYMENT_ID") || m[1] };
 }
 
 /** This sheet's own web app: the one in Script properties, else one already made in Deploy, else a new one. */
@@ -689,7 +708,7 @@ function updateSelf_(fromWeb) {
       var added = want.filter(function (s) { return have.indexOf(s) === -1; });
       if (added.length && fromWeb) throw coded_("NEEDS_OK", "This update asks for a new permission, which only you can approve: open the Class List sheet and choose Class List > Update this sheet's code.");
     }
-    var dep = props_().getProperty("DEPLOYMENT_ID"), d = null;
+    var dep = webApp_().id, d = null;
     if (dep) { try { d = api_("get", "projects/" + sid + "/deployments/" + dep); } catch (e) { d = null; } }
     api_("post", "projects/" + sid + "/versions", { description: "Before the update to Class List " + rel.version + " (" + when_() + ")" });
     api_("put", "projects/" + sid + "/content", { scriptId: sid, files: files.map(function (f) {

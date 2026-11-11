@@ -1,12 +1,14 @@
-class-list v2026.11.10d
+class-list v2026.11.10e
 
-- Fix: Class List > Set up now sends the class list and the web app's address to the site by itself (when the Site key is already in the
-  Settings tab). Before, a first Sync made before the web app existed left the Launchpad saying the sheet "has no web app yet" until the
-  next sync. (Class List > Sync now fixes that on an older sheet too.)
-- Clearer steps when the Launchpad needs an assignment sheet's Script ID (sheets on code older than 2026.11.10b, once): in that sheet,
-  Extensions > Apps Script, copy that tab's whole address, then Edit the card and paste it in Script ID.
+- Fix: the sheet now also reads its web app's address from the Settings tab ("Web app (for the Launchpad)") when it hasn't remembered
+  it, and remembers it. Before, a sheet could show the address there but send the site an empty one, so the Launchpad said the sheet
+  "hasn't told the site its web app yet" and showed no Update now buttons. The next sync (Sync now, or within the hour) fixes it.
 - To get it: on the Assignment Launchpad, Class List sheet box > Update now (or in this sheet: Class List > Update this sheet's code).
   No new permission is needed.
+
+Also from 2026.11.10d, if this sheet skipped it:
+- Class List > Set up sends the class list and the web app's address to the site by itself (when the Site key is already in).
+- Clearer steps when the Launchpad needs an assignment sheet's Script ID (sheets on code older than 2026.11.10b, once).
 
 Also from 2026.11.10c, if this sheet skipped it:
 - A Nickname column in the Students tab (yellow, right after First name). A nickname takes the place of the student's first name on the
