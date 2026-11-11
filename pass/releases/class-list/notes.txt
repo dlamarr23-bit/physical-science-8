@@ -1,13 +1,17 @@
-class-list v2026.11.10e
+class-list v2026.11.10f
 
+- Every error from Google now shows Google's own words too, and a new message tells apart the two different "Apps Script API is off"
+  problems: the switch on your settings page (script.google.com/home/usersettings) and the Google Cloud project behind this sheet.
+- To get it: paste this Code.gs over the old one (Extensions > Apps Script > Code.gs, Ctrl+A, Ctrl+V, Save). Later updates come from
+  the Launchpad (Class List sheet box > Update now) or Class List > Update this sheet's code. No new permission is needed.
+
+Also from 2026.11.10e, if this sheet skipped it:
 - Fix: the sheet now also reads its web app's address from the Settings tab ("Web app (for the Launchpad)") when it hasn't remembered
   it, and remembers it. Before, a sheet could show the address there but send the site an empty one, so the Launchpad said the sheet
   "hasn't told the site its web app yet" and showed no Update now buttons. The next sync (Sync now, or within the hour) fixes it.
 - A clear message when the sheet is missing its permission to change Apps Script projects ("Request had insufficient authentication
   scopes"): its appsscript.json must be the release's (it lists script.projects and script.deployments); paste it, Save, then run
   Class List > Set up and approve.
-- To get it: on the Assignment Launchpad, Class List sheet box > Update now (or in this sheet: Class List > Update this sheet's code).
-  No new permission is needed.
 
 Also from 2026.11.10d, if this sheet skipped it:
 - Class List > Set up sends the class list and the web app's address to the site by itself (when the Site key is already in).

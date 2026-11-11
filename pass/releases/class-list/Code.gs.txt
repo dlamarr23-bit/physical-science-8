@@ -33,7 +33,7 @@
  */
 
 var CL_NAME = "class-list";
-var CL_VERSION = "2026.11.10e";
+var CL_VERSION = "2026.11.10f";
 var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
 var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
 var SCRIPT_API = "https://script.googleapis.com/v1/";
@@ -472,18 +472,23 @@ function api_(method, path, body) {
   var res = UrlFetchApp.fetch(SCRIPT_API + path, opts), code = res.getResponseCode(), j = {};
   try { j = JSON.parse(res.getContentText() || "{}") || {}; } catch (e) { j = {}; }
   if (code >= 200 && code < 300) return j;
-  var msg = String((j.error && j.error.message) || "");
-  if (code === 403 && /apps script api|has not been used|not enabled|usersettings/i.test(msg)) {
-    throw coded_("API_OFF", "Turn on the Google Apps Script API once: open script.google.com/home/usersettings and switch Google Apps Script API to On (wait a minute after).");
+  var msg = String((j.error && j.error.message) || "").replace(/\s+/g, " ").trim();
+  var said = msg ? " Google's words: \"" + msg.slice(0, 400) + "\"" : "";   // 2026.11.10f: always show Google's own reason too
+  // the Cloud project behind this script has the API off (not the switch on your settings page): Google's message has a console link
+  if (code === 403 && /has not been used in project|it is disabled|console\.(?:developers|cloud)\.google\.com/i.test(msg)) {
+    throw coded_("CLOUD_API_OFF", "Google says the Apps Script API is off for this sheet's Google Cloud project (your own Apps Script API switch is a different one)." + said);
+  }
+  if (code === 403 && /usersettings|user has not enabled the apps script api/i.test(msg)) {
+    throw coded_("API_OFF", "Turn on the Google Apps Script API once: open script.google.com/home/usersettings and switch Google Apps Script API to On, then wait a few minutes (Google takes a while to notice)." + said);
   }
   if ((code === 403 || code === 401) && /insufficient authentication scopes|insufficient permission/i.test(msg)) {   // the manifest's oauthScopes are missing or not approved yet
     throw coded_("SCOPES", "This sheet doesn't have permission to change Apps Script projects yet. In the sheet: Extensions > Apps Script > appsscript.json " +
       "(Project Settings, the gear, > Show \"appsscript.json\" if you don't see it). It must list script.projects and script.deployments: paste the release's " +
-      "appsscript.json over it, Save, then reload the sheet and run Class List > Set up, and approve.");
+      "appsscript.json over it, Save, then reload the sheet and run Class List > Set up, and approve." + said);
   }
-  if (code === 404) throw coded_("NOT_FOUND", "Google could not find that Apps Script project or student link.");
-  if (code === 403 || code === 401) throw coded_("DENIED", "Google said no" + (msg ? ": " + msg : ".") + " (Is this your sheet? Run Class List > Set up once to approve.)");
-  if (code === 429) throw coded_("BUSY", "Google is busy (too many updates at once). Wait a minute, then try again.");
+  if (code === 404) throw coded_("NOT_FOUND", "Google could not find that Apps Script project or student link." + said);
+  if (code === 403 || code === 401) throw coded_("DENIED", "Google said no. (Is this your sheet? Run Class List > Set up once to approve.)" + said);
+  if (code === 429) throw coded_("BUSY", "Google is busy (too many updates at once). Wait a minute, then try again." + said);
   throw coded_("API", "The Apps Script API answered " + code + (msg ? ": " + msg : "."));
 }
 
