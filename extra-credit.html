@@ -224,6 +224,31 @@
     background:var(--paper-soft); border-top:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius);
   }
   .ec-dhow b{ color:var(--ink); }
+  .ec-dhow p{ margin:0; }
+  .ec-dhow .ec-dform{ display:inline-block; margin-top:12px; padding:10px 20px; font-size:.88rem; text-decoration:none; }
+
+  /* Turn in your book: the two book forms (extra-credit-fiction.html, extra-credit-nonfiction.html) */
+  .ec-turnin{ margin-top:40px; }
+  .ec-turnin h2{ font-size:1.4rem; margin:0 0 6px; }
+  .ec-turn-lede{ margin:0 0 16px; color:var(--ink-soft); max-width:70ch; }
+  .ec-form-cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .ec-form-card{
+    display:flex; flex-direction:column; border-radius:var(--radius-sm); overflow:hidden; text-decoration:none; color:inherit;
+    background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow-sm); transition:transform .15s, box-shadow .15s;
+  }
+  .ec-form-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); text-decoration:none; }
+  .ec-form-card:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .ec-form-band{ display:block; padding:16px 20px 14px; color:#fff; border-bottom:5px solid #F5B400; }
+  .ec-form-card.fic .ec-form-band{ background:#1F5C44; }
+  .ec-form-card.non .ec-form-band{ background:#123C5E; }
+  .ec-form-band b{ display:block; font-size:1.15rem; font-weight:800; }
+  .ec-form-band small{ display:block; font-size:.84rem; opacity:.9; margin-top:2px; }
+  .ec-form-body{ display:flex; flex-direction:column; align-items:flex-start; gap:14px; padding:16px 20px 20px; flex:1; }
+  .ec-form-what{ font-size:.92rem; color:var(--ink-soft); line-height:1.55; }
+  .ec-form-body .btn{ margin-top:auto; background:#F5B400; color:#1b1f2a; }
+  .ec-form-card:hover .ec-form-body .btn{ filter:brightness(1.05); }
+  @media (max-width:700px){ .ec-form-cards{ grid-template-columns:1fr; gap:12px; } }
+  @media (prefers-reduced-motion:reduce){ .ec-form-card{ transition:none; } }
 
   @media (max-width:860px){
     .ec-layout{ grid-template-columns:minmax(0,1fr); gap:16px; }
@@ -292,7 +317,7 @@
   <div class="hero-inner">
     <div>
       <h1>Science Extra Credit</h1>
-      <p class="lede">Every book on this list is on the shelf in the Placerita School Library. Read one, pass its AR test, and turn in a summary to earn the points shown on its cover.</p>
+      <p class="lede">Every book on this list is on the shelf in the Placerita School Library. Read one, pass its AR test, and turn in a book form or a summary to earn the points shown on its cover.</p>
     </div>
     <img class="hero-pic" src="./assets/section-icons/extra-credit.webp" width="240" height="160" alt="">
   </div>
@@ -303,9 +328,30 @@
     <ol class="ec-step-list">
       <li><span class="ec-num">1</span><div><b>Read a book</b><span class="ec-step-text">Pick a book from the list below and check it out from the library.</span></div></li>
       <li><span class="ec-num">2</span><div><b>Take the AR test</b><span class="ec-step-text">Take the AR test for that book.</span></div></li>
-      <li><span class="ec-num">3</span><div><b>Turn in a summary</b><span class="ec-step-text">Type a one-page, double-spaced summary and turn it in to receive your points.</span></div></li>
+      <li><span class="ec-num">3</span><div><b>Turn in a book form or a summary</b><span class="ec-step-text">Fill out the Fiction or Nonfiction book form below, or type a one-page, double-spaced summary. Either one earns your points.</span></div></li>
     </ol>
     <div class="connection-note"><span class="tag">Good to know</span><span>It may sound like a lot of work, but the book also counts toward your AR points in English class. If there's a different science book you'd like to read that isn't on the list, you can ask me to approve it. Any questions? Come ask me for help.</span></div>
+  </section>
+
+  <section class="ec-turnin" aria-labelledby="ecTurnTitle">
+    <h2 id="ecTurnTitle">Turn in your book</h2>
+    <p class="ec-turn-lede">Finished reading and passed the AR test? Pick the form that matches your book. Each question tells you what to write about, and there is a spot for a picture of your AR test.</p>
+    <div class="ec-form-cards">
+      <a class="ec-form-card fic" href="./extra-credit-fiction.html">
+        <span class="ec-form-band"><b>Fiction Book Form</b><small>Novels and made-up stories</small></span>
+        <span class="ec-form-body">
+          <span class="ec-form-what">The setting, the main character, the problem, the story in three parts, and where science shows up in it.</span>
+          <span class="btn">Start the Fiction form</span>
+        </span>
+      </a>
+      <a class="ec-form-card non" href="./extra-credit-nonfiction.html">
+        <span class="ec-form-band"><b>Nonfiction Book Form</b><small>True books: people, events, how things work</small></span>
+        <span class="ec-form-body">
+          <span class="ec-form-what">The main idea, the book in three parts, three facts you learned, an important person, and how it connects to our class.</span>
+          <span class="btn">Start the Nonfiction form</span>
+        </span>
+      </a>
+    </div>
   </section>
 
   <section class="ec-books" aria-labelledby="ecBooksTitle" data-no-edit>
@@ -379,7 +425,10 @@
       <div><dt>Reading level</dt><dd id="dLevel"></dd></div>
       <div><dt>Pages</dt><dd id="dPages"></dd></div>
     </dl>
-    <p class="ec-dhow"><b>To earn these points:</b> read the book, take its AR test, then turn in a one-page, double-spaced typed summary.</p>
+    <div class="ec-dhow">
+      <p><b>To earn these points:</b> read the book, take its AR test, then fill out the book form (or turn in a one-page, double-spaced typed summary).</p>
+      <a class="btn ec-dform" id="dForm" href="./extra-credit-fiction.html">Fill out the book form</a>
+    </div>
   </div>
 </div>
 
@@ -599,6 +648,10 @@ function openDetail(id){
   $('#dPts').textContent=fmtNum(b.points,1);
   $('#dLevel').textContent=b.level!=null?fmtNum(b.level,1):'—';
   $('#dPages').textContent=b.pages!=null?b.pages:'—';
+  // the book form for this book's kind, with the book already picked (book-form.js reads ?book=)
+  const fic=b.genre!=='Non-fiction';
+  $('#dForm').href='./extra-credit-'+(fic?'fiction':'nonfiction')+'?book='+encodeURIComponent(b.title);
+  $('#dForm').textContent='Fill out the '+(fic?'Fiction':'Nonfiction')+' Book Form';
   lastFocus=document.activeElement;
   $('#detail').classList.add('open');document.body.style.overflow='hidden';
   $('#detail .ec-close').focus();
