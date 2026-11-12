@@ -1,9 +1,18 @@
-class-list v2026.11.10f
+class-list v2026.11.11
 
+- Broken videos and links: your class website now checks its videos and web links every night. About once a week, when something new
+  has stopped working, this sheet emails you the list (from your own account, to you), with how many replacements are ready to pick
+  on the website's Site check page (Class Pass menu > Site check).
+- Settings tab: a new row, "Email me when videos or links stop working" (checked). Uncheck it to stop the emails.
+- Class List menu: "Email me about broken videos and links now" asks the website at once instead of waiting a day.
+- This update asks for ONE new permission (to send you email), which only you can approve, so the Launchpad's Update now can't install it.
+  To get it: open the Class List sheet, choose Class List > Update this sheet's code, reload the sheet, then choose
+  Class List > Email me about broken videos and links now. Google asks you to allow it to send email as you: press Allow.
+  Until you do, the hourly class list sync waits, so do it soon after updating.
+
+Also from 2026.11.10f, if this sheet skipped it:
 - Every error from Google now shows Google's own words too, and a new message tells apart the two different "Apps Script API is off"
   problems: the switch on your settings page (script.google.com/home/usersettings) and the Google Cloud project behind this sheet.
-- To get it: paste this Code.gs over the old one (Extensions > Apps Script > Code.gs, Ctrl+A, Ctrl+V, Save). Later updates come from
-  the Launchpad (Class List sheet box > Update now) or Class List > Update this sheet's code. No new permission is needed.
 
 Also from 2026.11.10e, if this sheet skipped it:
 - Fix: the sheet now also reads its web app's address from the Settings tab ("Web app (for the Launchpad)") when it hasn't remembered

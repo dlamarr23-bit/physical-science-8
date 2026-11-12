@@ -28,12 +28,17 @@
  * Update now (the Launchpad's Class List box) or Class List > Update this sheet's code installs a newer
  * release of THIS code the same way.
  *
+ * BROKEN VIDEOS AND LINKS (2026.11.11): the website checks its videos and web links every night. About once a week,
+ * when something new stopped working, this sheet emails you the list (once a day it asks the site; MailApp sends it
+ * from your own account, to you). Settings tab: "Email me when videos or links stop working". The replacements to
+ * pick are on the website's Site check page.
+ *
  * appsscript.json must be the one from the same release (Project Settings > Show "appsscript.json"): it lists
  * the permissions the sheet asks for and turns on the Classroom service.
  */
 
 var CL_NAME = "class-list";
-var CL_VERSION = "2026.11.10f";
+var CL_VERSION = "2026.11.11";
 var SITE_URL = "https://vocabulary-room901.pages.dev";                       // the Class Pass and Leaderboard site
 var RELEASES_URL = "https://physical-science-8.pages.dev/pass/releases/";    // released code for every kind, and for this sheet
 var SCRIPT_API = "https://script.googleapis.com/v1/";
@@ -50,6 +55,7 @@ var SETTING_DEFS = [
   ["Site key", "SITE_KEY", "", "Paste the Class list key from the website's Leaderboard page (sign in there as the teacher, then open Class list at the bottom). It lets this sheet change the class list on the site, and the Launchpad use this sheet. Keep it to yourself."],
   ["Tick new classes by themselves when the name includes", "AUTO_TICK", "", "Optional, like LaMarr. A new Classroom class whose name has these letters is ticked for you (still marked New, so you see it). Blank = new classes start unticked."],
   ["Sync every hour", "HOURLY", true, "Checked = every hour the sheet looks at Google Classroom and sends the class list to the site when it changed."],
+  ["Email me when videos or links stop working", "LINK_MAIL", true, "Checked = about once a week, when the website's nightly check finds videos or web links that stopped working, this sheet emails you the list. Pick replacements on the website's Site check page (Class Pass menu)."],
   ["Last sync", "LAST_SYNC", "", "Filled in by the sheet."],
   ["Web app (for the Launchpad)", "WEBAPP_SHOWN", "", "Filled in by Class List > Set up. The Launchpad finds it by itself."]
 ];
@@ -60,6 +66,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu("Class List")
     .addItem("Sync now (send the class list to the site)", "syncNow")
     .addItem("Get my Google Classroom classes again", "refreshClassesMenu")
+    .addItem("Email me about broken videos and links now", "linkNewsNow")
     .addSeparator()
     .addItem("Set up (first time, or to repair)", "setup")
     .addItem("Update this sheet's code", "updateMyCode")
@@ -76,6 +83,7 @@ function about() {
     "1. Classes tab: tick Show for each class whose students should sign in. Shows as = the period number (4) or a name (Test).\n" +
     "2. Added by hand tab: anyone else (or a fix to a name or period). Students tab, Nickname column: a name to use instead of the first name.\n" +
     "3. Class List > Sync now sends it to the site. It also syncs by itself every hour.\n\n" +
+    "About once a week, when the website's nightly check finds videos or links that stopped working, this sheet emails you the list.\n\n" +
     "The Assignment Launchpad uses this sheet to update your assignment sheets' code (Update now on a card).");
 }
 
@@ -389,11 +397,16 @@ function clearNew_() {
   readClasses_().forEach(function (c) { if (/^New/.test(c.status)) { sh.getRange(c.row, 5).setValue(""); sh.getRange(c.row, 1, 1, CLASS_HEADS.length).setBackground(null); } });
 }
 
-/** Every hour: Classroom again, and the class list to the site when it changed (or once a day anyway). Never asks anything. */
+/** Every hour: Classroom again, and the class list to the site when it changed (or once a day anyway). Once a day, news of
+    broken videos and links (linkNews_). Never asks anything. */
 function hourly() {
-  if (!yes_(settings_().HOURLY) || !siteKey_()) return;
-  try { refreshClasses_(); } catch (e) { log_("Hourly sync", "Google Classroom did not answer: " + e.message); return; }
-  sync_({ quiet: true });
+  if (!siteKey_()) return;
+  if (yes_(settings_().HOURLY)) {
+    var classroomOk = true;
+    try { refreshClasses_(); } catch (e) { classroomOk = false; log_("Hourly sync", "Google Classroom did not answer: " + e.message); }
+    if (classroomOk) sync_({ quiet: true });
+  }
+  try { linkNews_(false); } catch (e) { log_("Link check email", "Not sent: " + e.message); }
 }
 
 /** Sends the class list. o.force: send even when it takes many students off; o.quiet: only when it changed (or a day went by).
@@ -429,6 +442,87 @@ function sync_(o) {
   setSetting_("LAST_SYNC", when_() + ": " + text);
   log_(o.quiet ? "Hourly sync" : "Sync", text);
   return { ok: true, text: text, students: list.length, added: body.added || 0, removed: body.removed || 0 };
+}
+
+/* ============================== broken videos and links (2026.11.11) ============================== */
+
+// The website's nightly link check (on the vocabulary site's game server) makes a report about once a week, when
+// something new stopped working. Once a day this sheet asks for reports it has not emailed yet, emails them to you
+// (the sheet's owner, from your own account) and tells the site which ones went. Nothing new = no email.
+var LINK_PAGE = "https://physical-science-8.pages.dev/site-check.html";
+
+/** Menu: Class List > Email me about broken videos and links now. */
+function linkNewsNow() {
+  if (!siteKey_()) { say_("Paste the Site key first", "Settings tab, Site key: paste the Class list key from the website (Leaderboard page, signed in as the teacher > Class list)."); return; }
+  var r;
+  try { r = linkNews_(true); } catch (e) { say_("Not sent", e.message); return; }
+  if (!r) say_("Not sent", "Look at the Log tab for what happened.");
+  else if (r.off) say_("Turned off", "Settings tab: check \"Email me when videos or links stop working\" to get these emails.");
+  else if (!r.sent) say_("Nothing new", "No new videos or links have stopped working since the last email. The website's Site check page always has the full list:\n" + LINK_PAGE);
+  else say_("Sent", "Emailed you about " + r.sent + " video" + (r.sent === 1 ? "" : "s") + " or link" + (r.sent === 1 ? "" : "s") + " that stopped working.");
+}
+
+/** force: ask now (the menu), not only once a day. Returns { sent }, { off: true }, or null (not asked, or a problem, in the Log). */
+function linkNews_(force) {
+  if (!yes_(settings_().LINK_MAIL)) return force ? { off: true } : null;
+  var key = siteKey_();
+  if (!key) return null;
+  var last = Number(props_().getProperty("LINKS_AT") || 0);
+  if (!force && Date.now() - last < 20 * 3600 * 1000) return null;
+  props_().setProperty("LINKS_AT", String(Date.now()));
+  var r = linkAsk_({ key: key });
+  if (!r) return null;
+  var reports = Array.isArray(r.reports) ? r.reports : [];
+  if (!reports.length) return { sent: 0 };
+  var seen = {}, items = [];
+  reports.forEach(function (rep) {
+    (Array.isArray(rep.items) ? rep.items : []).forEach(function (it) { if (it && !seen[it.key]) { seen[it.key] = true; items.push(it); } });
+  });
+  var to = Session.getEffectiveUser().getEmail();
+  if (!to) { log_("Link check email", "Not sent: Google did not say which account this sheet belongs to."); return null; }
+  if (MailApp.getRemainingDailyQuota() < 1) { log_("Link check email", "Not sent: today's Gmail limit for scripts is used up. It tries again tomorrow."); return null; }
+  var mail = linkMail_(items, r.page || LINK_PAGE);
+  MailApp.sendEmail({ to: to, subject: mail.subject, body: mail.text, htmlBody: mail.html, name: "Class website" });
+  linkAsk_({ key: key, sent: reports.map(function (rep) { return rep.id; }) });
+  log_("Link check email", "Emailed you about " + items.length + " video" + (items.length === 1 ? "" : "s") + " or link" + (items.length === 1 ? "" : "s") + " that stopped working.");
+  return { sent: items.length };
+}
+
+/** POST /api/classlist/links. Returns the answer, or null (logged). */
+function linkAsk_(body) {
+  var res = UrlFetchApp.fetch(SITE_URL + "/api/classlist/links", { method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify(body) });
+  var out = {};
+  try { out = JSON.parse(res.getContentText()) || {}; } catch (e) { out = {}; }
+  if (res.getResponseCode() !== 200) {
+    log_("Link check email", "The site answered " + res.getResponseCode() + (out.error ? ": " + out.error : ". (Is the website up to date?)"));
+    return null;
+  }
+  return out;
+}
+
+function esc_(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+
+/** The email: { subject, text, html }. */
+function linkMail_(items, page) {
+  var n = items.length;
+  var subject = "Class website: " + n + " video" + (n === 1 ? "" : "s") + " or link" + (n === 1 ? "" : "s") + " stopped working";
+  var lines = [], rows = [];
+  items.forEach(function (it) {
+    var kind = it.kind === "video" ? "video" : "link";
+    var where = (Array.isArray(it.pages) ? it.pages : []).map(function (p) { return p.title || p.page; }).join(", ");
+    var ready = it.picks ? it.picks + " replacement" + (it.picks === 1 ? " is" : "s are") + " ready to pick." : "No replacement found yet; you can paste your own.";
+    lines.push("- " + it.title + " (" + kind + (where ? ", on " + where : "") + ")\n  " + (it.problem || "It stopped working.") + "\n  " + ready);
+    rows.push("<li style='margin:0 0 12px'><b>" + esc_(it.title) + "</b> (" + kind + (where ? ", on " + esc_(where) : "") + ")<br>" +
+      esc_(it.problem || "It stopped working.") + "<br><span style='color:#555'>" + esc_(ready) + "</span></li>");
+  });
+  var text = "Your class website's nightly check found " + (n === 1 ? "a video or link" : n + " videos or links") + " that stopped working:\n\n" + lines.join("\n\n") +
+    "\n\nPick a replacement on the Site check page (Class Pass menu > Site check). Students get the new one straight away:\n" + page +
+    "\n\nThis email comes from your Class List sheet (Settings tab: Email me when videos or links stop working).";
+  var html = "<div style='font-family:Arial,sans-serif;font-size:14px;line-height:1.45'><p>Your class website's nightly check found " +
+    (n === 1 ? "a video or link" : n + " videos or links") + " that stopped working:</p><ul style='padding-left:20px'>" + rows.join("") + "</ul>" +
+    "<p><a href='" + esc_(page) + "'>Open Site check</a> (Class Pass menu &gt; Site check) to pick a replacement. Students get the new one straight away.</p>" +
+    "<p style='color:#777;font-size:12px'>This email comes from your Class List sheet (Settings tab: Email me when videos or links stop working).</p></div>";
+  return { subject: subject, text: text, html: html };
 }
 
 /* ============================== the web app (for the Launchpad and the Leaderboard page) ============================== */
