@@ -235,7 +235,8 @@
    {fn, key, deployment, script, sheet, title} to it. A card that needs an update (red or gray) gets Update now; the
    code check line gets Update all (it asks once more on the page, no pop-up). One update runs at a time. A sheet
    on code older than 2026.11.10b doesn't say its Script ID: Edit can keep one on the card (item.script). The box
-   above the list says how the Class List sheet is doing, and installs its own newer release (Update now there).
+   above the list says how the Class List sheet is doing, and installs its own newer release (Update now there);
+   its Open Class List sheet button opens the sheet itself (CLASS_LIST_SHEET, Donny, 2026-11-11).
    Updating by hand (in the sheet: Check for skill updates) works exactly as before.
    Student view (the Class Pass menu): this page is locked, the way students see it. */
 document.addEventListener("DOMContentLoaded", function(){
@@ -592,7 +593,9 @@ document.addEventListener("DOMContentLoaded", function(){
     return wrap;
   }
 
-  // the Class List sheet's box: not set up yet, its own update (like the code check for a card), or all is well
+  // the Class List sheet's box: what it says (helperNews), then Open Class List sheet in every case
+  // (Donny, 2026-11-11). The sheet is in his own Drive and shared with no one, so its address opens it for him only.
+  var CLASS_LIST_SHEET = "https://docs.google.com/spreadsheets/d/1KQMrlsGHoXz5GiUDfoLqkZxLs_FJQhq4RU7_7wUfuvs/edit";
   var selfUp = null;   // its own update: {state: "running"} or {text, bad}
   function drawHelper(){
     var box = $("lpHelper");
@@ -600,6 +603,13 @@ document.addEventListener("DOMContentLoaded", function(){
     box.hidden = !helper;
     if(!helper) return;
     box.appendChild(el("h2", null, "Class List sheet"));
+    var row = helperNews(box) || box.appendChild(el("div", "lp-btns"));
+    var open = el("a", "lp-btn alt", "Open Class List sheet");
+    open.href = CLASS_LIST_SHEET; open.target = "_blank"; open.rel = "noopener";
+    row.appendChild(open);
+  }
+  // not set up yet, its own update (like the code check for a card), or all is well; returns its button row when it made one
+  function helperNews(box){
     function p(text, cls){ var x = el("p", cls || null, text); box.appendChild(x); return x; }
     if(helper.error){ p("Couldn't ask about your Class List sheet (" + helper.error + "). Update now needs it; reload the page to try again."); return; }
     if(!helper.connected){
@@ -626,7 +636,7 @@ document.addEventListener("DOMContentLoaded", function(){
       });
       bt.appendChild(go);
       box.appendChild(bt);
-      return;
+      return bt;
     }
     p("✓ Version " + (have || "?") + (web && have === web ? ", up to date" : "") + ". Class list: " + (helper.students || 0) + " students" +
       (helper.synced ? ", sent " + new Date(helper.synced).toLocaleString([], {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}) : "") + ". Update now on a card uses this sheet.");
