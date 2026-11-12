@@ -190,6 +190,7 @@
     if(r.who === "student") return (r.name || "A student") + (r.period ? ", period " + r.period : "");
     if(r.who === "special") return (r.name || "Someone") + " (special permission)";
     if(r.who === "guest") return "A guest (signed in with the guest code)";
+    if(r.who === "site") return "The site's nightly link check (open Site check to fix it)";
     return "Not signed in";
   }
   // "Chromebook, Chrome 131" from the browser's description

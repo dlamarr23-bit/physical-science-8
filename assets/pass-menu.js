@@ -39,6 +39,8 @@
    footer. It opens the panel in assets/feedback.js, which sends a report or an idea through the bridge; the teacher
    reads them on feedback.html (Feedback inbox, in his menu). Special permission (the same day): an account that is not
    on the class list can still sign in when it is in SPECIAL in the vocabulary site's game-server/src/board.js.
+   Site check (the same day): the teacher's menu links to site-check.html, the nightly check of the book's videos and
+   links (replacements to pick) and how much of each free limit the site has used.
 
    window.PS8Pass: view(), onChange(fn), ask(message) (a question for the bridge; resolves with its answer),
    theme(), setTheme("light" | "dark"), studentView(), setStudentView(on), feedback() (opens the panel). */
@@ -412,6 +414,7 @@
       }
       if(view.teacher) item("Assignment Launchpad", p + "launchpad.html");
       if(view.teacher) item("Feedback inbox", p + "feedback.html");
+      if(view.teacher) item("Site check", p + "site-check.html");
       if(view.teacher) item("Student view").addEventListener("click", function(){ closeMenu(); setStudentView(true); });
       if(view.teacher) item("Guest code").addEventListener("click", function(){ closeMenu(); guestCodeDialog(); });
       if(view.me || view.teacher) item("Leaderboard", p + "leaderboard.html");

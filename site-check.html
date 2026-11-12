@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Site check · Physical Science 8</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script>/* dark mode chosen in the Class Pass menu (pass-menu.js), set before the page draws */try{if(localStorage.getItem("ps8-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<script src="/assets/icons.js" defer></script>
+<script src="/assets/app.js" defer></script>
+<script src="/assets/pass-menu.js" defer></script>
+<style>
+  /* Site check's own look (the Feedback inbox's buttons, .fi-btn, are copied here as .sc-btn) */
+  .sc{ max-width:900px; }
+  .sc h1{ font-size:1.9rem; margin:0 0 4px; }
+  .sc-sub{ color:var(--ink-soft); margin:0 0 18px; }
+  .sc-panel{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin:0 0 22px; box-shadow:var(--shadow-sm); }
+  .sc-panel > h2{ font-size:1.25rem; margin:0 0 8px; }
+  .sc-panel > p{ margin:0 0 12px; line-height:1.55; }
+  .sc-good{ color:#15803d; font-weight:800; }
+  .sc-bad{ color:#b3261e; font-weight:800; }
+  .sc-note{ background:#fff8e1; border:1px solid #f1d27a; border-radius:12px; padding:12px 14px; margin:0 0 14px; line-height:1.5; }
+  .sc-note ol{ margin:8px 0 0; padding-left:22px; }
+  .sc-note li{ margin:3px 0; }
+  .sc-tools{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:6px 0 16px; }
+  .sc-quiet{ border:0; background:none; padding:4px 2px; font:inherit; font-size:.88rem; font-weight:700; color:var(--accent-dark); text-decoration:underline; cursor:pointer; }
+  .sc-quiet:disabled{ opacity:.6; cursor:default; }
+  .sc-btn{ white-space:nowrap; padding:7px 14px; border-radius:999px; font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; border:1.5px solid var(--accent); background:var(--accent); color:var(--on-accent); }
+  .sc-btn.alt{ background:var(--card); color:var(--ink); border-color:var(--line); }
+  .sc-btn.alt:hover{ border-color:var(--accent); color:var(--accent-dark); }
+  .sc-btn:disabled{ opacity:.6; cursor:default; }
+  .sc-list{ display:grid; gap:14px; margin:0 0 16px; }
+  .sc-card{ border:1px solid var(--line); border-left:5px solid #c2410c; border-radius:14px; padding:14px 16px; background:var(--paper-soft); }
+  .sc-top{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:.85rem; color:var(--ink-soft); }
+  .sc-tag{ display:inline-block; font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 9px; border-radius:999px; color:#fff; background:#c2410c; }
+  .sc-card h3{ font-size:1.05rem; margin:8px 0 4px; overflow-wrap:anywhere; }
+  .sc-card h3 a{ color:inherit; }
+  .sc-facts{ margin:0; font-size:.88rem; color:var(--ink-soft); line-height:1.5; }
+  .sc-why{ margin:8px 0 0; line-height:1.5; }
+  .sc-picks{ display:grid; gap:10px; margin:12px 0 0; }
+  .sc-pick{ display:flex; gap:12px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .sc-pick img{ width:120px; height:68px; object-fit:cover; border-radius:8px; flex:0 0 auto; background:var(--line); }
+  .sc-pick-words{ flex:1 1 auto; min-width:0; }
+  .sc-pick-words b{ display:block; overflow-wrap:anywhere; }
+  .sc-pick-words small{ display:block; color:var(--ink-soft); margin-top:2px; overflow-wrap:anywhere; }
+  .sc-pick-words a{ font-size:.85rem; font-weight:700; }
+  .sc-own{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0 0; }
+  .sc-own label{ font-size:.88rem; font-weight:700; }
+  .sc-own input{ flex:1 1 240px; min-width:0; padding:8px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); }
+  .sc-btns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .sc-msg{ margin:8px 0 0; font-size:.88rem; color:var(--ink-soft); }
+  .sc-msg.bad{ color:#b3261e; }
+  .sc-rows{ margin:6px 0 14px; padding:0; list-style:none; }
+  .sc-rows li{ padding:8px 0; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:baseline; }
+  .sc-rows li:last-child{ border-bottom:0; }
+  .sc-rows .sc-what{ flex:1 1 300px; min-width:0; overflow-wrap:anywhere; }
+  .sc-rows small{ color:var(--ink-soft); }
+  .sc-more{ border-top:1px solid var(--line); padding-top:8px; margin-top:4px; }
+  .sc-more summary{ cursor:pointer; font-weight:700; padding:8px 0; }
+  .sc-table-wrap{ overflow-x:auto; }
+  .sc-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  .sc-table th, .sc-table td{ text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .sc-table td a{ overflow-wrap:anywhere; }
+  .sc-tiles{ display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px; }
+  .sc-tile{ border:1px solid var(--line); border-top:4px solid #15803d; border-radius:14px; padding:14px 16px; background:var(--paper-soft); }
+  .sc-tile.warn{ border-top-color:#d97706; }
+  .sc-tile.full{ border-top-color:#b3261e; }
+  .sc-tile.off{ border-top-color:var(--line); }
+  .sc-label{ font-size:.75rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  .sc-num{ margin:8px 0 6px; font-size:.95rem; color:var(--ink-soft); }
+  .sc-num b{ font-size:1.9rem; color:var(--ink); margin-right:4px; }
+  .sc-bar{ height:9px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .sc-bar span{ display:block; height:100%; min-width:6px; background:#15803d; border-radius:999px; }
+  .sc-tile.warn .sc-bar span{ background:#d97706; }
+  .sc-tile.full .sc-bar span{ background:#b3261e; }
+  .sc-left{ margin:8px 0 6px; font-weight:800; color:#15803d; }
+  .sc-tile.warn .sc-left{ color:#b45309; }
+  .sc-tile.full .sc-left{ color:#b3261e; }
+  .sc-tile p{ margin:0; font-size:.85rem; color:var(--ink-soft); line-height:1.45; }
+  .sc-tile details{ margin-top:8px; font-size:.85rem; }
+  .sc-tile summary{ cursor:pointer; font-weight:700; color:var(--accent-dark); }
+  .sc-tile ol{ margin:6px 0 0; padding-left:20px; color:var(--ink); }
+  .sc-tile li{ margin:3px 0; }
+  html[data-theme="dark"] .sc-good, html[data-theme="dark"] .sc-left{ color:#4ade80; }
+  html[data-theme="dark"] .sc-bad, html[data-theme="dark"] .sc-msg.bad, html[data-theme="dark"] .sc-tile.full .sc-left{ color:#ff9b93; }
+  html[data-theme="dark"] .sc-tile.warn .sc-left{ color:#fbbf24; }
+  html[data-theme="dark"] .sc-note{ background:#2a2410; border-color:#6b5a1e; }
+  html[data-theme="dark"] .sc-card{ border-left-color:#e8590c; }
+  @media (max-width:520px){
+    .sc h1{ font-size:1.5rem; }
+    .sc-panel{ padding:16px 14px; }
+    .sc-pick{ flex-wrap:wrap; }
+    .sc-pick img{ width:100%; height:auto; aspect-ratio:16 / 9; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/index.html" style="text-decoration:none;">
+            <img class="mascot" src="/assets/mascot.png" alt="Physical Science 8 mascot: a cartoon scientist heating a sample over a Bunsen burner">
+      <span>Mr. LaMarr&rsquo;s Physical Science Classroom<small>Placerita Junior High - Grade 8</small></span>
+    </a>
+    <nav class="inline-links" aria-label="Site">
+      <a href="/index.html">Home</a>
+      <a href="/flashcards.html">Review</a>
+      <a href="/sims.html">Sims</a>
+      <a href="/extra-credit.html">Extra Credit</a>
+      <a href="/glossary.html">Glossary</a>
+      <a href="/leaderboard.html" class="nav-board">Leaderboard</a>
+    </nav>
+    <button class="menu-btn" id="openDrawer" aria-label="Open table of contents">&#9776; Contents</button>
+    <div class="cp-menu" id="cpMenu"><button class="cp-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="cp-tag">Class Pass</span><span class="cp-who">Sign in</span></button></div>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+  <h3>Table of Contents</h3>
+  <div class="unit-block">
+      <a class="unit-title" href="/energy-of-motion.html">Unit 1: Energy of Motion</a>
+      <ul><li><a class="" href="/frames-of-reference.html"><span class="check" data-chapter="u1-t1"></span> Frames of Reference</a></li><li><a class="" href="/speed-and-distance-time-graphs.html"><span class="check" data-chapter="u1-t2"></span> Speed and Distance/Time Graphs</a></li><li><a class="" href="/inertia-and-net-forces.html"><span class="check" data-chapter="u1-t3"></span> Inertia and Net Forces</a></li><li><a class="" href="/energy-transfer-via-friction.html"><span class="check" data-chapter="u1-t4"></span> Energy Transfer via Friction</a></li><li><a class="" href="/mass-and-acceleration.html"><span class="check" data-chapter="u1-t5"></span> Mass and Acceleration</a></li><li><a class="" href="/collisions-and-newtons-third-law.html"><span class="check" data-chapter="u1-t6"></span> Collisions and Newton&#x27;s Third Law</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/gravity-and-energy-related-to-position.html">Unit 2: Gravity &amp; Energy Related to Position</a>
+      <ul><li><a class="" href="/gravitational-potential-energy.html"><span class="check" data-chapter="u2-t1"></span> Gravitational Potential Energy</a></li><li><a class="" href="/universal-law-of-gravity.html"><span class="check" data-chapter="u2-t2"></span> Universal Law of Gravity</a></li><li><a class="" href="/gravitational-potential-energy-to-kinetic-energy.html"><span class="check" data-chapter="u2-t3"></span> Gravitational Potential Energy to Kinetic Energy</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/electricity-and-magnetism.html">Unit 3: Electricity &amp; Magnetism</a>
+      <ul><li><a class="" href="/magnetism.html"><span class="check" data-chapter="u3-t1"></span> Magnetism</a></li><li><a class="" href="/electromagnetic-fields.html"><span class="check" data-chapter="u3-t2"></span> Electromagnetic Fields</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/waves-transmitting-energy-and-information.html">Unit 4: Waves Transmitting Energy &amp; Information</a>
+      <ul><li><a class="" href="/intro-to-wave-properties.html"><span class="check" data-chapter="u4-t1"></span> Intro to Wave Properties</a></li><li><a class="" href="/light-waves.html"><span class="check" data-chapter="u4-t2"></span> Light Waves</a></li><li><a class="" href="/waves-and-information-technology.html"><span class="check" data-chapter="u4-t3"></span> Waves &amp; Information Technology</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/thermal-energy-and-heat-flow.html">Unit 5: Thermal Energy &amp; Heat Flow</a>
+      <ul><li><a class="" href="/energy-transfer-and-temperature.html"><span class="check" data-chapter="u5-t1"></span> Energy Transfer and Temperature</a></li><li><a class="" href="/changes-in-energy-at-the-molecular-level.html"><span class="check" data-chapter="u5-t2"></span> Changes in Energy at the Molecular Level</a></li><li><a class="" href="/phase-changes-and-energy-transfer.html"><span class="check" data-chapter="u5-t3"></span> Phase Changes and Energy Transfer</a></li></ul>
+    </div><div class="unit-block">
+      <a class="unit-title" href="/chemical-energy-and-reactions.html">Unit 6: Chemical Energy &amp; Reactions</a>
+      <ul><li><a class="" href="/molecular-composition.html"><span class="check" data-chapter="u6-t1"></span> Molecular Composition</a></li><li><a class="" href="/physical-and-chemical-properties.html"><span class="check" data-chapter="u6-t2"></span> Physical and Chemical Properties</a></li><li><a class="" href="/conservation-of-matter.html"><span class="check" data-chapter="u6-t3"></span> Conservation of Matter</a></li><li><a class="" href="/synthetic-vs-natural.html"><span class="check" data-chapter="u6-t4"></span> Synthetic vs. Natural</a></li></ul>
+    </div>
+</div>
+<main class="container sc">
+  <h1>Site check</h1>
+  <p class="sc-sub">The nightly check of this site's videos and web links, and how much of each free limit the site has used. Only you can see this page.</p>
+  <p class="cp-msg" id="scStatus" role="status">Opening Site check...</p>
+
+  <div class="sc-panel" id="scLocked" hidden>
+    <p id="scLockedText">This page is only for Mr. LaMarr. Sign in with the teacher password to see it.</p>
+    <button class="btn" type="button" id="scSignIn">Teacher sign in</button>
+  </div>
+
+  <div id="scMain" hidden>
+    <section class="sc-panel" aria-labelledby="scLinksHead">
+      <h2 id="scLinksHead">Videos and links</h2>
+      <p>Every night the site checks a few of the book's videos and web links, so each one is checked about once a week. When one stops working, the site looks for replacements and lists them here. Press <b>Use this</b> and students get the new one straight away. About once a week, if something new has stopped working, you get an email (it also lands in your Feedback inbox).</p>
+      <p>Who runs it: Cloudflare, the company that hosts this site, on the free plan. In your Cloudflare account, open Workers &amp; Pages, then the Worker named "vocab-live", then Settings, then Trigger events. The job is the Cron Trigger "23 10 * * *", which means every day at 10:23 UTC (2:23 a.m. Pacific in winter, 3:23 in summer). Replacements come from one Brave search for each broken link; Cloudflare's AI picks the ones that suit an 8th grade class, and the site opens each one to make sure it works. The email is sent by your Class List sheet. The code is game-server/src/links.js in your vocabulary project on GitHub.</p>
+      <p id="scRound"></p>
+      <div id="scNotes"></div>
+      <div id="scProblems"></div>
+      <div class="sc-tools">
+        <button class="sc-btn" type="button" id="scRun">Check some now</button>
+        <button class="sc-quiet" type="button" id="scReload">Reload</button>
+      </div>
+      <div id="scMore"></div>
+    </section>
+
+    <section class="sc-panel" aria-labelledby="scLimitsHead">
+      <h2 id="scLimitsHead">Free limits</h2>
+      <p>Everything the site runs on is free up to a limit. This is how much of each one is used. When one runs out, that feature waits until it starts over; nothing is ever charged.</p>
+      <div class="sc-tiles" id="scTiles"></div>
+    </section>
+  </div>
+</main>
+<script>
+/* Site check (Donny, 2026-11-11): the nightly check of this site's videos and web links, and the free limits, for the
+   teacher only. The check runs on the vocabulary site's game server (game-server/src/links.js, a Cloudflare Cron
+   Trigger on the vocab-live Worker) and keeps everything with the class leaderboard; this page reads it through the
+   Class Pass bridge (PS8Pass.ask "linksStatus", and "linksRun", "linksUse", "linksUndo", "linksOk", "linksFind",
+   "linksCheck"; see pass-menu.js and the vocabulary site's book-bridge.js and /api/links).
+   A replacement picked here is kept on the vocabulary site (KV link-swaps) and every page puts it in as it opens
+   (page-text.js), so students get it at once. Its words come from other sites, so they are only ever put in as text. */
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var data = null, loaded = false, loading = false;
+  var KIND = {video: "Video", link: "Link"};
+  var STATUS = {ok: "Works", unsure: "Could not check", failing: "Failed once", broken: "Stopped working", "new": "Not checked yet"};
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+  function link(text, url){
+    var a = el("a", null, text);
+    if(/^https?:\/\//i.test(String(url || ""))){ a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    return a;
+  }
+  function pageLink(p){
+    var a = el("a", null, p.title || p.page);
+    a.href = p.page === "index" ? "/" : "/" + p.page + ".html";
+    a.target = "_blank";
+    a.rel = "noopener";
+    return a;
+  }
+  function status(text, bad){ var s = $("scStatus"); s.className = "cp-msg" + (bad ? " bad" : ""); s.textContent = text || ""; }
+  function plural(n, w, ws){ return n.toLocaleString("en-US") + " " + (n === 1 ? w : (ws || w + "s")); }
+  function when(ms){ return ms ? new Date(ms).toLocaleString("en-US", {weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}) : ""; }
+  function day(ms){ return ms ? new Date(ms).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"}) : ""; }
+  function button(text, cls, fn){
+    var b = el("button", cls || "sc-btn", text);
+    b.type = "button";
+    b.addEventListener("click", function(){ fn(b); });
+    return b;
+  }
+
+  /* ---------- who is looking ---------- */
+  function locked(){
+    data = null; loaded = false;
+    $("scMain").hidden = true;
+    $("scLocked").hidden = false;
+    var sv = Boolean(window.PS8Pass.studentView && window.PS8Pass.studentView());
+    $("scLockedText").textContent = sv ? "You are in student view, and students can't open this page. Leave student view to see it."
+      : "This page is only for Mr. LaMarr. Sign in with the teacher password to see it.";
+    $("scSignIn").textContent = sv ? "Leave student view" : "Teacher sign in";
+    status("");
+  }
+  function load(){
+    if(loading) return;
+    loading = true;
+    $("scLocked").hidden = true;
+    status(loaded ? "Checking for news..." : "Opening Site check...");
+    window.PS8Pass.ask({type: "linksStatus"}, 40000).then(function(d){ got(d); status(""); }, function(err){
+      if(err.status === 401) return locked();
+      status(err.message + " Reload the page to try again.", true);
+    }).then(function(){ loading = false; });
+  }
+  function got(d){
+    // the answers to a button don't ask Cloudflare for the AI count again: keep the last one
+    if(d && d.ai == null && data && data.ai) d.ai = data.ai;
+    data = d || {};
+    loaded = true;
+    $("scMain").hidden = false;
+    draw();
+  }
+  function look(v){ if(v && v.teacher){ if(!loaded) load(); } else locked(); }
+  $("scSignIn").addEventListener("click", function(){
+    if(window.PS8Pass.studentView && window.PS8Pass.studentView()) window.PS8Pass.setStudentView(false);
+    else window.PS8Pass.teacherSignIn();
+  });
+  $("scReload").addEventListener("click", load);
+  $("scRun").addEventListener("click", function(){
+    var b = $("scRun");
+    b.disabled = true;
+    b.textContent = "Checking... (up to a minute)";
+    status("Checking some videos and links now, the same as a night's check. This takes up to a minute.");
+    window.PS8Pass.ask({type: "linksRun"}, 150000).then(function(d){
+      got(d);
+      var r = d.lastRun || {};
+      status("Done: " + plural(r.checked || 0, "link") + " checked" + (r.pages ? ", " + plural(r.pages, "page") + " read" : "") + ". " + (r.note || ""));
+    }, function(err){
+      if(err.status === 401) return locked();
+      status(err.message, true);
+    }).then(function(){ b.disabled = false; b.textContent = "Check some now"; });
+  });
+
+  // a button on one link: the answer is the whole page again
+  function act(btn, msg, wait, done, out){
+    btn.disabled = true;
+    if(out){ out.className = "sc-msg"; out.textContent = "Working on it..."; }
+    window.PS8Pass.ask(msg, wait || 45000).then(function(d){
+      got(d);
+      if(done) status(done);
+    }, function(err){
+      btn.disabled = false;
+      if(err.status === 401) return locked();
+      if(out){ out.className = "sc-msg bad"; out.textContent = err.message; }
+      else status(err.message, true);
+    });
+  }
+
+  /* ---------- Videos and links ---------- */
+  function draw(){
+    var d = data, c = d.counts || {};
+    var round = $("scRound");
+    round.textContent = "";
+    var last = d.lastRun;
+    if(!c.total){
+      round.textContent = last ? "The first check read " + plural((d.pages && d.pages.read) || 0, "page") + " but found no videos or links yet."
+        : "The first check has not run yet. It runs tonight at 2:23 a.m., or press Check some now.";
+    } else if(d.roundDone){
+      round.textContent = c.round + " of " + plural(c.total, "link") + " checked so far this round; last full round finished " + when(d.roundDone) + ".";
+    } else {
+      round.textContent = "First round: " + c.round + " of " + plural(c.total, "link") + " checked so far (" + ((d.pages && d.pages.read) || 0) + " of " +
+        plural((d.pages && d.pages.known) || 0, "page") + " read; the rest are read in the next few nights).";
+    }
+    if(last) round.appendChild(document.createTextNode(" Last check: " + when(last.at) + (last.manual ? " (you started it)" : "") + "."));
+    if(d.running) round.appendChild(document.createTextNode(" A check is running now."));
+    notes();
+    problems();
+    more();
+    tiles();
+  }
+
+  function notes(){
+    var box = $("scNotes");
+    box.textContent = "";
+    if(data.brave && data.brave.key) return;
+    var n = el("div", "sc-note");
+    n.appendChild(el("b", null, "Brave search is not connected yet, "));
+    n.appendChild(document.createTextNode("so videos and links that stop working are listed here without replacements (you can still paste your own). To connect it, see Web searches under Free limits."));
+    box.appendChild(n);
+  }
+
+  function problems(){
+    var box = $("scProblems");
+    box.textContent = "";
+    var items = data.items || [];
+    var broken = items.filter(function(it){ return it.status === "broken" && !it.ok_anyway; });
+    var failing = items.filter(function(it){ return it.status === "failing" && !it.ok_anyway; });
+    var unsure = items.filter(function(it){ return it.status === "unsure" && !it.ok_anyway; }).length;
+    if(!broken.length && (data.counts || {}).total){
+      var ok = el("p", "sc-good", "Every link checked so far works.");
+      box.appendChild(ok);
+      if(unsure) box.appendChild(el("p", "sc-facts", plural(unsure, "link") + " could not be checked (the sites turn automatic checkers away); they are listed below."));
+    }
+    if(broken.length){
+      box.appendChild(el("p", "sc-bad", plural(broken.length, "video or link", "videos or links") + " stopped working:"));
+      var list = el("div", "sc-list");
+      broken.forEach(function(it){ list.appendChild(problem(it)); });
+      box.appendChild(list);
+    }
+    if(failing.length){
+      box.appendChild(el("p", null, "These failed once. The next nightly check tries again to be sure:"));
+      var ul = el("ul", "sc-rows");
+      failing.forEach(function(it){
+        var li = el("li");
+        var what = el("span", "sc-what");
+        what.appendChild(link(it.title, it.swap ? it.swap.url : it.url));
+        what.appendChild(el("small", null, " " + (KIND[it.kind] || "") + ", " + it.pages.map(function(p){ return p.title; }).join(", ") + ". " + (it.problem || "")));
+        li.appendChild(what);
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+  }
+
+  function problem(it){
+    var c = el("article", "sc-card");
+    var top = el("div", "sc-top");
+    top.appendChild(el("span", "sc-tag", KIND[it.kind] || "Link"));
+    if(it.broken_at) top.appendChild(el("span", null, "Stopped working " + day(it.broken_at)));
+    c.appendChild(top);
+    var h = el("h3");
+    h.appendChild(link(it.title, it.swap ? it.swap.url : it.url));
+    c.appendChild(h);
+    var facts = el("p", "sc-facts");
+    facts.appendChild(document.createTextNode("On: "));
+    it.pages.forEach(function(p, i){ if(i) facts.appendChild(document.createTextNode(", ")); facts.appendChild(pageLink(p)); });
+    if(it.source) facts.appendChild(document.createTextNode(". From: " + it.source));
+    c.appendChild(facts);
+    c.appendChild(el("p", "sc-why", (it.swap ? "The replacement you picked (" + (it.swap.title || it.swap.url) + ") stopped working too: " : "") + (it.problem || "It stopped working.")));
+    var out = el("p", "sc-msg");
+
+    var picks = (it.picks || []).filter(function(p){ return /^https:\/\//.test(p.url); });
+    if(picks.length){
+      var grid = el("div", "sc-picks");
+      picks.forEach(function(p){
+        var row = el("div", "sc-pick");
+        if(p.thumb && /^https:\/\/i\.ytimg\.com\//.test(p.thumb)){
+          var img = el("img");
+          img.src = p.thumb;
+          img.alt = "";
+          img.loading = "lazy";
+          row.appendChild(img);
+        }
+        var w = el("div", "sc-pick-words");
+        w.appendChild(el("b", null, p.title || p.url));
+        var by = [p.creator, p.site].filter(Boolean).join(" · ");
+        if(by) w.appendChild(el("small", null, by));
+        if(p.about && it.kind !== "video") w.appendChild(el("small", null, p.about));
+        w.appendChild(link(it.kind === "video" ? "Watch it on YouTube" : "Open it", p.url));
+        row.appendChild(w);
+        row.appendChild(button("Use this", "sc-btn", function(b){
+          act(b, {type: "linksUse", key: it.key, url: p.url}, 45000, "Done. Students see \"" + (p.title || p.url) + "\" the next time they open the page.", out);
+        }));
+        grid.appendChild(row);
+      });
+      c.appendChild(grid);
+    } else {
+      var why = it.searched ? "The last search (" + day(it.searched) + ") found none that work." :
+        data.brave && data.brave.key ? "The next nightly check looks for some, or press Find replacements." : "Brave search is not connected yet, so none were looked for.";
+      c.appendChild(el("p", "sc-facts", "No replacements found yet. " + why));
+    }
+
+    var own = el("div", "sc-own");
+    var id = "scOwn" + Math.random().toString(36).slice(2, 8);
+    var lab = el("label", null, it.kind === "video" ? "Or paste a YouTube video's address:" : "Or paste another address:");
+    lab.htmlFor = id;
+    var input = el("input");
+    input.type = "url";
+    input.id = id;
+    input.placeholder = it.kind === "video" ? "https://www.youtube.com/watch?v=..." : "https://...";
+    input.autocomplete = "off";
+    own.appendChild(lab);
+    own.appendChild(input);
+    own.appendChild(button("Use this address", "sc-btn alt", function(b){
+      var url = input.value.trim();
+      if(!url){ out.className = "sc-msg bad"; out.textContent = "Paste an address first."; input.focus(); return; }
+      act(b, {type: "linksUse", key: it.key, url: url, own: true}, 45000, "Done. Students get the address you pasted the next time they open the page.", out);
+    }));
+    input.addEventListener("keydown", function(e){ if(e.key === "Enter") own.querySelector("button").click(); });
+    c.appendChild(own);
+
+    var btns = el("div", "sc-btns");
+    if(data.brave && data.brave.key) btns.appendChild(button(picks.length ? "Find others" : "Find replacements", "sc-btn alt", function(b){
+      act(b, {type: "linksFind", key: it.key}, 60000, "Looked for replacements (one Brave search).", out);
+    }));
+    btns.appendChild(button("Check again now", "sc-btn alt", function(b){ act(b, {type: "linksCheck", key: it.key}, 45000, "Checked it again.", out); }));
+    btns.appendChild(button("It works, stop listing it", "sc-btn alt", function(b){
+      act(b, {type: "linksOk", key: it.key, ok: true}, 30000, "OK. It is under Marked as working, below.", out);
+    }));
+    c.appendChild(btns);
+    c.appendChild(out);
+    return c;
+  }
+
+  function more(){
+    var box = $("scMore");
+    box.textContent = "";
+    var items = data.items || [];
+    // replacements in use
+    var swapped = items.filter(function(it){ return it.swap && !(it.status === "broken" && !it.ok_anyway); });
+    if(swapped.length){
+      box.appendChild(el("p", null, "Replaced (students see the new one):"));
+      var ul = el("ul", "sc-rows");
+      swapped.forEach(function(it){
+        var li = el("li");
+        var what = el("span", "sc-what");
+        what.appendChild(document.createTextNode(it.title + " → "));
+        what.appendChild(link(it.swap.title || it.swap.url, it.swap.url));
+        what.appendChild(el("small", null, " " + (KIND[it.kind] || "") + ", " + it.pages.map(function(p){ return p.title; }).join(", ") + (it.swapped_at ? ", since " + day(it.swapped_at) : "")));
+        li.appendChild(what);
+        var out = el("small");
+        li.appendChild(button("Undo", "sc-quiet", function(b){ act(b, {type: "linksUndo", key: it.key}, 30000, "Undone. Students see the old one again.", out); }));
+        li.appendChild(out);
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+
+    // could not check, by site
+    var unsure = items.filter(function(it){ return it.status === "unsure" && !it.ok_anyway; });
+    if(unsure.length){
+      var d1 = el("details", "sc-more");
+      d1.appendChild(el("summary", null, "Could not check (" + unsure.length + ")"));
+      d1.appendChild(el("p", "sc-facts", "These sites turn automatic checkers away or did not answer, so the check can't tell. They are never listed as broken; open one to see for yourself."));
+      var bySite = {};
+      unsure.forEach(function(it){ var h = (it.url.match(/^https?:\/\/([^\/]+)/i) || [])[1] || "?"; (bySite[h] = bySite[h] || []).push(it); });
+      var ul2 = el("ul", "sc-rows");
+      Object.keys(bySite).sort().forEach(function(h){
+        var li = el("li");
+        var what = el("span", "sc-what");
+        what.appendChild(el("b", null, h.replace(/^www\./, "") + ": "));
+        bySite[h].forEach(function(it, i){ if(i) what.appendChild(document.createTextNode(", ")); what.appendChild(link(it.title, it.url)); });
+        what.appendChild(el("small", null, " " + (bySite[h][0].problem || "")));
+        li.appendChild(what);
+        ul2.appendChild(li);
+      });
+      d1.appendChild(ul2);
+      box.appendChild(d1);
+    }
+
+    // marked as working
+    var okd = items.filter(function(it){ return it.ok_anyway; });
+    if(okd.length){
+      var d2 = el("details", "sc-more");
+      d2.appendChild(el("summary", null, "Marked as working (" + okd.length + ")"));
+      var ul3 = el("ul", "sc-rows");
+      okd.forEach(function(it){
+        var li = el("li");
+        var what = el("span", "sc-what");
+        what.appendChild(link(it.title, it.swap ? it.swap.url : it.url));
+        what.appendChild(el("small", null, " Last check: " + (STATUS[it.status] || it.status) + (it.problem ? " (" + it.problem + ")" : "")));
+        li.appendChild(what);
+        var out = el("small");
+        li.appendChild(button("List it again", "sc-quiet", function(b){ act(b, {type: "linksOk", key: it.key, ok: false}, 30000, "It is listed again when the check finds a problem.", out); }));
+        li.appendChild(out);
+        ul3.appendChild(li);
+      });
+      d2.appendChild(ul3);
+      box.appendChild(d2);
+    }
+
+    // every link
+    if(items.length){
+      var d3 = el("details", "sc-more");
+      d3.appendChild(el("summary", null, "Every video and link (" + items.length + ")"));
+      var wrap = el("div", "sc-table-wrap");
+      var t = el("table", "sc-table");
+      var hr = el("tr");
+      ["Video or link", "Pages", "Last check"].forEach(function(x){ hr.appendChild(el("th", null, x)); });
+      var thead = el("thead");
+      thead.appendChild(hr);
+      t.appendChild(thead);
+      var tb = el("tbody");
+      items.forEach(function(it){
+        var tr = el("tr");
+        var a = el("td");
+        a.appendChild(link(it.title, it.swap ? it.swap.url : it.url));
+        a.appendChild(el("small", null, " " + (KIND[it.kind] || "") + (it.swap ? ", replaced" : "")));
+        tr.appendChild(a);
+        tr.appendChild(el("td", null, it.pages.map(function(p){ return p.title; }).join(", ")));
+        tr.appendChild(el("td", null, (STATUS[it.status] || it.status) + (it.checked ? ", " + day(it.checked) : "")));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      wrap.appendChild(t);
+      d3.appendChild(wrap);
+      box.appendChild(d3);
+    }
+  }
+
+  /* ---------- Free limits ---------- */
+  function steps(list){
+    var ol = el("ol");
+    list.forEach(function(s){ ol.appendChild(el("li", null, s)); });
+    return ol;
+  }
+  function tile(o){
+    var t = el("div", "sc-tile");
+    t.appendChild(el("div", "sc-label", o.label));
+    if(o.off){
+      t.className += " off";
+      var n0 = el("div", "sc-num");
+      n0.appendChild(el("b", null, "Not connected"));
+      t.appendChild(n0);
+      t.appendChild(el("p", null, o.text));
+      if(o.how){
+        var d = el("details");
+        d.appendChild(el("summary", null, "How to connect it"));
+        d.appendChild(steps(o.how));
+        t.appendChild(d);
+      }
+      return t;
+    }
+    // o.calm: a limit the site stops short of by itself (the nightly check), so it is only red past that point
+    var share = o.max ? o.used / o.max : 0;
+    if(o.calm){ if(o.used > o.calm) t.className += " full"; }
+    else if(share >= 0.9) t.className += " full"; else if(share >= 0.7) t.className += " warn";
+    var n = el("div", "sc-num");
+    n.appendChild(el("b", null, o.used.toLocaleString("en-US")));
+    n.appendChild(document.createTextNode("/ " + o.max.toLocaleString("en-US")));
+    t.appendChild(n);
+    var bar = el("div", "sc-bar");
+    bar.setAttribute("role", "img");
+    bar.setAttribute("aria-label", o.used.toLocaleString("en-US") + " of " + o.max.toLocaleString("en-US") + " used");
+    var fill = el("span");
+    fill.style.width = Math.min(100, Math.round(share * 100)) + "%";
+    bar.appendChild(fill);
+    t.appendChild(bar);
+    t.appendChild(el("div", "sc-left", o.left));
+    t.appendChild(el("p", null, o.text));
+    return t;
+  }
+  var SECRET_STEPS = ["In Cloudflare, open Workers & Pages, then vocab-live, then Settings.",
+    "Under Variables and Secrets, press + Add. Type: Secret."];
+  function tiles(){
+    var box = $("scTiles");
+    box.textContent = "";
+    var b = data.brave || {}, ai = data.ai || {}, run = data.lastNight;
+    // web searches (Brave): the month starts over on the 1st
+    var m = /^(\d{4})-(\d{2})$/.exec(b.month || "");
+    var next = m ? new Date(Number(m[1]), Number(m[2]), 1).toLocaleDateString("en-US", {month: "long", day: "numeric"}) : "the 1st";
+    if(!b.key){
+      box.appendChild(tile({label: "Web searches", off: true,
+        text: "Replacements for broken videos and links come from Brave search. Brave gives $5 of searches a month (about 1,000); the site stops at " + (b.max || 900) + ", so it is never charged.",
+        how: ["Go to api-dashboard.search.brave.com and make an account (Brave asks for a card; its free monthly credit covers this site).",
+          "Pick the Search plan, then open API Keys and make a key. Copy it.",
+          SECRET_STEPS[0], SECRET_STEPS[1] + " Name: BRAVE_KEY. Value: paste the key. Press Deploy.",
+          "Come back here and press Reload."]}));
+    } else {
+      box.appendChild(tile({label: "Web searches", used: b.used || 0, max: b.max || 900, left: Math.max(0, (b.max || 900) - (b.used || 0)).toLocaleString("en-US") + " left this month",
+        text: "Replacements for broken videos and links (Brave search). Starts over on " + next + "."}));
+    }
+    // Cloudflare AI: Cloudflare's own count of today's neurons (the free 10,000 start over at midnight UTC)
+    var reset = new Date();
+    reset = new Date(Date.UTC(reset.getUTCFullYear(), reset.getUTCMonth(), reset.getUTCDate() + 1)).toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit"});
+    var aiUses = "AI checks nicknames in live games, picks link replacements, and draws flashcard pictures when you ask for one.";
+    if(!ai.connected){
+      box.appendChild(tile({label: "Cloudflare AI", off: true, text: aiUses + " The free 10,000 a day start over at " + reset + ". Connect a read-only Cloudflare key to see today's count here.",
+        how: ["In Cloudflare, press your profile picture (top right), then Profile, then API Tokens, then Create Token.",
+          "Next to Create Custom Token, press Get started. Name it Site check.",
+          "Permissions: Account, Account Analytics, Read. Account Resources: Include, your account. Press Continue to summary, then Create Token. Copy it.",
+          SECRET_STEPS[0], SECRET_STEPS[1] + " Name: CF_API_TOKEN. Value: paste the token. Press Deploy.",
+          "Come back here and press Reload."]}));
+    } else if(ai.error){
+      box.appendChild(tile({label: "Cloudflare AI", off: true, text: "Cloudflare did not give today's count: " + ai.error +
+        " If it says it could not find your account, add a second secret named CF_ACCOUNT_ID with your Account ID (Workers & Pages, on the right)."}));
+    } else {
+      var used = ai.neurons || 0, max = ai.max || 10000;
+      box.appendChild(tile({label: "Cloudflare AI", used: used, max: max, left: Math.max(0, max - used).toLocaleString("en-US") + " left today",
+        text: plural(ai.requests || 0, "request") + " today. " + aiUses + " Starts over at " + reset + ". This is Cloudflare's own count."}));
+    }
+    // the nightly link check's outside requests
+    var limit = data.runLimit || 50;
+    if(!run){
+      box.appendChild(tile({label: "Nightly link check", off: true, text: "It has not run at night yet. Cloudflare allows " + limit + " outside requests a run; the check stops at " + (data.runMax || 46) + "."}));
+    } else {
+      box.appendChild(tile({label: "Nightly link check", used: run.requests || 0, max: limit, calm: data.runMax || 46, left: Math.max(0, limit - (run.requests || 0)) + " to spare",
+        text: "Outside requests on " + when(run.at) + ", when it checked " + plural(run.checked || 0, "link") + (run.pages ? " and read " + plural(run.pages, "page") : "") +
+          ". Cloudflare allows " + limit + " a run."}));
+    }
+  }
+
+  // pass-menu.js is deferred, so it runs after this script: start once the page has loaded
+  function start(){
+    window.PS8Pass.onChange(look);
+    look(window.PS8Pass.view());
+  }
+  if(window.PS8Pass) start();
+  else document.addEventListener("DOMContentLoaded", start);
+})();
+</script>
+</body>
+</html>

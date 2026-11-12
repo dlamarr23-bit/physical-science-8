@@ -23,6 +23,12 @@
    Teacher: Class Pass menu > Edit this page. Click any words to change them, or a picture to change its
    description, then Save.
 
+   Videos and links (2026-11-11): the vocabulary site's game server checks this site's videos and web links every
+   night, and the teacher picks a replacement for one that stopped working on site-check.html. The replacements come
+   with the words ({ links: { <the link as the file has it, or yt:<video id>>: { url, title, source } } }) and go in
+   here: a YouTube frame and its Watch link get the new video, a web link its new address, and the card it is on the
+   new heading and source. The file's heading stays in the page, hidden, so Edit this page never saves the new one.
+
    window.PS8Text: canEdit(), edit(). */
 (function(){
   "use strict";
@@ -164,6 +170,64 @@
     });
   }
 
+  /* ---------- videos and links the teacher replaced ---------- */
+  var linkSig = "", linkUndo = [];
+  function ytOf(u){
+    var m = /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|shorts\/|watch\?(?:[^"'#\s]*&)?v=)|youtu\.be\/)([\w-]{11})(?![\w-])/i.exec(String(u || ""));
+    return m ? m[1] : "";
+  }
+  // a link as the file has it (the sim library's links get ?theme= from pass-menu.js, which doesn't count)
+  function bare(u){
+    try { var x = new URL(u, location.href); x.searchParams.delete("theme"); return x.href; } catch(e){ return String(u || ""); }
+  }
+  function keep(el, name){
+    var was = el.getAttribute(name);
+    linkUndo.push(function(){ if(was == null) el.removeAttribute(name); else el.setAttribute(name, was); });
+  }
+  function applyLinks(map){
+    var want = {};
+    if(map && typeof map === "object") Object.keys(map).forEach(function(k){
+      var s = map[k];
+      if(!s || typeof s.url !== "string" || !/^https:\/\//.test(s.url)) return;
+      if(k.indexOf("yt:") === 0){ if(ytOf(s.url)) want[k] = s; }
+      else want["u:" + bare(k)] = s;
+    });
+    var sig = JSON.stringify(want);
+    if(sig === linkSig) return;
+    linkSig = sig;
+    while(linkUndo.length) linkUndo.pop()();
+    if(sig === "{}") return;
+    var root = document.querySelector("main") || document.body;
+    Array.prototype.forEach.call(root.querySelectorAll("iframe[src], a[href]"), function(el){
+      if(el.closest(".topbar, .drawer")) return;
+      var frame = el.tagName === "IFRAME", name = frame ? "src" : "href", raw = el.getAttribute(name) || "";
+      var id = ytOf(raw), s = id ? want["yt:" + id] : want["u:" + bare(raw)];
+      if(!s) return;
+      keep(el, name);
+      el.setAttribute(name, id && frame ? "https://www.youtube.com/embed/" + ytOf(s.url) : s.url);
+      if(frame && s.title){ keep(el, "title"); el.setAttribute("title", s.title); }
+      var card = el.closest(".rcard");
+      if(!card || card.hasAttribute("data-swapped")) return;
+      card.setAttribute("data-swapped", "");
+      linkUndo.push(function(){ card.removeAttribute("data-swapped"); });
+      var h = card.querySelector("h4");
+      if(h && s.title){
+        var shown = h.cloneNode(false);
+        shown.textContent = s.title;
+        shown.setAttribute("data-no-edit", "");
+        h.hidden = true;
+        h.parentNode.insertBefore(shown, h.nextSibling);
+        linkUndo.push(function(){ shown.remove(); h.hidden = false; });
+      }
+      var src = card.querySelector(".rsource");
+      if(src && s.source){
+        var before = src.textContent;
+        src.textContent = s.source;
+        linkUndo.push(function(){ src.textContent = before; });
+      }
+    });
+  }
+
   /* ---------- putting the changes in ---------- */
   function readCache(){
     try { var c = JSON.parse(localStorage.getItem(CACHE + page)); if(c && c.edits) return c; } catch(e){ /* no storage */ }
@@ -171,7 +235,7 @@
   }
   function writeCache(c){
     try {
-      if(c && Object.keys(c.edits).length) localStorage.setItem(CACHE + page, JSON.stringify(c));
+      if(c && (Object.keys(c.edits).length || Object.keys(c.links || {}).length)) localStorage.setItem(CACHE + page, JSON.stringify(c));
       else localStorage.removeItem(CACHE + page);
     } catch(e){ /* a convenience only */ }
   }
@@ -187,6 +251,7 @@
     if(changed.length && window.PS8App && window.PS8App.refresh) changed.forEach(window.PS8App.refresh);
     latest = c;
     applyPics(c);
+    applyLinks(c.links);
   }
 
   function load(){
@@ -198,7 +263,7 @@
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.edits || typeof d.edits !== "object" || editing) return;
-        var c = {edits: d.edits, saved: Number(d.saved) || 0};
+        var c = {edits: d.edits, saved: Number(d.saved) || 0, links: d.links && typeof d.links === "object" ? d.links : {}};
         apply(c);
         writeCache(c);
       })
@@ -435,7 +500,7 @@
     msg.className = "pt-msg";
     msg.textContent = "Saving...";
     window.PS8Pass.ask({type: "saveText", page: page, edits: edits}).then(function(d){
-      var c = {edits: edits, saved: Number(d && d.saved) || Date.now()};
+      var c = {edits: edits, saved: Number(d && d.saved) || Date.now(), links: (latest && latest.links) || {}};
       boxes.forEach(function(b){
         var want = Object.prototype.hasOwnProperty.call(edits, b.key) ? edits[b.key] : null;
         // the box shows the saved words exactly as students will see them
