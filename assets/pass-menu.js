@@ -25,7 +25,8 @@
 
    Every menu also has the Dark mode switch. The choice is kept in this browser (ps8-theme = "dark"; light is
    the default), and a line in each page's <head> puts html[data-theme="dark"] on before the page draws.
-   Pages that show something in a frame hear about a change from the "ps8:theme" event (sims.html).
+   Pages that show something in a frame hear about a change from the "ps8:theme" event (sims.html). The sims have
+   no light/dark button of their own (Donny, 2026-11-11), so a chapter's links to them carry the mode (?theme=).
 
    Student view (Donny, 2026-11-10): the teacher's menu has Student view. The teacher stays signed in, but every
    page acts as if a student were looking: view() says {student: true} and no teacher, so Edit this page, the
@@ -90,6 +91,14 @@
   window.addEventListener("storage", function(e){
     if(e.key === THEME_KEY) showTheme(e.newValue === "dark" ? "dark" : "light");
   });
+  // a chapter's links to the sim library open the sim in this site's mode (the sims read ?theme=)
+  function themeSimLinks(){
+    var links = document.querySelectorAll('a[href^="https://sim-library-87y.pages.dev/"]');
+    for(var i = 0; i < links.length; i++){
+      try { var u = new URL(links[i].href); u.searchParams.set("theme", theme()); links[i].href = u.href; } catch(e){ /* leave it */ }
+    }
+  }
+  window.addEventListener("ps8:theme", themeSimLinks);
 
   function el(tag, cls, text){
     var n = document.createElement(tag);
@@ -582,6 +591,7 @@
     draw();
     gate();
     footerLink();
+    themeSimLinks();
     document.addEventListener("click", function(e){ if(wrap && !wrap.contains(e.target)) closeMenu(); });
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
     startBridge();
