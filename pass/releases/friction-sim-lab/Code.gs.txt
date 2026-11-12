@@ -120,6 +120,13 @@
  * "2 points" next to a question when the Settings row "Show points on each
  * question" is checked (it starts unchecked).
  *
+ * FULL CREDIT BY HAND: an answer that's right but the key missed it? Click it in Live Results (or
+ * select several, even a whole Q column), then Self-Check > Give full credit to the selected answers.
+ * It turns green with [full credit] in front, the grade updates, and the student sees "Your teacher gave
+ * this answer full credit." (Changing a cell's color does nothing: Live Results is redrawn from the
+ * saved answers.) If the student changes that answer, it's checked against the key again.
+ * Self-Check > Take back full credit from the selected answers undoes it.
+ *
  * STAYING UP TO DATE: Self-Check > Check for skill updates compares this file's
  * SKILL_VERSION with the newest release on the class website (SKILL_UPDATES_URL)
  * or in the "Claude Skill Updates" folder in your Google Drive, shows what changed,
@@ -253,7 +260,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-sim-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-sim-lab\)
-var SKILL_VERSION = "2026.11.11c";
+var SKILL_VERSION = "2026.11.11d";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -1570,7 +1577,7 @@ function getStudentState(token) {
     if (rec.tries[k].a.length) rec.answers[k] = rec.tries[k].a[rec.tries[k].a.length - 1];
   });
   var results = [];
-  for (var i = 0; i < ITEMS.length; i++) results.push(isTried_(ITEMS[i]) ? triedFeedback_(i, rec) : feedbackFor_(i, rec.answers[i]));   // limited tries: never an open question's answer
+  for (var i = 0; i < ITEMS.length; i++) results.push(resultFor_(i, rec));   // limited tries: never an open question's answer; the teacher's full credit: green
   var roster = readRoster_();
   var due = dueForStudent_(email, roster, true), pastDue = !!due && Date.now() > due;   // never waits on Classroom
   var close = closeForStudent_(email, roster, true), closed = isClosed_(close);       // end of the quarter (see QUARTER CLOSE)
@@ -1597,7 +1604,7 @@ function getStudentState(token) {
     now: Date.now(),
     showGrade: SHOW_GRADE_TO_STUDENTS,
     showPoints: !!SHOW_POINTS,   // the "2 points" tag next to each question (the page still uses Points for the running grade)
-    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best, game: rec.game }, due).grade, maxPoints: MAX_POINTS,
+    grade: lateGrade_({ statuses: statusesOf_(results), answers: rec.answers, tries: rec.tries, onTime: rec.onTime, best: rec.best, game: rec.game, credited: rec.credited }, due).grade, maxPoints: MAX_POINTS,
     shuffleChoices: !!SHUFFLE_CHOICES,   // LIMITED TRIES: the page shuffles choice questions' buttons per student (true/false never)
     shuffleQuestions: !isGame_() && !!SHUFFLE_QUESTIONS,   // 2026.11.06b: each student's own question order, within each section (the page's questionOrder)
     quickTries: true,   // 2026.11.06b: the page checks a try with quickTry, then saves it with tryAnswer (FAST CHECK); an older sheet has only tryAnswer
@@ -1656,7 +1663,12 @@ function gradeAnswer(idx, answer, token) {
   var close = closeForStudent_(email, readRoster_(), true);   // never waits on Classroom
   if (isClosed_(close)) throw new Error(closedError_(close));
   answer = String(answer == null ? "" : answer).slice(0, 5000).trim();
-  return { result: feedbackFor_(idx, answer) };
+  var res = feedbackFor_(idx, answer), mine = null;
+  // An answer the teacher gave full credit stays green. Only the short-term copy is read (no waiting on the sheet); without it,
+  // checkAnswer's answer a moment later paints it green.
+  try { var raw = cacheRaw_(recKey_(email)); mine = raw ? JSON.parse(raw) : null; } catch (e) { mine = null; }
+  if (mine && isCredited_(mine.credited, idx, answer)) res = fullResult_(idx, res);
+  return { result: res };
 }
 
 /** Grade one answer, save it, update the teacher's live view. */
@@ -1679,6 +1691,7 @@ function checkAnswer(idx, answer, token) {
     rec = readRecord_(email) || newRecord_();
     if (LOCK_AFTER_TURN_IN && rec.turnedIn) throw new Error("You already turned this in, so answers are locked.");
     keepOnTimeCopy_(rec, due);   // first save after the due date: remember the work as it was at the due date
+    if (isCredited_(rec.credited, idx, answer)) result = fullResult_(idx, result);   // the teacher gave this answer full credit
     changed = rec.answers[idx] !== answer;
     rec.answers[idx] = answer;
     rec.statuses[idx] = result.status;
@@ -1836,6 +1849,8 @@ function tryState_(idx, t) {
  *  done, rightTry }, the wrong choices picked so far (numbers from 1), credit, and only once it's done, the right choice and the Explanation. */
 function triedFeedback_(idx, rec) {
   var item = ITEMS[idx], t = rec && rec.tries ? rec.tries[idx] : null, st = tryState_(idx, t), a = t && t.a ? t.a : [];
+  var byTeacher = !!rec && isCredited_(rec.credited, idx, (rec.answers || [])[idx]);   // the teacher gave its last try full credit: done, and green
+  if (byTeacher) st = { used: st.used, max: st.max, left: 0, done: true, rightTry: st.used, needHint: false, credit: 1, status: "correct" };
   var out = { status: st.status, message: "", credit: st.credit,
               tries: { used: st.used, max: st.max, left: st.left, needHint: st.needHint, done: st.done, rightTry: st.rightTry } };
   var drop = item.kind === "dropdown";
@@ -1848,7 +1863,9 @@ function triedFeedback_(idx, rec) {
     out.picks = lp.map(function (n) { return n + 1; });
     out.marks = lp.map(function (n, k) { return n === item.right[k]; });
   }
-  if (st.rightTry) {
+  if (byTeacher) {
+    out.message = FULL_NOTE;
+  } else if (st.rightTry) {
     out.message = "That's right!" + (st.rightTry > 1 ? " Right on try " + st.rightTry + ", so it earns " + Math.round(st.credit * 100) + "%." : "");
   } else if (st.done) {
     var picked = item.choices && !drop ? item.choices[choicePicks_(item, last)[0]] : null;
@@ -1965,6 +1982,7 @@ function quickTry(idx, answer, attemptId, hintSeen, token) {
   var wait = waitingTries_(p.email, p.idx), t = withWaiting_(p.idx, rec.tries[p.idx], wait);
   rec.tries[p.idx] = t;
   if (t.ids.indexOf(p.id) !== -1) return { result: triedFeedback_(p.idx, rec), counted: true, again: true };   // sent twice: the same result
+  if (isCredited_(rec.credited, p.idx, rec.answers[p.idx])) throw new Error("NOTRY: " + FULL_NOTE);   // the teacher gave it full credit: no more tries
   var ok = tryAllowed_(p.item, p.idx, t, p.answer, p.seen);
   if (ok.repeat) return { result: triedFeedback_(p.idx, rec), counted: false, note: repeatNote_(p.item) };
   wait.push({ id: p.id, a: p.answer, k: p.hk });
@@ -2001,6 +2019,7 @@ function tryAnswer(idx, answer, attemptId, hintSeen, token) {
                        : wait.slice(0, at + 1).filter(function (w) { return t.ids.indexOf(w.id) === -1; }).map(function (w) { return { id: w.id, a: w.a, k: w.k, seen: true }; });
       keepOnTimeCopy_(rec, due);   // first save after the due date: remember the work as it was at the due date (kept only if a try is saved)
       try {
+        if (isCredited_(rec.credited, idx, rec.answers[idx])) throw new Error("NOTRY: " + FULL_NOTE);   // the teacher gave it full credit: no more tries
         todo.forEach(function (x, k) {
           var ok = tryAllowed_(item, idx, t, x.a, x.seen);
           if (ok.repeat) { if (k === todo.length - 1) note = repeatNote_(item); return; }
@@ -3489,22 +3508,24 @@ function statusesOf_(results) { return results.map(function (r) { return r.statu
 /** Colors -> grade out of MAX_POINTS. See SETTINGS for the knobs. A question counts 1 unless the Questions tab gives it Points;
  *  one that has Points earns the share of its ideas the answer shows (answers = the checked answers), or its color's credit when
  *  it has no key words to count. */
-function gradeFor_(statuses, answers, tries, only) {
-  var frac = creditFrac_(statuses, answers, tries, only);
+function gradeFor_(statuses, answers, tries, only, credited) {
+  var frac = creditFrac_(statuses, answers, tries, only, credited);
   if (frac == null) return 0;
   var pts = Math.min(1, frac / FULL_CREDIT_AT) * MAX_POINTS;
   return Math.round(Math.round(pts / ROUND_TO) * ROUND_TO * 1000) / 1000;   // (the outer round: 96 x 0.1 is 9.600000000000001 in JavaScript)
 }
 /** The share of the possible credit this work earned (0 to 1), or null when nothing is graded. See gradeFor_.
  *  tries = rec.tries: a question with limited tries earns its tries' credit (see LIMITED TRIES), times its Points as usual.
- *  only = the questions to count (a review game's try: see QUESTIONS PER TRY); left out = every question. */
-function creditFrac_(statuses, answers, tries, only) {
+ *  only = the questions to count (a review game's try: see QUESTIONS PER TRY); left out = every question.
+ *  credited = rec.credited: an answer the teacher gave full credit earns it, whatever the key says (see FULL CREDIT FROM THE TEACHER). */
+function creditFrac_(statuses, answers, tries, only, credited) {
   var earned = 0, total = 0, mine = only ? setMap_(only) : null;
   for (var i = 0; i < ITEMS.length; i++) {
     var it = ITEMS[i];
     if (ungraded_(it) || (mine && !mine[i])) continue;   // picture uploads and graphs with no label boxes aren't graded
     var w = it.points == null ? 1 : it.points, st = statuses[i] || "blank", c = CREDIT[st] || 0;
-    if (isTried_(it)) c = tryState_(i, tries ? tries[i] : null).credit;
+    if (credited && answers && isCredited_(credited, i, answers[i])) c = isTried_(it) || it.points != null ? 1 : CREDIT.correct || 0;   // (the page's running grade does the same)
+    else if (isTried_(it)) c = tryState_(i, tries ? tries[i] : null).credit;
     else if (it.points != null && st !== "blank" && answers) {
       var fb = feedbackFor_(i, answers[i]);
       if (typeof fb.frac === "number") c = fb.frac;
@@ -3514,9 +3535,10 @@ function creditFrac_(statuses, answers, tries, only) {
   return total ? earned / total : null;
 }
 
-/** A student's grade (no late penalty): the work on the page now, or a review game's best earlier try (rec.best), whichever is higher. */
-function workGrade_(work) {
-  var g = gradeFor_(work.statuses || [], work.answers, work.tries, workSet_(work));   // (a review game: over the try's own questions)
+/** A student's grade (no late penalty): the work on the page now, or a review game's best earlier try (rec.best), whichever is higher.
+ *  credited = the teacher's full credit (rec.credited), for this work or the copy kept at the due date. */
+function workGrade_(work, credited) {
+  var g = gradeFor_(work.statuses || [], work.answers, work.tries, workSet_(work), credited);   // (a review game: over the try's own questions)
   if (work.best) g = Math.max(g, gradeFor_(work.best.statuses || [], work.best.answers, work.best.tries, workSet_(work.best)));
   return g;
 }
@@ -3603,11 +3625,12 @@ function keepOnTimeCopy_(rec, due) {
   }
 }
 
-/** Grade with the late penalty: { grade, late, onTime, full }. late = true only when late work lowered the grade. */
+/** Grade with the late penalty: { grade, late, onTime, full }. late = true only when late work lowered the grade.
+ *  The teacher's full credit (rec.credited) counts in the copy kept at the due date too, for an answer that was there by then. */
 function lateGrade_(rec, due) {
-  var full = workGrade_(rec), snap = rec.onTime, pct = latePct_();
+  var full = workGrade_(rec, rec.credited), snap = rec.onTime, pct = latePct_();
   if (!pct || !due || !snap || Date.parse(snap.taken) < due) return { grade: full, late: false };
-  var onTime = workGrade_(snap);
+  var onTime = workGrade_(snap, rec.credited);
   if (full <= onTime) return { grade: full, late: false, onTime: onTime, full: full };
   var g = Math.round((onTime + (full - onTime) * (1 - pct)) * 10) / 10;   // to a tenth, so 9.6 stays 9.6
   return { grade: g, late: g < full, onTime: onTime, full: full };
@@ -4076,9 +4099,10 @@ function liveRowData_(email, rec, p, due) {
     // An autosaved draft that hasn't been checked yet is shown with a prefix; its color is still the last check.
     var shown = d != null && d !== rec.answers[i] ? d : (rec.answers[i] || "");
     if (ITEMS[i].table) shown = tableText_(ITEMS[i], shown);
-    if (isTried_(ITEMS[i])) { row.push(safeCell_(triedCellText_(i, rec))); bg.push(FILL[rec.statuses[i] || "blank"]); continue; }   // the latest try, how it went, and the hints opened
+    var mark = isCredited_(rec.credited, i, rec.answers[i]) ? FULL_MARK : "";   // you gave this answer full credit (Give full credit to the selected answers)
+    if (isTried_(ITEMS[i])) { row.push(mark ? mark + triedCellText_(i, rec) : safeCell_(triedCellText_(i, rec))); bg.push(FILL[rec.statuses[i] || "blank"]); continue; }   // the latest try, how it went, and the hints opened
     if (ITEMS[i].choices) shown = choiceText_(ITEMS[i], shown);
-    row.push(d != null && d !== rec.answers[i] ? "[not checked] " + shown : safeCell_(shown));
+    row.push(d != null && d !== rec.answers[i] ? mark + "[not checked] " + shown : mark ? mark + shown : safeCell_(shown));   // (a cell that starts with [ can't run as a formula)
     bg.push(FILL[rec.statuses[i] || "blank"]);
   }
   bg[3] = rec.turnedIn ? "#c9daf8" : null;
@@ -4158,6 +4182,166 @@ function renderSummary_() {
   sh.getRange(2, pctFrom, rows.length, headers.length - pctFrom + 1).setNumberFormat("0%");
 }
 
+// ============================== FULL CREDIT FROM THE TEACHER ==============================
+// Donny, 2026-11-11: "Sometimes answers are correct but there is no easy way to change the key. I want to be able to click on a cell
+// and give full credit. Will changing the color do that?" It won't: the grade comes from the answers in the _data tab checked against
+// the key, Live Results is drawn again from them on every save, and Sheets doesn't tell a script when only a color changes.
+// So: click the answer in Live Results (or select several, even a whole Q column), then Self-Check > Give full credit to the selected
+// answers. rec.credited = { "<question index>": { a: [the answer texts the credit is for], at: when } }.
+// The credit belongs to that answer: while the student's checked answer is one of those texts it is green and earns full credit (also in
+// the copy kept at the due date, so an answer given on time counts on time), the student's page says "Your teacher gave this answer full
+// credit.", and Live Results starts the cell with [full credit]. If the student changes the answer, it is checked against the key again
+// (changing it back brings the credit back). A question with limited tries takes no more tries. Take back full credit removes it.
+// Not in a review game (one try each, and Recalculate all grades after fixing a Right choice does the job). Pictures and drawings aren't graded.
+var FULL_NOTE = "Your teacher gave this answer full credit.";
+var FULL_MARK = "[full credit] ";
+/** Did the teacher give this answer full credit? credited = rec.credited. */
+function isCredited_(credited, idx, answer) {
+  var f = credited && credited[idx], a = String(answer == null ? "" : answer).trim();
+  return !!(a && f && Array.isArray(f.a) && f.a.indexOf(a) !== -1);
+}
+/** The result the page gets for an answer the teacher gave full credit: green, every box and label green, with FULL_NOTE. */
+function fullResult_(idx, res) {
+  var out = {};
+  Object.keys(res || {}).forEach(function (k) { out[k] = res[k]; });
+  out.status = "correct"; out.frac = 1;
+  if (Array.isArray(out.parts)) out.parts = out.parts.map(function () { return "correct"; });
+  if (Array.isArray(out.cells)) out.cells = out.cells.map(function () { return "correct"; });
+  out.message = FULL_NOTE + " If you change it, it gets checked against the answer key again.";
+  return out;
+}
+/** What the page gets for one question of a student's work (getStudentState). */
+function resultFor_(idx, rec) {
+  if (isTried_(ITEMS[idx])) return triedFeedback_(idx, rec);
+  var res = feedbackFor_(idx, rec.answers[idx]);
+  return isCredited_(rec.credited, idx, rec.answers[idx]) ? fullResult_(idx, res) : res;
+}
+/** A question's color in some work (a record, or its copy at the due date): green when the teacher gave that answer full credit, else
+ *  today's key (a question with limited tries: all its tries). */
+function statusFor_(idx, work, credited) {
+  var a = (work.answers || [])[idx];
+  if (isCredited_(credited, idx, a)) return "correct";
+  return isTried_(ITEMS[idx]) ? tryState_(idx, work.tries ? work.tries[idx] : null).status : feedbackFor_(idx, a).status;
+}
+
+/** Menu: Self-Check > Give full credit to the selected answers (in Live Results). */
+function giveFullCredit() { menuOnly_(); fullCreditMenu_(true); }
+/** Menu: Self-Check > Take back full credit from the selected answers. */
+function takeBackFullCredit() { menuOnly_(); fullCreditMenu_(false); }
+
+/** The answers selected in Live Results: { list: [{ email, idx, name, row }] } (each once, rows hidden by a filter left out), or { why }. */
+function selectedAnswers_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getActiveSheet(), lastQ = FIRST_Q_COL + ITEMS.length - 1;
+  var where = "Open the " + SH_LIVE + " tab and click the student's answer (a cell under Q1, Q2 ...). To pick more than one, drag across them or hold Ctrl and click. Then choose this again.";
+  if (!sh || sh.getName() !== SH_LIVE) return { why: where };
+  var ranges = [], list = [], seen = {}, last = sh.getLastRow();
+  try { var rl = ss.getActiveRangeList(); ranges = rl ? rl.getRanges() : []; } catch (e) { ranges = []; }
+  if (!ranges.length) { try { var one = ss.getActiveRange(); if (one) ranges = [one]; } catch (e) {} }
+  ranges.forEach(function (rg) {
+    var r0 = Math.max(2, rg.getRow()), r1 = Math.min(last, rg.getRow() + rg.getNumRows() - 1);
+    var c0 = Math.max(FIRST_Q_COL, rg.getColumn()), c1 = Math.min(lastQ, rg.getColumn() + rg.getNumColumns() - 1);
+    if (r1 < r0 || c1 < c0) return;
+    var who = sh.getRange(r0, 1, r1 - r0 + 1, LIVE_EMAIL_COL).getValues();
+    for (var r = r0; r <= r1; r++) {
+      var email = String(who[r - r0][LIVE_EMAIL_COL - 1] || "").trim().toLowerCase();
+      if (!email) continue;
+      var hidden = false;   // a row hidden by a filter (say, one period shown) isn't part of what the teacher sees
+      try { hidden = sh.isRowHiddenByFilter(r) === true || sh.isRowHiddenByUser(r) === true; } catch (e) { hidden = false; }
+      if (hidden) continue;
+      for (var c = c0; c <= c1; c++) {
+        var key = email + "|" + (c - FIRST_Q_COL);
+        if (seen[key]) continue;
+        seen[key] = true;
+        list.push({ email: email, idx: c - FIRST_Q_COL, name: String(who[r - r0][1] || email.split("@")[0]), row: r });
+      }
+    }
+  });
+  return list.length ? { list: list } : { why: "None of the selected cells is a student's answer. " + where };
+}
+
+/** Gives (give = true) or takes back full credit for the selected answers. One alert or note says what happened. */
+function fullCreditMenu_(give) {
+  var ui = SpreadsheetApp.getUi();
+  if (isGame_()) {
+    ui.alert("A review game's answers can't be given full credit by hand. If a Right choice in the Questions tab is wrong, fix it, then run Self-Check > Recalculate all grades.");
+    return;
+  }
+  loadConfig_();
+  var sel = selectedAnswers_();
+  if (sel.why) { ui.alert(sel.why); return; }
+  var picked = sel.list;
+  if (give && picked.length > 1) {
+    var byQ = {}, lines = [];
+    picked.forEach(function (p) { (byQ[p.idx] = byQ[p.idx] || []).push(p.name); });
+    Object.keys(byQ).sort(function (a, b) { return a - b; }).forEach(function (k) {
+      var names = byQ[k];
+      lines.push("Q" + (Number(k) + 1) + ": " + (names.length > 6 ? names.slice(0, 6).join(", ") + " and " + (names.length - 6) + " more" : names.join(", ")));
+    });
+    var yes = ui.alert("Give full credit?", "Give full credit to these " + picked.length + " answers?\n\n" + lines.slice(0, 12).join("\n") +
+      (lines.length > 12 ? "\n(and " + (lines.length - 12) + " more questions)" : "") + "\n\nBlank answers and pictures are skipped.", ui.ButtonSet.YES_NO);
+    if (yes !== ui.Button.YES) return;
+  }
+  var roster = readRoster_(), byEmail = {}, order = [], done = [], skip = { blank: 0, picture: 0, already: 0, none: 0, later: 0 }, logs = [];
+  picked.forEach(function (p) { if (!byEmail[p.email]) { byEmail[p.email] = []; order.push(p.email); } byEmail[p.email].push(p); });
+  var now = new Date().toISOString(), lock = lockOrBusy_(30000);   // so a student's save at the same moment isn't lost
+  try {
+    order.forEach(function (email) {
+      var rec = readRecord_(email), changed = false;
+      byEmail[email].forEach(function (p) {
+        var it = ITEMS[p.idx];
+        if (ungraded_(it)) { skip.picture++; return; }
+        if (!rec) { if (give) skip.blank++; else skip.none++; return; }
+        var cr = rec.credited || {}, f = cr[p.idx];
+        if (give) {
+          var checked = String(rec.answers[p.idx] || "").trim(), draft = rec.drafts && rec.drafts[p.idx] != null ? String(rec.drafts[p.idx]).trim() : "";
+          var texts = [checked, draft].filter(function (s, k, all) { return s && all.indexOf(s) === k; });   // an unchecked draft shown in the cell counts too, once it's checked
+          if (!texts.length) { skip.blank++; return; }
+          var had = f && Array.isArray(f.a) ? f.a : [];
+          if (texts.every(function (s) { return had.indexOf(s) !== -1; })) { skip.already++; return; }
+          cr[p.idx] = { a: had.concat(texts.filter(function (s) { return had.indexOf(s) === -1; })).slice(-6), at: now };   // earlier texts stay (the copy at the due date may have one)
+          rec.credited = cr;
+          logs.push([email, p.idx, "full credit from the teacher", checked ? answerText_(it, checked) : "(not checked yet) " + draft]);
+          if (!checked) { skip.later++; changed = true; return; }   // only a draft so far: green once the student presses Check
+        } else {
+          if (!f) { skip.none++; return; }
+          delete cr[p.idx];
+          if (Object.keys(cr).length) rec.credited = cr; else delete rec.credited;
+          logs.push([email, p.idx, "full credit taken back", answerText_(it, rec.answers[p.idx] || "")]);
+        }
+        rec.statuses[p.idx] = statusFor_(p.idx, rec, rec.credited);
+        if (rec.onTime && rec.onTime.statuses) rec.onTime.statuses[p.idx] = statusFor_(p.idx, rec.onTime, rec.credited);   // the copy kept at the due date too
+        changed = true;
+        done.push(p);
+      });
+      if (!changed) return;
+      writeRecord_(email, rec);
+      renderLiveRow_(email, rec, roster);
+    });
+  } finally {
+    unlock_(lock);
+  }
+  logs.forEach(function (l) { try { logEvent_(l[0], l[1], l[2], l[3]); } catch (e) {} });
+  if (done.length) { try { renderSummary_(); } catch (e) {} }
+  var names = done.slice(0, 4).map(function (p) { return p.name + " Q" + (p.idx + 1); }).join(", ") + (done.length > 4 ? " and " + (done.length - 4) + " more" : "");
+  var skipped = [];
+  if (skip.blank) skipped.push(skip.blank + (skip.blank === 1 ? " blank answer (nothing to give credit for yet)" : " blank answers (nothing to give credit for yet)"));
+  if (skip.picture) skipped.push(skip.picture + (skip.picture === 1 ? " picture or drawing (those aren't graded)" : " pictures or drawings (those aren't graded)"));
+  if (skip.already) skipped.push(skip.already + (skip.already === 1 ? " answer that already had full credit" : " answers that already had full credit"));
+  if (skip.none) skipped.push(skip.none + (skip.none === 1 ? " answer that didn't have full credit from you" : " answers that didn't have full credit from you"));
+  var later = !skip.later ? "" : "\n\n" + skip.later + (skip.later === 1 ? " answer was only typed, not checked yet: it turns green with full credit when the student presses Check."
+                                                                   : " answers were only typed, not checked yet: they turn green with full credit when the students press Check.");
+  var head = give ? (done.length ? "Full credit given: " + names + "." : skip.later ? "Full credit is waiting for the student to press Check." : "No answers were given full credit.")
+                  : (done.length ? "Full credit taken back: " + names + ". " + (done.length === 1 ? "That answer is" : "Those answers are") + " checked against the answer key again." : "No full credit was taken back.");
+  var more = give && done.length ? "\n\nIn Live Results " + (done.length === 1 ? "the answer is" : "they are") + " green and start" + (done.length === 1 ? "s" : "") + " with [full credit], and the grade is updated. " +
+    "Students see it the next time they open the assignment. If a student changes that answer, it is checked against the answer key again.\n\n" +
+    "Classroom gets the new grade the next time grades upload (Self-Check > 3, or the automatic upload)." : "";
+  if (done.length && !skipped.length && !later && (!give || done.length === 1)) {
+    SpreadsheetApp.getActiveSpreadsheet().toast(head + (give ? " Classroom gets it at the next grade upload." : ""), "Self-Check", 8);
+    return;
+  }
+  ui.alert(head + later + (skipped.length ? "\n\nSkipped: " + skipped.join("; ") + "." : "") + more);
+}
+
 // ============================== TEACHER MENU ==============================
 /**
  * What this sheet's tabs are missing compared with this version of the code: Settings rows and Questions columns
@@ -4232,6 +4416,8 @@ function buildMenu_() {
     .addItem("Show quarter close times", "showQuarterCloses")
     .addItem("Refresh roster from Classroom", "refreshRoster")
     .addItem("Recalculate all grades (after editing the rubric)", "recalculateAll")
+    .addItem("Give full credit to the selected answers", "giveFullCredit")
+    .addItem("Take back full credit from the selected answers", "takeBackFullCredit")
     .addItem("Show student link", "showStudentLink")
     .addItem("Test an answer against the key", "testAnswer")
     .addItem("Check the Questions tab for problems", "checkQuestionsTab")
@@ -5308,9 +5494,10 @@ function recalcCore_() {
     recs = allRecords_();
     Object.keys(recs).forEach(function (email) {
       var rec = recs[email];
-      // (a question with limited tries: its color from all its tries, graded with today's key, so a fixed Right choice re-grades them)
-      for (var i = 0; i < ITEMS.length; i++) rec.statuses[i] = isTried_(ITEMS[i]) ? tryState_(i, rec.tries ? rec.tries[i] : null).status : feedbackFor_(i, rec.answers[i]).status;
-      if (rec.onTime) for (var k = 0; k < ITEMS.length; k++) rec.onTime.statuses[k] = isTried_(ITEMS[k]) ? tryState_(k, rec.onTime.tries ? rec.onTime.tries[k] : null).status : feedbackFor_(k, (rec.onTime.answers || [])[k]).status;
+      // (a question with limited tries: its color from all its tries, graded with today's key, so a fixed Right choice re-grades them;
+      //  an answer the teacher gave full credit stays green)
+      for (var i = 0; i < ITEMS.length; i++) rec.statuses[i] = statusFor_(i, rec, rec.credited);
+      if (rec.onTime) for (var k = 0; k < ITEMS.length; k++) rec.onTime.statuses[k] = statusFor_(k, rec.onTime, rec.credited);
       [rec.best, rec.onTime && rec.onTime.best].forEach(function (b) {   // a review game's best try is graded by today's key too
         if (b) for (var j = 0; j < ITEMS.length; j++) b.statuses[j] = feedbackFor_(j, (b.answers || [])[j]).status;
       });

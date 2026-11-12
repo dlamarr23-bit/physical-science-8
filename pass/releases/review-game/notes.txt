@@ -1,4 +1,12 @@
-review-game v2026.11.11c
+review-game v2026.11.11d
+
+Optional update: nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers).
+
+- The other Self-Check kinds can now give an answer full credit by hand from Live Results. A review game doesn't get it: its answers are
+  multiple choice with one try each. If a Right choice is wrong, fix it in the Questions tab and run Self-Check > Recalculate all grades.
+- Nothing else changes for a review game. Your questions, settings and student work are not touched.
+
+Also from 2026.11.11c, if this sheet skipped it:
 
 - Faster pictures for a whole class. A big picture now travels as a smaller copy that Google Drive makes (1600 pixels wide, what the page
   shows anyway), so a 5 MB photo is sent as about 200 KB. The size of the file in Drive no longer matters: there is no 8 MB limit any more

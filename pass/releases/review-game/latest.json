@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.11c",
-  "optional": "",
+  "version": "2026.11.11d",
+  "optional": "nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

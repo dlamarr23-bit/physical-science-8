@@ -1,4 +1,28 @@
-friction-sim-lab v2026.11.11c
+friction-sim-lab v2026.11.11d
+
+Optional update: give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).
+
+- New: give full credit to an answer the key missed. In the Live Results tab, click the student's answer (a cell under Q1, Q2 ...),
+  then Self-Check > Give full credit to the selected answers. The cell turns green and starts with [full credit], and the grade
+  updates right away. Every change is in the Answer Log.
+- Changing a cell's color does NOT give credit: Live Results is drawn again from the saved answers every time a student saves.
+- Several at once: drag across cells, or hold Ctrl and click. Click a Q column's letter to give that question full credit for everyone
+  who answered it. It asks first, and skips blank answers, pictures and drawings, and rows hidden by a filter (with one period showing,
+  only that period gets it).
+- The student sees that box green with "Your teacher gave this answer full credit." the next time they open the assignment.
+- The credit belongs to that answer. If the student changes it, it is checked against the answer key again (change it back and the
+  credit comes back). A question with limited tries (choice, true/false, short, dropdown) takes no more tries once it has full credit.
+- Late work: an answer that was there by the due date counts as on time.
+- Self-Check > Take back full credit from the selected answers undoes it: the answer is checked against the key again.
+- Recalculate all grades keeps those answers green. Classroom gets the new grade the next time grades upload (step 3, or the
+  automatic upload).
+- Tip: when many students used the same right words the key is missing, adding them to the key and running Recalculate all grades is
+  still the faster fix.
+- To use it: Update now on the Launchpad, or paste the new Code.gs and Index and make a New version. Then reload the sheet to see the
+  two new menu items (right under Recalculate all grades). No Set up / repair needed and no new permission.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.11c, if this sheet skipped it:
 
 - Faster pictures for a whole class. A big picture now travels as a smaller copy that Google Drive makes (1600 pixels wide, what the page
   shows anyway), so a 5 MB photo is sent as about 200 KB. The size of the file in Drive no longer matters: there is no 8 MB limit any more

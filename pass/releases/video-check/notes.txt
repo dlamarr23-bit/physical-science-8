@@ -1,4 +1,10 @@
-video-check v2026.11.11c
+video-check v2026.11.11d
+
+Optional update: nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.11c, if this sheet skipped it:
 
 Optional update: Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check.
 

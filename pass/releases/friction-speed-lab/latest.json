@@ -1,7 +1,7 @@
 {
   "kind": "friction-speed-lab",
-  "version": "2026.11.11c",
-  "optional": "",
+  "version": "2026.11.11d",
+  "optional": "give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",
