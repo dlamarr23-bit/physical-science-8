@@ -156,11 +156,7 @@
       if(!data.parts || !data.parts.length) return;
 
       var id = el.getAttribute("data-source");
-      var badge = document.createElement("span");
-      badge.className = "lab-badge";
-      badge.textContent = "Design the Experiment";
-      el.appendChild(badge);
-
+      // no "Design the Experiment" pill in the box: the heading bar above it already says so (2026-11-11)
       var scenario = document.createElement("p");
       scenario.className = "lab-scenario";
       scenario.innerHTML = data.scenario || "";
@@ -584,12 +580,20 @@
     var SEP = "\u2029"; // marks where one block (paragraph, list item, card) ends and the next begins
 
     // Reads a page's banner and main content into plain text, one section per h2.
-    // The title and the "Unit 1, Chapter 3" label are kept apart so they don't count
+    // The title and the "Unit 1: Energy of Motion > Chapter 3" trail are kept apart so they don't count
     // as mentions on every page that shares a unit name.
     function readPage(href, order, html){
       var doc = new DOMParser().parseFromString(html, "text/html");
       doc.querySelectorAll("script, style, template, .jump-bar, .chapter-nav, .zoom-hint, .hint").forEach(function(el){ el.remove(); });
-      var h1 = doc.querySelector("h1"), eyebrow = doc.querySelector(".eyebrow");
+      var h1 = doc.querySelector("h1"), eyebrow = doc.querySelector(".crumbs, .eyebrow");
+      // the trail without its Home step, e.g. "Unit 1: Energy of Motion > Chapter 3"
+      var where = "";
+      if(eyebrow && eyebrow.classList.contains("crumbs")){
+        where = Array.prototype.slice.call(eyebrow.querySelectorAll("a, [aria-current]"), 1)
+          .map(function(c){ return c.textContent.replace(/\s+/g, " ").trim(); }).join(" › ");
+      } else if(eyebrow){
+        where = eyebrow.textContent.replace(/\s+/g, " ").trim();
+      }
       var sections = [], cur = {head: "", text: ""};
       [doc.querySelector(".hero"), doc.querySelector("main")].forEach(function(root){
         if(!root) return;
@@ -604,7 +608,7 @@
             // a span is part of the sentence unless it is laid out as its own line or label
             var inline = INLINE[node.tagName] || (node.tagName === "SPAN" && (!node.className || node.className === "gloss-term"));
             if(!inline) cur.text += SEP;
-          } else if(!node.parentNode.closest("h1, .eyebrow")){
+          } else if(!node.parentNode.closest("h1, .crumbs, .eyebrow")){
             cur.text += node.nodeValue;
           }
         }
@@ -619,7 +623,7 @@
       return {
         href: href, order: order, sections: sections.filter(function(s){ return s.text; }),
         title: h1 ? h1.textContent.replace(/\s+/g, " ").trim() : href,
-        where: eyebrow ? eyebrow.textContent.replace(/\s+/g, " ").trim() : ""
+        where: where
       };
     }
 

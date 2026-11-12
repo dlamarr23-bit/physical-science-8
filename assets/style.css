@@ -404,6 +404,18 @@ body.pt-editing img[data-pt-changed]{ outline:3px solid #e0b400; background:none
   text-transform:uppercase; letter-spacing:.06em; color:var(--accent-dark); background:var(--card);
   border:1px solid var(--line); padding:6px 14px; border-radius:999px; margin-bottom:14px;
 }
+/* the trail above a unit or chapter title, Home > Unit 1: Energy of Motion > Chapter 5 (Donny, 2026-11-11: it
+   took the place of the pill label). The page you are on is the last step, in plain gray. */
+.crumbs{
+  display:flex; flex-wrap:wrap; align-items:center; gap:2px 9px; margin:0 0 10px;
+  font-weight:600; font-size:.95rem; line-height:1.45; color:var(--ink-soft);
+}
+.crumbs a{
+  color:var(--accent-dark); text-decoration:underline; text-decoration-thickness:1.5px; text-underline-offset:4px;
+  text-decoration-color:color-mix(in srgb, var(--accent-dark) 45%, transparent);
+}
+.crumbs a:hover, .crumbs a:focus-visible{ text-decoration-color:var(--accent-dark); }
+.crumb-sep{ font-weight:700; opacity:.75; }
 .hero h1{ font-size:clamp(1.7rem,4vw,2.5rem); margin-bottom:.35em; }
 .hero .lede{ font-size:1.08rem; color:var(--ink-soft); max-width:60ch; }
 .hero-icon{ justify-self:end; }
@@ -466,6 +478,21 @@ main{ padding:36px 0 70px; }
 .prose p{ color:var(--ink-soft); font-size:1.09rem; }
 /* headings clear the sticky topbar when jumped to from the rail nav */
 .prose h2{ scroll-margin-top:80px; }
+
+/* section headings on the home, unit and chapter pages (Real-World Connections ... CAST Practice): a bar in the
+   unit's color with its words lined up with the words in the boxes below (Donny chose this 2026-11-11). The
+   reading's own headings (.prose h2) and headings inside boxes stay as they are. */
+main > h2{
+  background:var(--accent); color:var(--on-accent); font-size:1.4rem; line-height:1.3;
+  padding:13px 26px; margin:44px 0 14px; border-radius:12px; box-shadow:var(--shadow-sm);
+}
+main > h2:first-child{ margin-top:30px; }  /* right under the banner (home page): main.container has no top padding */
+/* the Vocabulary hint line under its bar has its own pull-up margin in the pages */
+main > h2 + p{ margin-top:0 !important; }
+@media (max-width:640px){ main > h2{ font-size:1.2rem; padding:11px 26px; } }
+/* readable while the teacher's Edit this page marks a changed heading yellow, or a search marks a word in one */
+body.pt-editing main > h2[data-pt-changed]{ color:var(--ink); }
+html:not([data-theme="dark"]) main > h2 mark.find-hit{ color:#1b1f2a; }
 
 /* chapter body: prose column + a margin rail holding the section nav and vocabulary pop-outs */
 /* columns stretch (no align-items:start) so the rail is as tall as the prose;
@@ -747,10 +774,6 @@ figure.section-figure{ margin:22px 0 30px; }
   background:#f4faf7; border:1.5px solid #bfe3d2; border-radius:var(--radius);
   padding:24px 26px 26px; margin-top:14px; box-shadow:var(--shadow-sm);
 }
-.lab-badge{
-  display:inline-block; background:#1f7a55; color:#fff; font-weight:800; font-size:.72rem;
-  text-transform:uppercase; letter-spacing:.06em; padding:5px 12px; border-radius:999px; margin-bottom:14px;
-}
 .lab-scenario{ font-size:1rem; color:var(--ink); margin:0 0 14px; }
 .lab-toolkit{
   background:var(--card); border:1px solid #cfe7db; border-radius:var(--radius-sm);
@@ -777,10 +800,6 @@ figure.section-figure{ margin:22px 0 30px; }
   background:#fffdf6; border:1.5px solid #f0dfa8; border-radius:var(--radius);
   padding:24px 26px 26px; margin-top:14px; box-shadow:var(--shadow-sm);
 }
-.cast-badge{
-  display:inline-block; background:#b8860b; color:#fff; font-weight:800; font-size:.72rem;
-  text-transform:uppercase; letter-spacing:.06em; padding:5px 12px; border-radius:999px; margin-bottom:14px;
-}
 .cast-stimulus{ font-size:1rem; color:var(--ink); margin:0 0 6px; }
 .cast-table-wrap{ overflow-x:auto; margin:16px 0; }
 table.cast-table{ border-collapse:collapse; width:100%; min-width:340px; font-size:.92rem; background:var(--card); }
@@ -799,6 +818,9 @@ table.cast-table tbody tr:nth-child(even){ background:var(--row-alt); }
 .chapter-nav .next{ text-align:right; }
 
 footer{ border-top:1px solid var(--line); padding:30px 0; color:var(--ink-soft); font-size:.85rem; text-align:center; }
+/* Chromebook Help looks like the Report bugs & feedback link beside it (.fb-foot) */
+footer a{ font-weight:700; color:var(--accent-dark); text-decoration:underline; }
+footer a:hover{ text-decoration-thickness:2px; }
 
 /* glossary */
 .glossary-search{ width:100%; max-width:420px; padding:12px 16px; border-radius:999px; border:1.5px solid var(--line); font-size:1rem; margin:8px 0 24px; font-family:inherit; }
