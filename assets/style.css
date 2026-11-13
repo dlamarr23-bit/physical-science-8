@@ -623,8 +623,17 @@ figure.section-figure{ margin:22px 0 30px; }
 }
 .topic-list .ticon{ width:26px; height:26px; flex:none; }
 .topic-list .ticon svg{ width:100%; height:100%; color:var(--accent); }
-.topic-list .tthumb{ width:120px; height:auto; aspect-ratio:12/5; object-fit:cover; border-radius:8px; flex:none; }
-@media (max-width:560px){ .topic-list .tthumb{ width:84px; } }
+/* each chapter's picture is big (it was 120px wide) and its words slide over to the right of it (Donny, 2026-11-12).
+   The pictures keep their own shape (none is trimmed: some are wider, like the three beakers), and one width keeps
+   the words lined up from card to card. Phones: number and picture on top, words below. */
+.topic-list li a:has(.tthumb){ gap:18px; padding:12px 20px 12px 14px; }
+.topic-list .tthumb{ width:300px; height:auto; border-radius:10px; flex:none; }
+@media (max-width:860px){ .topic-list .tthumb{ width:220px; } }
+@media (max-width:600px){
+  .topic-list li a:has(.tthumb){ flex-wrap:wrap; gap:12px; padding:12px 14px 14px; }
+  .topic-list .tthumb{ flex:1 1 0; width:auto; min-width:0; }
+  .topic-list .tthumb + span{ flex:1 1 100%; }
+}
 .topic-list .tq{ font-weight:400; color:var(--ink-soft); font-size:.85rem; display:block; margin-top:2px; }
 
 /* ---------------- vocabulary ---------------- */
