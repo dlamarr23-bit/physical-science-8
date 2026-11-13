@@ -233,7 +233,9 @@
    that sheet's Apps Script project and switches the student link's deployment to it (a backup version first, so Undo
    puts it back). This page learns the sheet's address and key from the bridge ("classList", teacher only) and posts
    {fn, key, deployment, script, sheet, title} to it. A card that needs an update (red or gray) gets Update now; the
-   code check line gets Update all (it asks once more on the page, no pop-up). One update runs at a time. A sheet
+   code check line gets Update all (it asks once more on the page, no pop-up). One update runs at a time. Update all
+   takes the red and the gray (optional) cards alike, and shows as soon as the check has found two, even while it is
+   still checking the rest (Donny, 2026-11-13: since 2026.11.11c every release is optional, so red-only hid it). A sheet
    on code older than 2026.11.10b doesn't say its Script ID: Edit can keep one on the card (item.script). The box
    above the list says how the Class List sheet is doing, and installs its own newer release (Update now there);
    its Open Class List sheet button opens the sheet itself (CLASS_LIST_SHEET, Donny, 2026-11-11).
@@ -458,7 +460,8 @@ document.addEventListener("DOMContentLoaded", function(){
       box.appendChild(again);
     }
     var todo = needIds();
-    if(!n.checking && todo.length > 1 && helperReady()) box.appendChild(updateAllButton(todo));
+    if(todo.length > 1 && helperReady()) box.appendChild(updateAllButton(todo));
+    else allSure = false;
     return n;
   }
 
@@ -498,10 +501,10 @@ document.addEventListener("DOMContentLoaded", function(){
         return out.result || {};
       }, function(err){ clearTimeout(timer); throw err; });
   }
-  // the cards whose sheets need a code update (red), one per student link
+  // the cards whose sheets have a code update, needed (red) or optional (gray), one per student link
   function needIds(){
     var out = [];
-    items.forEach(function(a){ var id = appId(a.link), note = id && codeNote(a); if(note && note.need && canUpdate(id) && out.indexOf(id) === -1) out.push(id); });
+    items.forEach(function(a){ var id = appId(a.link), note = id && codeNote(a); if(note && (note.need || note.opt) && canUpdate(id) && out.indexOf(id) === -1) out.push(id); });
     return out;
   }
   function canUpdate(id){
@@ -574,7 +577,8 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     return box.childNodes.length ? box : null;
   }
-  // Update all: asks once more on the page (no pop-up), then queues every red card
+  // Update all: asks once more on the page (no pop-up), then queues every red and gray card
+  // (the ones found so far when the check is still going; the rest get their own Update now)
   function updateAllButton(todo){
     var wrap = el("span", "lp-sure");
     if(!allSure){
@@ -583,9 +587,9 @@ document.addEventListener("DOMContentLoaded", function(){
       wrap.appendChild(b);
       return wrap;
     }
-    wrap.appendChild(el("span", null, "Update the code of all " + todo.length + " sheets that need it, one at a time?"));
+    wrap.appendChild(el("span", null, "Update the code of all " + todo.length + " sheets with an update, one at a time?"));
     var yes = el("button", "lp-btn", "Yes, update all " + todo.length); yes.type = "button";
-    yes.addEventListener("click", function(){ allSure = false; todo.forEach(function(id){ queueUpdate(id, "update"); }); });
+    yes.addEventListener("click", function(){ allSure = false; needIds().forEach(function(id){ queueUpdate(id, "update"); }); });
     var no = el("button", "lp-btn alt", "Cancel"); no.type = "button";
     no.addEventListener("click", function(){ allSure = false; draw(); });
     wrap.appendChild(yes);
