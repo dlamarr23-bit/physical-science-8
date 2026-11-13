@@ -26,7 +26,9 @@ const NAMES = {
   "sim": "Sim", "lab": "Lab", "reading": "Reading", "practice-set": "Practice Set", "self-check": "Self-Check",
   "review-game": "Review Game", "escape-room": "Escape Room", "video-check": "Video Check",
 };
-const BOT = /bot|crawl|spider|preview|fetch|google(?!.*chrome)|facebookexternalhit|slack|discord|embed|whatsapp|skype|teams/i;
+// Link preview programs. Google's (Classroom's thumbnails included) say "Google" or "HeadlessChrome"; a student's Chrome or
+// Chromebook never does.
+const BOT = /google|headless|bot\b|bot\/|crawl|spider|preview|facebookexternalhit|slack|discord|embed|whatsapp|skype|teams/i;
 const CACHE_DAYS = 30;
 
 function typeOf(word) {
@@ -74,6 +76,7 @@ export async function onRequestGet(ctx) {
   if (!type0 || page.status !== 200) return page;
 
   const url = new URL(request.url);
+  const bot = BOT.test(request.headers.get("User-Agent") || "");
   const app = url.searchParams.get("app") || "";
   let type = typeOf(url.searchParams.get("kind"));
   let title = "";
@@ -83,7 +86,7 @@ export async function onRequestGet(ctx) {
       const got = await askSheet(app, url.origin, ctx);
       let info = got.info;
       if (!got.cached) {
-        const wait = BOT.test(request.headers.get("User-Agent") || "") ? 8000 : 1500;
+        const wait = bot ? 8000 : 1500;
         info = await Promise.race([got.work, new Promise((r) => setTimeout(() => r(null), wait))]);
       }
       if (info) {
@@ -106,6 +109,18 @@ export async function onRequestGet(ctx) {
     `<meta property="og:image:alt" content="${esc(NAMES[type])}">` +
     `<meta name="twitter:card" content="summary_large_image">` +
     `<meta name="twitter:image" content="${esc(image)}">`;
+
+  // Classroom makes its thumbnail from a picture of the page, not only from og:image. So a preview program (or ?preview=1,
+  // to see it) gets a page that is just the picture; students get the real Class Pass page.
+  if (bot || url.searchParams.get("preview") === "1") {
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(shown)}</title>` +
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">${tags}` +
+      `<style>html,body{margin:0;height:100%;background:#f4efe4}img{display:block;width:100vw;height:100vh;object-fit:cover}</style>` +
+      `</head><body><img src="${esc(image)}" alt="${esc(NAMES[type])}"></body></html>`;
+    return new Response(html, { headers: {
+      "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Frame-Options": "DENY",
+      "Content-Security-Policy": "frame-ancestors 'none'", "Referrer-Policy": "strict-origin-when-cross-origin", "Vary": "User-Agent" } });
+  }
 
   const out = new HTMLRewriter()
     .on("title", { element(el) { if (title) el.setInnerContent(title + " (Class Pass)"); } })
