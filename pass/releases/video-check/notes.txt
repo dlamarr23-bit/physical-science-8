@@ -1,6 +1,10 @@
-video-check v2026.11.11d
+video-check v2026.11.12
 
-Optional update: nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets).
+Optional update: nothing changes for Video Check (this release changes the Self-Check drawing pad).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.11d (optional), if this sheet skipped it:
 
 - Nothing changes for Video Check. Your questions, settings and student work are not touched.
 

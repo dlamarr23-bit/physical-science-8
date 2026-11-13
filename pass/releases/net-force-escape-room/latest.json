@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.11d",
-  "optional": "give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).",
+  "version": "2026.11.12",
+  "optional": "nothing new for an escape room (this release changes the Self-Check drawing pad).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

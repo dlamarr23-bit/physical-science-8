@@ -1,6 +1,12 @@
-net-force-escape-room v2026.11.11d
+net-force-escape-room v2026.11.12
 
-Optional update: give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).
+Optional update: nothing new for an escape room (this release changes the Self-Check drawing pad).
+
+- The drawing pad on the other Self-Check kinds now remembers each student's last 3 custom colors, has clearer button pictures and a
+  Download button. The escape room page has no drawing pad, so nothing changes here. Your questions, answer keys, settings and student
+  work are not touched.
+
+Also from 2026.11.11d (optional), if this sheet skipped it:
 
 - New: give full credit to an answer the key missed. In the Live Results tab, click the student's answer (a cell under Q1, Q2 ...),
   then Self-Check > Give full credit to the selected answers. The cell turns green and starts with [full credit], and the grade

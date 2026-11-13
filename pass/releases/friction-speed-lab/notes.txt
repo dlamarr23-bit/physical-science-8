@@ -1,6 +1,23 @@
-friction-speed-lab v2026.11.11d
+friction-speed-lab v2026.11.12
 
-Optional update: give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).
+Optional update: the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button.
+
+- Drawing questions (Answer type draw): after Any color there are now three Recent colors circles. Each color a student picks with
+  Any color goes into the first circle and the others move over, newest first (3 at most, never the same color twice). Picking one of
+  the 18 colors already on the pad doesn't add it.
+- Click a filled circle to draw in that color again. A circle with no color yet is dashed and can't be clicked.
+- The colors are kept on that computer, so a student sees the same three on every assignment on the class website and after a reload.
+  If the browser blocks saving (some private windows), the pad still works and the circles just start empty the next time.
+- New pictures on the drawing pad's buttons, all in one style, so each tool is easy to tell apart: pen, highlighter, spray can, eraser,
+  paint bucket, line, arrow, rectangle, oval, label (a T), undo, redo and clear (a trash can). Same buttons, same places, same names.
+- New button at the end: Download my drawing (an arrow into a tray) saves a copy of the drawing on the student's computer as a picture.
+  The drawing still saves to your sheet by itself, as before.
+- Only the page changed (the Index); Code.gs just has the new version number. Students who open the assignment through the class
+  website get the new pad as soon as it is published. Chromebooks open the sheet's own copy: Update now on the Launchpad, or paste the
+  new Code.gs and Index and make a New version. No Set up / repair needed and no new permission.
+- Your questions, answer keys, settings and student work are not touched.
+
+Also from 2026.11.11d (optional), if this sheet skipped it:
 
 - New: give full credit to an answer the key missed. In the Live Results tab, click the student's answer (a cell under Q1, Q2 ...),
   then Self-Check > Give full credit to the selected answers. The cell turns green and starts with [full credit], and the grade

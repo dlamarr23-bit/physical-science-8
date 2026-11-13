@@ -231,6 +231,7 @@
   html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
   html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
   html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
+  /* @@PAD-CSS-BEGIN: the drawing pad (Answer type "draw"; the same in both Self-Check pages: change it in self-check/pad.css, then npm run build) */
   /* drawing pad questions (Answer type "draw") */
   .drawpad { border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px 12px; background:#fff; transition: background .25s; }
   .drawpad.correct { background: var(--green); }
@@ -253,6 +254,9 @@
   .padpickdot { position:absolute; inset:6px; border-radius:50%; border:1.5px solid rgba(0,0,0,.35); display:none; }
   .padpickwrap.picked .padpickdot { display:block; }
   .padpickwrap input.padpick { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; border:0; opacity:0; cursor:pointer; }
+  /* Recent colors: the last 3 colors picked with Any color, newest first; a slot with no color yet is a dashed circle that can't be clicked */
+  .padrecents { display:inline-flex; gap:6px; align-items:center; }
+  button.padcolor.padrecent.empty { background:transparent; border-style:dashed; opacity:1; cursor:default; }
   .padwrap { position:relative; line-height:0; }
   canvas.padcanvas { display:block; width:100%; height:auto; aspect-ratio: 1000 / 650; border:2px solid #111; border-radius:6px; background:#fff;
                      touch-action:none; cursor:crosshair; }
@@ -264,6 +268,14 @@
   .padcoverbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
   input.padtext { position:absolute; z-index:2; margin:0; min-width:180px; padding:2px 6px; border:2px dashed #1b4587; border-radius:4px; background:rgba(255,255,255,.9);
                   font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:16px; line-height:1.3; outline:none; }
+  html[data-theme="dark"] button.padbtn { background:#14171c; color:#e8eaed; border-color:#5f6670; }
+  html[data-theme="dark"] button.padbtn.on { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
+  html[data-theme="dark"] button.padcolor { border-color:#8a9099; }
+  html[data-theme="dark"] button.padcolor.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
+  html[data-theme="dark"] .padpickwrap { background:#14171c; color:#e8eaed; border-color:#8a9099; }
+  html[data-theme="dark"] .padpickwrap.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
+  html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
+  /* @@PAD-CSS-END */
   /* picture upload questions (Answer type "upload") */
   .dropzone { border-top:3px solid #111; border-bottom:3px solid #111; padding:12px; background:#fff; outline:none; transition: background .25s; }
   .dropzone:focus { box-shadow: inset 0 0 0 3px #3c78d8; }
@@ -462,13 +474,6 @@
   html[data-theme="dark"] .item.viewonly textarea, html[data-theme="dark"] .item.viewonly input.pbox { color:#f1f3f5; }
   html[data-theme="dark"] .drawpad, html[data-theme="dark"] .dropzone { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] .drawpad.correct, html[data-theme="dark"] .dropzone.correct { background:var(--green); }
-  html[data-theme="dark"] button.padbtn { background:#14171c; color:#e8eaed; border-color:#5f6670; }
-  html[data-theme="dark"] button.padbtn.on { background:#3b6fd6; border-color:#3b6fd6; color:#fff; }
-  html[data-theme="dark"] button.padcolor { border-color:#8a9099; }
-  html[data-theme="dark"] button.padcolor.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
-  html[data-theme="dark"] .padpickwrap { background:#14171c; color:#e8eaed; border-color:#8a9099; }
-  html[data-theme="dark"] .padpickwrap.on { box-shadow: 0 0 0 2px #14171c, 0 0 0 4px #e8eaed; }
-  html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
   html[data-theme="dark"] .dropzone .dzbox { background:rgba(0,0,0,.2); border-color:#8a9099; }
   html[data-theme="dark"] .dropzone .dzbox span { color:#b6bcc6; }
   html[data-theme="dark"] .dropzone.over { background:#203050; }
@@ -3349,7 +3354,7 @@ document.addEventListener("input", function (e) {
 });
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.11d";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.12";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -3376,10 +3381,14 @@ function setTheme(t) {
   showThemeButton(); tellSimTheme();   // the simulation on the left switches too
 }
 
+/* ============================== DRAWING PAD (@@PAD-BEGIN) ==============================
+   THE SAME BLOCK is in the one-column page (self-check/Index.html) and the two-column page (self-check/custom/reading-activity/Index.html):
+   change it only in self-check/pad.js (and its CSS in self-check/pad.css), then run npm run build, which copies it into both pages. */
 /* ---------- drawing pad questions (Answer type "draw" in the Questions tab) ----------
-   Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors, a size slider, undo,
-   redo and clear. The drawing saves itself (as a PNG, through the same uploadPicture call as a picture upload)
-   PAD_SAVE_MS after the student stops drawing, and comes back on the pad when the page is opened again. */
+   Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors (18 swatches, Any color and
+   the last 3 colors picked with it), a size slider, undo, redo, clear and download. The drawing saves itself (as a PNG,
+   through the same uploadPicture call as a picture upload) PAD_SAVE_MS after the student stops drawing, and comes back
+   on the pad when the page is opened again. */
 /** A drawing question's background picture, as an image the pad can save (never a cross-site one, which would block saving).
     A Drive picture comes through the sheet (getPicture); another https picture only if its site allows it. done(img or null). */
 function padBackground(i, src, done) {
@@ -3400,18 +3409,83 @@ var PAD_BG_W = 1380;   // a pad with a background picture is this many pixels wi
 var PAD_W = 1000, PAD_H = 650, PAD_UNDO = 15, PAD_SAVE_MS = 2500, pads = {};
 var PAD_COLORS = ["#1f2430", "#ffffff", "#8a8f98", "#e03131", "#f76707", "#fcc419", "#94d82d", "#2f9e44", "#15aabf",
                   "#1c7ed6", "#4263eb", "#7048e8", "#ae3ec9", "#f06595", "#8b5a2b", "#e0b07a", "#ffd8a8", "#a5d8ff"];
+/* The toolbar icons (2026.11.12: one set, 24 x 24, stroke 2, round ends, drawn in currentColor so the blue "on" state and dark mode color them). */
 var PAD_TOOLS = [
-  ["pen", "Pen", '<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>'],
-  ["marker", "Highlighter", '<path d="M9 15l-3 5h5l2-3"/><path d="M9 15l7-11 4 3-7 11z"/>'],
-  ["spray", "Spray", '<rect x="8" y="9" width="7" height="12" rx="1.5"/><path d="M10 9V6h3v3"/><circle cx="18" cy="4" r=".6"/><circle cx="20" cy="7" r=".6"/><circle cx="17" cy="7.5" r=".6"/>'],
-  ["eraser", "Eraser", '<path d="M8 20h12"/><path d="M4 15l9-9 6 6-7 7H8z"/><path d="M9 10l6 6"/>'],
-  ["fill", "Fill", '<path d="M4 12l7-7 8 8-7 7z"/><path d="M20 15c0 1.5 1 2.5 1 3.5a1.5 1.5 0 0 1-3 0c0-1 1-2 2-3.5z"/>'],
+  ["pen", "Pen", '<path d="M15.5 4.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"/><path d="M13.5 6.5l3 3"/>'],
+  ["marker", "Highlighter", '<path d="M14.5 4.5l5 5-6 6-5-5z"/><path d="M8.5 10.5L6 16l2 2 5.5-2.5"/><path d="M3 21h9"/>'],
+  ["spray", "Spray", '<path d="M5 12a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M7.5 9V5.5h4V9"/><path d="M5 14h9"/>' +
+                     '<path d="M15.5 5.5h.01M18.5 3.5h.01M18.5 7.5h.01M21.5 2h.01M21.5 5.5h.01M21.5 9h.01"/>'],
+  ["eraser", "Eraser", '<path d="M8 20l-4.3-4.3a1.5 1.5 0 0 1 0-2.1l9.9-9.9a1.5 1.5 0 0 1 2.1 0l4.6 4.6a1.5 1.5 0 0 1 0 2.1L12 20z"/><path d="M8.5 9.5l6 6"/><path d="M12 20h8"/>'],
+  ["fill", "Fill", '<path d="M11 4l8 8-7 7a2 2 0 0 1-2.8 0L4 13.8a2 2 0 0 1 0-2.8z"/><path d="M4 12h15"/><path d="M7 2l4 4"/><path d="M20 15c1.3 1.8 2 3 2 4a2 2 0 0 1-4 0c0-1 .7-2.2 2-4z"/>'],
   ["line", "Line", '<path d="M5 19L19 5"/>'],
-  ["arrow", "Arrow (forces)", '<path d="M4 20L20 4"/><path d="M11 4h9v9"/>'],
-  ["rect", "Rectangle", '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
-  ["oval", "Oval", '<ellipse cx="12" cy="12" rx="8" ry="6"/>'],
-  ["text", "Label (type words)", '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>']
+  ["arrow", "Arrow (forces)", '<path d="M5 19L19 5"/><path d="M10 5h9v9"/>'],
+  ["rect", "Rectangle", '<rect x="3" y="5" width="18" height="14" rx="2"/>'],
+  ["oval", "Oval", '<ellipse cx="12" cy="12" rx="9" ry="6.5"/>'],
+  ["text", "Label (type words)", '<path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/>']
 ];
+var PAD_ICONS = {
+  undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  redo: '<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  clear: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-14"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+  download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>'
+};
+/* Recent colors (2026.11.12): the last PAD_RECENT_MAX colors a student picked with Any color, newest first, in the slots after it.
+   Kept in localStorage (PAD_RECENT_KEY), so they are the same on every assignment on this site and after a reload; when the browser
+   blocks storage they last only while the page is open. A pick that is one of the PAD_COLORS swatches isn't kept. */
+var PAD_RECENT_KEY = "selfcheck-pad-colors", PAD_RECENT_MAX = 3, padRecent = null;
+function padRecentClean(list) {
+  var out = [];
+  (Array.isArray(list) ? list : []).forEach(function (c) {
+    if (typeof c !== "string" || !/^#[0-9a-f]{6}$/i.test(c)) return;
+    c = c.toLowerCase();
+    if (out.indexOf(c) < 0 && out.length < PAD_RECENT_MAX) out.push(c);
+  });
+  return out;
+}
+/** The list in storage, or null when storage can't be read. */
+function padRecentLoad() {
+  try { var raw = window.localStorage.getItem(PAD_RECENT_KEY); return padRecentClean(raw ? JSON.parse(raw) : []); } catch (e) { return null; }
+}
+function padRecentColors() { if (!padRecent) padRecent = padRecentLoad() || []; return padRecent; }
+/** A color picked with Any color: it goes first (moved there if it was already a recent color), and every pad on the page shows the new list. */
+function padRecentAdd(c) {
+  c = String(c || "").toLowerCase();
+  if (!/^#[0-9a-f]{6}$/.test(c) || PAD_COLORS.indexOf(c) >= 0) return false;
+  padRecent = [c].concat(padRecentColors().filter(function (x) { return x !== c; })).slice(0, PAD_RECENT_MAX);
+  try { window.localStorage.setItem(PAD_RECENT_KEY, JSON.stringify(padRecent)); } catch (e) {}
+  padRecentShowAll();
+  return true;
+}
+function padRecentShowAll() { Object.keys(pads).forEach(function (k) { if (pads[k].showRecent) pads[k].showRecent(); }); }
+try {
+  window.addEventListener("storage", function (e) {   // a color picked in another tab
+    if (e.key !== PAD_RECENT_KEY && e.key !== null) return;
+    var list = padRecentLoad();
+    if (list) { padRecent = list; padRecentShowAll(); }
+  });
+} catch (e) {}
+/** Saves a copy of the drawing on this computer as a PNG. */
+function padDownload(i) {
+  var P = pads[i];
+  if (!P || P.loading || P.bgWait) return;
+  commitText(i);
+  var n = (S && S.qNum && S.qNum[i]) || (i + 1);
+  function go(href) {
+    var a = document.createElement("a");
+    a.href = href; a.download = "my-drawing-question-" + n + ".png"; a.target = "_self";   // the page's <base target="_blank"> would open a tab
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  try {
+    if (P.cv.toBlob && window.URL && URL.createObjectURL) {
+      P.cv.toBlob(function (blob) {
+        if (!blob) return;
+        var u = URL.createObjectURL(blob);
+        go(u);
+        setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+      }, "image/png");
+    } else go(P.cv.toDataURL("image/png"));
+  } catch (e) {}
+}
 function padIcon(svg) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + svg + '</svg>'; }
 function padBtn(title, svg, onClick) {
   var b = el("button", "padbtn"); b.type = "button"; b.title = title; b.setAttribute("aria-label", title);
@@ -3421,7 +3495,7 @@ function padBtn(title, svg, onClick) {
 }
 function drawBox(i) {
   var zone = el("div", "drawpad"); zone.id = "a" + i;
-  var P = pads[i] = { w: PAD_W, h: PAD_H, bg: null, bgPat: null, bgWait: false, loadAfter: false, tool: "pen", color: PAD_COLORS[0], size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0 };
+  var P = pads[i] = { w: PAD_W, h: PAD_H, bg: null, bgPat: null, bgWait: false, loadAfter: false, tool: "pen", color: PAD_COLORS[0], colorFrom: "swatch", size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0 };
   var bar = el("div", "padbar"), tools = el("div", "padgroup");
   PAD_TOOLS.forEach(function (t) {
     var b = padBtn(t[1], t[2], function () { P.tool = t[0]; tools.querySelectorAll(".padbtn").forEach(function (x) { x.classList.toggle("on", x === b); }); commitText(i); });
@@ -3432,30 +3506,59 @@ function drawBox(i) {
   size.addEventListener("input", function () { P.size = Number(size.value); });
   var sizeWrap = el("label", "padgroup padsizewrap"); sizeWrap.appendChild(el("span", "padsizelab", "Size")); sizeWrap.appendChild(size);
   var acts = el("div", "padgroup");
-  P.undoBtn = padBtn("Undo", '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', function () { padUndo(i); });
-  P.redoBtn = padBtn("Redo", '<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', function () { padRedo(i); });
-  var clr = padBtn("Clear the whole drawing", '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>', function () {
+  P.undoBtn = padBtn("Undo", PAD_ICONS.undo, function () { padUndo(i); });
+  P.redoBtn = padBtn("Redo", PAD_ICONS.redo, function () { padRedo(i); });
+  var clr = padBtn("Clear the whole drawing", PAD_ICONS.clear, function () {
     if (S.locked || !P.ink) return;
     askConfirm("Clear your whole drawing? (Undo brings it back.)", function () { padClear(i); }, "Clear", "Cancel");
   });
-  acts.appendChild(P.undoBtn); acts.appendChild(P.redoBtn); acts.appendChild(clr);
+  var dl = padBtn("Download my drawing", PAD_ICONS.download, function () { padDownload(i); });
+  acts.appendChild(P.undoBtn); acts.appendChild(P.redoBtn); acts.appendChild(clr); acts.appendChild(dl);
   bar.appendChild(tools); bar.appendChild(sizeWrap); bar.appendChild(acts);
   var colors = el("div", "padcolors");
+  function useColor(c, from, b) {   // b = the swatch, slot or Any color that gets the ring
+    P.color = c; P.colorFrom = from;
+    colors.querySelectorAll(".padcolor, .padpickwrap").forEach(function (x) { x.classList.toggle("on", x === b); });
+  }
   PAD_COLORS.forEach(function (c, k) {
     var b = el("button", "padcolor" + (k === 0 ? " on" : "")); b.type = "button"; b.style.background = c; b.title = "Color " + (k + 1); b.setAttribute("aria-label", "Color " + c);
-    b.addEventListener("click", function () { P.color = c; colors.querySelectorAll(".padcolor, .padpickwrap").forEach(function (x) { x.classList.toggle("on", x === b); }); });
+    b.addEventListener("click", function () { useColor(c, "swatch", b); });
     colors.appendChild(b);
   });
   var pickWrap = el("label", "padpickwrap"), ring = el("span", "padpickring"), dot = el("span", "padpickdot");
   var pick = el("input", "padpick"); pick.type = "color"; pick.value = "#1f2430"; pick.title = "Pick any color"; pick.setAttribute("aria-label", "Pick any color");
-  pick.addEventListener("input", function () {
-    P.color = pick.value; dot.style.background = pick.value;
-    colors.querySelectorAll(".padcolor").forEach(function (x) { x.classList.remove("on"); });
-    pickWrap.classList.add("on", "picked");
+  pick.addEventListener("input", function () {   // while the picker is open: draw in the color under the pointer
+    dot.style.background = pick.value;
+    useColor(pick.value, "pick", pickWrap);
+    pickWrap.classList.add("picked");
   });
+  pick.addEventListener("change", function () { padRecentAdd(pick.value); });   // the color the student settled on
   ring.appendChild(dot); pickWrap.appendChild(ring); pickWrap.appendChild(document.createTextNode("Any color")); pickWrap.appendChild(pick);
   pickWrap.title = "Pick any color";
   colors.appendChild(pickWrap);
+  var recents = el("span", "padrecents"), slots = [];
+  recents.setAttribute("role", "group"); recents.setAttribute("aria-label", "Recent colors");
+  for (var r = 0; r < PAD_RECENT_MAX; r++) {
+    (function (b) {
+      b.type = "button";
+      b.addEventListener("click", function () { var c = b.getAttribute("data-color"); if (c && !S.locked) useColor(c, "recent", b); });
+      slots.push(b); recents.appendChild(b);
+    })(el("button", "padcolor padrecent"));
+  }
+  colors.appendChild(recents);
+  P.showRecent = function () {   // an empty slot is a dashed circle that can't be clicked
+    var list = padRecentColors();
+    slots.forEach(function (b, k) {
+      var c = list[k] || "";
+      b.classList.toggle("empty", !c);
+      b.style.background = c;
+      b.disabled = !c || !!S.locked;
+      if (c) { b.setAttribute("data-color", c); b.setAttribute("aria-label", "Recent color " + c); b.title = "Recent color"; b.removeAttribute("aria-hidden"); }
+      else { b.removeAttribute("data-color"); b.setAttribute("aria-label", "Empty recent color"); b.title = ""; b.setAttribute("aria-hidden", "true"); }
+      b.classList.toggle("on", !!c && P.colorFrom === "recent" && P.color === c);
+    });
+  };
+  P.showRecent();
   var wrap = el("div", "padwrap"), cv = el("canvas", "padcanvas"); cv.width = P.w; cv.height = P.h;
   cv.setAttribute("aria-label", "Drawing area for question " + (i + 1)); cv.setAttribute("role", "img");
   wrap.appendChild(cv);
@@ -3741,6 +3844,7 @@ function padLoadFailed(i, why) {
 }
 /** I'm finished: save any drawing that hasn't been saved yet. */
 function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k)); }); }
+/* ============================== (@@PAD-END) ============================== */
 
 /* ---------- end of the quarter (view only) ---------- */
 function isClosedNow() { return !!(S && S.close && S.close.closed); }

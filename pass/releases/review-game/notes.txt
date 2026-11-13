@@ -1,6 +1,11 @@
-review-game v2026.11.11d
+review-game v2026.11.12
 
-Optional update: nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers).
+Optional update: nothing new for a review game (this release changes the Self-Check drawing pad).
+
+- The drawing pad on the other Self-Check kinds now remembers each student's last 3 custom colors, has clearer button pictures and a
+  Download button. A review game has no drawing questions, so nothing changes here. Your questions, settings and student work are not touched.
+
+Also from 2026.11.11d (optional), if this sheet skipped it:
 
 - The other Self-Check kinds can now give an answer full credit by hand from Live Results. A review game doesn't get it: its answers are
   multiple choice with one try each. If a Right choice is wrong, fix it in the Questions tab and run Self-Check > Recalculate all grades.

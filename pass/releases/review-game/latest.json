@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.11d",
-  "optional": "nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers).",
+  "version": "2026.11.12",
+  "optional": "nothing new for a review game (this release changes the Self-Check drawing pad).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

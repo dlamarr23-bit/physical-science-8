@@ -1,7 +1,7 @@
 {
   "kind": "video-check",
-  "version": "2026.11.11d",
-  "optional": "nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets).",
+  "version": "2026.11.12",
+  "optional": "nothing changes for Video Check (this release changes the Self-Check drawing pad).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

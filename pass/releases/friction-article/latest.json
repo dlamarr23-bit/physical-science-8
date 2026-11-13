@@ -1,7 +1,7 @@
 {
   "kind": "friction-article",
-  "version": "2026.11.11d",
-  "optional": "give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers).",
+  "version": "2026.11.12",
+  "optional": "the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

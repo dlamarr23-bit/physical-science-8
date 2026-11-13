@@ -1,21 +1,21 @@
 {
-  "auto-grading-activity": "2026.11.11d",
+  "auto-grading-activity": "2026.11.12",
   "class-list": "2026.11.11",
-  "friction-article": "2026.11.11d",
-  "friction-sim-lab": "2026.11.11d",
-  "friction-speed-lab": "2026.11.11d",
-  "net-force-escape-room": "2026.11.11d",
-  "reading-activity": "2026.11.11d",
-  "review-game": "2026.11.11d",
-  "video-check": "2026.11.11d",
+  "friction-article": "2026.11.12",
+  "friction-sim-lab": "2026.11.12",
+  "friction-speed-lab": "2026.11.12",
+  "net-force-escape-room": "2026.11.12",
+  "reading-activity": "2026.11.12",
+  "review-game": "2026.11.12",
+  "video-check": "2026.11.12",
   "_optional": {
-    "auto-grading-activity": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "friction-article": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "friction-sim-lab": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "friction-speed-lab": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "net-force-escape-room": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "reading-activity": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."]]},
-    "review-game": {"needed":"2026.11.11c","notes":[["2026.11.11d","nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers)."]]},
-    "video-check": {"needed":"2026.11.11b","notes":[["2026.11.11c","Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check."],["2026.11.11d","nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets)."]]}
+    "auto-grading-activity": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button."]]},
+    "friction-article": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button."]]},
+    "friction-sim-lab": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button."]]},
+    "friction-speed-lab": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button."]]},
+    "net-force-escape-room": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","nothing new for an escape room (this release changes the Self-Check drawing pad)."]]},
+    "reading-activity": {"needed":"2026.11.11c","notes":[["2026.11.11d","give an answer full credit by hand (click it in Live Results, then Self-Check > Give full credit to the selected answers)."],["2026.11.12","the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button."]]},
+    "review-game": {"needed":"2026.11.11c","notes":[["2026.11.11d","nothing new for a review game (the Self-Check kinds got Give full credit to the selected answers)."],["2026.11.12","nothing new for a review game (this release changes the Self-Check drawing pad)."]]},
+    "video-check": {"needed":"2026.11.11b","notes":[["2026.11.11c","Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check."],["2026.11.11d","nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets)."],["2026.11.12","nothing changes for Video Check (this release changes the Self-Check drawing pad)."]]}
   }
 }
