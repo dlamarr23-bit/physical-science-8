@@ -1,6 +1,36 @@
-reading-activity v2026.11.12
+reading-activity v2026.11.12b
 
-Optional update: the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button.
+Optional update: sentence starters, a word bank and a Say it button help students start an answer, and small wins (a streak, a +1, a mystery picture and badges) keep them going.
+
+Helping students get started
+- Two new Questions tab columns: Sentence starters (one per line) and Word bank (commas between). They work on typed answers and short answers.
+  Students see them as buttons right above the answer box: orange starters, blue words. A tap types it into the answer. A starter's ... is
+  left off and its ___ is selected, so the student types right over it. Tapped ones get a check mark. Grading doesn't change: the answer
+  still needs the right ideas to turn green. Leave both cells blank and nothing shows. Starters hide once the answer is green.
+- Settings "Starters only after a wrong answer" (unchecked to start): checked = the starters and word bank stay hidden until that question's
+  first Check comes back yellow or red.
+- Settings "Say it button" (checked to start): every typed answer gets a Say it button in its black bar. The student talks, the words are
+  typed into the answer, and they fix any word it got wrong before pressing Check. On the class website it listens right on the page (Chrome
+  asks once to allow the microphone). On this sheet's own link (school Chromebooks) Google doesn't allow the microphone, so Say it opens a small
+  Say it window from the class website that listens and sends the words back. Uncheck it to hide the button.
+
+Small wins (Settings "Small wins", checked to start)
+- A streak counter in the progress bar ("3 in a row!") for green answers in a row. A yellow or red Check ends the streak.
+- A green +1 floats up from Check (with a little confetti) each time an answer turns green.
+- Your wins, just above I'm finished (at the bottom of the questions side): a mystery picture that uncovers squares as answers turn green (every answer
+  green = the whole picture; a small copy sits in the progress bar), and four badges: First Try (green on the first Check), Comeback (fixed
+  a yellow or red answer), Hot Streak (5 green in a row) and Finisher (checked every question). A new badge shows a note at the bottom of the screen.
+- Settings "Mystery picture": blank = a built-in science picture (each assignment gets its own: a roller coaster, a rocket launch, a volcano
+  or Saturn). Or paste a Google Drive link (Share > Hart District: anyone with the link) or an https picture link: a funny photo works great.
+  Type none for no picture (the streak, +1 and badges still show).
+- Grades never change. The streak and badges are kept on the student's computer; the picture follows their green answers on any computer.
+- Uncheck Small wins to turn all of it off.
+
+It needs the new Code.gs (the page only shows these when the sheet sends them). After you paste the new Code.gs and Index and create the
+New version (Deploy > Manage deployments > pencil > New version > Deploy), run Self-Check > Set up / repair sheets once: it adds the four
+Settings rows and the two Questions columns. Nothing already in the sheet changes, and no new permission is needed.
+
+Also from 2026.11.12 (optional), if this sheet skipped it:
 
 - Drawing questions (Answer type draw): after Any color there are now three Recent colors circles. Each color a student picks with
   Any color goes into the first circle and the others move over, newest first (3 at most, never the same color twice). Picking one of

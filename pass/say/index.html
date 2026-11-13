@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Say it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- SAY IT (2026.11.12b): the Self-Check pages' Say it window, at physical-science-8.pages.dev/pass/say/ (built from class-tools class-pass/say.html).
+     Google blocks the microphone on a sheet's own page (script.google.com, which school Chromebooks open), so Say it there opens this window.
+     It listens with Chrome's speech-to-text and sends each finished phrase back to the page that opened it (postMessage, only to the address
+     that page gave in #from=, and only a googleusercontent.com, this website or localhost one). Nothing is saved here or sent anywhere else. -->
+<style>
+  :root { --bg:#f3f3f3; --card:#fff; --ink:#111; --muted:#444; --line:#111; --heard:#888; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14171c; --card:#1d2128; --ink:#e8eaed; --muted:#b6bcc6; --line:#5f6670; --heard:#8a9099; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Poppins, Arial, sans-serif; }
+  .wrap { max-width:520px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:0 0 2px; }
+  .q { font-size:13px; color:var(--muted); margin:0 0 14px; line-height:1.4; }
+  .q:empty { display:none; }
+  .microw { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+  button { font-family:inherit; font-weight:700; font-size:15px; border:2px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); padding:9px 18px; cursor:pointer; }
+  button.mic { width:96px; height:96px; flex:none; border-radius:50%; border-width:3px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0; font-size:13px; }
+  button.mic svg { width:38px; height:38px; }
+  button.mic.on { background:#cc0000; border-color:#cc0000; color:#fff; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 0 10px rgba(204,0,0,.18); } }
+  @media (prefers-reduced-motion: reduce) { button.mic.on { animation:none; } }
+  .status { font-weight:700; font-size:15px; line-height:1.4; }
+  .status.bad { color:#cc0000; }
+  @media (prefers-color-scheme: dark) { .status.bad { color:#ff8a80; } }
+  .heard { min-height:96px; background:var(--card); border:2px solid var(--line); border-radius:8px; padding:10px 12px; font-size:16px; line-height:1.5; margin-bottom:12px; white-space:pre-wrap; }
+  .heard i { color:var(--heard); }
+  .heard:empty::before { content:"What you say shows up here, and in your answer."; color:var(--heard); }
+  .btns { display:flex; gap:10px; justify-content:flex-end; }
+  button.done { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .tip { font-size:13px; color:var(--muted); line-height:1.45; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Say it</h1>
+  <p class="q" id="q"></p>
+  <div class="microw">
+    <button type="button" class="mic" id="mic" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micText">Start</span></button>
+    <div class="status" id="status" role="status">Starting…</div>
+  </div>
+  <div class="heard" id="heard" aria-live="polite"></div>
+  <div class="btns"><button type="button" class="done" id="done">Done</button></div>
+  <p class="tip">Your words go into your answer as you talk. When you're done, fix any word it got wrong, then press Check on your assignment.</p>
+</div>
+<script>
+var P = new URLSearchParams(location.hash.slice(1)), ID = P.get("id") || "", FROM = P.get("from") || "";
+// Only back to the page that opened this window: a sheet's own page (googleusercontent.com), this website, or a test copy on this computer.
+var TARGET = /^https:\/\/[\w-]+(\.[\w-]+)*\.googleusercontent\.com$/.test(FROM) || FROM === location.origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(FROM) ? FROM : "";
+var rec = null, listening = false, finals = "", ended = false;
+document.getElementById("q").textContent = P.get("t") ? "Answering: " + P.get("t") : "";
+function $(id) { return document.getElementById(id); }
+function say(text, bad) { var s = $("status"); s.textContent = text; s.className = "status" + (bad ? " bad" : ""); }
+function send(msg) {
+  if (!ID || !TARGET || !window.opener) return false;
+  msg.selfCheckSay = 1; msg.id = ID;
+  try { window.opener.postMessage(msg, TARGET); return true; } catch (e) { return false; }
+}
+function show(interim) {
+  var h = $("heard"); h.textContent = finals;
+  if (interim) { var i = document.createElement("i"); i.textContent = (finals ? " " : "") + interim; h.appendChild(i); }
+}
+function micButton() { $("mic").classList.toggle("on", listening); $("mic").setAttribute("aria-pressed", listening ? "true" : "false"); $("micText").textContent = listening ? "Stop" : "Start"; }
+var ERRORS = {
+  "not-allowed": "The microphone is blocked. Click the icon at the left end of the address bar, set Microphone to Allow, then press Start.",
+  "service-not-allowed": "The microphone is blocked. Click the icon at the left end of the address bar, set Microphone to Allow, then press Start.",
+  "no-speech": "I didn't hear anything. Press Start and talk a little closer to the computer.",
+  "audio-capture": "There's no microphone on this computer. Close this window and type your answer.",
+  "network": "Say it needs the internet to turn talking into words. Check the Wi-Fi, then press Start."
+};
+function start() {
+  if (!window.opener || !TARGET || !ID) { say("This window lost its link to your assignment. Close it, then press Say it on your assignment again.", true); return; }
+  var R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!R) { say("Say it needs Google Chrome. Close this window and type your answer.", true); send({ error: "Say it needs Google Chrome. Type your answer instead." }); return; }
+  try { rec = new R(); } catch (e) { say("Say it couldn't start. Press Start to try again.", true); return; }
+  rec.lang = "en-US"; rec.continuous = true; rec.interimResults = true;
+  var mine = rec;
+  rec.onresult = function (e) {
+    var interim = "";
+    for (var k = e.resultIndex; k < e.results.length; k++) {
+      var r = e.results[k], t = String(r[0].transcript || "").replace(/\s+/g, " ").trim();
+      if (!t) continue;
+      if (r.isFinal) { finals += (finals ? " " : "") + t; send({ text: t, hearing: "" }); }
+      else interim += (interim ? " " : "") + t;
+    }
+    show(interim);
+    if (interim) send({ hearing: interim });
+  };
+  rec.onerror = function (e) {
+    var code = e && e.error;
+    if (code === "aborted") return;
+    var t = ERRORS[code] || "Say it stopped. Press Start to try again.";
+    say(t, true);
+    send({ error: t });
+  };
+  rec.onend = function () {
+    if (rec !== mine) return;
+    rec = null; listening = false; micButton();
+    if ($("status").className.indexOf("bad") === -1) say("Stopped listening. Press Start to talk again, or Done.");
+    send({ hearing: "" });
+  };
+  try { rec.start(); } catch (e) { rec = null; say("Say it couldn't start. Press Start to try again.", true); return; }
+  listening = true; micButton();
+  say("Listening. Talk now.");
+}
+function stop() { if (rec) { var r = rec; rec = null; try { r.stop(); } catch (e) {} } listening = false; micButton(); say("Stopped listening. Press Start to talk again, or Done."); }
+function finish() { if (ended) return; ended = true; stop(); send({ done: 1 }); }
+$("mic").addEventListener("click", function () { if (listening) stop(); else start(); });
+$("done").addEventListener("click", function () { finish(); window.close(); });
+window.addEventListener("pagehide", finish);
+start();
+</script>
+</body>
+</html>

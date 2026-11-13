@@ -1,7 +1,7 @@
 {
   "kind": "reading-activity",
-  "version": "2026.11.12",
-  "optional": "the drawing pad remembers each student's last 3 custom colors, its buttons have clearer pictures, and a new Download button.",
+  "version": "2026.11.12b",
+  "optional": "sentence starters, a word bank and a Say it button help students start an answer, and small wins (a streak, a +1, a mystery picture and badges) keep them going.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

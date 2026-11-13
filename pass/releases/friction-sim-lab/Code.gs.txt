@@ -189,6 +189,11 @@ var TRIED_WRONG_CREDIT = 0.5;               // a question tried but never answer
 var HINT_BEFORE_RETRY  = true;              // true = after a wrong try, the student opens a hint (the light bulb) before trying again
 var SHUFFLE_CHOICES    = true;              // true = each student gets the answer choices in its own order (true/false never shuffles)
 var SHUFFLE_QUESTIONS  = false;             // true = each student gets the questions in their own order (a Self-Check: within each blue section; a review game: a new order each try)
+// ---------- Helpers and small wins: the one- and two-column Self-Check pages (2026.11.12b; see HELPERS AND SMALL WINS) ----------
+var SAY_IT              = true;   // true = every typed answer gets a Say it button: the student talks and the words are typed into the answer
+var HELPERS_AFTER_WRONG = false;  // true = a question's Sentence starters and Word bank (Questions tab) stay hidden until its first Check is yellow or red
+var SMALL_WINS          = true;   // true = a streak counter, a +1 when an answer turns green, a mystery picture and badges (grades never change)
+var MYSTERY_PICTURE     = "";     // blank = a built-in science picture; or a Drive or https picture link; "none" = no mystery picture
 // ---------- Review game only (a sheet whose SKILL_NAME is "review-game"; see REVIEW GAME) ----------
 var START_OVER        = true;  // true = students can Start Over; their best try is the grade
 var QUESTIONS_PER_TRY = 0;     // how many questions each try gets, picked at random from the Questions tab (a new mix every Start Over); 0 = every question
@@ -260,7 +265,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-sim-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-sim-lab\)
-var SKILL_VERSION = "2026.11.12";
+var SKILL_VERSION = "2026.11.12b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -345,6 +350,14 @@ if (triesPage_()) SETTING_DEFS = SETTING_DEFS.concat([SHUFFLE_QUESTIONS_DEF]);  
  *  not the review game (its own multiple choice) or the escape room (its page is an older copy without the choice buttons). */
 function triesPage_() { return SKILL_NAME !== "review-game" && SKILL_NAME !== "net-force-escape-room"; }
 if (SKILL_NAME === "review-game") SETTING_DEFS = SETTING_DEFS.concat(GAME_SETTING_DEFS);
+// HELPERS AND SMALL WINS (2026.11.12b): the one- and two-column Self-Check pages' rows (not the review game's or the escape room's).
+var BOOST_SETTING_DEFS = [
+  ["Say it button", "SAY_IT", "bool", "Checked = every typed answer gets a Say it button: the student talks, their words are typed into the answer, and they fix any word it got wrong. On the class website it listens right on the page. On this sheet's own page (school Chromebooks) Google doesn't allow the microphone, so Say it opens a small window from the class website that listens and sends the words back. Chrome asks once to allow the microphone. Takes effect the next time a student loads the page."],
+  ["Starters only after a wrong answer", "HELPERS_AFTER_WRONG", "bool", "Only for questions with Sentence starters or a Word bank (Questions tab). Checked = they stay hidden until the question's first Check comes back yellow or red. Unchecked = they show from the start. Takes effect the next time a student loads the page."],
+  ["Small wins", "SMALL_WINS", "bool", "Checked = students see a streak counter (green answers in a row), a +1 each time an answer turns green, a mystery picture that uncovers squares as answers turn green, and badges (First Try, Comeback, Hot Streak, Finisher). Grades don't change. Takes effect the next time a student loads the page."],
+  ["Mystery picture", "MYSTERY_PICTURE", "text", "Only with Small wins. Blank = one of the built-in science pictures (each assignment gets its own). Or paste a Google Drive link (Share > Hart District: anyone with the link) or an https picture link: a funny photo works great. Type none for no mystery picture (the streak, +1 and badges still show). Takes effect the next time a student loads the page."]
+];
+if (triesPage_()) SETTING_DEFS = SETTING_DEFS.concat(BOOST_SETTING_DEFS);
 var AUTO_LABEL = "Automatic grades after the due date";
 var Q_COLS = { section: "Section title (starts a blue strip)", secLabel: "Section button text", secUrl: "Section button link",
                secImg: "Section picture (Drive or https link)", secCap: "Section picture caption",
@@ -357,7 +370,8 @@ var Q_COLS = { section: "Section title (starts a blue strip)", secLabel: "Sectio
                short: "Allow short answer (x = skip the minimum length)",
                points: "Points (blank = 1)",
                right: "Right choice (a number, or 1, 3 for select all)", explain: "Explanation (shown after answering)",
-               tries: "Tries (blank = Settings)", hintClue: "Hint: clue", hintEx: "Hint: example", hintVideo: "Hint: video or link" };
+               tries: "Tries (blank = Settings)", hintClue: "Hint: clue", hintEx: "Hint: example", hintVideo: "Hint: video or link",
+               starters: "Sentence starters (one per line)", words: "Word bank (commas between)" };
 var CHOICE_COLS = 5;   // Choice 1 ... Choice 5 columns in a new review game Questions tab (up to 6 are read)
 var TRY_CHOICE_COLS = 4;   // Choice 1 + Choice 1 feedback ... Choice 4 in a new Self-Check Questions tab (up to 6 are read)
 var BOX_HINT = "";   // Settings "Picture box hint text" (blank = no hint in picture boxes)
@@ -466,6 +480,31 @@ function loadConfig_() {
   }
 }
 
+// ============================== HELPERS AND SMALL WINS (2026.11.12b) ==============================
+// Donny's students lacked motivation, so the one- and two-column pages got (the page side is self-check/boost.js):
+//  HELPERS: Questions tab columns "Sentence starters" and "Word bank" become buttons that type into a typed or short answer
+//    (item.starters, item.words; Settings "Starters only after a wrong answer"), and Settings "Say it button" (SAY_IT): talk instead of type.
+//    Google blocks the microphone on this script's own page, so there Say it opens the class website's /pass/say/ window (sayUrl).
+//  SMALL WINS (Settings "Small wins", SMALL_WINS): a streak counter, a +1 when an answer turns green, a mystery picture that uncovers
+//    squares as answers turn green (Settings "Mystery picture": blank = built in, a Drive link comes through getPicture("m")), badges.
+//    All on the page (the streak and badges are kept in the browser); grades never change.
+/** HELPERS: Sentence starters and a Word bank only go on typed answers (Answer type blank) and short answers. */
+function helpersFit_(item) {
+  if (item.kind) return item.kind === "short";
+  return !item.upload && !item.table && !(item.boxes && item.boxes.length);
+}
+/** A Questions tab's Sentence starters cell (one per line, or | between) and Word bank cell (commas between) -> the lists the page shows. */
+var HELPER_MAX_STARTERS = 6, HELPER_MAX_WORDS = 16;
+function helpersFrom_(s, w) {
+  var out = { starters: [], words: [], warnings: [] };
+  function add(list, x, max) { x = String(x).replace(/\s+/g, " ").trim().slice(0, max); if (x && list.indexOf(x) === -1) list.push(x); }
+  String(s == null ? "" : s).split(/\r?\n|\|/).forEach(function (x) { add(out.starters, x, 160); });
+  String(w == null ? "" : w).split(/,|\r?\n/).forEach(function (x) { add(out.words, x, 40); });
+  if (out.starters.length > HELPER_MAX_STARTERS) { out.warnings.push("only the first " + HELPER_MAX_STARTERS + " sentence starters show."); out.starters.length = HELPER_MAX_STARTERS; }
+  if (out.words.length > HELPER_MAX_WORDS) { out.warnings.push("only the first " + HELPER_MAX_WORDS + " words of the word bank show."); out.words.length = HELPER_MAX_WORDS; }
+  return out;
+}
+
 function parseQuestions_(rows) {
   var head = rows[0].map(function (h) { return String(h).trim().toLowerCase(); });
   function col(label) { return head.indexOf(label.toLowerCase()); }
@@ -477,6 +516,7 @@ function parseQuestions_(rows) {
   c.table = startsCol(/^table config/); c.sentences = startsCol(/^minimum sentences/); c.short = startsCol(/^allow short answer/); c.points = startsCol(/^points\b/);
   c.right = startsCol(/^right (choice|answer)/); c.explain = startsCol(/^explanation/);
   c.tries = startsCol(/^tries\b/); c.hintClue = startsCol(/^hint:?\s*clue/); c.hintEx = startsCol(/^hint:?\s*example/); c.hintVideo = startsCol(/^hint:?\s*(video|link)/);
+  c.starters = startsCol(/^sentence starters/); c.words = startsCol(/^word bank/);   // HELPERS (2026.11.12b)
   var choiceCols = [], fbCols = [];   // Choice 1, Choice 2 ... columns (a review game's, or a Self-Check's choice questions) and each one's feedback column (-1 = none)
   for (var cn = 1; cn <= 6; cn++) {
     var cc = startsCol(new RegExp("^(choice|option) " + cn + "\\b(?!\\s*feedback)"));
@@ -599,6 +639,16 @@ function parseQuestions_(rows) {
       var qu = buttonUrl_(bu);
       if (qu) item.links = [{ label: cell(r, c.btnLabel) || (isTimerUrl_(qu) ? "Show the timer" : "Open link"), url: qu }];
       else warnings.push("Row " + rowNo + ": the question button link must start with https:// or be a timer like timer:120 (seconds)");
+    }
+    var stv = cell(r, c.starters), wbv = cell(r, c.words);   // HELPERS: buttons that type a sentence starter or a word into the answer
+    if ((stv || wbv) && !game) {
+      if (!triesPage_()) warnings.push(at + ": Sentence starters and a Word bank need the one-column or two-column Self-Check page, so they're ignored here.");
+      else if (helpersFit_(item)) {
+        var hp = helpersFrom_(stv, wbv);
+        if (hp.starters.length) item.starters = hp.starters;
+        if (hp.words.length) item.words = hp.words;
+        hp.warnings.forEach(function (w) { warnings.push(at + ": " + w); });
+      } else warnings.push(at + " has Sentence starters or a Word bank, but they only show on typed answers (Answer type blank) and short answers, so they're ignored.");
     }
     ideas.forEach(function (idea) {
       if (item.kind === "dropdown") return;   // (its Idea hints are its boxes' hints, read above)
@@ -1275,6 +1325,7 @@ function seedConfigTabs_() {
     if (tryCols) {
       for (n = 1; n <= choiceCount; n++) head.push("Choice " + n, "Choice " + n + " feedback");
       head.push(Q_COLS.right, Q_COLS.explain, Q_COLS.tries, Q_COLS.hintClue, Q_COLS.hintEx, Q_COLS.hintVideo);
+      head.push(Q_COLS.starters, Q_COLS.words);   // HELPERS (2026.11.12b); the Misconception columns stay last
     }
     for (n = 1; n <= misCount; n++) head.push("Misconception " + n + " hint", "Misconception " + n + " key words");
     var secAt = {}; SECTIONS.forEach(function (s) { secAt[s.before] = s; });
@@ -1300,7 +1351,8 @@ function seedConfigTabs_() {
         }
         var hn = it.kind && it.hints ? it.hints : {};
         row.push(it.kind && it.right ? (it.kind === "truefalse" ? (it.right[0] === 0 ? "TRUE" : "FALSE") : it.right.map(function (x) { return x + 1; }).join(", ")) : "",
-                 it.kind ? it.explain || "" : "", it.kind && it.tries ? it.tries : "", hn.clue || "", hn.example || "", hn.video || "");
+                 it.kind ? it.explain || "" : "", it.kind && it.tries ? it.tries : "", hn.clue || "", hn.example || "", hn.video || "",
+                 (it.starters || []).join("\n"), (it.words || []).join(", "));   // HELPERS
       }
       for (var m = 0; m < misCount; m++) {
         var mc = (it.mis || [])[m];
@@ -1380,6 +1432,8 @@ function seedConfigTabs_() {
     if (!has(/^hint:?\s*clue/)) addTry(Q_COLS.hintClue);
     if (!has(/^hint:?\s*example/)) addTry(Q_COLS.hintEx);
     if (!has(/^hint:?\s*(video|link)/)) addTry(Q_COLS.hintVideo);
+    if (!has(/^sentence starters/)) addTry(Q_COLS.starters);   // HELPERS (2026.11.12b)
+    if (!has(/^word bank/)) addTry(Q_COLS.words);
   }
 }
 /** The notes on the LIMITED TRIES columns of a Self-Check's Questions tab ("" = not one of them). */
@@ -1393,6 +1447,8 @@ function tryColNote_(h) {
   if (h === Q_COLS.hintClue) return "OPTIONAL, for choice, truefalse and short questions: a clue students can open from the light bulb (Give me a clue). Point toward the answer without giving it away. Hints never cost points. A question with no hints has no light bulb.";
   if (h === Q_COLS.hintEx) return "OPTIONAL, for choice, truefalse and short questions: a worked example of a similar problem, opened from the light bulb (Show me an example).";
   if (h === Q_COLS.hintVideo) return "OPTIONAL, for choice, truefalse and short questions: an https:// link (a YouTube video is fine) that opens in a new tab from the light bulb (Watch a video).";
+  if (h === Q_COLS.starters) return "OPTIONAL, for typed answers (Answer type blank) and short answers: ways to begin the answer, one per line (Ctrl+Enter starts a new line in the cell), like\nCar ___ has more kinetic energy because ...\nStudents tap one and it's typed into their answer: ___ is selected so they type over it, and ... is left off. Up to 6. Grading doesn't change. Settings: Starters only after a wrong answer.";
+  if (h === Q_COLS.words) return "OPTIONAL, for typed answers and short answers: words or phrases students can tap to add to their answer, commas between, like  speed, mass, kinetic energy, 4 times. Up to 16. The answer still needs the right ideas to turn green.";
   return "";
 }
 function tryColWidth_(h) {
@@ -1400,7 +1456,8 @@ function tryColWidth_(h) {
   if (/^Choice \d+$/.test(h)) return 190;
   if (/^Choice \d+ feedback$/.test(h)) return 280;
   return { "Right choice (a number, or 1, 3 for select all)": 130, "Explanation (shown after answering)": 300, "Tries (blank = Settings)": 90,
-           "Hint: clue": 260, "Hint: example": 280, "Hint: video or link": 220 }[h] || 0;
+           "Hint: clue": 260, "Hint: example": 280, "Hint: video or link": 220,
+           "Sentence starters (one per line)": 320, "Word bank (commas between)": 260 }[h] || 0;
 }
 /** A review game's Questions tab: only what a multiple choice question needs. A new tab gets the starter questions;
  *  an existing one only gets the Choice / Right choice / Explanation columns it is missing. */
@@ -1619,6 +1676,11 @@ function getStudentState(token) {
     sim2Url: String(SIM2_URL == null ? "" : SIM2_URL).trim().slice(0, 300),   // a second simulation: a third button on the left (the page only uses an https one on an allowed site)
     sim2Btn: String(SIM2_BUTTON == null ? "" : SIM2_BUTTON).trim().slice(0, 60),   // its button name ("" = Simulation 2)
     artBtn: String(ARTICLE_BUTTON == null ? "" : ARTICLE_BUTTON).trim().slice(0, 60),   // the left side's name on a side-by-side page ("" = the page's own; the page shows it as plain text, 24 characters at most)
+    // HELPERS AND SMALL WINS (2026.11.12b): Say it (sayUrl = the class website's Say it window, for this sheet's own page, where Google blocks the microphone),
+    // starters and word bank hidden until a wrong answer, and the small wins (pic: "" = a built-in picture, "none", or a picture address).
+    sayIt: triesPage_() && !!SAY_IT, sayUrl: classPassOrigin_() ? classPassOrigin_() + "/pass/say/" : "",
+    helpersAfterWrong: !!HELPERS_AFTER_WRONG,
+    wins: triesPage_() && SMALL_WINS ? { pic: mysteryPicture_() } : null,
     // grade formula only (no answers) so the page can update the running grade instantly.
     // After the due date it's left out, so the page shows the server's grade (with the late penalty) after each save.
     credit: pastDue ? null : CREDIT, fullCreditAt: FULL_CREDIT_AT, roundTo: ROUND_TO,
@@ -2561,7 +2623,7 @@ function getMyUpload(idx, token) {
 /** What students receive for each question: text, picture, links. Never the criteria. */
 function questionsForClient_() {
   return ITEMS.map(function (it) {
-    return { text: it.q, img: imageUrl_(it.img), imgCaption: it.imgCaption || "", upload: !!it.upload, draw: !!it.draw,
+    var o = { text: it.q, img: imageUrl_(it.img), imgCaption: it.imgCaption || "", upload: !!it.upload, draw: !!it.draw,
              table: it.table ? { cols: it.table.cols, rows: it.table.rows, lab: it.table.lab || null, graph: it.table.graph || null, pairs: !!it.table.pairs, origin: !!it.table.origin, noGraph: !!it.table.noGraph } : null, minSentences: it.minSentences || 0,
              points: it.points == null ? null : it.points,
              choices: it.choices ? it.choices.map(function (c) { return { t: c.t, img: imageUrl_(c.img) }; }) : null,   // never which one is right (nor a choice's feedback)
@@ -2572,7 +2634,18 @@ function questionsForClient_() {
              hints: isTried_(it) && it.hints ? { clue: it.hints.clue || "", example: it.hints.example || "", video: it.hints.video || "" } : null,   // the light bulb (hints never cost points)
              boxes: (it.boxes || []).map(function (b) { return { label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }; }),
              links: (it.links || []).filter(function (l) { return l && buttonUrl_(l.url); }) };
+    if (triesPage_() && helpersFit_(it)) {   // HELPERS: the buttons that type a sentence starter or a word into the answer (only when there are some)
+      if (it.starters && it.starters.length) o.starters = it.starters.slice(0, HELPER_MAX_STARTERS);
+      if (it.words && it.words.length) o.words = it.words.slice(0, HELPER_MAX_WORDS);
+    }
+    return o;
   });
+}
+/** SMALL WINS: the mystery picture for the page: "" = a built-in picture, "none" = no picture, else a direct picture address. */
+function mysteryPicture_() {
+  var v = String(MYSTERY_PICTURE == null ? "" : MYSTERY_PICTURE).trim();
+  if (/^(none|no|off)$/i.test(v)) return "none";
+  return v ? imageUrl_(v) : "";
 }
 
 /** The section strips for the page: title, buttons, and the picture under the strip (as a direct image address). */
@@ -3047,6 +3120,8 @@ function pictureKeys_() {
     if (id) out.push({ key: String(i), id: id });
     (it.choices || []).forEach(function (c, k) { var cid = drivePicId_(c.img); if (cid) out.push({ key: "c" + i + "." + k, id: cid }); });
   });
+  var mid = SMALL_WINS && triesPage_() ? drivePicId_(MYSTERY_PICTURE) : "";   // the mystery picture (SMALL WINS), last
+  if (mid) out.push({ key: "m", id: mid });
   return out;
 }
 /** Drive's own smaller copy of a picture (PICTURE_WIDTH wide), or null when Drive has none to give. */
@@ -3087,7 +3162,8 @@ function getPicture(idx, token) {
   perHour_("pic", email, 300);
   var sm = /^s(\d+)$/.exec(String(idx)), it;   // "s0", "s1": a section picture (under a blue strip)
   var cm = /^c(\d+)\.(\d+)$/.exec(String(idx));   // "c4.2": a picture choice (question 5, choice 3)
-  if (sm) { it = SECTIONS[Number(sm[1])]; if (!it || !it.img) throw new Error("Unknown picture."); }
+  if (String(idx) === "m") { if (!SMALL_WINS || !triesPage_()) throw new Error("Unknown picture."); it = { img: MYSTERY_PICTURE }; }   // "m": the mystery picture (SMALL WINS)
+  else if (sm) { it = SECTIONS[Number(sm[1])]; if (!it || !it.img) throw new Error("Unknown picture."); }
   else if (cm) { var cq = ITEMS[Number(cm[1])]; it = cq && cq.choices ? cq.choices[Number(cm[2])] : null; if (!it || !it.img) throw new Error("Unknown picture."); }
   else {
     idx = Number(idx);
@@ -4374,7 +4450,8 @@ function missingPieces_(ss) {
     if (!heads.some(function (h) { return /^section picture(?! caption)/.test(h); })) out.columns.push("Section picture");
     if (!heads.some(function (h) { return /^section picture caption/.test(h); })) out.columns.push("Section picture caption");
     [[/^(choice|option) 1\b(?!\s*feedback)/, "Choice 1, Choice 1 feedback ..."], [/^right (choice|answer)/, "Right choice"], [/^explanation/, "Explanation"], [/^tries\b/, "Tries"],
-     [/^hint:?\s*clue/, "Hint: clue"], [/^hint:?\s*example/, "Hint: example"], [/^hint:?\s*(video|link)/, "Hint: video or link"]].forEach(function (p) {   // LIMITED TRIES
+     [/^hint:?\s*clue/, "Hint: clue"], [/^hint:?\s*example/, "Hint: example"], [/^hint:?\s*(video|link)/, "Hint: video or link"],
+     [/^sentence starters/, "Sentence starters"], [/^word bank/, "Word bank"]].forEach(function (p) {   // LIMITED TRIES, HELPERS
       if (triesPage_() && !heads.some(function (h) { return p[0].test(h); })) out.columns.push(p[1]);
     });
   }
