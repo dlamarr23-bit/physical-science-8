@@ -1,6 +1,10 @@
-review-game v2026.11.12b
+review-game v2026.11.13
 
-Optional update: nothing new for a review game (this release adds sentence starters, a word bank, Say it and small wins to the Self-Check pages).
+Optional update: nothing new for a review game (this release gives the one-column and two-column Self-Check pages exactly the same question types).
+
+- A review game only has multiple choice questions, so nothing changes here. Your questions, settings and student work are not touched.
+
+Also from 2026.11.12b (optional), if this sheet skipped it:
 
 - A review game has its own streaks and points, so nothing changes here. Your questions, settings and student work are not touched.
 

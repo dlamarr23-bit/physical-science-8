@@ -1,6 +1,19 @@
-reading-activity v2026.11.12b
+reading-activity v2026.11.13
 
-Optional update: sentence starters, a word bank and a Say it button help students start an answer, and small wins (a streak, a +1, a mystery picture and badges) keep them going.
+Optional update: the one-column and two-column pages now have exactly the same question types, and every new question type will reach both.
+
+Both layouts now have exactly the same question types
+- Short answers (a question with one or more labeled boxes and no picture) now sit beside the question, with the boxes at the right, the
+  same as on the one-column page. The black feedback bar shows once there is something to say (Enter or clicking out checks the answer).
+  A box that is partly right turns yellow, as on the one-column page.
+- From now on every question type is built once and shared by both layouts (one column and two columns), so any new question type
+  reaches both at the same time. Graph questions, lab tables and two-trial tables work the same as before.
+- Nothing else changes for students. Your questions, answer keys, settings and student work are not touched.
+
+Only the Index really changes. After you paste the new Code.gs and Index and create the New version (Deploy > Manage deployments > pencil >
+New version > Deploy), you're done: no new Settings rows or columns, and no new permission. (Or use Update now on the Assignment Launchpad.)
+
+Also from 2026.11.12b (optional), if this sheet skipped it:
 
 Helping students get started
 - Two new Questions tab columns: Sentence starters (one per line) and Word bank (commas between). They work on typed answers and short answers.

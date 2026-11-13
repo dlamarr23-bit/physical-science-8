@@ -1,7 +1,7 @@
 {
   "kind": "auto-grading-activity",
-  "version": "2026.11.12b",
-  "optional": "sentence starters, a word bank and a Say it button help students start an answer, and small wins (a streak, a +1, a mystery picture and badges) keep them going.",
+  "version": "2026.11.13",
+  "optional": "the one-column and two-column pages now have exactly the same question types, and every new question type will reach both.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

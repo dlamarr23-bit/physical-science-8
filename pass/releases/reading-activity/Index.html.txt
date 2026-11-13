@@ -111,6 +111,7 @@
   .closed .modal-body p.lead { font-weight:600; font-size:16px; }
   .closed .modal-body p.small { font-size:13px; color:#555; font-style:italic; }
   .item.viewonly textarea, .item.viewonly input.pbox { color:#111; opacity:.8; cursor:default; }
+  /* @@QUESTIONS-CSS-BEGIN: every question type's look (tables and graphs, lab tables, graph questions, picture uploads, short answers; the same in both Self-Check pages: change it in self-check/questions.css, then npm run build) */
   /* data table + graph questions (Answer type "table") */
   .tablezone { display:flex; flex-wrap:wrap; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
   .tleft { flex:0 0 auto; max-width:100%; overflow-x:auto; }
@@ -203,6 +204,41 @@
   svg text.tg-col { fill:var(--lg); font-weight:700; }
   html[data-theme="dark"] .graphzone { background:#1d2128; border-color:#5f6670; }
   html[data-theme="dark"] svg text.tg-col { fill:var(--lg); }
+  html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
+  html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
+  html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
+  /* picture upload questions (Answer type "upload") */
+  .dropzone { border-top:3px solid #111; border-bottom:3px solid #111; padding:12px; background:#fff; outline:none; transition: background .25s; }
+  .dropzone:focus { box-shadow: inset 0 0 0 3px #3c78d8; }
+  .dropzone.over { background:#e8f0fe; box-shadow: inset 0 0 0 3px #1b4587; }
+  .dropzone.correct { background: var(--green); }
+  .dropzone .dzbox { border:2px dashed #555; border-radius:8px; padding:18px 12px; text-align:center; cursor:pointer; background:rgba(255,255,255,.6); }
+  .dropzone .dzbox b { display:block; font-size:16px; margin-bottom:4px; }
+  .dropzone .dzbox span { display:block; font-size:13px; color:#444; margin-bottom:10px; }
+  .dropzone .dzprev { display:block; max-width:100%; max-height:360px; margin:0 auto 10px; border:2px solid #111; border-radius:4px; background:#fff; }
+  .dropzone .dzprev[hidden] { display:none; }
+  .dropzone button.dzpick { background:#1b4587; border-color:#1b4587; }
+  .dropzone.viewonly .dzbox { cursor:default; }
+  .remind { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; background:var(--yellow); border-top:2px solid #bf9000;
+            padding:9px 12px; font-size:14px; font-weight:600; }
+  .remind[hidden] { display:none; }
+  .remind button { font-size:13px; padding:4px 12px; }
+  /* short-answer questions (one or two labeled boxes, no picture): the answer box sits in the question's row, at the right */
+  .item:has(> .boxarea > .boxlist) { display:grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 36%); margin-bottom:8px; }
+  .item:has(> .boxarea > .boxlist) > .qtext { grid-column:1; display:flex; align-items:center; gap:0 2px; padding:8px 12px; }
+  .item:has(> .boxarea > .boxlist) > .qtext > .qnum { flex:none; }
+  .item:has(> .boxarea > .boxlist) > .boxarea { grid-column:2; border-top:0; border-left:3px solid #111; display:flex; align-items:center; background: var(--q); }
+  .item:has(> .boxarea > .boxlist) > .boxarea > .boxlist { width:100%; grid-template-columns:1fr; margin:0; padding:6px 8px !important; gap:4px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label { font-size:11px; }
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child { font-size:0; }   /* one box: no label above it */
+  .item:has(> .boxarea > .boxlist) .boxlist label:only-child input.pbox { margin-top:0; }
+  .item:has(> .boxarea > .boxlist) .boxlist input.pbox { padding:5px 8px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar, .item:has(> .boxarea > .boxlist) > .remind { grid-column:1 / -1; }
+  .item:has(> .boxarea > .boxlist) > .fbbar { min-height:0; padding:4px 6px 4px 12px; }
+  .item:has(> .boxarea > .boxlist) > .fbbar:has(.fb:empty):has(.meta:empty) { display:none; }   /* nothing to say yet: no black bar (Enter or clicking out checks) */
+  html[data-theme="dark"] .item:has(> .boxarea > .boxlist) > .boxarea { border-color:#5f6670; }
+  input.pbox.partial, .boxlist input.pbox.partial { background: var(--yellow); border-color:#bf9000; }
+  /* @@QUESTIONS-CSS-END */
   .artpane.hassim { padding-top:0; }
   .simbar { position:sticky; top:0; z-index:3; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 0; margin:0 0 6px; background:#fff; border-bottom:2px solid #111; }
   .simbar .simtab { background:#fff; color:#111; padding:7px 16px; }
@@ -228,9 +264,6 @@
     html[data-theme="dark"] .splitdiv::before { background:#8a9099; }
     html[data-theme="dark"] .splitdiv::after { background:#c9ced6; box-shadow: inset 0 0 0 2px #1d2128, 0 0 0 1px #c9ced6; }
     html[data-theme="dark"] .splitdiv:hover::before, html[data-theme="dark"] .split.dragging .splitdiv::before { background:#8fb3ff; opacity:1; } }
-  html[data-theme="dark"] input.tlabel { background:#14171c; color:#f1f3f5; border-color:#8a9099; }
-  html[data-theme="dark"] .tg-grid { stroke:#30353d; } html[data-theme="dark"] .tg-axis { stroke:#a7adb7; }
-  html[data-theme="dark"] .tg-tick { fill:#a7adb7; } html[data-theme="dark"] .tg-dot { fill:#6f9bff; } html[data-theme="dark"] .tg-fit { stroke:#38507e; }
   /* @@PAD-CSS-BEGIN: the drawing pad (Answer type "draw"; the same in both Self-Check pages: change it in self-check/pad.css, then npm run build) */
   /* drawing pad questions (Answer type "draw") */
   .drawpad { border-top:3px solid #111; border-bottom:3px solid #111; padding:10px 12px 12px; background:#fff; transition: background .25s; }
@@ -379,22 +412,6 @@
   html[data-theme="dark"] .wintoast { background:#e8eaed; color:#14171c; }
   html[data-theme="dark"] .wintoast .medal { border-color:#14171c; }
   /* @@BOOST-CSS-END */
-  /* picture upload questions (Answer type "upload") */
-  .dropzone { border-top:3px solid #111; border-bottom:3px solid #111; padding:12px; background:#fff; outline:none; transition: background .25s; }
-  .dropzone:focus { box-shadow: inset 0 0 0 3px #3c78d8; }
-  .dropzone.over { background:#e8f0fe; box-shadow: inset 0 0 0 3px #1b4587; }
-  .dropzone.correct { background: var(--green); }
-  .dropzone .dzbox { border:2px dashed #555; border-radius:8px; padding:18px 12px; text-align:center; cursor:pointer; background:rgba(255,255,255,.6); }
-  .dropzone .dzbox b { display:block; font-size:16px; margin-bottom:4px; }
-  .dropzone .dzbox span { display:block; font-size:13px; color:#444; margin-bottom:10px; }
-  .dropzone .dzprev { display:block; max-width:100%; max-height:360px; margin:0 auto 10px; border:2px solid #111; border-radius:4px; background:#fff; }
-  .dropzone .dzprev[hidden] { display:none; }
-  .dropzone button.dzpick { background:#1b4587; border-color:#1b4587; }
-  .dropzone.viewonly .dzbox { cursor:default; }
-  .remind { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; background:var(--yellow); border-top:2px solid #bf9000;
-            padding:9px 12px; font-size:14px; font-weight:600; }
-  .remind[hidden] { display:none; }
-  .remind button { font-size:13px; padding:4px 12px; }
   /* @@TRIES-CSS-BEGIN: limited tries (choice, truefalse, short and dropdown questions; the same in both Self-Check pages: change it in self-check/tries.css, then npm run build) */
   .choicebox { display:flex; flex-direction:column; gap:8px; padding:10px 12px; border-top:3px solid #111; border-bottom:3px solid #111; background:#fff; }
   .choicebox.tf { flex-direction:row; }
@@ -1970,7 +1987,7 @@ function resetMine() {
     note("Erasing your answers…");
     api.run("resetMyAnswers", [], function () {
       S.locked = true;   // nothing more saves from this copy of the page
-      document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, select.ddsel, #finishBtn").forEach(function (x) { x.disabled = true; });
+      document.querySelectorAll(QUESTION_CONTROLS + ", #finishBtn").forEach(function (x) { x.disabled = true; });
       if (CP_SITE) { note("Your answers are erased. Starting over…"); setTimeout(function () { location.reload(); }, 600); }
       else note("Your answers are erased. Reload this page (the reload button, or Ctrl+R) to start over.");
     }, function (err) { if (b) b.disabled = false; showError(err); });
@@ -2008,6 +2025,15 @@ function zoomPicture(src, alt) {
 }
 /* ============================== (@@TRIES-END) ============================== */
 
+/* ============================== QUESTIONS (@@QUESTIONS-BEGIN) ==============================
+   Every question type: how each one is drawn, answered, checked, colored, saved and counted in the grade (typed answers, boxes on a
+   picture or in a list, picture uploads, data tables with a graph, two-trial graphs, timed-trials lab tables, graph questions), plus the
+   links and timers in questions and sections. (Limited tries, the drawing pad and helpers and small wins are question blocks of their own:
+   tries.js, pad.js, boost.js.)
+   THE SAME BLOCK is in the one-column page (self-check/Index.html) and the two-column page (self-check/custom/reading-activity/Index.html):
+   change it only in self-check/questions.js (and its CSS in self-check/questions.css), then run npm run build, which copies it into both
+   pages. Donny (2026-11-13): both layouts must always have exactly the same question types, so a new or changed question type goes here,
+   never into one page. A page keeps only its layout: render()'s frame, the article and simulation side, signing in and finishing. */
 function simButton(l) {
   var secs = timerSecs(l.url) || timerLinkSecs(l);   // timer:N, or a link to a web timer ("Open a 20-second timer"): built in
   if (secs) return timerButton(l.label || "Show the timer", secs);
@@ -2124,295 +2150,15 @@ function qLabel(n) {
   var at = p.indexOf("1");
   return at === -1 ? (p + " " + n) : (p.slice(0, at) + n + p.slice(at + 1));
 }
-function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-
-function showError(err) {
-  var text = String((err && err.message) ? err.message : err).replace(/^(BUSY|NETWORK|SIGNIN): /, "");
-  var m = document.getElementById("msg");
-  m.innerHTML = "";
-  m.appendChild(el("div", "banner error", text));
-  document.getElementById("loading").textContent = text || "Something went wrong. Reload the page.";
-}
-function note(text) {   // a short black message at the top of the page
-  var m = document.getElementById("msg");
-  m.innerHTML = "";
-  m.appendChild(el("div", "banner", text));
-  window.scrollTo(0, 0);
-  var qp = document.getElementById("qPane"); if (qp) qp.scrollTop = 0;   // the questions side scrolls on its own
-}
-
-/* ---------- the reading page: the article on the left, the questions on the right (each side scrolls on its own) ----------
-   The article comes from the teacher's Google Doc (Settings: Article Google Doc link, then Self-Check > Update the article from the
-   Google Doc): the sheet turns the Doc into simple HTML and keeps it. If the sheet has none, the page's built-in article (articleTpl)
-   is shown when it has one. What the sheet sends is untrusted (a ?app= link can name any sheet), so it is never inserted as it
-   arrives: safeArticle() rebuilds it from a short list of allowed tags, classes and links. */
-var ART_TAGS = { H2: 1, H3: 1, P: 1, UL: 1, OL: 1, LI: 1, B: 1, STRONG: 1, I: 1, EM: 1, A: 1, BR: 1, DIV: 1, FIGURE: 1, FIGCAPTION: 1, IMG: 1 };
-var ART_CLASSES = { arttitle: 1, artrow: 1, arttxt: 1, artfig: 1, artwide: 1, artpair: 1, artq: 1, arta: 1, artvids: 1, simbtn: 1 };
-function safeArticle(html) {
-  var doc = new DOMParser().parseFromString("<!DOCTYPE html><body>" + String(html == null ? "" : html), "text/html");   // inert: nothing in it runs or loads
-  var out = document.createDocumentFragment();
-  function copy(from, into) {
-    for (var n = from.firstChild; n; n = n.nextSibling) {
-      if (n.nodeType === 3) { into.appendChild(document.createTextNode(n.nodeValue)); continue; }
-      if (n.nodeType !== 1) continue;
-      var tag = n.tagName;
-      if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|LINK|META|FORM|INPUT|BUTTON|SVG|MATH)$/.test(tag)) continue;   // dropped with everything inside
-      if (!ART_TAGS[tag]) { copy(n, into); continue; }   // any other tag: keep its words, lose the tag
-      if (tag === "A") {
-        var u = cpLinkUrl(n.getAttribute("href"));
-        if (!u) { copy(n, into); continue; }   // no safe address: just the words
-      }
-      var e = document.createElement(tag.toLowerCase());
-      var cls = (n.getAttribute("class") || "").split(/\s+/).filter(function (c) { return ART_CLASSES.hasOwnProperty(c); });
-      if (cls.length) e.className = cls.join(" ");
-      if (tag === "A") { e.href = u; e.target = "_blank"; e.rel = "noopener noreferrer"; }
-      if (tag === "IMG") {
-        var k = n.getAttribute("data-pic");
-        if (!/^\d{1,3}$/.test(String(k))) continue;
-        e.setAttribute("data-pic", k);
-        ["width", "height"].forEach(function (a) { var v = parseInt(n.getAttribute(a), 10); if (v >= 1 && v <= 2000) e.setAttribute(a, String(v)); });
-        e.alt = String(n.getAttribute("alt") || "").slice(0, 300);
-      } else copy(n, e);
-      into.appendChild(e);
-    }
-  }
-  copy(doc.body, out);
-  return out;
-}
-/** The article's pictures usually come with its text (pics[i].data, one trip); any others come one at a time (two at once)
-    as the sheet sends them. All are shown from blob: addresses. */
-var artPicQ = [], artPicBusy = 0;
-function loadArticlePics(root, pics) {
-  Array.prototype.forEach.call(root.querySelectorAll("img[data-pic]"), function (img) {
-    var i = Number(img.getAttribute("data-pic"));
-    if (!pics[i]) { img.remove(); return; }
-    zoomOnClick(img);   // a click shows it big (2026.11.11c)
-    if (typeof pics[i].data === "string" && pics[i].data && artPicShow(img, pics[i])) return;
-    artPicQ.push({ img: img, i: i });
-  });
-  artPicNext();
-}
-/** Shows one picture from the sheet's { mime, data (base64) }. false if it isn't a picture. */
-function artPicShow(img, r) {
-  if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") return false;   // never a page or a script
-  try {
-    var bin = atob(r.data), bytes = new Uint8Array(bin.length);
-    for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
-    img.src = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
-    return true;
-  } catch (e) { return false; }
-}
-function artPicNext() {
-  while (artPicBusy < 2 && artPicQ.length) (function (job) {
-    artPicBusy++;
-    cpRetry(cpCall("getArticlePicture", [job.i]), function (r) {
-      artPicBusy--;
-      if (!artPicShow(job.img, r)) job.img.alt = "The picture didn't load. Reload the page to try again.";
-      artPicNext();
-    }, function () { artPicBusy--; job.img.alt = "The picture didn't load. Reload the page to try again."; artPicNext(); });
-  })(artPicQ.shift());
-}
-function showArticle() {
-  var art = document.getElementById("article"), tpl = document.getElementById("articleTpl"), own = artOwnName();   // the notes use the Settings name when there is one
-  function builtIn(why) {
-    art.textContent = "";
-    if (tpl && tpl.content) art.appendChild(tpl.content.cloneNode(true));
-    else art.appendChild(el("p", "artnote", why || (own ? own + ": not ready yet. Please tell your teacher." : "The article isn't ready yet. Please tell your teacher.")));
-  }
-  if (!S.article) { builtIn(); return; }
-  art.appendChild(el("p", "artnote", own ? "Loading " + own + "…" : "Loading the article…"));
-  withRetry(function (ok, fail) { api.run("getArticle", [], ok, fail); }, function (r) {
-    if (!r || !r.has) { builtIn(); return; }
-    var wrap = el("div", "art");
-    wrap.appendChild(safeArticle(r.html));
-    art.textContent = ""; art.appendChild(wrap);
-    loadArticlePics(wrap, r.pics || []);
-  }, function () { builtIn((own || "The article") + " didn't load. Reload the page, or tell your teacher."); });
-}
-/* ---------- a lab page with a live simulation on the left ----------
-   The page's own built-in part (pictures.html) can hold <template id="simTpl" data-url="https://...">: then the left side gets two buttons,
-   Directions (the handout) and Simulation (that web page, live in a frame, so a change to the simulation shows up at once with no update here).
-   The address comes from this page, never from the sheet, and must be https. The frame stays on the page while you look at the directions,
-   so the simulation keeps running. It is sandboxed (its own scripts run; it can't navigate this page or read it). */
-function labSim() { return !!document.getElementById("simTpl"); }
-/** The simulation's address must be https on an allowed site: pages.dev or phet.colorado.edu. (The sheet's Settings tab can name one: "Simulation link".) */
-function simUrlOk(u) {
-  u = cpLinkUrl(u);
-  var m = /^https:\/\/([a-z0-9.-]+)(?::\d+)?(?:[\/?#]|$)/i.exec(u);
-  return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
-}
-/** The simulations on the left, in button order: [{ url, name }]. The first is the sheet's Settings "Simulation link" (if allowed), else the page's own
-    simTpl; the second (2026.10.30) is Settings "Simulation 2 link", only if allowed. Their names come from Settings "Simulation button name" and
-    "Simulation 2 button name" (plain text, see cleanName). A sheet older than 2026.10.30 sends none of these, so its page looks as it always did. */
-function sims() {
-  var tpl = document.getElementById("simTpl"), out = [];
-  var u1 = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : ""), u2 = simUrlOk(S && S.sim2Url);   // the sheet's address if it is allowed, else the page's own
-  if (u1 && /^https:\/\//.test(u1)) out.push({ url: u1, name: cleanName(S && S.simBtn) });
-  if (u2) out.push({ url: u2, name: cleanName(S && S.sim2Btn) || "Simulation 2" });
-  if (out.length && !out[0].name) out[0].name = out.length > 1 ? "Simulation 1" : "Simulation";
-  return out;
-}
-function hasSim() { return sims().length > 0; }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
-/** A button name from the sheet's Settings tab ("Article button name", "Simulation button name", ...): untrusted words, so plain text only (always set
-    with textContent), one line, 24 characters at most. "" = none set. */
-function cleanName(v) {
-  var n = Array.from(String(v != null ? v : "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim());
-  return n.slice(0, 24).join("").trim();
-}
-/** What the left side is called. The sheet's Settings "Article button name" can name it (Directions, say, for a lab whose Doc holds the directions). */
-function artOwnName() { return cleanName(S && S.artBtn); }
-function artName() { return artOwnName() || (labSim() ? "Directions" : "Article"); }
-function setUpSim() {
-  var list = sims();
-  if (!list.length) return;
-  var pane = document.getElementById("artPane"), art = document.getElementById("article");
-  pane.classList.add("hassim");
-  var bar = el("div", "simbar"), bD = el("button", "simtab", artName()), op = el("a", "simopen", "Open it in a new tab");
-  bD.type = "button"; op.href = list[0].url; op.target = "_blank"; op.rel = "noopener";
-  bar.appendChild(bD);
-  var tabs = list.map(function (s) {   // a button and a box of its own for each simulation
-    var b = el("button", "simtab", s.name), box = el("div", "simframe");
-    b.type = "button"; box.hidden = true; bar.appendChild(b);
-    return { sim: s, btn: b, box: box, frame: null };
-  });
-  bar.appendChild(op);
-  pane.insertBefore(bar, art);
-  tabs.forEach(function (t) { pane.appendChild(t.box); });
-  function showWhich(k) {   // -1 = the article / directions, else that simulation
-    bD.setAttribute("aria-pressed", k < 0 ? "true" : "false");
-    tabs.forEach(function (t, i) { t.btn.setAttribute("aria-pressed", i === k ? "true" : "false"); t.box.hidden = i !== k; });
-    art.hidden = k >= 0; pane.classList.toggle("simview", k >= 0);
-    if (k >= 0) op.href = tabs[k].sim.url;
-    op.hidden = k < 0 && tabs.length > 1;   // with two simulations the link opens the one showing (none while the directions show); with one it always opens it
-    var t = tabs[k];
-    if (t && !t.frame) {   // loaded the first time it's wanted, then kept (switching never resets a simulation)
-      var fu = simBare(t.sim.url);
-      t.frame = document.createElement("iframe"); t.frame.src = simThemed(fu); t.frame.title = t.sim.name;
-      t.frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); t.frame.setAttribute("allow", "fullscreen"); t.frame.referrerPolicy = "no-referrer";
-      simFrames.push({ frame: t.frame, origin: new URL(fu).origin }); t.frame.addEventListener("load", tellSimTheme);
-      t.box.appendChild(t.frame);
-    }
-    if (k < 0) pane.scrollTop = 0;
-  }
-  bD.onclick = function () { showWhich(-1); };
-  tabs.forEach(function (t, i) { t.btn.onclick = function () { showWhich(i); }; });
-  showWhich(-1);
-}
-/** The simulations match this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
-    messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
-var simFrames = [];   // every simulation frame loaded so far: [{ frame, origin }]
-/** A sim's address on the class website's Sims page (physical-science-8.pages.dev/sims/<sim>, the address its Sims page shows) has the website's
-    top bar over the sim. In the frame it is the sim alone (sim-library-87y.pages.dev/<sim>/); Open it in a new tab keeps the address as typed. */
-function simBare(url) {
-  var m = /^https:\/\/physical-science-8\.pages\.dev\/sims\/([a-z0-9-]+)\/?(?:[?#].*)?$/i.exec(url);
-  return m ? "https://sim-library-87y.pages.dev/" + m[1].toLowerCase() + "/" : url;
-}
-function simThemed(url) {
-  try { var u = new URL(url); if (/\.pages\.dev$/i.test(u.hostname)) u.searchParams.set("theme", currentTheme()); return u.href; } catch (e) { return url; }
-}
-function tellSimTheme() {
-  simFrames.forEach(function (s) { if (s.frame && s.frame.contentWindow) try { s.frame.contentWindow.postMessage({ simTheme: currentTheme() }, s.origin); } catch (e) {} });
-}
-window.addEventListener("message", function (e) {
-  if (!simFrames.some(function (s) { return s.frame && e.source === s.frame.contentWindow && e.origin === s.origin; })) return;   // only a simulation frame, from its own site
-  var t = e.data && e.data.simTheme;
-  if ((t === "dark" || t === "light") && t !== currentTheme()) setTheme(t);
-});
-/** The divider between the two sides: drag it, or press the left / right arrow keys, to make one side bigger (the simulation, say). Double-click or Home
-    puts it back. The choice is remembered on this device. Only on a wide screen (900 px and up); below that the sides are tabs. */
-var SPLIT_KEY = "selfcheck-split", SPLIT_MIN = 240, SPLIT_GAP = 16;
-function setUpSplitDrag() {
-  var split = document.getElementById("split"), dv = document.getElementById("splitDiv");
-  if (!split || !dv || dv.getAttribute("data-wired")) return;
-  dv.setAttribute("data-wired", "1");
-  var frac = null;   // the left side's share of the room (0 to 1), or null = the page's own
-  try { var s = parseFloat(localStorage.getItem(SPLIT_KEY)); if (s > 0.1 && s < 0.9) frac = s; } catch (e) {}
-  function room() { return split.clientWidth - SPLIT_GAP; }
-  function apply() {
-    if (frac == null || room() < SPLIT_MIN * 2) { split.style.gridTemplateColumns = ""; return; }
-    var left = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, Math.round(frac * room())));
-    split.style.gridTemplateColumns = left + "px " + SPLIT_GAP + "px minmax(0, 1fr)";
-  }
-  function setLeft(px) {
-    if (room() < SPLIT_MIN * 2) return;
-    frac = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, px)) / room();
-    apply();
-  }
-  function save() { try { if (frac == null) localStorage.removeItem(SPLIT_KEY); else localStorage.setItem(SPLIT_KEY, String(frac)); } catch (e) {} }
-  function reset() { frac = null; apply(); save(); }
-  function leftNow() { return document.getElementById("artPane").getBoundingClientRect().width; }
-  dv.addEventListener("pointerdown", function (e) {
-    if (e.button > 0) return;
-    e.preventDefault();
-    try { dv.setPointerCapture(e.pointerId); } catch (x) {}
-    split.classList.add("dragging");
-    var x0 = e.clientX, w0 = leftNow();
-    function move(m) { setLeft(w0 + (m.clientX - x0)); }
-    function up() {
-      split.classList.remove("dragging");
-      dv.removeEventListener("pointermove", move); dv.removeEventListener("pointerup", up); dv.removeEventListener("pointercancel", up);
-      save();
-    }
-    dv.addEventListener("pointermove", move); dv.addEventListener("pointerup", up); dv.addEventListener("pointercancel", up);
-  });
-  dv.addEventListener("dblclick", reset);
-  dv.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); setLeft(leftNow() + (e.key === "ArrowLeft" ? -32 : 32)); save(); }
-    else if (e.key === "Home") { e.preventDefault(); reset(); }
-  });
-  window.addEventListener("resize", apply);
-  apply();
-}
-function setUpSplit() {
-  document.documentElement.classList.add("splitview");
-  var art = document.getElementById("article");
-  if (!art.firstChild) showArticle();
-  setUpSplitDrag();
-  if (hasSim() && !document.querySelector(".simbar")) setUpSim();
-  var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
-  var nSims = document.querySelectorAll(".simbar .simtab").length - 1;
-  tabA.textContent = artName() + (nSims > 1 ? " and simulations" : nSims === 1 ? " and simulation" : "");   // the phone tab: Article, Directions, or the Settings name
-  if (artOwnName()) document.getElementById("artPane").setAttribute("aria-label", artOwnName() + ". Scroll this side to read.");
-  function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
-    split.setAttribute("data-tab", which);
-    tabA.setAttribute("aria-selected", which === "art" ? "true" : "false");
-    tabQ.setAttribute("aria-selected", which === "q" ? "true" : "false");
-    window.scrollTo(0, 0);
-  }
-  tabA.onclick = function () { show("art"); };
-  tabQ.onclick = function () { show("q"); };
-  var narrow = false;
-  try { narrow = window.matchMedia("(max-width: 899px)").matches; } catch (e) { narrow = false; }
-  show(narrow ? "art" : "q");   // on a phone, read first
-}
-
-function render() {
-  document.getElementById("loading").hidden = true;
-  document.getElementById("signin").hidden = true;
-  document.getElementById("app").hidden = false;
-  setUpSplit();
-  document.title = S.title;
-  document.getElementById("title").textContent = S.title;
-  var who = document.getElementById("who");
-  who.textContent = "Signed in as " + S.name + ". Your work saves automatically.";
-  if (S.via === "code") {   // signed in with Class Pass: let a different student sign out on a shared device
-    who.appendChild(document.createTextNode(" Not you? "));
-    var so = el("button", "linkbtn", "Sign out"); so.type = "button"; so.addEventListener("click", signOutHere);
-    who.appendChild(so);
-  }
-  document.getElementById("intro").textContent = S.intro;
-  var L = document.getElementById("links");
-  (S.links || []).forEach(function (l) { L.appendChild(simButton(l)); });
-  L.hidden = !(S.links && S.links.length);
-
-  var box = document.getElementById("items");
-  if (S.questions.some(function (q) { return q.table && q.table.lab; })) document.getElementById("split").classList.add("wideq");   // a lab table is wide: give the questions side more room
+/** Draws every question into box, in this student's order: each section's strip (with its picture and links), then each question as
+    its Answer type asks, hooked up to check and save. Each page's render() calls it. */
+function renderQuestions(box) {
   // Settings "Shuffle question order" (2026.11.06b): this student's own order, within each section (questionOrder, in the LIMITED TRIES block)
   var qo = questionOrder(), sec = qo.sec, secNo = qo.secNo;
   qo.order.forEach(function (i) {
     var q = S.questions[i];
     if (sec[i]) {
-      box.appendChild(el("div", "strip", sec[i].title));
+      var stripEl = el("div", "strip", sec[i].title); stripEl.id = "part" + (secNo[i] + 1); box.appendChild(stripEl);   // (an id for "Jump to" links)
       if (sec[i].img) {   // a picture right under the strip (Questions tab: Section picture)
         var sf = el("figure", "qimg secimg");
         var sim = el("img"); sim.alt = sec[i].imgCaption || ("Picture for " + sec[i].title); sim.loading = "lazy";
@@ -2530,17 +2276,10 @@ function render() {
       });
     });
   });
-
-  var pv = document.getElementById("pageVer");
-  if (pv) pv.textContent = "Page " + PAGE_VERSION + (S.version ? " · Sheet " + S.version : " · Sheet older than 2026.10.01e");
-  var fin = document.getElementById("finishBtn");
-  fin.addEventListener("click", finish);
-  boostStart();   // the streak, the mystery picture and the badges (Settings "Small wins"; the HELPERS AND SMALL WINS block)
-  updateFinish();
-  updateProgress();
-  teacherTools();   // the teacher's own copy: Reset my answers (the LIMITED TRIES block)
-  setUpClose();
 }
+/** Every control students answer with, in every question type: turned off when the assignment closes or the sign-in runs out.
+    A new question type adds its boxes and buttons here. */
+var QUESTION_CONTROLS = "textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, select.ddsel, .labwatch button";
 
 /* ---------- picture upload questions (Answer type "upload" in the Questions tab) ----------
    Drag a picture onto the box, click the box and paste (Ctrl+V, e.g. a screenshot or a Keep drawing copied with
@@ -3099,6 +2838,9 @@ function labWatch(i, zone) {
   box._say = say;   // the table calls this once its boxes are on the page
   return box;
 }
+/** A page with a simulation built in (its pictures.html holds <template id="simTpl">, like friction-sim-lab): its lab table uses the
+    simulation's own timer, so no stopwatch. Always false on the one-column page. (The two-column page also asks it to name its left side.) */
+function labSim() { return !!document.getElementById("simTpl"); }
 /** The stopwatch bar sticks just under the progress bar while you scroll through the table and graph. */
 function labStick() {
   var p = document.getElementById("progress"), top = 0;
@@ -3349,8 +3091,516 @@ document.addEventListener("input", function (e) {
   });
 });
 
+/** Typed answers start one line tall and grow as the student writes. CSS field-sizing does it (Chrome); this does the same in a browser without it. */
+var GROW_CSS = (function () { try { return !!(window.CSS && CSS.supports("field-sizing", "content")); } catch (e) { return false; } })();
+function fitAnswer(ta) {
+  if (GROW_CSS || !ta.scrollHeight) return;   // 0 while its side of the page is hidden: it fits when shown, focused or typed in
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight + 6) + "px";   // + the 3 px top and bottom borders (border-box)
+}
+function growAnswer(ta) {
+  ta.setAttribute("data-grow", "1");
+  if (GROW_CSS) return;
+  ta.addEventListener("input", function () { fitAnswer(ta); });
+  ta.addEventListener("focus", function () { fitAnswer(ta); });
+  setTimeout(function () { fitAnswer(ta); }, 0);
+}
+window.addEventListener("resize", function () { if (!GROW_CSS) Array.prototype.forEach.call(document.querySelectorAll("textarea[data-grow]"), fitAnswer); });
+
+function setMeta(i, text, color) {
+  var m = document.getElementById("m" + i);
+  m.textContent = text;
+  var tone = { "#b45f06": "warn", "#38761d": "ok", "#cc0000": "bad" }[String(color || "").toLowerCase()] || "muted";
+  m.className = "meta tone-" + tone;   // colors for light and dark mode are in the CSS
+}
+
+function autosave(i) {
+  if (isUploadQ(i)) return;
+  var val = answerOf(i);
+  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
+  if (!api.saveDraft) return;
+  api.saveDraft(i, val, function (resp) {
+    if (resp && resp.saved) {
+      draftSaved[i] = val;
+      if (answerOf(i) === val && val !== saved[i]) {
+        setMeta(i, "Draft saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Press Check for feedback.", "#b45f06");
+      }
+    } else if (!(resp && resp.locked)) {
+      clearTimeout(draftTimer[i]);
+      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);   // server busy: try again shortly
+    }
+  }, function (err) {
+    if (cpIsSignInError(err)) { signedOutMidway(); return; }
+    // Quietly try again later; Check still saves right away.
+    clearTimeout(draftTimer[i]);
+    draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
+  });
+}
+
+function paint(i, res) {
+  if (isTriedQ(i)) { paintTried(i, res); return; }   // limited tries
+  var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
+  if (isTableQ(i)) {
+    paintTable(i, res);
+  } else if (isUploadQ(i)) {
+    ta.className = (S.questions[i].draw ? "drawpad" : "dropzone") + (res && res.status === "correct" ? " correct" : "") + (S.locked ? " viewonly" : "");
+  } else if (isBoxQ(i)) {
+    ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
+    boxInputs(i).forEach(function (b, k) {
+      var m = res && res.parts ? res.parts[k] : "";
+      b.className = "pbox" + (m && m !== "blank" ? " " + m : "");
+    });
+  } else {
+    ta.className = res && res.status !== "blank" ? res.status : "";
+  }
+  fb.textContent = res ? res.message : "";
+  S.results[i] = res;
+}
+
+/** Busy server or a blip: try again quietly a few times before telling the student. */
+var RETRY_DELAYS = [1500, 3500, 7000, 12000];
+function isRetryable(err) {
+  var m = String((err && err.message) || err || "");
+  return !/SIGNIN|sign in|locked|turned this in|Unknown question|Unknown request|doesn't have any questions|isn't ready/i.test(m);
+}
+function withRetry(call, ok, fail, attempt, onRetry) {
+  attempt = attempt || 0;
+  call(ok, function (err) {
+    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      var wait = RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500);   // spread students out
+      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, wait);
+    } else fail(err);
+  });
+}
+
+/** Running grade from the colors on the page (same formula as the server). */
+function localGrade() {
+  if (!S.credit) return S.grade;
+  var earned = 0, n = 0;
+  S.results.forEach(function (r, i) {
+    if (isUngradedQ(i)) return;
+    var q = S.questions[i], w = q.points == null ? 1 : q.points, c = S.credit[(r && r.status) || "blank"] || 0;
+    if (q.kind) c = r && typeof r.credit === "number" ? r.credit : 0;   // limited tries: the share its tries earned (100%, 90% ... or 50%)
+    if (q.points != null && r && r.status !== "blank" && typeof r.frac === "number") c = r.frac;   // a question worth Points earns the share of its ideas the answer shows
+    n += w; earned += w * c;
+  });
+  if (!n) return 0;
+  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
+  return Math.round(pts / S.roundTo) * S.roundTo;
+}
+function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+
+/**
+ * Check = two steps.
+ *  1. FAST: ask the server to grade only (no waiting in line) and show the color + hint.
+ *  2. BACKGROUND: save to the spreadsheet, retrying quietly if the server is busy.
+ */
+function check(i, force) {
+  if (isUploadQ(i) || isTriedQ(i)) return;   // pictures save through the upload box; limited tries through tryCheck
+  var val = answerOf(i);
+  if (S.locked || pending[i]) return;
+  if (!force && val === saved[i]) return;
+  pending[i] = true;
+  clearTimeout(draftTimer[i]);
+  var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
+  setMeta(i, "Checking…"); btn.disabled = true;
+  var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
+                            : function (ok, fail) { api.check(i, val, ok, fail); };
+  RETRY_FAST(gradeCall, function (resp) {
+    pending[i] = false; btn.disabled = false;
+    saved[i] = val;
+    var before = S.results[i];
+    paint(i, resp.result);
+    S.grade = localGrade();
+    updateProgress();
+    boostChecked(i, before, resp.result);   // starters after a wrong answer, the streak, +1, the mystery picture (HELPERS AND SMALL WINS)
+    if (answerOf(i) !== val) { setMeta(i, "Not checked yet", "#b45f06"); }
+    else setMeta(i, "Checked. Saving…", "#666");
+    queueSave(i, val);
+  }, function (err) {
+    pending[i] = false; btn.disabled = false;
+    setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); });
+}
+/** Grading retries quickly (it doesn't wait in line, so a retry usually works at once). */
+function RETRY_FAST(call, ok, fail, onRetry, attempt) {
+  attempt = attempt || 0;
+  var delays = [600, 1500, 3000, 6000];
+  call(ok, function (err) {
+    if (attempt < delays.length && isRetryable(err)) {
+      if (onRetry) onRetry(attempt);
+      setTimeout(function () { RETRY_FAST(call, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
+    } else fail(err);
+  });
+}
+
+/** Saves the newest checked answer for a question, one save at a time, in order.
+    If every quick retry fails (a dropped connection, or the sheet too busy), it keeps trying by itself (saveLater),
+    so the student never has to press Check again for the answer to reach the teacher. */
+var saveLater = {}, saveLaterN = {}, savedChecked = {};   // question index -> timer for the next try by itself, how many tries so far, and the last checked text the sheet saved
+function queueSave(i, val) {
+  saveWant[i] = val;
+  clearTimeout(saveLater[i]); saveLater[i] = 0;
+  if (saving[i]) return;               // the running save will pick up the newest text when it finishes
+  saving[i] = true;
+  var v = saveWant[i];
+  withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
+    saving[i] = false; saveLaterN[i] = 0; savedChecked[i] = v;
+    draftSaved[i] = v;
+    if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
+    if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
+    updateProgress();
+    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
+    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
+  }, function (err) {
+    saving[i] = false;
+    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
+    if (cpIsSignInError(err)) signedOutMidway();
+    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
+    else if (err && err.message && /locked/i.test(err.message)) showError(err);
+    else if (isRetryable(err)) saveAgainLater(i);
+  }, 0, function () {
+    if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
+  });
+}
+/** A save that gave up: try again by itself in 15 s, then 30, 45, and every minute after that (plus a little, so a class spreads out). */
+function saveAgainLater(i) {
+  var n = saveLaterN[i] = (saveLaterN[i] || 0) + 1;
+  clearTimeout(saveLater[i]);
+  saveLater[i] = setTimeout(function () { saveLater[i] = 0; saveNowIfWaiting(i); }, Math.min(60000, 15000 * n) + Math.floor(Math.random() * 8000));
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
+}
+/** The newest checked answer still hasn't reached the sheet: save it now. */
+function saveNowIfWaiting(i) {
+  if (!S || S.locked || saving[i] || saveWant[i] == null || saveWant[i] !== saved[i] || saveWant[i] === savedChecked[i]) return;
+  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked. Saving…", "#666");
+  queueSave(i, saveWant[i]);
+}
+function savesWaiting() { return Object.keys(saveLater).filter(function (k) { return saveLater[k]; }); }
+/** Back online (or back on this tab): every save that's waiting goes right away. */
+function saveWaitingNow() { savesWaiting().forEach(function (k) { clearTimeout(saveLater[k]); saveLater[k] = 0; saveNowIfWaiting(Number(k)); }); }
+window.addEventListener("online", saveWaitingNow);
+document.addEventListener("visibilitychange", function () { if (!document.hidden) saveWaitingNow(); });
+function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
+
+function updateProgress() {
+  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
+  S.results.forEach(function (r, i) { if (!isUngradedQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads (and show-only graphs) aren't graded
+  var n = Math.max(1, S.questions.filter(function (q, i) { return !isUngradedQ(i); }).length);
+  document.getElementById("nG").textContent = c.correct;
+  document.getElementById("nY").textContent = c.partial;
+  document.getElementById("nR").textContent = c.incorrect;
+  document.getElementById("nB").textContent = c.blank;
+  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
+  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
+  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
+  document.getElementById("grade").textContent = S.showGrade ? ((isClosedNow() ? "Final grade: " : "Grade: ") + S.grade + " / " + S.maxPoints) : "";
+  boostProgress();   // the mystery picture and the Finisher badge (HELPERS AND SMALL WINS)
+}
+/* ============================== (@@QUESTIONS-END) ============================== */
+
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function showError(err) {
+  var text = String((err && err.message) ? err.message : err).replace(/^(BUSY|NETWORK|SIGNIN): /, "");
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner error", text));
+  document.getElementById("loading").textContent = text || "Something went wrong. Reload the page.";
+}
+function note(text) {   // a short black message at the top of the page
+  var m = document.getElementById("msg");
+  m.innerHTML = "";
+  m.appendChild(el("div", "banner", text));
+  window.scrollTo(0, 0);
+  var qp = document.getElementById("qPane"); if (qp) qp.scrollTop = 0;   // the questions side scrolls on its own
+}
+
+/* ---------- the reading page: the article on the left, the questions on the right (each side scrolls on its own) ----------
+   The article comes from the teacher's Google Doc (Settings: Article Google Doc link, then Self-Check > Update the article from the
+   Google Doc): the sheet turns the Doc into simple HTML and keeps it. If the sheet has none, the page's built-in article (articleTpl)
+   is shown when it has one. What the sheet sends is untrusted (a ?app= link can name any sheet), so it is never inserted as it
+   arrives: safeArticle() rebuilds it from a short list of allowed tags, classes and links. */
+var ART_TAGS = { H2: 1, H3: 1, P: 1, UL: 1, OL: 1, LI: 1, B: 1, STRONG: 1, I: 1, EM: 1, A: 1, BR: 1, DIV: 1, FIGURE: 1, FIGCAPTION: 1, IMG: 1 };
+var ART_CLASSES = { arttitle: 1, artrow: 1, arttxt: 1, artfig: 1, artwide: 1, artpair: 1, artq: 1, arta: 1, artvids: 1, simbtn: 1 };
+function safeArticle(html) {
+  var doc = new DOMParser().parseFromString("<!DOCTYPE html><body>" + String(html == null ? "" : html), "text/html");   // inert: nothing in it runs or loads
+  var out = document.createDocumentFragment();
+  function copy(from, into) {
+    for (var n = from.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType === 3) { into.appendChild(document.createTextNode(n.nodeValue)); continue; }
+      if (n.nodeType !== 1) continue;
+      var tag = n.tagName;
+      if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|LINK|META|FORM|INPUT|BUTTON|SVG|MATH)$/.test(tag)) continue;   // dropped with everything inside
+      if (!ART_TAGS[tag]) { copy(n, into); continue; }   // any other tag: keep its words, lose the tag
+      if (tag === "A") {
+        var u = cpLinkUrl(n.getAttribute("href"));
+        if (!u) { copy(n, into); continue; }   // no safe address: just the words
+      }
+      var e = document.createElement(tag.toLowerCase());
+      var cls = (n.getAttribute("class") || "").split(/\s+/).filter(function (c) { return ART_CLASSES.hasOwnProperty(c); });
+      if (cls.length) e.className = cls.join(" ");
+      if (tag === "A") { e.href = u; e.target = "_blank"; e.rel = "noopener noreferrer"; }
+      if (tag === "IMG") {
+        var k = n.getAttribute("data-pic");
+        if (!/^\d{1,3}$/.test(String(k))) continue;
+        e.setAttribute("data-pic", k);
+        ["width", "height"].forEach(function (a) { var v = parseInt(n.getAttribute(a), 10); if (v >= 1 && v <= 2000) e.setAttribute(a, String(v)); });
+        e.alt = String(n.getAttribute("alt") || "").slice(0, 300);
+      } else copy(n, e);
+      into.appendChild(e);
+    }
+  }
+  copy(doc.body, out);
+  return out;
+}
+/** The article's pictures usually come with its text (pics[i].data, one trip); any others come one at a time (two at once)
+    as the sheet sends them. All are shown from blob: addresses. */
+var artPicQ = [], artPicBusy = 0;
+function loadArticlePics(root, pics) {
+  Array.prototype.forEach.call(root.querySelectorAll("img[data-pic]"), function (img) {
+    var i = Number(img.getAttribute("data-pic"));
+    if (!pics[i]) { img.remove(); return; }
+    zoomOnClick(img);   // a click shows it big (2026.11.11c)
+    if (typeof pics[i].data === "string" && pics[i].data && artPicShow(img, pics[i])) return;
+    artPicQ.push({ img: img, i: i });
+  });
+  artPicNext();
+}
+/** Shows one picture from the sheet's { mime, data (base64) }. false if it isn't a picture. */
+function artPicShow(img, r) {
+  if (!r || !/^image\/(png|jpeg|gif|webp|bmp)$/.test(String(r.mime)) || typeof r.data !== "string") return false;   // never a page or a script
+  try {
+    var bin = atob(r.data), bytes = new Uint8Array(bin.length);
+    for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
+    img.src = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+    return true;
+  } catch (e) { return false; }
+}
+function artPicNext() {
+  while (artPicBusy < 2 && artPicQ.length) (function (job) {
+    artPicBusy++;
+    cpRetry(cpCall("getArticlePicture", [job.i]), function (r) {
+      artPicBusy--;
+      if (!artPicShow(job.img, r)) job.img.alt = "The picture didn't load. Reload the page to try again.";
+      artPicNext();
+    }, function () { artPicBusy--; job.img.alt = "The picture didn't load. Reload the page to try again."; artPicNext(); });
+  })(artPicQ.shift());
+}
+function showArticle() {
+  var art = document.getElementById("article"), tpl = document.getElementById("articleTpl"), own = artOwnName();   // the notes use the Settings name when there is one
+  function builtIn(why) {
+    art.textContent = "";
+    if (tpl && tpl.content) art.appendChild(tpl.content.cloneNode(true));
+    else art.appendChild(el("p", "artnote", why || (own ? own + ": not ready yet. Please tell your teacher." : "The article isn't ready yet. Please tell your teacher.")));
+  }
+  if (!S.article) { builtIn(); return; }
+  art.appendChild(el("p", "artnote", own ? "Loading " + own + "…" : "Loading the article…"));
+  withRetry(function (ok, fail) { api.run("getArticle", [], ok, fail); }, function (r) {
+    if (!r || !r.has) { builtIn(); return; }
+    var wrap = el("div", "art");
+    wrap.appendChild(safeArticle(r.html));
+    art.textContent = ""; art.appendChild(wrap);
+    loadArticlePics(wrap, r.pics || []);
+  }, function () { builtIn((own || "The article") + " didn't load. Reload the page, or tell your teacher."); });
+}
+/* ---------- a lab page with a live simulation on the left ----------
+   The page's own built-in part (pictures.html) can hold <template id="simTpl" data-url="https://...">: then the left side gets two buttons,
+   Directions (the handout) and Simulation (that web page, live in a frame, so a change to the simulation shows up at once with no update here).
+   The address comes from this page, never from the sheet, and must be https. The frame stays on the page while you look at the directions,
+   so the simulation keeps running. It is sandboxed (its own scripts run; it can't navigate this page or read it).
+   (labSim(), "does this page have a simulation built in", is in the QUESTIONS block: a lab table asks it too.) */
+/** The simulation's address must be https on an allowed site: pages.dev or phet.colorado.edu. (The sheet's Settings tab can name one: "Simulation link".) */
+function simUrlOk(u) {
+  u = cpLinkUrl(u);
+  var m = /^https:\/\/([a-z0-9.-]+)(?::\d+)?(?:[\/?#]|$)/i.exec(u);
+  return !!m && /^([a-z0-9-]+\.)+pages\.dev$/i.test(m[1]) || !!m && /^phet\.colorado\.edu$/i.test(m[1]) ? u : "";
+}
+/** The simulations on the left, in button order: [{ url, name }]. The first is the sheet's Settings "Simulation link" (if allowed), else the page's own
+    simTpl; the second (2026.10.30) is Settings "Simulation 2 link", only if allowed. Their names come from Settings "Simulation button name" and
+    "Simulation 2 button name" (plain text, see cleanName). A sheet older than 2026.10.30 sends none of these, so its page looks as it always did. */
+function sims() {
+  var tpl = document.getElementById("simTpl"), out = [];
+  var u1 = simUrlOk(S && S.simUrl) || (tpl ? cpLinkUrl(tpl.getAttribute("data-url")) : ""), u2 = simUrlOk(S && S.sim2Url);   // the sheet's address if it is allowed, else the page's own
+  if (u1 && /^https:\/\//.test(u1)) out.push({ url: u1, name: cleanName(S && S.simBtn) });
+  if (u2) out.push({ url: u2, name: cleanName(S && S.sim2Btn) || "Simulation 2" });
+  if (out.length && !out[0].name) out[0].name = out.length > 1 ? "Simulation 1" : "Simulation";
+  return out;
+}
+function hasSim() { return sims().length > 0; }   // any side-by-side page can have a simulation: the sheet's Settings "Simulation link" (no rebuild), or the page's own simTpl
+/** A button name from the sheet's Settings tab ("Article button name", "Simulation button name", ...): untrusted words, so plain text only (always set
+    with textContent), one line, 24 characters at most. "" = none set. */
+function cleanName(v) {
+  var n = Array.from(String(v != null ? v : "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim());
+  return n.slice(0, 24).join("").trim();
+}
+/** What the left side is called. The sheet's Settings "Article button name" can name it (Directions, say, for a lab whose Doc holds the directions). */
+function artOwnName() { return cleanName(S && S.artBtn); }
+function artName() { return artOwnName() || (labSim() ? "Directions" : "Article"); }
+function setUpSim() {
+  var list = sims();
+  if (!list.length) return;
+  var pane = document.getElementById("artPane"), art = document.getElementById("article");
+  pane.classList.add("hassim");
+  var bar = el("div", "simbar"), bD = el("button", "simtab", artName()), op = el("a", "simopen", "Open it in a new tab");
+  bD.type = "button"; op.href = list[0].url; op.target = "_blank"; op.rel = "noopener";
+  bar.appendChild(bD);
+  var tabs = list.map(function (s) {   // a button and a box of its own for each simulation
+    var b = el("button", "simtab", s.name), box = el("div", "simframe");
+    b.type = "button"; box.hidden = true; bar.appendChild(b);
+    return { sim: s, btn: b, box: box, frame: null };
+  });
+  bar.appendChild(op);
+  pane.insertBefore(bar, art);
+  tabs.forEach(function (t) { pane.appendChild(t.box); });
+  function showWhich(k) {   // -1 = the article / directions, else that simulation
+    bD.setAttribute("aria-pressed", k < 0 ? "true" : "false");
+    tabs.forEach(function (t, i) { t.btn.setAttribute("aria-pressed", i === k ? "true" : "false"); t.box.hidden = i !== k; });
+    art.hidden = k >= 0; pane.classList.toggle("simview", k >= 0);
+    if (k >= 0) op.href = tabs[k].sim.url;
+    op.hidden = k < 0 && tabs.length > 1;   // with two simulations the link opens the one showing (none while the directions show); with one it always opens it
+    var t = tabs[k];
+    if (t && !t.frame) {   // loaded the first time it's wanted, then kept (switching never resets a simulation)
+      var fu = simBare(t.sim.url);
+      t.frame = document.createElement("iframe"); t.frame.src = simThemed(fu); t.frame.title = t.sim.name;
+      t.frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups"); t.frame.setAttribute("allow", "fullscreen"); t.frame.referrerPolicy = "no-referrer";
+      simFrames.push({ frame: t.frame, origin: new URL(fu).origin }); t.frame.addEventListener("load", tellSimTheme);
+      t.box.appendChild(t.frame);
+    }
+    if (k < 0) pane.scrollTop = 0;
+  }
+  bD.onclick = function () { showWhich(-1); };
+  tabs.forEach(function (t, i) { t.btn.onclick = function () { showWhich(i); }; });
+  showWhich(-1);
+}
+/** The simulations match this page's light / dark mode: a pages.dev sim loads with ?theme=light or dark, and hears about every switch (simTheme
+    messages, both ways: a sim-library sim's own moon / sun button switches this page too). PhET sims have no dark mode, so they get no ?theme=. */
+var simFrames = [];   // every simulation frame loaded so far: [{ frame, origin }]
+/** A sim's address on the class website's Sims page (physical-science-8.pages.dev/sims/<sim>, the address its Sims page shows) has the website's
+    top bar over the sim. In the frame it is the sim alone (sim-library-87y.pages.dev/<sim>/); Open it in a new tab keeps the address as typed. */
+function simBare(url) {
+  var m = /^https:\/\/physical-science-8\.pages\.dev\/sims\/([a-z0-9-]+)\/?(?:[?#].*)?$/i.exec(url);
+  return m ? "https://sim-library-87y.pages.dev/" + m[1].toLowerCase() + "/" : url;
+}
+function simThemed(url) {
+  try { var u = new URL(url); if (/\.pages\.dev$/i.test(u.hostname)) u.searchParams.set("theme", currentTheme()); return u.href; } catch (e) { return url; }
+}
+function tellSimTheme() {
+  simFrames.forEach(function (s) { if (s.frame && s.frame.contentWindow) try { s.frame.contentWindow.postMessage({ simTheme: currentTheme() }, s.origin); } catch (e) {} });
+}
+window.addEventListener("message", function (e) {
+  if (!simFrames.some(function (s) { return s.frame && e.source === s.frame.contentWindow && e.origin === s.origin; })) return;   // only a simulation frame, from its own site
+  var t = e.data && e.data.simTheme;
+  if ((t === "dark" || t === "light") && t !== currentTheme()) setTheme(t);
+});
+/** The divider between the two sides: drag it, or press the left / right arrow keys, to make one side bigger (the simulation, say). Double-click or Home
+    puts it back. The choice is remembered on this device. Only on a wide screen (900 px and up); below that the sides are tabs. */
+var SPLIT_KEY = "selfcheck-split", SPLIT_MIN = 240, SPLIT_GAP = 16;
+function setUpSplitDrag() {
+  var split = document.getElementById("split"), dv = document.getElementById("splitDiv");
+  if (!split || !dv || dv.getAttribute("data-wired")) return;
+  dv.setAttribute("data-wired", "1");
+  var frac = null;   // the left side's share of the room (0 to 1), or null = the page's own
+  try { var s = parseFloat(localStorage.getItem(SPLIT_KEY)); if (s > 0.1 && s < 0.9) frac = s; } catch (e) {}
+  function room() { return split.clientWidth - SPLIT_GAP; }
+  function apply() {
+    if (frac == null || room() < SPLIT_MIN * 2) { split.style.gridTemplateColumns = ""; return; }
+    var left = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, Math.round(frac * room())));
+    split.style.gridTemplateColumns = left + "px " + SPLIT_GAP + "px minmax(0, 1fr)";
+  }
+  function setLeft(px) {
+    if (room() < SPLIT_MIN * 2) return;
+    frac = Math.max(SPLIT_MIN, Math.min(room() - SPLIT_MIN, px)) / room();
+    apply();
+  }
+  function save() { try { if (frac == null) localStorage.removeItem(SPLIT_KEY); else localStorage.setItem(SPLIT_KEY, String(frac)); } catch (e) {} }
+  function reset() { frac = null; apply(); save(); }
+  function leftNow() { return document.getElementById("artPane").getBoundingClientRect().width; }
+  dv.addEventListener("pointerdown", function (e) {
+    if (e.button > 0) return;
+    e.preventDefault();
+    try { dv.setPointerCapture(e.pointerId); } catch (x) {}
+    split.classList.add("dragging");
+    var x0 = e.clientX, w0 = leftNow();
+    function move(m) { setLeft(w0 + (m.clientX - x0)); }
+    function up() {
+      split.classList.remove("dragging");
+      dv.removeEventListener("pointermove", move); dv.removeEventListener("pointerup", up); dv.removeEventListener("pointercancel", up);
+      save();
+    }
+    dv.addEventListener("pointermove", move); dv.addEventListener("pointerup", up); dv.addEventListener("pointercancel", up);
+  });
+  dv.addEventListener("dblclick", reset);
+  dv.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); setLeft(leftNow() + (e.key === "ArrowLeft" ? -32 : 32)); save(); }
+    else if (e.key === "Home") { e.preventDefault(); reset(); }
+  });
+  window.addEventListener("resize", apply);
+  apply();
+}
+function setUpSplit() {
+  document.documentElement.classList.add("splitview");
+  var art = document.getElementById("article");
+  if (!art.firstChild) showArticle();
+  setUpSplitDrag();
+  if (hasSim() && !document.querySelector(".simbar")) setUpSim();
+  var split = document.getElementById("split"), tabA = document.getElementById("tabArt"), tabQ = document.getElementById("tabQ");
+  var nSims = document.querySelectorAll(".simbar .simtab").length - 1;
+  tabA.textContent = artName() + (nSims > 1 ? " and simulations" : nSims === 1 ? " and simulation" : "");   // the phone tab: Article, Directions, or the Settings name
+  if (artOwnName()) document.getElementById("artPane").setAttribute("aria-label", artOwnName() + ". Scroll this side to read.");
+  function show(which) {   // only matters on a narrow screen, where the tabs show one side at a time
+    split.setAttribute("data-tab", which);
+    tabA.setAttribute("aria-selected", which === "art" ? "true" : "false");
+    tabQ.setAttribute("aria-selected", which === "q" ? "true" : "false");
+    window.scrollTo(0, 0);
+  }
+  tabA.onclick = function () { show("art"); };
+  tabQ.onclick = function () { show("q"); };
+  var narrow = false;
+  try { narrow = window.matchMedia("(max-width: 899px)").matches; } catch (e) { narrow = false; }
+  show(narrow ? "art" : "q");   // on a phone, read first
+}
+
+function render() {
+  document.getElementById("loading").hidden = true;
+  document.getElementById("signin").hidden = true;
+  document.getElementById("app").hidden = false;
+  setUpSplit();
+  document.title = S.title;
+  document.getElementById("title").textContent = S.title;
+  var who = document.getElementById("who");
+  who.textContent = "Signed in as " + S.name + ". Your work saves automatically.";
+  if (S.via === "code") {   // signed in with Class Pass: let a different student sign out on a shared device
+    who.appendChild(document.createTextNode(" Not you? "));
+    var so = el("button", "linkbtn", "Sign out"); so.type = "button"; so.addEventListener("click", signOutHere);
+    who.appendChild(so);
+  }
+  document.getElementById("intro").textContent = S.intro;
+  var L = document.getElementById("links");
+  (S.links || []).forEach(function (l) { L.appendChild(simButton(l)); });
+  L.hidden = !(S.links && S.links.length);
+
+  var box = document.getElementById("items");
+  if (S.questions.some(function (q) { return q.table && q.table.lab; })) document.getElementById("split").classList.add("wideq");   // a lab table is wide: give the questions side more room
+  renderQuestions(box);   // every question, as its type asks (the QUESTIONS block)
+
+  var pv = document.getElementById("pageVer");
+  if (pv) pv.textContent = "Page " + PAGE_VERSION + (S.version ? " · Sheet " + S.version : " · Sheet older than 2026.10.01e");
+  var fin = document.getElementById("finishBtn");
+  fin.addEventListener("click", finish);
+  boostStart();   // the streak, the mystery picture and the badges (Settings "Small wins"; the HELPERS AND SMALL WINS block)
+  updateFinish();
+  updateProgress();
+  teacherTools();   // the teacher's own copy: Reset my answers (the LIMITED TRIES block)
+  setUpClose();
+}
+
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.12b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.13";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -4329,7 +4579,7 @@ function showClosed() {
   var c = S.close;
   S.locked = true;
   S.questions.forEach(function (_, i) { clearTimeout(draftTimer[i]); });
-  document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, .labwatch button, #finishBtn").forEach(function (x) { x.disabled = true; });
+  document.querySelectorAll(QUESTION_CONTROLS + ", #finishBtn").forEach(function (x) { x.disabled = true; });
   document.querySelectorAll(".item").forEach(function (x) { x.classList.add("viewonly"); });
   if (c.base != null) document.getElementById("intro").textContent = c.base;   // drop the "closes soon" / closed sentence (the bar says it)
   document.getElementById("closedBarText").textContent = c.note;
@@ -4352,217 +4602,6 @@ function closedMidway(err) {
   if (!(S && S.close && /ended/i.test(String(err && err.message)))) return false;
   if (!S.close.closed) { S.close.closed = true; showClosed(); }
   return true;
-}
-
-/** Typed answers start one line tall and grow as the student writes. CSS field-sizing does it (Chrome); this does the same in a browser without it. */
-var GROW_CSS = (function () { try { return !!(window.CSS && CSS.supports("field-sizing", "content")); } catch (e) { return false; } })();
-function fitAnswer(ta) {
-  if (GROW_CSS || !ta.scrollHeight) return;   // 0 while its side of the page is hidden: it fits when shown, focused or typed in
-  ta.style.height = "auto";
-  ta.style.height = (ta.scrollHeight + 6) + "px";   // + the 3 px top and bottom borders (border-box)
-}
-function growAnswer(ta) {
-  ta.setAttribute("data-grow", "1");
-  if (GROW_CSS) return;
-  ta.addEventListener("input", function () { fitAnswer(ta); });
-  ta.addEventListener("focus", function () { fitAnswer(ta); });
-  setTimeout(function () { fitAnswer(ta); }, 0);
-}
-window.addEventListener("resize", function () { if (!GROW_CSS) Array.prototype.forEach.call(document.querySelectorAll("textarea[data-grow]"), fitAnswer); });
-
-function setMeta(i, text, color) {
-  var m = document.getElementById("m" + i);
-  m.textContent = text;
-  var tone = { "#b45f06": "warn", "#38761d": "ok", "#cc0000": "bad" }[String(color || "").toLowerCase()] || "muted";
-  m.className = "meta tone-" + tone;   // colors for light and dark mode are in the CSS
-}
-
-function autosave(i) {
-  if (isUploadQ(i)) return;
-  var val = answerOf(i);
-  if (S.locked || pending[i] || saving[i] || val === draftSaved[i] || val === saved[i]) return;
-  if (!api.saveDraft) return;
-  api.saveDraft(i, val, function (resp) {
-    if (resp && resp.saved) {
-      draftSaved[i] = val;
-      if (answerOf(i) === val && val !== saved[i]) {
-        setMeta(i, "Draft saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ". Press Check for feedback.", "#b45f06");
-      }
-    } else if (!(resp && resp.locked)) {
-      clearTimeout(draftTimer[i]);
-      draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);   // server busy: try again shortly
-    }
-  }, function (err) {
-    if (cpIsSignInError(err)) { signedOutMidway(); return; }
-    // Quietly try again later; Check still saves right away.
-    clearTimeout(draftTimer[i]);
-    draftTimer[i] = setTimeout(function () { autosave(i); }, AUTOSAVE_MS * 2);
-  });
-}
-
-function paint(i, res) {
-  if (isTriedQ(i)) { paintTried(i, res); return; }   // limited tries
-  var ta = document.getElementById("a" + i), fb = document.getElementById("f" + i);
-  if (isTableQ(i)) {
-    paintTable(i, res);
-  } else if (isUploadQ(i)) {
-    ta.className = (S.questions[i].draw ? "drawpad" : "dropzone") + (res && res.status === "correct" ? " correct" : "") + (S.locked ? " viewonly" : "");
-  } else if (isBoxQ(i)) {
-    ta.className = "boxarea" + (res && res.status !== "blank" ? " " + res.status : "");
-    boxInputs(i).forEach(function (b, k) {
-      var m = res && res.parts ? res.parts[k] : "";
-      b.className = "pbox" + (m && m !== "blank" ? " " + m : "");
-    });
-  } else {
-    ta.className = res && res.status !== "blank" ? res.status : "";
-  }
-  fb.textContent = res ? res.message : "";
-  S.results[i] = res;
-}
-
-/** Busy server or a blip: try again quietly a few times before telling the student. */
-var RETRY_DELAYS = [1500, 3500, 7000, 12000];
-function isRetryable(err) {
-  var m = String((err && err.message) || err || "");
-  return !/SIGNIN|sign in|locked|turned this in|Unknown question|Unknown request|doesn't have any questions|isn't ready/i.test(m);
-}
-function withRetry(call, ok, fail, attempt, onRetry) {
-  attempt = attempt || 0;
-  call(ok, function (err) {
-    if (attempt < RETRY_DELAYS.length && isRetryable(err)) {
-      if (onRetry) onRetry(attempt);
-      var wait = RETRY_DELAYS[attempt] + Math.floor(Math.random() * 1500);   // spread students out
-      setTimeout(function () { withRetry(call, ok, fail, attempt + 1, onRetry); }, wait);
-    } else fail(err);
-  });
-}
-
-/** Running grade from the colors on the page (same formula as the server). */
-function localGrade() {
-  if (!S.credit) return S.grade;
-  var earned = 0, n = 0;
-  S.results.forEach(function (r, i) {
-    if (isUngradedQ(i)) return;
-    var q = S.questions[i], w = q.points == null ? 1 : q.points, c = S.credit[(r && r.status) || "blank"] || 0;
-    if (q.kind) c = r && typeof r.credit === "number" ? r.credit : 0;   // limited tries: the share its tries earned (100%, 90% ... or 50%)
-    if (q.points != null && r && r.status !== "blank" && typeof r.frac === "number") c = r.frac;   // a question worth Points earns the share of its ideas the answer shows
-    n += w; earned += w * c;
-  });
-  if (!n) return 0;
-  var pts = Math.min(1, (earned / n) / S.fullCreditAt) * S.maxPoints;
-  return Math.round(pts / S.roundTo) * S.roundTo;
-}
-function stamp() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
-
-/**
- * Check = two steps.
- *  1. FAST: ask the server to grade only (no waiting in line) and show the color + hint.
- *  2. BACKGROUND: save to the spreadsheet, retrying quietly if the server is busy.
- */
-function check(i, force) {
-  if (isUploadQ(i) || isTriedQ(i)) return;   // pictures save through the upload box; limited tries through tryCheck
-  var val = answerOf(i);
-  if (S.locked || pending[i]) return;
-  if (!force && val === saved[i]) return;
-  pending[i] = true;
-  clearTimeout(draftTimer[i]);
-  var meta = document.getElementById("m" + i), btn = document.getElementById("b" + i);
-  setMeta(i, "Checking…"); btn.disabled = true;
-  var gradeCall = api.grade ? function (ok, fail) { api.grade(i, val, ok, fail); }
-                            : function (ok, fail) { api.check(i, val, ok, fail); };
-  RETRY_FAST(gradeCall, function (resp) {
-    pending[i] = false; btn.disabled = false;
-    saved[i] = val;
-    var before = S.results[i];
-    paint(i, resp.result);
-    S.grade = localGrade();
-    updateProgress();
-    boostChecked(i, before, resp.result);   // starters after a wrong answer, the streak, +1, the mystery picture (HELPERS AND SMALL WINS)
-    if (answerOf(i) !== val) { setMeta(i, "Not checked yet", "#b45f06"); }
-    else setMeta(i, "Checked. Saving…", "#666");
-    queueSave(i, val);
-  }, function (err) {
-    pending[i] = false; btn.disabled = false;
-    setMeta(i, "Couldn't check yet. Your answer is still here. Wait a minute, then press Check again.", "#cc0000");
-    if (cpIsSignInError(err)) signedOutMidway();
-    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
-    else if (err && err.message && /locked/i.test(err.message)) showError(err);
-  }, function () { setMeta(i, "Checking… (lots of students checking, so hang on)", "#666"); });
-}
-/** Grading retries quickly (it doesn't wait in line, so a retry usually works at once). */
-function RETRY_FAST(call, ok, fail, onRetry, attempt) {
-  attempt = attempt || 0;
-  var delays = [600, 1500, 3000, 6000];
-  call(ok, function (err) {
-    if (attempt < delays.length && isRetryable(err)) {
-      if (onRetry) onRetry(attempt);
-      setTimeout(function () { RETRY_FAST(call, ok, fail, onRetry, attempt + 1); }, delays[attempt] + Math.floor(Math.random() * 500));
-    } else fail(err);
-  });
-}
-
-/** Saves the newest checked answer for a question, one save at a time, in order.
-    If every quick retry fails (a dropped connection, or the sheet too busy), it keeps trying by itself (saveLater),
-    so the student never has to press Check again for the answer to reach the teacher. */
-var saveLater = {}, saveLaterN = {}, savedChecked = {};   // question index -> timer for the next try by itself, how many tries so far, and the last checked text the sheet saved
-function queueSave(i, val) {
-  saveWant[i] = val;
-  clearTimeout(saveLater[i]); saveLater[i] = 0;
-  if (saving[i]) return;               // the running save will pick up the newest text when it finishes
-  saving[i] = true;
-  var v = saveWant[i];
-  withRetry(function (ok, fail) { api.check(i, v, ok, fail); }, function (resp) {
-    saving[i] = false; saveLaterN[i] = 0; savedChecked[i] = v;
-    draftSaved[i] = v;
-    if (resp && resp.result && v === saved[i]) paint(i, resp.result);   // server's copy (same grader)
-    if (resp && typeof resp.grade === "number" && !Object.keys(saving).some(function (k) { return saving[k]; })) S.grade = resp.grade;
-    updateProgress();
-    if (saveWant[i] !== v) { queueSave(i, saveWant[i]); return; }
-    if (answerOf(i) === v) setMeta(i, "Saved " + stamp(), "#666");
-  }, function (err) {
-    saving[i] = false;
-    setMeta(i, "Checked, but not saved yet. Press Check again in a minute so your teacher gets it.", "#cc0000");
-    if (cpIsSignInError(err)) signedOutMidway();
-    else if (closedMidway(err)) setMeta(i, "Not saved: this assignment is closed.", "#cc0000");
-    else if (err && err.message && /locked/i.test(err.message)) showError(err);
-    else if (isRetryable(err)) saveAgainLater(i);
-  }, 0, function () {
-    if (answerOf(i) === v) setMeta(i, "Checked. Saving… (lots of students saving, so hang on)", "#666");
-  });
-}
-/** A save that gave up: try again by itself in 15 s, then 30, 45, and every minute after that (plus a little, so a class spreads out). */
-function saveAgainLater(i) {
-  var n = saveLaterN[i] = (saveLaterN[i] || 0) + 1;
-  clearTimeout(saveLater[i]);
-  saveLater[i] = setTimeout(function () { saveLater[i] = 0; saveNowIfWaiting(i); }, Math.min(60000, 15000 * n) + Math.floor(Math.random() * 8000));
-  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked, but not saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
-}
-/** The newest checked answer still hasn't reached the sheet: save it now. */
-function saveNowIfWaiting(i) {
-  if (!S || S.locked || saving[i] || saveWant[i] == null || saveWant[i] !== saved[i] || saveWant[i] === savedChecked[i]) return;
-  if (answerOf(i) === saveWant[i]) setMeta(i, "Checked. Saving…", "#666");
-  queueSave(i, saveWant[i]);
-}
-function savesWaiting() { return Object.keys(saveLater).filter(function (k) { return saveLater[k]; }); }
-/** Back online (or back on this tab): every save that's waiting goes right away. */
-function saveWaitingNow() { savesWaiting().forEach(function (k) { clearTimeout(saveLater[k]); saveLater[k] = 0; saveNowIfWaiting(Number(k)); }); }
-window.addEventListener("online", saveWaitingNow);
-document.addEventListener("visibilitychange", function () { if (!document.hidden) saveWaitingNow(); });
-function savesRunning() { return Object.keys(saving).some(function (k) { return saving[k]; }); }
-
-function updateProgress() {
-  var c = { correct: 0, partial: 0, incorrect: 0, blank: 0 };
-  S.results.forEach(function (r, i) { if (!isUngradedQ(i)) c[(r && r.status) || "blank"]++; });   // picture uploads (and show-only graphs) aren't graded
-  var n = Math.max(1, S.questions.filter(function (q, i) { return !isUngradedQ(i); }).length);
-  document.getElementById("nG").textContent = c.correct;
-  document.getElementById("nY").textContent = c.partial;
-  document.getElementById("nR").textContent = c.incorrect;
-  document.getElementById("nB").textContent = c.blank;
-  document.getElementById("bG").style.width = (100 * c.correct / n) + "%";
-  document.getElementById("bY").style.width = (100 * c.partial / n) + "%";
-  document.getElementById("bR").style.width = (100 * c.incorrect / n) + "%";
-  document.getElementById("grade").textContent = S.showGrade ? ((isClosedNow() ? "Final grade: " : "Grade: ") + S.grade + " / " + S.maxPoints) : "";
-  boostProgress();   // the mystery picture and the Finisher badge (HELPERS AND SMALL WINS)
 }
 
 function updateFinish() {
@@ -4660,7 +4699,7 @@ function showSignIn(info, midway) {
     }
     // Someone else signed in on a page showing another student's work: don't mix the two.
     S.locked = true;
-    document.querySelectorAll("textarea, input.pbox, input.tcell, input.tlabel, .fbbar button, .dropzone button, .drawpad button, .drawpad input, .choicebox button, input.shortbox, .labwatch button, #finishBtn").forEach(function (x) { x.disabled = true; });
+    document.querySelectorAll(QUESTION_CONTROLS + ", #finishBtn").forEach(function (x) { x.disabled = true; });
     if (card) { card.innerHTML = ""; card.appendChild(el("p", null, "You signed in as " + r.email + ". Reload this page to see that student's work.")); }
   } });
 }
