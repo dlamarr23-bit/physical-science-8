@@ -225,6 +225,9 @@
    in the order they first come. Change order puts arrows on every topic and card and lets them be dragged (a card
    only within its topic); Save order sends the whole list once. A new card goes first in its topic, a new topic first
    on the page. A list last saved before this (ORDER_SINCE) opens newest first, as it used to show, until it is saved.
+   Move to bottom (Donny, 2026-11-13): the current unit goes on top, so the top topic's bar has Move to bottom. One click
+   sends that topic and its cards to the end and saves at once (no Change order); the line above the list says so and
+   has Undo, which puts it back on top.
    The same code question also brings each sheet's Automatic grades and Full credit at settings (Self-Check
    2026.10.29f and later answer classPass("launchpad") with them); a card shows them when its sheet sends them.
 
@@ -745,14 +748,47 @@ document.addEventListener("DOMContentLoaded", function(){
       return inPick && (!q || [a.title, a.kind, a.unit].join(" ").toLowerCase().indexOf(q) !== -1);
     });
     if(!rows.length){ list.appendChild(el("p", "lp-empty", "No assignments match.")); return; }
-    var t = topics(rows);
-    t.order.forEach(function(u){
-      var sec = el("div", "lp-sec");
-      sec.appendChild(strip(u || (pick === "All" ? "All assignments" : pick), t.by[u].length));
+    var t = topics(rows), top = topics(items).order;
+    t.order.forEach(function(u, ti){
+      var sec = el("div", "lp-sec"), name = u || (pick === "All" ? "All assignments" : pick);
+      var s = sec.appendChild(strip(name, t.by[u].length));
+      if(ti === 0 && top.length > 1 && top[0] === u){   // only the topic that is on top of the whole list
+        var down = el("button", "lp-arrow", "▼ Move to bottom"); down.type = "button";
+        down.setAttribute("aria-label", "Move " + name + " to the bottom of the list");
+        down.disabled = shifting;
+        down.addEventListener("click", function(){ shiftTopic(u, name, true); });
+        s.appendChild(down);
+      }
       var g = el("div", "lp-grid");
       t.by[u].forEach(function(a){ g.appendChild(card(a)); });
       sec.appendChild(g);
       list.appendChild(sec);
+    });
+  }
+
+  /* ---------- Move to bottom: the topic on top goes to the end, saved at once (Undo puts it back on top) ---------- */
+  var shifting = false;
+  function shiftTopic(u, name, toEnd){
+    if(shifting) return;
+    var t = topics(items), i = t.order.indexOf(u);
+    if(i === -1) return;
+    t.order.splice(i, 1);
+    if(toEnd) t.order.push(u); else t.order.unshift(u);
+    shifting = true;
+    status(toEnd ? "Moving " + name + " to the bottom..." : "Putting " + name + " back on top...");
+    save(flat(t)).then(function(){
+      shifting = false;
+      draw();
+      if(!toEnd){ status(name + " is back on top."); return; }
+      status(name + " is now at the bottom of the list. ");
+      var undo = el("button", "lp-btn quiet", "Undo"); undo.type = "button";
+      undo.addEventListener("click", function(){ shiftTopic(u, name, false); });
+      $("lpStatus").appendChild(undo);
+      undo.focus();
+    }, function(err){
+      shifting = false;
+      draw();
+      status("Not moved: " + err.message, true);
     });
   }
 
