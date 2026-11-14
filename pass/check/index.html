@@ -3238,6 +3238,7 @@ function render() {
   document.getElementById("loading").hidden = true;
   document.getElementById("signin").hidden = true;
   document.getElementById("app").hidden = false;
+  setUpNoCopy();   // highlighting (read aloud) works, copying the questions doesn't (Settings "Block copying from the page"; the NO COPYING block)
   document.title = S.title;
   document.getElementById("title").textContent = S.title;
   var who = document.getElementById("who");
@@ -3280,7 +3281,7 @@ function render() {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.13";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.13b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -4244,6 +4245,55 @@ var BOOST_PICS = [
   '<circle cx="72" cy="78" r="16" fill="#bbb" stroke="#888" stroke-width="2"/><circle cx="66" cy="74" r="3" fill="#999"/></svg>'
 ];
 /* ============================== (@@BOOST-END) ============================== */
+
+/* ============================== NO COPYING (@@NOCOPY-BEGIN) ==============================
+   THE SAME BLOCK is in every Self-Check page: the one-column page (self-check/Index.html), the two-column page (custom/reading-activity, and so
+   the three Friction pages), the escape room and the review game. Change it only in self-check/nocopy.js, then run npm run build, which copies
+   it into each page. 2026.11.13b (Donny: students copy question or article text into Google or an AI; read aloud must keep working).
+   Settings "Block copying from the page" (BLOCK_COPY, sent as S.blockCopy). A sheet older than 2026.11.13b sends nothing, and that counts as
+   ON, because the class website's one page serves every sheet's version.
+   THE RULE: block the CLIPBOARD, never the SELECTION. Students can still highlight anything, because ChromeOS Select-to-Speak ("highlight,
+   then Search + S", or hold Search and click), Read&Write's select and Play, and Chrome's Reading mode all need highlighted text. So no
+   user-select: none, and nothing here cancels selectstart or mousedown. What stops the text from leaving the page:
+     copy, cut     the clipboard gets NOCOPY_NOTE instead (Ctrl + C, Ctrl + X, Chrome's own Copy). Copying or cutting the student's own
+                   typing in an answer box still works. Read aloud tools never use the clipboard.
+     contextmenu   no right-click menu outside answer boxes: no Copy, no "Search Google for ...", no Google Lens, no "Copy link to highlight"
+                   (each of those sends the text out without the clipboard). Inside an answer box the menu stays, for spelling suggestions.
+                   The drawing pad gets no menu either (its "Copy image" would copy the question's picture; it has Download my drawing).
+     dragstart     highlighted text or a picture can't be dragged into the address bar or another tab. (Pasting and dropping INTO an answer
+                   box is BLOCK_PASTE's job, in questions.js.)
+   Each page calls setUpNoCopy() in render(). The listeners go on once and ask noCopyOn() every time, so they always follow S. */
+var NOCOPY_NOTE = "Copying is turned off for this assignment. Answer in your own words.";
+var noCopyReady = false;
+/** Blocking is on unless the sheet turned it off (an older sheet sends no blockCopy at all: on). */
+function noCopyOn() { return !!(S && S.blockCopy !== false); }
+/** The element a node belongs to (dragging highlighted text starts on a text node, not an element). */
+function noCopyEl(t) { return !t ? null : t.nodeType === 1 ? t : t.parentElement || null; }
+/** Inside an answer box: the student's own work, where the right-click menu and dragging stay. */
+function noCopyInAnswer(t) {
+  var e = noCopyEl(t);
+  return !!(e && e.closest && e.closest("textarea, input, select, [contenteditable]"));
+}
+/** A copy or cut of the student's own typing: the cursor is in a text box and the copy comes from that box (a highlight that reaches
+    outside the box never has the box as its target, so it is blocked). */
+function noCopyOwnTyping(e) {
+  var a = document.activeElement, t = noCopyEl(e.target);
+  return !!(a && t === a && (a.tagName === "TEXTAREA" || a.tagName === "INPUT"));
+}
+function setUpNoCopy() {
+  if (noCopyReady) return;
+  noCopyReady = true;
+  ["copy", "cut"].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (!noCopyOn() || noCopyOwnTyping(e)) return;
+      e.preventDefault();
+      try { e.clipboardData.setData("text/plain", NOCOPY_NOTE); } catch (x) {}
+    }, true);
+  });
+  document.addEventListener("contextmenu", function (e) { if (noCopyOn() && !noCopyInAnswer(e.target)) e.preventDefault(); }, true);
+  document.addEventListener("dragstart", function (e) { if (noCopyOn() && !noCopyInAnswer(e.target)) e.preventDefault(); }, true);
+}
+/* ============================== (@@NOCOPY-END) ============================== */
 
 /* ---------- end of the quarter (view only) ---------- */
 function isClosedNow() { return !!(S && S.close && S.close.closed); }

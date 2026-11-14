@@ -1,7 +1,7 @@
 {
   "kind": "video-check",
-  "version": "2026.11.13",
-  "optional": "nothing new for Video Check (this release gives the one-column and two-column Self-Check pages exactly the same question types).",
+  "version": "2026.11.13b",
+  "optional": "nothing new for Video Check (this release stops students copying text out of the Self-Check pages).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

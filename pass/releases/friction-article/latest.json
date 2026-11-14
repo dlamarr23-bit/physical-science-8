@@ -1,7 +1,7 @@
 {
   "kind": "friction-article",
-  "version": "2026.11.13",
-  "optional": "the one-column and two-column pages now have exactly the same question types, and every new question type will reach both.",
+  "version": "2026.11.13b",
+  "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

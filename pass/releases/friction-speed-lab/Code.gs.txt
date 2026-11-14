@@ -165,6 +165,7 @@ var SHOW_POINTS            = false;  // true = each question shows what it's wor
 var LOCK_AFTER_TURN_IN     = false;  // true = students can't change answers after "I'm finished"
 var UPLOAD_ZERO_FOR_MISSING = false; // true = students who never opened it get 0 in Classroom (false = left blank)
 var BLOCK_PASTE            = true;   // true = students can't paste or drag text into answer boxes
+var BLOCK_COPY             = true;   // true = students can highlight text (read aloud still works) but can't copy it, right-click Search Google, or drag it out of the page
 var QUESTION_NUMBER_STYLE  = "1";    // how question 1 is labeled on the student page: "1"  "1."  "Q1"  "Question 1"  "#1"  "1)"
 // ---------- Automatic grade upload (turn on with Self-Check > Automatic grades after the due date) ----------
 var AUTO_RETURN_GRADES = true;  // true = automatic uploads post AND return grades (students see them); false = draft grades only
@@ -265,7 +266,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-speed-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-speed-lab\)
-var SKILL_VERSION = "2026.11.13";
+var SKILL_VERSION = "2026.11.13b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -307,6 +308,7 @@ var SETTING_DEFS = [
   ["Late penalty", "LATE_PENALTY", "percent", "Points a student earns after their class's due date (in Classroom) count this much less. Only the late part loses points: 8/10 by the due date, then 10/10 later = 8 + 2 x 80% = 9.6. 0% = no late penalty."],
   ["Email students about late penalties", "LATE_EMAIL", "bool", "Checked = when a grade with a late penalty is returned (3b or automatic grades), the student gets a short email from you explaining it (Google Classroom doesn't let scripts post private comments). Sent again only if that grade changes."],
   ["Block pasting into answers", "BLOCK_PASTE", "bool", "Checked = students can't paste or drag text into the answer boxes, so they have to type in their own words. Takes effect the next time a student loads the page."],
+  ["Block copying from the page", "BLOCK_COPY", "bool", "Checked = students can highlight text (so text-to-speech like Select-to-Speak and Read&Write still works) but can't copy it, right-click Search Google, or drag it out of the page. Takes effect the next time a student loads the page."],
   ["Question number style", "QUESTION_NUMBER_STYLE", "label", "Type how question 1 should look on the student page, e.g. 1.  Q1  Question 1  #1  1)  Every question follows the same pattern. Takes effect the next time a student loads the page."],
   ["Picture box hint text", "BOX_HINT", "text", "Grey text shown in each empty type-in box on a picture, e.g. type here. Leave blank for no hint. Takes effect the next time a student loads the page."],
   ["Article Google Doc link", "ARTICLE_DOC", "text", "Only for a side-by-side reading page (article on the left, questions on the right). Paste the link to the Google Doc that holds the article. Then run Self-Check > Update the article from the Google Doc. After that, whenever you change the Doc, run it again (or wait: the hourly check notices a changed Doc and updates the page by itself). You can open the Doc yourself; students never need access to it."],
@@ -1668,6 +1670,7 @@ function getStudentState(token) {
     teacher: email === teacherEmail_(),   // 2026.11.06c: the sheet's owner trying their own copy: the page offers Reset my answers (resetMyAnswers)
     minLength: MIN_ANSWER_LENGTH,
     blockPaste: !!BLOCK_PASTE,
+    blockCopy: !!BLOCK_COPY,   // 2026.11.13b: the page's NO COPYING block (a page treats a missing blockCopy, from an older sheet, as on)
     numberStyle: String(QUESTION_NUMBER_STYLE == null || QUESTION_NUMBER_STYLE === "" ? "1" : QUESTION_NUMBER_STYLE),
     boxHint: String(BOX_HINT == null ? "" : BOX_HINT).trim(),   // placeholder in picture boxes ("" = none)
     article: articleVersion_(),   // 0 = no article stored from a Google Doc; the reading page then shows its built-in one (if any)

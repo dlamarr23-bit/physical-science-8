@@ -1,6 +1,10 @@
-video-check v2026.11.13
+video-check v2026.11.13b
 
-Optional update: nothing new for Video Check (this release gives the one-column and two-column Self-Check pages exactly the same question types).
+Optional update: nothing new for Video Check (this release stops students copying text out of the Self-Check pages).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.13 (optional), if this sheet skipped it:
 
 - Nothing changes for Video Check. Your questions, settings and student work are not touched.
 

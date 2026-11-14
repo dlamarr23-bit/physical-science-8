@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.13",
-  "optional": "nothing new for a review game (this release gives the one-column and two-column Self-Check pages exactly the same question types).",
+  "version": "2026.11.13b",
+  "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

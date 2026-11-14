@@ -1,6 +1,26 @@
-friction-sim-lab v2026.11.13
+friction-sim-lab v2026.11.13b
 
-Optional update: the one-column and two-column pages now have exactly the same question types, and every new question type will reach both.
+Students can't copy the page any more (read aloud still works)
+- Students can still highlight any text on the page, so text-to-speech keeps working: ChromeOS Select-to-Speak (highlight, then
+  Search + S, or hold Search and click), Read&Write's Play button, and Chrome's Reading mode.
+- What they can't do any more with the questions or the lab directions on the left side (the simulation itself is its own page):
+  - Copy or cut it (Ctrl + C, Ctrl + X, or Chrome's own Copy). If they paste anyway, all that comes out is "Copying is turned off
+    for this assignment. Answer in your own words."
+  - Right-click it. That menu is how a student would "Search Google for" highlighted words or use Google Lens without copying at all.
+  - Drag highlighted words or a picture into the address bar or another tab.
+- Inside an answer box nothing changes: students can copy and cut their own words, and right-click still shows spelling suggestions.
+- New Settings row "Block copying from the page", right after "Block pasting into answers", checked to start. Uncheck it to let
+  students copy again. It takes effect the next time a student loads the page.
+- What it can't stop: a screenshot (Google Lens or "Search your screen"), a phone photo, a student retyping the question, or an AI side
+  panel that reads the whole page. It makes copying take real effort, which is the goal.
+
+The class website's Friction Sim Lab page blocks copying as soon as this release is published, even before this sheet is updated. Students
+on school Chromebooks usually open the sheet's own page, though, so update this sheet to cover them: paste the new Code.gs and Index and
+create the New version (Deploy > Manage deployments > pencil > New version > Deploy), or use Update now on the Assignment Launchpad.
+Then run Self-Check > Set up / repair sheets once to add the new Settings row (until then copying is blocked anyway; the row is how you
+turn it off). Nothing already in the sheet changes, and no new permission is needed.
+
+Also from 2026.11.13 (optional), if this sheet skipped it:
 
 Both layouts now have exactly the same question types
 - Short answers (a question with one or more labeled boxes and no picture) now sit beside the question, with the boxes at the right, the
