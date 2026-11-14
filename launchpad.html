@@ -381,11 +381,20 @@ document.addEventListener("DOMContentLoaded", function(){
   // a sheet's answer with code newer than the newest release this page knows of
   function newerThanKnown(r){ var web = r && r.state === "done" && newest && newest[r.kind]; return typeof web === "string" && r.version > web; }
   function appId(link){ var m = /[?&]app=(AKfycb[\w-]{20,})/.exec(link || ""); return m ? m[1] : ""; }
-  // one sheet: {state: "done", kind, version, sets}, "old" (code from before Class Pass) or "fail" (no answer).
-  // sets = its grading settings, or null from code that doesn't send them (older than 2026.10.29f, or Video Check)
+  // one sheet: {state: "done", kind, version, sets}, "old" (code from before Class Pass) or "fail" (no answer; slow: true
+  // when nothing came back in time). sets = its grading settings, or null from code that doesn't send them (older than
+  // 2026.10.29f, or Video Check).
+  // Asked twice before it fails (Donny, 2026-11-13): Google sometimes holds a request to one sheet and never passes it on
+  // to the script (it isn't in the script's Executions), while the next request goes through in seconds.
   function askSheet(id){
-    var ctl = window.AbortController ? new AbortController() : null;
-    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 45000);
+    return askSheetOnce(id, 30000).then(function(r){
+      if(r.state !== "fail") return r;
+      return new Promise(function(ok){ setTimeout(ok, 1500); }).then(function(){ return askSheetOnce(id, 45000); });
+    });
+  }
+  function askSheetOnce(id, ms){
+    var ctl = window.AbortController ? new AbortController() : null, slow = false;
+    var timer = setTimeout(function(){ slow = true; if(ctl) ctl.abort(); }, ms);
     return fetch("https://script.google.com/macros/s/" + id + "/exec", {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
         body: JSON.stringify({fn: "classPass", args: ["launchpad"], token: ""}), signal: ctl ? ctl.signal : undefined})
       .then(function(r){ return r.text(); })
@@ -399,7 +408,7 @@ document.addEventListener("DOMContentLoaded", function(){
           return {state: "done", kind: String(r.kind || ""), version: String(r.version), sets: sets, sheetKind: String(r.sheetKind || "")};
         }
         return {state: /Unknown request/.test(String(out.error || "")) ? "old" : "fail"};
-      }, function(){ return {state: "fail"}; })
+      }, function(){ return {state: "fail", slow: slow}; })
       .then(function(r){ clearTimeout(timer); return r; });
   }
   // asks the sheets not asked yet (again: every sheet), six at a time. Nothing until Check for updates (again)
@@ -438,7 +447,9 @@ document.addEventListener("DOMContentLoaded", function(){
     var menu = c.kind === "video-check" || (!c.kind && /video/i.test(a.kind || "")) ? "Video Check" : "Self-Check";
     var how = " In the sheet: " + menu + " > Check for skill updates.";
     if(c.state === "checking") return {cls: "", text: "Checking its code..."};
-    if(c.state === "fail") return {cls: "", text: "Couldn't check its code: the sheet didn't answer (its deployment may not be open to Anyone)."};
+    if(c.state === "fail") return {cls: "", text: c.slow ?
+      "Couldn't check its code: Google didn't answer for this sheet (asked twice). That is usually Google being slow, not the sheet. Wait a minute, then click Check for updates." :
+      "Couldn't check its code: the sheet didn't answer (asked twice). Wait a minute, then click Check for updates. If it still says this, open the sheet's Apps Script: Deploy > Manage deployments, and check that Who has access says Anyone."};
     if(c.state === "old") return {cls: "need", need: true, text: "Code needs updating: it is from before Class Pass." + how};
     // Paste safety (Self-Check 2026.10.30c): code for another kind pasted into this sheet; the sheet's menu and student page have stopped
     if(c.sheetKind && c.sheetKind !== c.kind) return {cls: "need", need: true, text: "Wrong code pasted: this sheet is " + aKind(c.sheetKind) + ", but its code is for " + aKind(c.kind) +
