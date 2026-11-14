@@ -1,4 +1,37 @@
-auto-grading-activity v2026.11.13b
+auto-grading-activity v2026.11.13c
+
+Optional update: sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points.
+
+Help me write (sentence starters and the word bank)
+- The sentence starters and word bank start closed. A question that has them gets a Help me write button (a light bulb and an
+  arrow) in its black bar, next to Say it. Pressing it opens the box above the answer; pressing it again closes it. Students who
+  don't need the help never see the box.
+- The box has short directions at the top: click a starter and type over the blank, the word bank saves typing, some of its words
+  are wrong (only said when they are), how many word clicks they get, and to write their own complete sentences.
+- New look: no more orange. Starters are teal boxes and word bank words are purple boxes, both with white words, on a light blue
+  box. A starter or word already in the answer turns gray with a check mark.
+- Fixed: "spreads out the force" in an answer no longer also checks off "force". Check marks go by whole words, longest first.
+
+Clicking every word is no longer a free pass
+- Wrong words: in a question's Word bank cell (Questions tab), put a ! in front of a word that is wrong, like
+  inertia, cushion, !gravity, !less time to stop. Students see every word the same way (no !). An answer that uses a wrong word
+  can't turn green: it stays yellow and says a word from the word bank doesn't fit, without saying which one.
+- Word dump check: an answer that is mostly word bank words with almost none of the student's own words can't turn green. It
+  stays yellow and says to use the words in their own complete sentences. This works whether the words were clicked or typed.
+- A sentence starter's ___ blank left in the answer also holds it at yellow, with a note to type over the blank.
+- Click limit: new Settings row "Word bank clicks per question", 4 to start (0 = no limit). Each click is used up for good:
+  deleting the word, pressing Check or reloading the page doesn't give it back, so a student can't click words and Check over
+  and over. After that they type. The word bank shows how many clicks are left. Your own Reset my answers gives yours back.
+- Your questions, key words, grades and student work are not changed. A yellow answer earns the yellow share of its points, as
+  before.
+
+After you update this sheet
+- Run Self-Check > Set up / repair sheets once so the new Settings row is added.
+- Add ! in front of one or two wrong words in each Word bank cell if you want wrong words.
+- On the class website's page the new button, colors and click limit show for every sheet right away. The wrong words and the
+  word dump check need this sheet updated.
+
+Also from 2026.11.13b, if this sheet skipped it:
 
 Students can't copy the page any more (read aloud still works)
 - Students can still highlight any text on the page, so text-to-speech keeps working: ChromeOS Select-to-Speak (highlight, then

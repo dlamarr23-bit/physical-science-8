@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.13b",
-  "optional": "",
+  "version": "2026.11.13c",
+  "optional": "nothing new for the escape room (this release changes the sentence starters and word bank on the Self-Check pages).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

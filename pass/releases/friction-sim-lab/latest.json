@@ -1,7 +1,7 @@
 {
   "kind": "friction-sim-lab",
-  "version": "2026.11.13b",
-  "optional": "",
+  "version": "2026.11.13c",
+  "optional": "sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

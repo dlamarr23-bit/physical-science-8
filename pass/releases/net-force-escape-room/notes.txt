@@ -1,4 +1,10 @@
-net-force-escape-room v2026.11.13b
+net-force-escape-room v2026.11.13c
+
+Optional update: nothing new for the escape room (this release changes the sentence starters and word bank on the Self-Check pages).
+
+- Nothing changes for the escape room. Your questions, settings and student work are not touched.
+
+Also from 2026.11.13b, if this sheet skipped it:
 
 Students can't copy the page any more (read aloud still works)
 - Students can still highlight any text on the page, so text-to-speech keeps working: ChromeOS Select-to-Speak (highlight, then

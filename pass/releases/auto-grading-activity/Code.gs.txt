@@ -196,6 +196,7 @@ var SHUFFLE_QUESTIONS  = false;             // true = each student gets the ques
 // ---------- Helpers and small wins: the one- and two-column Self-Check pages (2026.11.12b; see HELPERS AND SMALL WINS) ----------
 var SAY_IT              = true;   // true = every typed answer gets a Say it button: the student talks and the words are typed into the answer
 var HELPERS_AFTER_WRONG = false;  // true = a question's Sentence starters and Word bank (Questions tab) stay hidden until its first Check is yellow or red
+var WORD_BANK_CLICKS    = 4;      // how many word bank words a student may click into each answer (clicks never come back); 0 = no limit
 var SMALL_WINS          = true;   // true = a streak counter, a +1 when an answer turns green, a mystery picture and badges (grades never change)
 var MYSTERY_PICTURE     = "";     // blank = a built-in science picture; or a Drive or https picture link; "none" = no mystery picture
 // ---------- Review game only (a sheet whose SKILL_NAME is "review-game"; see REVIEW GAME) ----------
@@ -269,7 +270,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "auto-grading-activity";
-var SKILL_VERSION = "2026.11.13b";
+var SKILL_VERSION = "2026.11.13c";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -359,6 +360,7 @@ if (SKILL_NAME === "review-game") SETTING_DEFS = SETTING_DEFS.concat(GAME_SETTIN
 var BOOST_SETTING_DEFS = [
   ["Say it button", "SAY_IT", "bool", "Checked = every typed answer gets a Say it button: the student talks, their words are typed into the answer, and they fix any word it got wrong. On the class website it listens right on the page. On this sheet's own page (school Chromebooks) Google doesn't allow the microphone, so Say it opens a small window from the class website that listens and sends the words back. Chrome asks once to allow the microphone. Takes effect the next time a student loads the page."],
   ["Starters only after a wrong answer", "HELPERS_AFTER_WRONG", "bool", "Only for questions with Sentence starters or a Word bank (Questions tab). Checked = they stay hidden until the question's first Check comes back yellow or red. Unchecked = they show from the start. Takes effect the next time a student loads the page."],
+  ["Word bank clicks per question", "WORD_BANK_CLICKS", "number", "Only for questions with a Word bank (Questions tab). How many word bank words a student may click into each answer. A click is used up for good: deleting the word or pressing Check doesn't give it back, so students can't click words and Check over and over. After that they type. 0 = no limit. Takes effect the next time a student loads the page."],
   ["Small wins", "SMALL_WINS", "bool", "Checked = students see a streak counter (green answers in a row), a +1 each time an answer turns green, a mystery picture that uncovers squares as answers turn green, and badges (First Try, Comeback, Hot Streak, Finisher). Grades don't change. Takes effect the next time a student loads the page."],
   ["Mystery picture", "MYSTERY_PICTURE", "text", "Only with Small wins. Blank = one of the built-in science pictures (each assignment gets its own). Or paste a Google Drive link (Share > Hart District: anyone with the link) or an https picture link: a funny photo works great. Type none for no mystery picture (the streak, +1 and badges still show). Takes effect the next time a student loads the page."]
 ];
@@ -488,7 +490,8 @@ function loadConfig_() {
 // ============================== HELPERS AND SMALL WINS (2026.11.12b) ==============================
 // Donny's students lacked motivation, so the one- and two-column pages got (the page side is self-check/boost.js):
 //  HELPERS: Questions tab columns "Sentence starters" and "Word bank" become buttons that type into a typed or short answer
-//    (item.starters, item.words; Settings "Starters only after a wrong answer"), and Settings "Say it button" (SAY_IT): talk instead of type.
+//    (item.starters, item.words; Settings "Starters only after a wrong answer"; 2026.11.13c: the box starts closed behind Help me write,
+//    Settings "Word bank clicks per question", wrong words and the word dump check: see WORD BANK RULES), and Settings "Say it button" (SAY_IT): talk instead of type.
 //    Google blocks the microphone on this script's own page, so there Say it opens the class website's /pass/say/ window (sayUrl).
 //  SMALL WINS (Settings "Small wins", SMALL_WINS): a streak counter, a +1 when an answer turns green, a mystery picture that uncovers
 //    squares as answers turn green (Settings "Mystery picture": blank = built in, a Drive link comes through getPicture("m")), badges.
@@ -501,12 +504,17 @@ function helpersFit_(item) {
 /** A Questions tab's Sentence starters cell (one per line, or | between) and Word bank cell (commas between) -> the lists the page shows. */
 var HELPER_MAX_STARTERS = 6, HELPER_MAX_WORDS = 16;
 function helpersFrom_(s, w) {
-  var out = { starters: [], words: [], warnings: [] };
-  function add(list, x, max) { x = String(x).replace(/\s+/g, " ").trim().slice(0, max); if (x && list.indexOf(x) === -1) list.push(x); }
+  var out = { starters: [], words: [], wrong: [], warnings: [] };
+  function add(list, x, max) { x = String(x).replace(/\s+/g, " ").trim().slice(0, max); if (x && list.indexOf(x) === -1) list.push(x); return x; }
   String(s == null ? "" : s).split(/\r?\n|\|/).forEach(function (x) { add(out.starters, x, 160); });
-  String(w == null ? "" : w).split(/,|\r?\n/).forEach(function (x) { add(out.words, x, 40); });
+  String(w == null ? "" : w).split(/,|\r?\n/).forEach(function (x) {   // !word = a wrong word (see WORD BANK RULES): shown like the others, without the !
+    var bad = /^\s*!/.test(x), t = add(out.words, String(x).replace(/^\s*!+/, ""), 40);
+    if (bad && t && out.wrong.indexOf(t) === -1) out.wrong.push(t);
+  });
   if (out.starters.length > HELPER_MAX_STARTERS) { out.warnings.push("only the first " + HELPER_MAX_STARTERS + " sentence starters show."); out.starters.length = HELPER_MAX_STARTERS; }
   if (out.words.length > HELPER_MAX_WORDS) { out.warnings.push("only the first " + HELPER_MAX_WORDS + " words of the word bank show."); out.words.length = HELPER_MAX_WORDS; }
+  out.wrong = out.wrong.filter(function (x) { return out.words.indexOf(x) !== -1; });
+  if (out.words.length && out.wrong.length === out.words.length) out.warnings.push("every word in the word bank is marked wrong with a !, so no word in it is right.");
   return out;
 }
 
@@ -652,6 +660,7 @@ function parseQuestions_(rows) {
         var hp = helpersFrom_(stv, wbv);
         if (hp.starters.length) item.starters = hp.starters;
         if (hp.words.length) item.words = hp.words;
+        if (hp.wrong.length) item.wrongWords = hp.wrong;
         hp.warnings.forEach(function (w) { warnings.push(at + ": " + w); });
       } else warnings.push(at + " has Sentence starters or a Word bank, but they only show on typed answers (Answer type blank) and short answers, so they're ignored.");
     }
@@ -1357,7 +1366,7 @@ function seedConfigTabs_() {
         var hn = it.kind && it.hints ? it.hints : {};
         row.push(it.kind && it.right ? (it.kind === "truefalse" ? (it.right[0] === 0 ? "TRUE" : "FALSE") : it.right.map(function (x) { return x + 1; }).join(", ")) : "",
                  it.kind ? it.explain || "" : "", it.kind && it.tries ? it.tries : "", hn.clue || "", hn.example || "", hn.video || "",
-                 (it.starters || []).join("\n"), (it.words || []).join(", "));   // HELPERS
+                 (it.starters || []).join("\n"), (it.words || []).map(function (x) { return ((it.wrongWords || []).indexOf(x) !== -1 ? "!" : "") + x; }).join(", "));   // HELPERS (!word = a wrong word)
       }
       for (var m = 0; m < misCount; m++) {
         var mc = (it.mis || [])[m];
@@ -1453,7 +1462,7 @@ function tryColNote_(h) {
   if (h === Q_COLS.hintEx) return "OPTIONAL, for choice, truefalse and short questions: a worked example of a similar problem, opened from the light bulb (Show me an example).";
   if (h === Q_COLS.hintVideo) return "OPTIONAL, for choice, truefalse and short questions: an https:// link (a YouTube video is fine) that opens in a new tab from the light bulb (Watch a video).";
   if (h === Q_COLS.starters) return "OPTIONAL, for typed answers (Answer type blank) and short answers: ways to begin the answer, one per line (Ctrl+Enter starts a new line in the cell), like\nCar ___ has more kinetic energy because ...\nStudents tap one and it's typed into their answer: ___ is selected so they type over it, and ... is left off. Up to 6. Grading doesn't change. Settings: Starters only after a wrong answer.";
-  if (h === Q_COLS.words) return "OPTIONAL, for typed answers and short answers: words or phrases students can tap to add to their answer, commas between, like  speed, mass, kinetic energy, 4 times. Up to 16. The answer still needs the right ideas to turn green.";
+  if (h === Q_COLS.words) return "OPTIONAL, for typed answers and short answers: words or phrases students can tap to add to their answer, commas between, like  speed, mass, kinetic energy, 4 times. Up to 16. The answer still needs the right ideas to turn green. Put a ! in front of a wrong word, like  !gravity : students see it like the others (no !), and an answer that uses it can't turn green. Students get a few clicks per question (Settings: Word bank clicks per question).";
   return "";
 }
 function tryColWidth_(h) {
@@ -1686,6 +1695,7 @@ function getStudentState(token) {
     // starters and word bank hidden until a wrong answer, and the small wins (pic: "" = a built-in picture, "none", or a picture address).
     sayIt: triesPage_() && !!SAY_IT, sayUrl: classPassOrigin_() ? classPassOrigin_() + "/pass/say/" : "",
     helpersAfterWrong: !!HELPERS_AFTER_WRONG,
+    wordClicks: wordBankClicks_(),   // word bank clicks per question (0 = no limit)
     wins: triesPage_() && SMALL_WINS ? { pic: mysteryPicture_() } : null,
     // grade formula only (no answers) so the page can update the running grade instantly.
     // After the due date it's left out, so the page shows the server's grade (with the late penalty) after each save.
@@ -1881,7 +1891,8 @@ function tryGrade_(item, answer) {
   return { status: "incorrect", message: item.choices[n].fb || "That isn't the right answer." };   // (Donny, 2026-11-06: a wrong answer goes straight to its feedback)
 }
 /** A short answer's try: green only with every idea and no misconception (no minimum length). */
-function shortGrade_(item, answer) {
+function shortGrade_(item, answer) { return helperRule_(item, answer, shortGradeCore_(item, answer)); }
+function shortGradeCore_(item, answer) {
   var res = gradeLocal_(item, answer), mis = misconceptionsIn_(item, answer);
   if (!res.total) return mis.length ? { status: "partial", message: "Check this: " + mis.join(" ") } : { status: "correct", message: "That's right!" };
   if (res.status === "correct" && !mis.length) return { status: "correct", message: "That's right!" };
@@ -2643,6 +2654,7 @@ function questionsForClient_() {
     if (triesPage_() && helpersFit_(it)) {   // HELPERS: the buttons that type a sentence starter or a word into the answer (only when there are some)
       if (it.starters && it.starters.length) o.starters = it.starters.slice(0, HELPER_MAX_STARTERS);
       if (it.words && it.words.length) o.words = it.words.slice(0, HELPER_MAX_WORDS);
+      if (o.words && it.wrongWords && it.wrongWords.length) o.wordTrap = true;   // the directions say some words are wrong (never which ones)
     }
     return o;
   });
@@ -3524,8 +3536,44 @@ function feedbackFor_(idx, answer) {
   if (ITEMS[idx].upload) return { status: "correct", message: ITEMS[idx].draw ? "Drawing saved. Thanks!" : "Picture added. Thanks! (This one isn't graded.)" };
   if (ITEMS[idx].table) return tableFeedback_(ITEMS[idx], answer);
   if (ITEMS[idx].boxes && ITEMS[idx].boxes.length) return boxFeedback_(ITEMS[idx], answer);
-  return sentenceRule_(ITEMS[idx], answer, textFeedback_(ITEMS[idx], answer));
+  return helperRule_(ITEMS[idx], answer, sentenceRule_(ITEMS[idx], answer, textFeedback_(ITEMS[idx], answer)));
 }
+/** WORD BANK RULES (2026.11.13c; Donny clicked every starter and word and got full points). An answer can't be green when
+ *   - it uses a wrong word from the word bank (a word typed with a ! in the Word bank cell: item.wrongWords). The hint never says which;
+ *   - it is mostly word bank words with too few words of the student's own (a word dump), typed answers only;
+ *   - a sentence starter's ___ blank is still in it.
+ *  It is held at yellow and earns at most the yellow share of its points. Typed in by hand or clicked makes no difference. */
+function helperRule_(item, answer, fb) {
+  if (!fb || fb.status === "blank" || !helpersFit_(item)) return fb;
+  var tips = [];
+  if (item.starters && item.starters.length && /_{2,}/.test(answer)) tips.push("Type over the ___ blank from your sentence starter.");
+  if (item.words && item.words.length) {
+    var u = bankUse_(item, answer);
+    if (u.wrong) tips.push("A word you used from the word bank doesn't fit here (some of its words are wrong on purpose). Find it and fix it.");
+    if (item.kind !== "short" && u.used >= 2 && u.own < u.used + 2) tips.push("Use the word bank words in your own complete sentences: clicking words isn't enough.");
+  }
+  if (!tips.length) return fb;
+  var out = {}; Object.keys(fb).forEach(function (k) { out[k] = fb[k]; });
+  if (typeof fb.frac === "number") out.frac = capFrac_(fb.frac);
+  if (fb.status === "correct") { out.status = "partial"; out.message = "Almost! " + tips.join(" "); }
+  else out.message = (fb.message ? String(fb.message).trim() + " " : "") + tips.join(" ");
+  return out;
+}
+/** How an answer uses its question's word bank: used = how many different bank words are in it (whole words; the longest wins, so
+ *  "spreads out the force" doesn't also count "force"), wrong = how many of those are wrong words, own = the words left over. */
+function bankUse_(item, answer) {
+  var v = normalize_(answer), used = 0, wrong = 0;
+  var bad = (item.wrongWords || []).map(function (w) { return normalize_(w); });
+  (item.words || []).map(function (w) { return normalize_(w); }).filter(function (p) { return p.trim().length >= 2; })
+    .sort(function (a, b) { return b.length - a.length; })
+    .forEach(function (p) {
+      var hit = false, at;
+      while ((at = v.indexOf(p)) !== -1) { hit = true; v = v.slice(0, at) + " | " + v.slice(at + p.length); }
+      if (hit) { used++; if (bad.indexOf(p) !== -1) wrong++; }
+    });
+  return { used: used, wrong: wrong, own: v.split(" ").filter(function (w) { return /[a-z0-9]/.test(w); }).length };
+}
+function wordBankClicks_() { var n = Number(WORD_BANK_CLICKS); return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
 /** "Minimum sentences": an answer with fewer complete sentences can't be green, and the hint says how many it has. */
 function sentenceRule_(item, answer, fb) {
   var need = item.minSentences;

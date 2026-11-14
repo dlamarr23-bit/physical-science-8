@@ -317,21 +317,34 @@
   html[data-theme="dark"] canvas.padcanvas { border-color:#8a9099; }   /* the drawing itself stays white paper */
   /* @@PAD-CSS-END */
   /* @@BOOST-CSS-BEGIN: helpers and small wins (sentence starters, word bank, Say it, streak, +1, mystery picture, badges; the same in both Self-Check pages: change it in self-check/boost.css, then npm run build) */
-  /* sentence starters (orange) and the word bank (blue): buttons that type into the answer */
-  .helpers { background:#fff8ef; border-top:3px solid #111; padding:8px 12px 10px; }
+  /* sentence starters (teal) and the word bank (purple): solid boxes with white words that type into the answer. The box starts closed:
+     Help me write in the black bar opens it (2026.11.13c). */
+  .helpers { background:#e6f1fb; border-top:3px solid #111; padding:9px 12px 11px; }
   .helpers[hidden] { display:none; }
-  .hprow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:3px 0; }
-  .hplabel { font-size:13px; font-weight:700; color:#7f4304; flex:none; min-width:88px; }
-  button.hpill { display:inline-flex; align-items:center; gap:5px; background:#fff; color:#7f4304; border:2px solid #b45f06; border-radius:999px;
-                 padding:3px 12px; font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:14px; line-height:1.35; text-align:left; cursor:pointer; }
-  button.hpill:hover:not(:disabled) { background:#fce5cd; }
-  button.hpill.word { color:#1b4587; border-color:#1b4587; }
-  button.hpill.word:hover:not(:disabled) { background:#e8f0fe; }
-  button.hpill.used { background:#fce5cd; }
-  button.hpill.word.used { background:#c9daf8; }
+  .hptip { margin:0 0 6px; font-size:13px; line-height:1.45; color:#111; }
+  .hprow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:4px 0 0; }
+  .hplabel { flex:0 0 100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#085041; margin-top:4px; }
+  .hprow.words .hplabel { color:#3c3489; }
+  .hpleft { background:#534ab7; color:#fff; border-radius:999px; padding:1px 10px; font-size:12px; font-weight:600; }
+  .hpleft[hidden] { display:none; }
+  .hpleft.none { background:#a32d2d; }
+  button.hpill { display:inline-flex; align-items:center; gap:5px; background:#0f6e56; color:#fff; border:2px solid #0f6e56; border-radius:6px;
+                 padding:4px 12px; font-family:Poppins, Arial, sans-serif; font-weight:600; font-size:14px; line-height:1.35; text-align:left; cursor:pointer; }
+  button.hpill:hover:not(:disabled) { background:#085041; border-color:#085041; }
+  button.hpill.word { background:#534ab7; border-color:#534ab7; }
+  button.hpill.word:hover:not(:disabled) { background:#3c3489; border-color:#3c3489; }
+  button.hpill.used, button.hpill.used:hover:not(:disabled) { background:#d3d1c7; border-color:#d3d1c7; color:#444441; }
+  button.hpill:disabled { opacity:.55; cursor:default; }
   button.hpill.used::before { content:""; width:12px; height:12px; flex:none; background:currentColor;
     -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12l5 5 11-11'/%3E%3C/svg%3E") center/contain no-repeat;
             mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12l5 5 11-11'/%3E%3C/svg%3E") center/contain no-repeat; }
+  /* Help me write: in the black bar, after Say it */
+  .fbbar button.hpbtn { display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 12px; white-space:nowrap; }
+  .fbbar button.hpbtn[hidden] { display:none; }
+  .fbbar button.hpbtn svg { width:17px; height:17px; flex:none; }
+  .fbbar button.hpbtn svg.chev { width:14px; height:14px; transition: transform .2s ease; }
+  .fbbar button.hpbtn.open svg.chev { transform:rotate(180deg); }
+  .fbbar button.hpbtn.fresh { animation: streakbump .6s ease-out; }
   .helpers.fresh { animation: hpin .45s ease-out; }
   @keyframes hpin { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
   /* Say it: in the black bar, left of the feedback */
@@ -395,16 +408,15 @@
   .wintoast b { display:block; font-size:15px; }
   @keyframes toastin { from { opacity:0; transform:translate(-50%, 16px); } to { opacity:1; transform:translate(-50%, 0); } }
   @media (prefers-reduced-motion: reduce) {
-    .helpers.fresh, .streak.bump, button.mysmini.bump, .badge.got, .wintoast, .fbbar button.sayit.on::after { animation:none; }
+    .helpers.fresh, .fbbar button.hpbtn.fresh, .streak.bump, button.mysmini.bump, .badge.got, .wintoast, .fbbar button.sayit.on::after { animation:none; }
     .winpop { animation: winfade 1.5s linear forwards; } .confetti { display:none; } .myscover i { transition:none; }
   }
   @keyframes winfade { 0%, 70% { opacity:1; } 100% { opacity:0; } }
-  html[data-theme="dark"] .helpers { background:#2a2116; border-color:#5f6670; }
-  html[data-theme="dark"] .hplabel { color:#f5b971; }
-  html[data-theme="dark"] button.hpill { background:#14171c; color:#f5b971; border-color:#c27c2c; }
-  html[data-theme="dark"] button.hpill:hover:not(:disabled), html[data-theme="dark"] button.hpill.used { background:#3d2a14; }
-  html[data-theme="dark"] button.hpill.word { color:#8fb3ff; border-color:#5f86d6; }
-  html[data-theme="dark"] button.hpill.word:hover:not(:disabled), html[data-theme="dark"] button.hpill.word.used { background:#203050; }
+  html[data-theme="dark"] .helpers { background:#16222e; border-color:#5f6670; }
+  html[data-theme="dark"] .hptip { color:#e8eaed; }
+  html[data-theme="dark"] .hplabel { color:#5dcaa5; }
+  html[data-theme="dark"] .hprow.words .hplabel { color:#afa9ec; }
+  html[data-theme="dark"] button.hpill.used, html[data-theme="dark"] button.hpill.used:hover:not(:disabled) { background:#3a3f47; border-color:#3a3f47; color:#b6bcc6; }
   html[data-theme="dark"] .fbbar button.sayit.on { background:#cc0000; border-color:#cc0000; color:#fff; }
   html[data-theme="dark"] button.mysmini { background:#1d2128; color:#e8eaed; border-color:#5f6670; }
   html[data-theme="dark"] .wins, html[data-theme="dark"] .badge { background:#1d2128; border-color:#5f6670; color:#e8eaed; }
@@ -2104,6 +2116,7 @@ function resetMine() {
     note("Erasing your answers…");
     api.run("resetMyAnswers", [], function () {
       S.locked = true;   // nothing more saves from this copy of the page
+      if (typeof boostClicksReset === "function") boostClicksReset();   // the word bank clicks start over too
       document.querySelectorAll(QUESTION_CONTROLS + ", #finishBtn").forEach(function (x) { x.disabled = true; });
       if (CP_SITE) { note("Your answers are erased. Starting over…"); setTimeout(function () { location.reload(); }, 600); }
       else note("Your answers are erased. Reload this page (the reload button, or Ctrl+R) to start over.");
@@ -3718,7 +3731,7 @@ function render() {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.13b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.13c";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -4214,8 +4227,9 @@ function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].
    THE SAME BLOCK is in the one-column page (self-check/Index.html) and the two-column page (self-check/custom/reading-activity/Index.html):
    change it only in self-check/boost.js (and its CSS in self-check/boost.css), then run npm run build, which copies it into both pages.
    2026.11.12b (Donny: his students lacked motivation this year).
-   HELPERS: a typed or short answer's Sentence starters and Word bank (Questions tab) are buttons that type into the answer (Settings
-     "Starters only after a wrong answer" keeps them hidden until a yellow or red Check). Say it (Settings "Say it button") types what the
+   HELPERS: a typed or short answer's Sentence starters and Word bank (Questions tab) are buttons that type into the answer. They sit in a
+     box that starts closed: Help me write in the black bar opens it (2026.11.13c; Settings "Starters only after a wrong answer" keeps
+     the button away until a yellow or red Check). Each question allows a few word bank clicks (WORD BANK CLICKS). Say it (Settings "Say it button") types what the
      student says. Google blocks the microphone on the sheet's own page (/exec: school Chromebooks), so there Say it opens the class
      website's Say it window (S.sayUrl, made from class-pass/say.html), which sends the words back with postMessage.
    SMALL WINS (Settings "Small wins", S.wins): a streak counter in the progress bar, a +1 when an answer turns green, a mystery picture that
@@ -4226,7 +4240,11 @@ function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].
 var BOOST_HOT = 5;   // green answers in a row for the Hot Streak badge
 var BOOST_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 var BOOST_FLAME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="#cc0000" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 12c.6 1.6 2 2.4 2 4a2 2 0 0 1-4 0c0-1 .5-1.8 1-2.3.2.8.6 1.2 1 1.2 0-1.2-.4-2 0-2.9z" fill="#ffd966"/></svg>';
+var BOOST_BULB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>';
+var BOOST_CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
 var boostHp = {};   // question index -> its starters and word bank box
+var boostOpenQ = {};   // question index -> true while its box is open (Help me write)
+var boostClicks = null;   // { key, n: { question index: word bank clicks used } } (see WORD BANK CLICKS)
 function boostField(i) {   // the box a starter, a word or Say it types into (a typed answer's textarea, a short answer's line), or null
   var q = S.questions[i];
   if (q.kind === "short") return document.getElementById("s" + i);
@@ -4239,22 +4257,33 @@ function boostGraded(i) { return typeof isUngradedQ === "function" ? !isUngraded
 function boostDone(i) { var r = S.results[i]; return isTriedQ(i) ? !!(r && r.tries && r.tries.done) : boostStatus(r) === "correct"; }
 function boostWrongYet(i) { var r = S.results[i], s = boostStatus(r); return s === "partial" || s === "incorrect" || !!(r && r.tries && r.tries.used && !r.tries.rightTry); }
 
-/** A question's starters and word bank (above its answer) and its Say it button (in the black bar). render() calls it once the question is on the page. */
+/** A question's starters and word bank (above its answer, closed until Help me write in the black bar opens them) and its Say it button.
+    render() calls it once the question is on the page. */
 function boostItem(i, item) {
   var q = S.questions[i], field = boostField(i);
   if (!field) return;
   var anchor = document.getElementById("a" + i);   // the textarea, or a short answer's box: the helpers go right above it
+  var bar = item.querySelector(".fbbar"), hb = null;
   if (((q.starters && q.starters.length) || (q.words && q.words.length)) && anchor && anchor.parentNode === item) {
     var hp = el("div", "helpers"); hp.id = "hp" + i;
-    if (q.starters && q.starters.length) hp.appendChild(boostRow(i, "Start with:", q.starters, true));
-    if (q.words && q.words.length) hp.appendChild(boostRow(i, "Word bank:", q.words, false));
+    hp.appendChild(el("p", "hptip", boostTip(q)));
+    if (q.starters && q.starters.length) hp.appendChild(boostRow(i, "Start with", q.starters, true));
+    if (q.words && q.words.length) hp.appendChild(boostRow(i, "Word bank", q.words, false));
     item.insertBefore(hp, anchor);
     boostHp[i] = hp;
+    if (bar) {   // Help me write: opens and closes the box (no black bar = the box just shows)
+      hb = el("button", "secondary hpbtn"); hb.type = "button"; hb.id = "hb" + i;
+      hb.innerHTML = BOOST_BULB + "<span>Help me write</span>" + BOOST_CHEV;
+      hb.title = "Sentence starters and a word bank for this question";
+      hb.setAttribute("aria-controls", hp.id);
+      hb.addEventListener("mousedown", function (e) { e.preventDefault(); });   // keep the answer box from losing focus (that would check it)
+      hb.addEventListener("click", function () { boostOpenQ[i] = !boostOpenQ[i]; boostShowHelpers(i, true); });
+      bar.insertBefore(hb, bar.firstChild);
+    } else boostOpenQ[i] = true;
     field.addEventListener("input", function () { boostMarkUsed(i); });
     boostMarkUsed(i);
     boostShowHelpers(i, false);
   }
-  var bar = item.querySelector(".fbbar");
   if (bar && boostSayMode()) {
     var b = el("button", "secondary sayit"); b.type = "button"; b.id = "say" + i;
     b.innerHTML = BOOST_MIC + "<span>Say it</span>";
@@ -4266,23 +4295,41 @@ function boostItem(i, item) {
     bar.insertBefore(b, bar.firstChild);
   }
 }
+/** The directions at the top of the box. */
+function boostTip(q) {
+  var st = q.starters && q.starters.length, wd = q.words && q.words.length, max = boostClickMax(), t = "How to use this: ";
+  if (st) t += "Click a starter to begin your sentence, then type over the blank. ";
+  if (wd) {
+    t += "The word bank saves you typing: click a word to add it. ";
+    if (q.wordTrap) t += "Some of its words are wrong, so pick carefully. ";
+    if (max) t += "You get " + max + " word " + (max === 1 ? "click" : "clicks") + " on this question. ";
+  }
+  return t + "Write your own complete sentences.";
+}
 function boostRow(i, label, list, starter) {
-  var row = el("div", "hprow");
-  row.appendChild(el("span", "hplabel", label));
+  var row = el("div", "hprow " + (starter ? "starters" : "words"));
+  var lab = el("div", "hplabel", label);
+  if (!starter) { var left = el("span", "hpleft"); left.id = "hl" + i; lab.appendChild(left); }
+  row.appendChild(lab);
   list.forEach(function (t) {
     var b = el("button", "hpill " + (starter ? "starter" : "word"), t); b.type = "button";
     b.setAttribute("data-t", t);
     b.title = starter ? "Start your answer with this" : "Add this to your answer";
     b.addEventListener("mousedown", function (e) { e.preventDefault(); });   // keep the caret where the student left it (and don't check on blur)
-    b.addEventListener("click", function () { var f = boostField(i); if (f) boostInsert(i, f, t, starter); });
+    b.addEventListener("click", function () {
+      var f = boostField(i);
+      if (!f) return;
+      if (!starter && boostClicksLeft(i) === 0) return;
+      if (boostInsert(i, f, t, starter) && !starter) boostClickUsed(i);
+    });
     row.appendChild(b);
   });
   return row;
 }
 /** Types a starter or a word into the answer where the caret is (the end when the box isn't in use). A starter loses its "..." and its
-    ___ is selected, so the student types right over it. Then the page's own input handling runs (Not checked yet, autosave). */
+    ___ is selected, so the student types right over it. Then the page's own input handling runs (Not checked yet, autosave). True = typed. */
 function boostInsert(i, f, text, starter) {
-  if (S.locked || f.disabled) return;
+  if (S.locked || f.disabled) return false;
   var v = f.value, here = document.activeElement === f && f.selectionStart != null;
   var s = here ? f.selectionStart : v.length, e = here ? f.selectionEnd : v.length;
   var before = v.slice(0, s), after = v.slice(e), piece = String(text);
@@ -4290,32 +4337,81 @@ function boostInsert(i, f, text, starter) {
   if (before && !/[\s(]$/.test(before)) piece = " " + piece;
   if (!after || /^[\w"']/.test(after)) piece += " ";
   var nv = before + piece + after;
-  if (f.maxLength > 0 && nv.length > f.maxLength) { setMeta(i, "That won't fit: this answer is already as long as it can be.", "#cc0000"); return; }
+  if (f.maxLength > 0 && nv.length > f.maxLength) { setMeta(i, "That won't fit: this answer is already as long as it can be.", "#cc0000"); return false; }
   f.value = nv;
   f.focus();
   var m = starter ? /_{2,}/.exec(piece) : null;
   if (m) f.setSelectionRange(before.length + m.index, before.length + m.index + m[0].length);
   else f.setSelectionRange(before.length + piece.length, before.length + piece.length);
   f.dispatchEvent(new Event("input", { bubbles: true }));
+  return true;
 }
-/** A starter or word already in the answer is shown as used (light, with a check). */
+/** WORD BANK CLICKS (Settings "Word bank clicks per question", S.wordClicks; 0 = no limit; a sheet older than the setting counts as 4):
+    each question allows that many word bank clicks. A click is spent for good: deleting the word or pressing Check gives none back
+    (kept in this browser, so reloading the page doesn't either). The teacher's Reset my answers clears them. */
+function boostClickMax() { var n = S.wordClicks == null ? 4 : Number(S.wordClicks); return n > 0 ? Math.floor(n) : 0; }
+function boostClicksKey() { return "selfcheck-clicks:" + String(S.title || "") + ":" + String(S.email || ""); }
+function boostClicksLoad() {
+  if (boostClicks && boostClicks.key === boostClicksKey()) return boostClicks.n;
+  var n = null;
+  try { n = JSON.parse(localStorage.getItem(boostClicksKey()) || "null"); } catch (e) { n = null; }
+  boostClicks = { key: boostClicksKey(), n: n && typeof n === "object" && !Array.isArray(n) ? n : {} };
+  return boostClicks.n;
+}
+/** Clicks left on question i, or -1 when there is no limit. */
+function boostClicksLeft(i) { var max = boostClickMax(); return max ? Math.max(0, max - (Number(boostClicksLoad()[i]) || 0)) : -1; }
+function boostClickUsed(i) {
+  if (!boostClickMax()) return;
+  var n = boostClicksLoad(); n[i] = (Number(n[i]) || 0) + 1;
+  try { localStorage.setItem(boostClicksKey(), JSON.stringify(n)); } catch (e) {}
+  boostClicksShow(i);
+}
+function boostClicksReset() { try { localStorage.removeItem(boostClicksKey()); } catch (e) {} boostClicks = null; }
+function boostClicksShow(i) {
+  var hp = boostHp[i], lab = document.getElementById("hl" + i);
+  if (!hp || !lab) return;
+  var left = boostClicksLeft(i);
+  lab.hidden = left < 0;
+  lab.textContent = left === 0 ? "No clicks left: type the words yourself" : left + (left === 1 ? " click left" : " clicks left");
+  lab.classList.toggle("none", left === 0);
+  Array.prototype.forEach.call(hp.querySelectorAll("button.hpill.word"), function (b) { b.disabled = !!S.locked || left === 0; });
+}
+/** A starter or word already in the answer is shown as used (gray, with a check). Whole words only, and the longest one wins:
+    "spreads out the force" in the answer doesn't also mark "force". */
 function boostMarkUsed(i) {
   var hp = boostHp[i], f = boostField(i);
   if (!hp || !f) return;
-  var v = f.value.toLowerCase();
-  Array.prototype.forEach.call(hp.querySelectorAll("button.hpill"), function (b) {
-    var t = String(b.getAttribute("data-t") || "").toLowerCase().replace(/\s*(\.{2,}|…)\s*$/, ""), part = t.split(/_{2,}/)[0].trim();
-    b.classList.toggle("used", !!part && part.length >= 2 && v.indexOf(part) !== -1);
-  });
+  function norm(t) { return String(t).toLowerCase().replace(/[^a-z0-9%]+/g, " ").trim(); }
+  var v = " " + norm(f.value) + " ";
+  function pass(sel) {
+    var list = Array.prototype.map.call(hp.querySelectorAll(sel), function (b) {
+      var t = String(b.getAttribute("data-t") || "").replace(/\s*(\.{2,}|…)\s*$/, "");
+      return { b: b, part: norm(t.split(/_{2,}/)[0]) };
+    }).sort(function (x, y) { return y.part.length - x.part.length; });
+    list.forEach(function (x) {
+      var used = false, at;
+      if (x.part.length >= 2) while ((at = v.indexOf(" " + x.part + " ")) !== -1) { used = true; v = v.slice(0, at) + " ~ " + v.slice(at + x.part.length + 2); }
+      x.b.classList.toggle("used", used);
+    });
+  }
+  pass("button.hpill.starter"); pass("button.hpill.word");
 }
-/** Hidden when there's nothing left to help with (green, out of tries, closed), and, with Settings "Starters only after a wrong
-    answer", until a Check comes back yellow or red. */
+/** The box is closed until Help me write opens it. The button (and so the box) is gone when there's nothing left to help with (green,
+    out of tries, closed), and, with Settings "Starters only after a wrong answer", until a Check comes back yellow or red. */
 function boostShowHelpers(i, animate) {
   var hp = boostHp[i];
   if (!hp) return;
-  var was = hp.hidden;
-  hp.hidden = !!S.locked || boostDone(i) || (!!S.helpersAfterWrong && !boostWrongYet(i));
-  Array.prototype.forEach.call(hp.querySelectorAll("button"), function (b) { b.disabled = !!S.locked; });
+  var hb = document.getElementById("hb" + i), was = hp.hidden, wasOff = hb ? hb.hidden : false;
+  var off = !!S.locked || boostDone(i) || (!!S.helpersAfterWrong && !boostWrongYet(i));
+  hp.hidden = off || !boostOpenQ[i];
+  if (hb) {
+    hb.hidden = off;
+    hb.classList.toggle("open", !hp.hidden);
+    hb.setAttribute("aria-expanded", hp.hidden ? "false" : "true");
+    if (animate && wasOff && !off) { hb.classList.remove("fresh"); void hb.offsetWidth; hb.classList.add("fresh"); }
+  }
+  Array.prototype.forEach.call(hp.querySelectorAll("button.hpill.starter"), function (b) { b.disabled = !!S.locked; });
+  boostClicksShow(i);
   if (animate && was && !hp.hidden) { hp.classList.remove("fresh"); void hp.offsetWidth; hp.classList.add("fresh"); }
 }
 

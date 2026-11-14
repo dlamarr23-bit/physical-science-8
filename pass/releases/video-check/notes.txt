@@ -1,6 +1,10 @@
-video-check v2026.11.13b
+video-check v2026.11.13c
 
-Optional update: nothing new for Video Check (this release stops students copying text out of the Self-Check pages).
+Optional update: nothing new for Video Check (this release changes the sentence starters and word bank on the Self-Check pages).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.13b (optional), if this sheet skipped it:
 
 - Nothing changes for Video Check. Your questions, settings and student work are not touched.
 
