@@ -211,6 +211,9 @@
 
    Code check (Donny, 2026-10-28): each card with a student link asks its sheet which kind and code version it
    runs (classPass, the same question the Class Pass page asks, straight to the sheet's /exec address).
+   Only when asked (Donny, 2026-11-13): opening the page checks nothing; Check for updates on the code check line asks
+   every sheet (again each time it is clicked). Once checked, a card added or edited later is asked by itself. Until
+   then the cards show no code note and no Auto grade / Full credit (they come from the same question).
    /pass/versions.json has the newest release of each kind (npm run build in the private class-tools repo makes it from
    the release files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind says
    "Code needs updating" and shows under the Needs update chip. Only versions.json says what is newest: a sheet with
@@ -387,8 +390,12 @@ document.addEventListener("DOMContentLoaded", function(){
       }, function(){ return {state: "fail"}; })
       .then(function(r){ clearTimeout(timer); return r; });
   }
-  // asks the sheets not asked yet (again: every sheet), six at a time
+  // asks the sheets not asked yet (again: every sheet), six at a time. Nothing until Check for updates (again)
+  // has been clicked once: then a card added or edited later is asked by itself.
+  var checked = false;
   function checkCodes(again){
+    if(again) checked = true;
+    if(!checked) return drawSoon();
     items.forEach(function(a){
       var id = appId(a.link);
       if(!id || (codes[id] && (!again || codes[id].state === "checking"))) return;
@@ -447,6 +454,13 @@ document.addEventListener("DOMContentLoaded", function(){
       if(c.state === "checking") n.checking++; else if(c.state === "fail") n.fail++; else if(note.need) n.need++;
       else if(note.opt) n.opt++; else if(note.cls === "info") n.unrel++; else if(note.cls) n.ok++; else n.other++;
     });
+    if(!checked){
+      if(items.some(function(a){ return appId(a.link); })){
+        box.appendChild(el("span", null, "Click Check for updates to see which sheets have a code update."));
+        box.appendChild(checkButton());
+      }
+      return n;
+    }
     if(!n.checking && !n.need && !n.opt && !n.ok && !n.unrel && !n.fail && !n.other) return n;
     var parts = [];
     if(n.need) parts.push(n.need + " need" + (n.need === 1 ? "s" : "") + " a code update");
@@ -457,15 +471,16 @@ document.addEventListener("DOMContentLoaded", function(){
     if(n.fail) parts.push(n.fail + " couldn't be checked");
     box.appendChild(el("span", null, n.checking ? "Checking each sheet's code (" + n.checking + " to go)..." + (parts.length ? " So far: " + parts.join(", ") + "." : "")
       : "Code check: " + parts.join(", ") + "."));
-    if(!n.checking){
-      var again = el("button", "lp-btn quiet", "Check again"); again.type = "button";
-      again.addEventListener("click", function(){ checkCodes(true); });
-      box.appendChild(again);
-    }
+    if(!n.checking) box.appendChild(checkButton());
     var todo = needIds();
     if(todo.length > 1 && helperReady()) box.appendChild(updateAllButton(todo));
     else allSure = false;
     return n;
+  }
+  function checkButton(){
+    var b = el("button", "lp-btn alt", "Check for updates"); b.type = "button";
+    b.addEventListener("click", function(){ checkCodes(true); });
+    return b;
   }
 
   /* ---------- Update now: the Class List sheet updates a sheet's code ---------- */
@@ -494,7 +509,7 @@ document.addEventListener("DOMContentLoaded", function(){
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, ms || 180000);
     return fetch(helper.url, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(body), signal: ctl ? ctl.signal : undefined})
-      .then(function(r){ return r.text(); }, function(){ throw new Error("The Class List sheet did not answer in time. Check the internet connection, then try again (Check again shows whether it worked)."); })
+      .then(function(r){ return r.text(); }, function(){ throw new Error("The Class List sheet did not answer in time. Check the internet connection, then try again (Check for updates shows whether it worked)."); })
       .then(function(text){
         clearTimeout(timer);
         var out = null;
