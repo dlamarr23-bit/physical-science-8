@@ -218,6 +218,7 @@
    the release files, the Claude Skill Updates folder in Drive included). A sheet older than the newest of its kind says
    "Code needs updating" and shows under the Needs update chip. Only versions.json says what is newest: a sheet with
    code newer than any release says "This sheet has unreleased code" and leaves the other cards alone (Donny, 2026-10-30).
+   The page reads versions.json again before it says so (see loadNewest), so a release that went live after it opened counts.
    Optional releases (Donny, 2026-10-30): versions.json's "_optional" gives, for a kind whose newest release can be
    skipped, the newest one a sheet needs ("needed") and what each newer one adds ("notes"). A sheet at or past "needed"
    gets a gray "Optional update" note instead of red, and isn't counted under Needs update.
@@ -363,11 +364,22 @@ document.addEventListener("DOMContentLoaded", function(){
 
   /* ---------- is each sheet's code the newest? ---------- */
   var NEED = "Needs update";
-  var codes = {}, newest = null, queue = [], running = 0, drawTimer = 0;
-  fetch("/pass/versions.json", {cache: "no-store"})
-    .then(function(r){ return r.ok ? r.json() : {}; })
-    .then(function(v){ newest = v && typeof v === "object" ? v : {}; }, function(){ newest = {}; })
-    .then(drawSoon);
+  var codes = {}, newest = null, newestAsk = null, queue = [], running = 0, drawTimer = 0;
+  // the newest releases: read when the page opens, again on each Check for updates, and again when a sheet answers with
+  // code newer than what this page read (a release that went live while the page was open, so Update now put it in the
+  // sheet; before 2026-11-13 that card said "This sheet has unreleased code" until the page was reloaded). A failed read
+  // keeps what was read before.
+  function loadNewest(){
+    if(newestAsk) return newestAsk;
+    newestAsk = fetch("/pass/versions.json", {cache: "no-store"})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(v){ if(v && typeof v === "object") newest = v; }, function(){})
+      .then(function(){ if(!newest) newest = {}; newestAsk = null; drawSoon(); });
+    return newestAsk;
+  }
+  loadNewest();
+  // a sheet's answer with code newer than the newest release this page knows of
+  function newerThanKnown(r){ var web = r && r.state === "done" && newest && newest[r.kind]; return typeof web === "string" && r.version > web; }
   function appId(link){ var m = /[?&]app=(AKfycb[\w-]{20,})/.exec(link || ""); return m ? m[1] : ""; }
   // one sheet: {state: "done", kind, version, sets}, "old" (code from before Class Pass) or "fail" (no answer).
   // sets = its grading settings, or null from code that doesn't send them (older than 2026.10.29f, or Video Check)
@@ -394,7 +406,7 @@ document.addEventListener("DOMContentLoaded", function(){
   // has been clicked once: then a card added or edited later is asked by itself.
   var checked = false;
   function checkCodes(again){
-    if(again) checked = true;
+    if(again){ checked = true; loadNewest(); }
     if(!checked) return drawSoon();
     items.forEach(function(a){
       var id = appId(a.link);
@@ -409,7 +421,7 @@ document.addEventListener("DOMContentLoaded", function(){
     while(running < 6 && queue.length){
       running++;
       (function(id){
-        askSheet(id).then(function(r){ codes[id] = r; running--; pump(); drawSoon(); });
+        askSheet(id).then(function(r){ codes[id] = r; running--; if(newerThanKnown(r)) loadNewest(); pump(); drawSoon(); });
       })(queue.shift());
     }
   }
