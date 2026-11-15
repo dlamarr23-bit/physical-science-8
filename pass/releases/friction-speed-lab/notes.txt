@@ -1,6 +1,26 @@
-friction-speed-lab v2026.11.13c
+friction-speed-lab v2026.11.14
 
-Optional update: sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points.
+Optional update: a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table.
+
+A data table can check a column students work out
+- Before this, a box in a worked-out column (a difference, a change, a total) turned green for any number. Now the table can check it.
+- In the question's Table config, add "calc" with the column and its formula. Columns are counted from 0 (0 = the first column):
+  "calc":{"col3":"col1 - col2"} means every box in column 3 must be column 1 minus column 2 of the same row.
+  Another example: "calc":{"col3":"95 - col1"}. Numbers, + - * / and ( ) all work.
+- Each box checks the student's own numbers in its row. Green = right. Yellow = close but not quite, or the numbers it needs aren't
+  filled in yet. Red = wrong, with a hint that says the formula in words (like "Temp. difference = Beaker A temp. minus Beaker B
+  temp.") and says when a subtraction was done the other way.
+- The table earns its points box by box ("12 of 13 boxes check out"), the same way the density lab's table does.
+
+A question can show a copy of an earlier question's table
+- Put {"showTable": 9} in any question's Table config to show a copy of question 9's data table right under the question's words,
+  filled in with what the student typed there. The question itself can be any type (boxes, a typed answer, a choice ...).
+- The copy changes as soon as the student changes their numbers in question 9, so they don't scroll back up to find them.
+  It is only to read: nothing in it is typed, saved or graded.
+- Check the Questions tab for problems says so if the number doesn't point at a data table.
+- The one-column and two-column pages both show it.
+
+Also from 2026.11.13c (optional), if this sheet skipped it:
 
 Help me write (sentence starters and the word bank)
 - The sentence starters and word bank start closed. A question that has them gets a Help me write button (a light bulb and an

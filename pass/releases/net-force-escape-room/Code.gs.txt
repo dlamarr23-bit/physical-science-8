@@ -270,7 +270,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "net-force-escape-room";   // a one-off Self-Check with its own page (self-check\custom\net-force-escape-room\)
-var SKILL_VERSION = "2026.11.13c";
+var SKILL_VERSION = "2026.11.14";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -542,7 +542,7 @@ function parseQuestions_(rows) {
     var mh = col("Misconception " + n + " hint"), mk = col("Misconception " + n + " key words");
     if (mh !== -1 || mk !== -1) misCols.push({ n: n, hint: mh, keys: mk });
   }
-  var items = [], sections = [], warnings = [], pendingSec = null, graphRows = [];
+  var items = [], sections = [], warnings = [], pendingSec = null, graphRows = [], showRows = [];
   if (c.q === -1) return { items: [], sections: [], warnings: ["Questions tab: the \"" + Q_COLS.q + "\" column header is missing."] };
   if (isGame_() && !choiceCols.length) warnings.push("Questions tab: a review game needs Choice 1, Choice 2 ... columns. Run Set up / repair sheets to add them.");
   function cell(r, i) { return i === -1 ? "" : String(r[i] == null ? "" : r[i]).trim(); }
@@ -630,6 +630,14 @@ function parseQuestions_(rows) {
       else warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): " + tc.error + " So it's a typed answer for now.");
     }
     else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, dropdown, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
+    var stc = cell(r, c.table);   // SHOW A TABLE (2026.11.14): {"showTable": 9} on any other question = a copy of Q9's data table under its text
+    if (stc && !item.table && item.kind !== "dropdown" && /showTable/.test(stc)) {
+      var sj = null;
+      try { sj = JSON.parse(stc.replace(/[\u201c\u201d]/g, '"')); } catch (e) { sj = null; }
+      var sn = sj && typeof sj === "object" ? Math.round(Number(sj.showTable)) : NaN;
+      if (sn >= 1) { item.showTable = sn; showRows.push({ n: items.length + 1, rowNo: rowNo, item: item }); }
+      else warnings.push(at + ": the Table config should say which question's table to show, like {\"showTable\": 9}, so no table is shown.");
+    }
     var ms = parseInt(cell(r, c.sentences), 10);
     if (ms > 0) item.minSentences = Math.min(ms, 20);
     if (/^(x|yes|y|true|1)$/i.test(cell(r, c.short))) item.short = true;
@@ -737,6 +745,13 @@ function parseQuestions_(rows) {
       if (!count) warnings.push(at + "takes its numbers from Q" + L.from + ", which has no boxes to type numbers in (it needs picture boxes or a data table).");
       else if (count !== L.x.length) warnings.push(at + "has " + L.x.length + " x numbers, but Q" + L.from + " has " + count + " boxes. Give one x number for each box" + (count > L.x.length ? " (the extra boxes are left off the graph)." : "."));
     });
+  });
+  showRows.forEach(function (g) {   // SHOW A TABLE: the question it names must be a plain data table
+    var src = items[g.item.showTable - 1], at = "Q" + g.n + " (row " + g.rowNo + ")";
+    if (!src || g.item.showTable === g.n || !src.table || src.table.graph || src.table.lab) {
+      warnings.push(at + " shows the table of Q" + g.item.showTable + ", " + (!src ? "but there is no Q" + g.item.showTable : g.item.showTable === g.n ? "which is this question itself" : "which isn't a data table") + ", so no table is shown. Put the number of a question whose Answer type is table.");
+      delete g.item.showTable;
+    }
   });
   return { items: items, sections: sections, warnings: warnings };
 }
@@ -989,6 +1004,11 @@ function tableConfigOut_(table) {
 //   height                 blocks x edge (a stack of blocks), give or take 0.1; "blocks" = the column holding 1, 2, 3, 4
 //   volume                 the student's length x width x height
 //   density                the student's mass / volume (their own volume, or length x width x height)
+// COLUMN MATH (2026.11.14, Donny: a "Temp. difference" column turned green for any number): "col3": "col1 - col2" = every box in
+// column 3 must be column 1 minus column 2 of the same row (the student's own numbers, or the row's fixed ones). A formula uses
+// colN (counted from 0), numbers, + - * / and ( ), like "95 - col1" or "col2 / col1". A box whose numbers aren't filled in yet is
+// yellow ("fill in ... first"); the hint names the columns in words ("Beaker A temp. minus Beaker B temp.") and says when a
+// subtraction was done the other way. It can go with the density keys or alone: "calc":{"col3":"col1 - col2"}.
 // A box is green within 2% (or 0.05), yellow within 8% (a rounding slip), else red. The table's data counts
 // only when every box is green. The page colors each box from the result's "cells" (a page from before
 // 2026.10.29d ignores them and shows the hints only).
@@ -1006,9 +1026,84 @@ function parseCalcConfig_(c, nCols) {
     var e = c.edge.map(Number).filter(function (x) { return isFinite(x) && x > 0; });
     if (e.length) out.edge = [Math.min.apply(null, e), Math.max.apply(null, e)];
   }
-  if (out.volume == null && out.density == null && !out.edge) return { error: "the table's calc needs a volume or density column (or an edge size to check)." };
+  var math = 0;
+  for (var key in c) {   // COLUMN MATH: "col3": "col1 - col2"
+    var mk = /^col\s*(\d+)$/i.exec(key);
+    if (!mk) continue;
+    var col = Number(mk[1]), f = calcFormula_(c[key], nCols);
+    if (!(col < nCols)) return { error: "the table's calc \"" + key + "\" names a column that isn't there (the columns are 0 to " + (nCols - 1) + ", 0 = the first column)." };
+    if (f.error) return { error: "the table's calc \"" + key + "\": " + f.error };
+    if (f.cols.indexOf(col) !== -1) return { error: "the table's calc \"" + key + "\" uses its own column." };
+    out["col" + col] = f.text;
+    math++;
+  }
+  if (out.volume == null && out.density == null && !out.edge && !math) return { error: "the table's calc needs a column formula like \"col3\": \"col1 - col2\", or a volume or density column (or an edge size to check)." };
   return { calc: out };
 }
+/** COLUMN MATH: a formula like "col1 - col2" or "95 - col1" -> { ast, cols: [columns it uses], text: the formula written back }, or { error }.
+ *  colN (counted from 0), numbers, + - * / (also x, \u00d7, \u00f7) and ( ). Never run as code. */
+function calcFormula_(text, nCols) {
+  var src = String(text == null ? "" : text), toks = [], re = /\s*(col\s*\d+|\d+(?:\.\d+)?|\.\d+|[-+*\/()x\u00d7\u00f7])/gi, m, at = 0;
+  while (at < src.length && (m = re.exec(src)) && m.index === at) { toks.push(m[1].toLowerCase().replace(/\s+/g, "")); at = re.lastIndex; }
+  if (src.slice(at).trim() || !toks.length) return { error: "a formula can only use columns like col1, numbers, + - * / and ( ), like \"col1 - col2\"." };
+  var k = 0, cols = [];
+  function expr() {
+    var a = term();
+    while (toks[k] === "+" || toks[k] === "-") { var op = toks[k++]; a = { op: op, a: a, b: term() }; }
+    return a;
+  }
+  function term() {
+    var a = factor();
+    while (/^[*\/x\u00d7\u00f7]$/.test(toks[k] || "")) { var op = /[\/\u00f7]/.test(toks[k++]) ? "/" : "*"; a = { op: op, a: a, b: factor() }; }
+    return a;
+  }
+  function factor() {
+    var t = toks[k++];
+    if (t === "-") return { neg: factor() };
+    if (t === "(") { var e = expr(); if (toks[k++] !== ")") throw new Error("a ( has no )"); return e; }
+    if (/^col\d+$/.test(t || "")) { var n = Number(t.slice(3)); if (!(n < nCols)) throw new Error("col" + n + " isn't a column (the columns are 0 to " + (nCols - 1) + ")"); if (cols.indexOf(n) === -1) cols.push(n); return { c: n }; }
+    if (/^(\d+(\.\d+)?|\.\d+)$/.test(t || "")) return { n: Number(t) };
+    throw new Error(t ? "\"" + t + "\" is in the wrong place" : "it ends too soon");
+  }
+  try { var ast = expr(); if (k < toks.length) throw new Error("\"" + toks[k] + "\" is in the wrong place"); }
+  catch (e) { return { error: e.message + ". Write it like \"col1 - col2\"." }; }
+  if (!cols.length) return { error: "a formula needs at least one column, like \"col1 - col2\"." };
+  return { ast: ast, cols: cols, text: calcText_(ast) };
+}
+/** A formula written back ("col1 - col2"), or in words with the column names ("Beaker A temp. minus Beaker B temp."). */
+function calcText_(n, words, names) {
+  var W = { "+": "plus", "-": "minus", "*": "times", "/": "divided by" };
+  if (n.c != null) return words ? names[n.c] : "col" + n.c;
+  if (n.n != null) return String(n.n);
+  if (n.neg) return "-" + calcText_(n.neg, words, names);
+  function side(x, right) {
+    var t = calcText_(x, words, names), low = x.op === "+" || x.op === "-";
+    return x.op && (low && (n.op === "*" || n.op === "/" || (right && n.op === "-")) || (right && x.op === "/" && n.op === "/")) ? "(" + t + ")" : t;
+  }
+  return side(n.a, false) + " " + (words ? W[n.op] : n.op) + " " + side(n.b, true);
+}
+/** A formula's value from one row's numbers (val(col) = a number, null for an empty box, NaN for words); null when a number is missing. */
+function calcEval_(n, val) {
+  if (n.n != null) return n.n;
+  if (n.c != null) { var v = val(n.c); return v === null || isNaN(v) ? null : v; }
+  if (n.neg) { var x = calcEval_(n.neg, val); return x === null ? null : -x; }
+  var a = calcEval_(n.a, val), b = calcEval_(n.b, val);
+  if (a === null || b === null) return null;
+  if (n.op === "+") return a + b;
+  if (n.op === "-") return a - b;
+  if (n.op === "*") return a * b;
+  return b === 0 ? null : a / b;
+}
+/** COLUMN MATH is checked closer than measured numbers: "ok" within 0.05 (a rounding of the last decimal) or 0.5%, "close" within
+ *  0.15 or 3% (a small slip: yellow), else "bad". The student's own numbers go in, so a right answer is exact or nearly so. */
+function calcMathCompare_(given, want) {
+  var d = Math.abs(given - want), a = Math.abs(want);
+  if (d <= 0.0501 || d <= a * 0.005) return "ok";
+  if (d <= 0.1501 || d <= a * 0.03) return "close";
+  return "bad";
+}
+/** A column's header without its unit: "Beaker A temp. (\u00b0C)" -> "Beaker A temp.". */
+function calcColName_(h) { var s = String(h == null ? "" : h).replace(/\s*\([^)]*\)\s*$/, "").trim(); return s || "that column"; }
 /** "ok" within 2% (or 0.05), "close" within 8%, else "bad". */
 function calcCompare_(given, truth) {
   var d = Math.abs(given - truth);
@@ -1022,6 +1117,9 @@ function calcRound_(v) { return String(Math.round(v * 100) / 100); }
 function calcCells_(item, vals) {
   var T = item.table, C = T.calc, cells = [], tips = [], at = 0;
   var STATUS = { ok: "correct", close: "partial", bad: "incorrect" };
+  var density = ["blocks", "mass", "length", "width", "height", "volume", "density", "edge"].some(function (k) { return C[k] != null; });   // a density lab names its rows "2 blocks"
+  var math = Object.keys(C).filter(function (k) { return /^col\d+$/.test(k); }).map(function (k) { var f = calcFormula_(C[k], T.cols.length); return f.error ? null : { col: Number(k.slice(3)), f: f }; }).filter(Boolean);
+  var names = T.cols.map(calcColName_);
   T.rows.forEach(function (row, r) {
     var box = {}, k;
     for (k = 0; k < row.length; k++) if (row[k] === null) box[k] = at++;
@@ -1029,7 +1127,8 @@ function calcCells_(item, vals) {
     function set(col, st, tip) { if (col == null || !box.hasOwnProperty(col)) return; cells[box[col]] = st; if (tip && tips.length < 3) tips.push(name + ": " + tip); }
     var nBlocks = C.blocks != null ? Number(row[C.blocks]) : r + 1;
     if (!(nBlocks > 0)) nBlocks = r + 1;
-    var name = row[0] != null && row[0] !== "" ? (typeof row[0] === "number" ? row[0] + (row[0] === 1 ? " block" : " blocks") : String(row[0])) : "Row " + (r + 1);
+    var unit0 = (/\(([^)]{1,12})\)\s*$/.exec(String(T.cols[0] || "")) || [])[1] || "";
+    var name = row[0] != null && row[0] !== "" ? (typeof row[0] === "number" ? (density ? row[0] + (row[0] === 1 ? " block" : " blocks") : unit0 ? row[0] + " " + unit0 : calcColName_(T.cols[0]) + " " + row[0]) : String(row[0])) : "Row " + (r + 1);
     Object.keys(box).forEach(function (col) { var v = calcNum_(vals[box[col]]); cells[box[col]] = v === null ? "blank" : (isNaN(v) ? "incorrect" : "correct"); });
     var m = val(C.mass), L = val(C.length), W = val(C.width), H = val(C.height), V = val(C.volume), D = val(C.density);
     Object.keys(box).forEach(function (col) { if (isNaN(calcNum_(vals[box[col]])) && tips.length < 3) tips.push(name + ": use numbers only, like 12.4, with no units."); });
@@ -1069,6 +1168,20 @@ function calcCells_(item, vals) {
         else set(C.density, "incorrect", "density = mass \u00f7 volume. Divide your mass by your volume again.");
       }
     }
+    math.forEach(function (M) {   // COLUMN MATH
+      var given = val(M.col);
+      if (given === null || isNaN(given) || !box.hasOwnProperty(M.col)) return;   // empty, or not a number (already said)
+      var want = calcEval_(M.f.ast, val), say = calcText_(M.f.ast, true, names), what = names[M.col];
+      if (want === null) {
+        var miss = M.f.cols.filter(function (k) { var v = val(k); return v === null || isNaN(v); }).map(function (k) { return names[k]; });
+        return set(M.col, "partial", "fill in " + miss.join(" and ") + " first, then find " + what + ".");
+      }
+      var cm = calcMathCompare_(given, want), rule = what + " = " + say + (/\.$/.test(say) ? "" : ".");
+      if (cm === "ok") set(M.col, "correct");
+      else if (cm === "close") set(M.col, "partial", what + " is close but not quite right. " + rule);
+      else if (Math.abs(want) > 1e-9 && calcMathCompare_(given, -want) === "ok") set(M.col, "incorrect", "it looks like you subtracted the other way. " + rule);
+      else set(M.col, "incorrect", rule + " Do the math again with the numbers in this row.");
+    });
   });
   var allOk = cells.length > 0 && cells.every(function (c) { return c === "correct"; });
   return { cells: cells, tips: tips, allOk: allOk };
@@ -1355,7 +1468,7 @@ function seedConfigTabs_() {
       }
       row.push(it.kind ? it.kind : it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : "",
                it.table ? JSON.stringify(it.table.graph ? { graph: it.table.graph } : it.table.lab ? { lab: it.table.lab } : tableConfigOut_(it.table)) :
-               it.kind === "dropdown" && it.dtable ? JSON.stringify(it.dtable) : "",
+               it.kind === "dropdown" && it.dtable ? JSON.stringify(it.dtable) : it.showTable ? JSON.stringify({ showTable: it.showTable }) : "",
                it.minSentences || "", it.short ? "x" : "", it.points == null ? "" : it.points);
       if (tryCols) {
         var tfc = it.kind === "truefalse" ? [{ t: "TRUE" }, { t: "FALSE" }].map(function (c, k) { var own = (it.choices || [])[k]; return own && own.fb ? { t: c.t, fb: own.fb } : c; }) : null;
@@ -1530,7 +1643,7 @@ var SEC_IMG_NOTE_ = "OPTIONAL: a picture shown right under this row's blue secti
 var POINTS_NOTE_ = "OPTIONAL: what this question is worth. Blank = 1, the same as every other question. The grade out of Points possible (Settings) is split by points, so a question worth 10 counts ten times as much as one worth 1. A question with key words earns its points by how many of its ideas the answer shows (3 of 5 ideas = 60% of its points; a table or picture boxes work the same way); a question with no key words earns them by its color (green all, yellow the Credit for yellow share, red the Credit for red share). Tip: make the points add up to Points possible (Settings) and set Full credit at to 100%.";
 var MIS_HINT_NOTE_ = "OPTIONAL: what students see when their answer shows this WRONG idea (the misconception's key words are in it), e.g. Seconds only measure time. Speed also needs a distance unit, like cm. Coach them toward the right idea instead of just saying it's wrong. They see it as  Check this: ...  and the box can't turn green until they fix that part.";
 var MIS_KEYS_NOTE_ = "OPTIONAL: words that show a common WRONG idea (misconception) for this question. Typed the same way as the Idea key words: commas mean OR, + means AND, capital NOT forbids words. Example for the units of speed (a time unit with no distance unit):\n  second, sec + NOT cm, meter, mile, per\nWhen an answer has these words, the student sees this misconception's hint, and the box can't turn green (it earns at most the yellow share of its points). Only typed answers are checked (not tables, picture boxes or uploads). Leave blank when there's no common wrong idea. Try it with Self-Check > Test an answer against the key.";
-var TABLE_NOTE_ = "For Answer type  dropdown: OPTIONAL, a small table shown above the sentences, only for reading (no boxes, not graded, no graph), e.g.\n{\"cols\":[\"Mammal\",\"Mass (kg)\",\"Speed (m/s)\"],\"rows\":[[\"lion\",125,16],[\"wildebeest\",250,16]]}\nFor Answer type  table: JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
+var TABLE_NOTE_ = "For Answer type  dropdown: OPTIONAL, a small table shown above the sentences, only for reading (no boxes, not graded, no graph), e.g.\n{\"cols\":[\"Mammal\",\"Mass (kg)\",\"Speed (m/s)\"],\"rows\":[[\"lion\",125,16],[\"wildebeest\",250,16]]}\nFor Answer type  table: JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA column formula in \"calc\" checks a column the student works out, like a difference: {\"col3\":\"col1 - col2\"} (column 3 = column 1 minus column 2, counted from 0) or {\"col3\":\"95 - col1\"}; numbers, + - * / and ( ) work.\nAny other question: {\"showTable\":9} shows a copy of question 9's data table under the question, filled in with what the student typed there.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
 var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count), or  dropdown  for sentences with dropdowns in them (like IXL): type ___ in the question where each dropdown goes (Ctrl+Enter starts a new line), the options in the Choice columns, and one Right choice per ___ (2, 3, 2); one Check sends them all. These show their Explanation once done, and their Hint columns under a light bulb. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
 
 /** Existing Settings tab: add any settings that are newer than the tab (existing values are never changed).
@@ -2651,6 +2764,7 @@ function questionsForClient_() {
              hints: isTried_(it) && it.hints ? { clue: it.hints.clue || "", example: it.hints.example || "", video: it.hints.video || "" } : null,   // the light bulb (hints never cost points)
              boxes: (it.boxes || []).map(function (b) { return { label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }; }),
              links: (it.links || []).filter(function (l) { return l && buttonUrl_(l.url); }) };
+    if (it.showTable) o.showTable = it.showTable;   // SHOW A TABLE: the page draws a copy of that question's table under this one's text
     if (triesPage_() && helpersFit_(it)) {   // HELPERS: the buttons that type a sentence starter or a word into the answer (only when there are some)
       if (it.starters && it.starters.length) o.starters = it.starters.slice(0, HELPER_MAX_STARTERS);
       if (it.words && it.words.length) o.words = it.words.slice(0, HELPER_MAX_WORDS);

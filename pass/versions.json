@@ -1,21 +1,21 @@
 {
-  "auto-grading-activity": "2026.11.13c",
+  "auto-grading-activity": "2026.11.14",
   "class-list": "2026.11.11",
-  "friction-article": "2026.11.13c",
-  "friction-sim-lab": "2026.11.13c",
-  "friction-speed-lab": "2026.11.13c",
-  "net-force-escape-room": "2026.11.13c",
-  "reading-activity": "2026.11.13c",
-  "review-game": "2026.11.13c",
-  "video-check": "2026.11.13c",
+  "friction-article": "2026.11.14",
+  "friction-sim-lab": "2026.11.14",
+  "friction-speed-lab": "2026.11.14",
+  "net-force-escape-room": "2026.11.14",
+  "reading-activity": "2026.11.14",
+  "review-game": "2026.11.14",
+  "video-check": "2026.11.14",
   "_optional": {
-    "auto-grading-activity": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."]]},
-    "friction-article": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."]]},
-    "friction-sim-lab": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."]]},
-    "friction-speed-lab": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."]]},
-    "net-force-escape-room": {"needed":"2026.11.13b","notes":[["2026.11.13c","nothing new for the escape room (this release changes the sentence starters and word bank on the Self-Check pages)."]]},
-    "reading-activity": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."]]},
-    "review-game": {"needed":"2026.11.13b","notes":[["2026.11.13c","nothing new for the review game (this release changes the sentence starters and word bank on the Self-Check pages)."]]},
-    "video-check": {"needed":"2026.11.11b","notes":[["2026.11.11c","Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check."],["2026.11.11d","nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets)."],["2026.11.12","nothing changes for Video Check (this release changes the Self-Check drawing pad)."],["2026.11.12b","nothing new for Video Check (this release adds sentence starters, a word bank, Say it and small wins to the Self-Check pages)."],["2026.11.13","nothing new for Video Check (this release gives the one-column and two-column Self-Check pages exactly the same question types)."],["2026.11.13b","nothing new for Video Check (this release stops students copying text out of the Self-Check pages)."],["2026.11.13c","nothing new for Video Check (this release changes the sentence starters and word bank on the Self-Check pages)."]]}
+    "auto-grading-activity": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."],["2026.11.14","a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table."]]},
+    "friction-article": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."],["2026.11.14","a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table."]]},
+    "friction-sim-lab": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."],["2026.11.14","a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table."]]},
+    "friction-speed-lab": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."],["2026.11.14","a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table."]]},
+    "net-force-escape-room": {"needed":"2026.11.13b","notes":[["2026.11.13c","nothing new for the escape room (this release changes the sentence starters and word bank on the Self-Check pages)."],["2026.11.14","nothing new for the escape room (this release adds checked math columns and table copies on the Self-Check pages)."]]},
+    "reading-activity": {"needed":"2026.11.13b","notes":[["2026.11.13c","sentence starters and the word bank now hide behind a Help me write button, and clicking every word no longer earns full points."],["2026.11.14","a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table."]]},
+    "review-game": {"needed":"2026.11.13b","notes":[["2026.11.13c","nothing new for the review game (this release changes the sentence starters and word bank on the Self-Check pages)."],["2026.11.14","nothing new for the review game (this release adds checked math columns and table copies on the Self-Check pages)."]]},
+    "video-check": {"needed":"2026.11.11b","notes":[["2026.11.11c","Chromebooks that already opened a lesson skip the sign-in check the next time; nothing else changes for Video Check."],["2026.11.11d","nothing changes for Video Check (this release adds Give full credit to the Self-Check sheets)."],["2026.11.12","nothing changes for Video Check (this release changes the Self-Check drawing pad)."],["2026.11.12b","nothing new for Video Check (this release adds sentence starters, a word bank, Say it and small wins to the Self-Check pages)."],["2026.11.13","nothing new for Video Check (this release gives the one-column and two-column Self-Check pages exactly the same question types)."],["2026.11.13b","nothing new for Video Check (this release stops students copying text out of the Self-Check pages)."],["2026.11.13c","nothing new for Video Check (this release changes the sentence starters and word bank on the Self-Check pages)."],["2026.11.14","nothing new for Video Check (this release adds checked math columns and table copies on the Self-Check pages)."]]}
   }
 }

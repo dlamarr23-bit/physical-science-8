@@ -1,6 +1,10 @@
-review-game v2026.11.13c
+review-game v2026.11.14
 
-Optional update: nothing new for the review game (this release changes the sentence starters and word bank on the Self-Check pages).
+Optional update: nothing new for the review game (this release adds checked math columns and table copies on the Self-Check pages).
+
+- Nothing changes for the review game. Your questions, settings and student work are not touched.
+
+Also from 2026.11.13c (optional), if this sheet skipped it:
 
 - Nothing changes for the review game. Your questions, settings and student work are not touched.
 
