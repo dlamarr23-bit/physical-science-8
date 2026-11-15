@@ -1,6 +1,10 @@
-reading-activity v2026.11.14
+reading-activity v2026.11.15
 
-Optional update: a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table.
+Optional update: nothing new for this kind of sheet (this release only changes the review game: it tells the class website's Review page each class's due date).
+
+- Nothing changes for this kind of sheet. Your questions, settings and student work are not touched.
+
+Also from 2026.11.14 (optional), if this sheet skipped it:
 
 A data table can check a column students work out
 - Before this, a box in a worked-out column (a difference, a change, a total) turned green for any number. Now the table can check it.

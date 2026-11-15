@@ -1,6 +1,10 @@
-net-force-escape-room v2026.11.14
+net-force-escape-room v2026.11.15
 
-Optional update: nothing new for the escape room (this release adds checked math columns and table copies on the Self-Check pages).
+Optional update: nothing new for the escape room (this release only changes the review game: it tells the class website's Review page each class's due date).
+
+- Nothing changes for the escape room. Your questions, settings and student work are not touched.
+
+Also from 2026.11.14 (optional), if this sheet skipped it:
 
 - Nothing changes for the escape room. Your questions, settings and student work are not touched.
 

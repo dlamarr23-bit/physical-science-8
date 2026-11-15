@@ -1,7 +1,7 @@
 {
   "kind": "reading-activity",
-  "version": "2026.11.14",
-  "optional": "a data table can check a column students work out (like Beaker A minus Beaker B), and a question can show a copy of an earlier question's table.",
+  "version": "2026.11.15",
+  "optional": "nothing new for this kind of sheet (this release only changes the review game: it tells the class website's Review page each class's due date).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

@@ -264,7 +264,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-article";   // a one-off Self-Check with its own page (self-check\custom\friction-article\)
-var SKILL_VERSION = "2026.11.14";
+var SKILL_VERSION = "2026.11.15";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -2580,18 +2580,45 @@ function websiteRow_(email, rec) {
   return { email: email, points: Math.max(rec.topPoints || 0, rec.game ? rec.game.points || 0 : 0), right: t.right, total: t.total, pct: t.pct,
            passed: Math.max(fNow, fBest) >= FULL_CREDIT_AT - 1e-9 };   // full credit (Settings "Full credit at")
 }
+/** CURRENT REVIEW GAME (2026.11.15): what the website's Review page needs to show this game above its folders with a countdown
+ *  for each period: the student link (Class Pass, the same one Classroom has, so scores land here either way) and each linked
+ *  class's Classroom due date by period, { "1": ms, "3": ms } (a class with no period or no due date is left out). Classroom is
+ *  asked now (the hourly check and the menu send call this, never a student's request); if it doesn't answer, the last answer. */
+function websiteGameInfo_() {
+  var dues = {};
+  courses_().forEach(function (c) {
+    var p = String(c.period == null ? "" : c.period).trim(), d = 0;
+    if (!p || !c.cwId) return;
+    try { var due = classroomDue_(c); d = due ? due.getTime() : 0; } catch (e) { d = dueOfCourse_(c, true); }
+    if (d) dues[p] = d;
+  });
+  // goal: Settings "Full credit at" and the points, for the banner's "70% or better = 10 out of 10"
+  return { link: passLink_(), dues: dues, goal: { pct: Math.round((Number(FULL_CREDIT_AT) || 0) * 100), points: Number(MAX_POINTS) || 0 } };
+}
+/** "Period 1: Thu 11/19 8:10 AM" lines for the menu send's message. */
+function duesText_(dues) {
+  var ps = Object.keys(dues || {}).sort(function (a, b) { return (Number(a) || 0) - (Number(b) || 0); });
+  return ps.map(function (p) {
+    var when = "";
+    try { when = Utilities.formatDate(new Date(dues[p]), tz_(), "EEE M/d h:mm a"); } catch (e) { when = new Date(dues[p]).toString(); }
+    return "Period " + p + ": " + when;
+  }).join("\n");
+}
 /** Sends these students' rows (all students when emails is null) to the website. Returns { ok, saved } or { ok: false, error }.
  *  withTitle: send even when no student has played, so the website learns the game's title (it files a review game under the
- *  topic its title names, and only learns the title from a send). */
-function pushToWebsite_(emails, withTitle) {
+ *  topic its title names, and only learns the title from a send).
+ *  info: websiteGameInfo_() (the student link and due dates); left out on a student's own send, so the website keeps what it had. */
+function pushToWebsite_(emails, withTitle, info) {
   if (!websiteBoardOn_()) return { ok: false, error: "off" };
   var recs = emails ? {} : allRecords_();
   if (emails) emails.forEach(function (e) { var r = readRecord_(e); if (r) recs[e] = r; });
   var rows = Object.keys(recs).filter(function (e) { return recs[e].game && recs[e].checks; }).map(function (e) { return websiteRow_(e, recs[e]); });
   if (!rows.length && !withTitle) return { ok: true, saved: 0, rows: [] };
   var url = String(WEBSITE_BOARD_URL).trim().replace(/\/$/, "") + "/api/review/results";
+  var game = { id: openSS_().getId(), title: ASSIGNMENT_TITLE };
+  if (info) { game.link = info.link || ""; game.dues = info.dues || {}; game.goal = info.goal || null; }
   var res = UrlFetchApp.fetch(url, { method: "post", contentType: "application/json", muteHttpExceptions: true,
-    payload: JSON.stringify({ key: String(WEBSITE_BOARD_KEY).trim(), game: { id: openSS_().getId(), title: ASSIGNMENT_TITLE }, rows: rows.slice(0, 500) }) });
+    payload: JSON.stringify({ key: String(WEBSITE_BOARD_KEY).trim(), game: game, rows: rows.slice(0, 500) }) });
   var body = {};
   try { body = JSON.parse(res.getContentText()) || {}; } catch (e) { body = {}; }
   if (res.getResponseCode() !== 200) return { ok: false, error: body.error || ("The website answered " + res.getResponseCode() + ".") };
@@ -2599,33 +2626,40 @@ function pushToWebsite_(emails, withTitle) {
 }
 /** What the website was last told the game is called (BOARD_TITLE): a new title, or a new website, sends everything again. */
 function boardTitleKey_() { return ASSIGNMENT_TITLE + "|" + String(WEBSITE_BOARD_URL || "").trim(); }
-function sendAllToWebsite_() {
-  var res = pushToWebsite_(null, true);
+function sendAllToWebsite_(info) {
+  info = info || websiteGameInfo_();
+  var res = pushToWebsite_(null, true, info);
   if (!res.ok) return res;
   var sent = {};
   res.rows.forEach(function (w) { sent[w.email] = w.points + "|" + w.right + "|" + w.total; });
   props_().setProperty("BOARD_SENT", JSON.stringify(sent));
   props_().setProperty("BOARD_TITLE", boardTitleKey_());
+  props_().setProperty("BOARD_INFO", JSON.stringify(info));
+  res.info = info;
   return res;
 }
 /** The hourly check: sends the students whose points or right answers changed since the last send. The first time (and after the
  *  title changes) it sends every student and the title, so the website files the game under its topic (2026.11.03b: the Mass,
- *  Acceleration, and Collisions game had sent its points before the website kept titles, so it only showed under All topics). */
+ *  Acceleration, and Collisions game had sent its points before the website kept titles, so it only showed under All topics).
+ *  A new student link or a changed Classroom due date (BOARD_INFO, 2026.11.15) is sent too, even when no points changed. */
 function syncWebsiteBoard_() {
   loadConfig_();
   if (!websiteBoardOn_()) return;
-  if (props_().getProperty("BOARD_TITLE") !== boardTitleKey_()) { sendAllToWebsite_(); return; }
+  var info = websiteGameInfo_();
+  if (props_().getProperty("BOARD_TITLE") !== boardTitleKey_()) { sendAllToWebsite_(info); return; }
   var sent = JSON.parse(props_().getProperty("BOARD_SENT") || "{}"), recs = allRecords_(), todo = [];
   Object.keys(recs).forEach(function (e) {
     if (!recs[e].game || !recs[e].checks) return;
     var w = websiteRow_(e, recs[e]), k = w.points + "|" + w.right + "|" + w.total;
     if (sent[e] !== k) todo.push(e);
   });
-  if (!todo.length) return;
-  var res = pushToWebsite_(todo);
+  var newInfo = props_().getProperty("BOARD_INFO") !== JSON.stringify(info);
+  if (!todo.length && !newInfo) return;
+  var res = pushToWebsite_(todo, newInfo, newInfo ? info : null);
   if (!res.ok) return;
   res.rows.forEach(function (w) { sent[w.email] = w.points + "|" + w.right + "|" + w.total; });
   props_().setProperty("BOARD_SENT", JSON.stringify(sent));
+  if (newInfo) props_().setProperty("BOARD_INFO", JSON.stringify(info));
 }
 /** Menu (review game only): send every student's points to the website leaderboard now and say what happened. */
 function sendPointsToWebsite() {
@@ -2640,7 +2674,9 @@ function sendPointsToWebsite() {
   if (!res.ok) { ui.alert("The website didn't take the points: " + res.error + "\n\nCheck the address and the key in the Settings tab."); return; }
   ui.alert((res.rows.length ? "Sent " + res.rows.length + " student" + (res.rows.length === 1 ? "'s" : "s'") + " game points. The website put " + res.saved + " on its Leaderboard (students who aren't on the website's class roster are left off)."
                             : "No one has played yet, so there were no points to send.") +
-           "\n\nThe website also has this game's title now, \"" + ASSIGNMENT_TITLE + "\", so the game shows under the Leaderboard topic its title names.");
+           "\n\nThe website also has this game's title now, \"" + ASSIGNMENT_TITLE + "\", so the game shows under the Leaderboard topic its title names." +
+           (duesText_(res.info && res.info.dues) ? "\n\nDue times from Classroom (the countdown on the website's Review page, when this is the current review game):\n" + duesText_(res.info.dues)
+                                                 : "\n\nNo Classroom due dates yet, so the website's Review page shows this game without a countdown. Link your classes (step 1), create the assignment (step 2) and set each class's due date in Classroom."));
 }
 
 // ============================== PICTURE UPLOADS ==============================

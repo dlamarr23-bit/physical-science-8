@@ -1,7 +1,7 @@
 {
   "kind": "video-check",
-  "version": "2026.11.14",
-  "optional": "nothing new for Video Check (this release adds checked math columns and table copies on the Self-Check pages).",
+  "version": "2026.11.15",
+  "optional": "nothing new for Video Check (this release only changes the review game: it tells the class website's Review page each class's due date).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

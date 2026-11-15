@@ -1,6 +1,28 @@
-review-game v2026.11.14
+review-game v2026.11.15
 
-Optional update: nothing new for the review game (this release adds checked math columns and table copies on the Self-Check pages).
+Optional update: the class website's Review page can show this game above the flashcard folders, with a countdown to each period's due time.
+
+The current review game on the class website's Review page
+- On the Review page (signed in with the teacher password), a new box "Current review game" lists your review games. Pick
+  this one (or paste this sheet's link) and click Show this game. Every student then sees a banner above the folders: the
+  game's title, a countdown to the start of their own class on test day, the period race (how much of each class has 70% or
+  better), their best try and their place in their period, and a Play the review game button.
+- The countdown comes from each class's due date in Google Classroom. Set the due date in each class the way you already do
+  (the start of that class on test day). Every hour this sheet asks Classroom for each linked class's due date and sends it to
+  the website with the game's student link. A due date you change in Classroom reaches the website within about an hour.
+- To send them right away: Self-Check > Send game points to the website leaderboard now. Its message now also lists each
+  period's due time, so you can check them.
+- The Play button opens the same Class Pass link students get in Classroom, so their score goes into this sheet and onto
+  the leaderboard the same way, whichever link they click.
+- After a period's due time the banner says Time's up for that period (no late work). The other periods keep counting down.
+- It uses the Website leaderboard address and key in the Settings tab (a copy of your last review game sheet already has
+  them) and this sheet's hourly check. Your questions, settings and student work are not touched.
+
+To update this sheet: Update now on the Assignment Launchpad, or paste the new Code.gs (Index.html is unchanged) and create
+the New version (Deploy > Manage deployments > pencil > New version > Deploy). Then run Self-Check > Send game points to
+the website leaderboard now once, so the website gets the due times at once.
+
+Also from 2026.11.14 (optional), if this sheet skipped it:
 
 - Nothing changes for the review game. Your questions, settings and student work are not touched.
 
