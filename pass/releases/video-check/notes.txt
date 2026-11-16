@@ -1,6 +1,10 @@
-video-check v2026.11.15
+video-check v2026.11.15b
 
-Optional update: nothing new for Video Check (this release only changes the review game: it tells the class website's Review page each class's due date).
+Optional update: nothing new for Video Check (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.15 (optional), if this sheet skipped it:
 
 - Nothing changes for Video Check. Your questions, settings and student work are not touched.
 

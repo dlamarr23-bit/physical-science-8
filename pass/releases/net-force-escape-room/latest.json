@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.15",
-  "optional": "nothing new for the escape room (this release only changes the review game: it tells the class website's Review page each class's due date).",
+  "version": "2026.11.15b",
+  "optional": "nothing new for the escape room (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

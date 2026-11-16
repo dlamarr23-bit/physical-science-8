@@ -1,7 +1,7 @@
 {
   "kind": "reading-activity",
-  "version": "2026.11.15",
-  "optional": "nothing new for this kind of sheet (this release only changes the review game: it tells the class website's Review page each class's due date).",
+  "version": "2026.11.15b",
+  "optional": "one- and two-word answers sit beside their question, and three new answer types for them (exact, elements, element word).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

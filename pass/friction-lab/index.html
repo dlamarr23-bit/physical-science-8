@@ -244,6 +244,27 @@
   .item:has(> .boxarea > .boxlist) > .fbbar { min-height:0; padding:4px 6px 4px 12px; }
   .item:has(> .boxarea > .boxlist) > .fbbar:has(.fb:empty):has(.meta:empty) { display:none; }   /* nothing to say yet: no black bar (Enter or clicking out checks) */
   html[data-theme="dark"] .item:has(> .boxarea > .boxlist) > .boxarea { border-color:#5f6670; }
+  /* ONE OR TWO WORDS (2026.11.15b): a short answer, or a typed answer the sheet marks side (exact, elements, Allow short answer), sits at the right
+     like the boxes above; anything else in the question (helpers, the last-try warning, the black bar) goes full width under it */
+  .item.sideq { display:grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 36%); margin-bottom:8px; background: var(--q); }
+  .item.sideq > * { grid-column:1 / -1; }
+  .item.sideq > .qtext { grid-column:1; grid-row:1; display:flex; align-items:center; gap:0 2px; padding:8px 12px; border-right:3px solid #111; }
+  .item.sideq > .qtext > .qnum { flex:none; }
+  .item.sideq > .qtext:has(> .qimg, > .qlinks, > .tcopy) { display:block; }   /* a picture, buttons or a table copy: plain lines again */
+  .item.sideq > textarea, .item.sideq > .shortwrap { grid-column:2; grid-row:1; align-self:center; }
+  .item.sideq > textarea { width:auto; min-height:0; margin:6px 8px; padding:5px 8px; border:2px solid #111; border-radius:4px; background:#fff; }
+  .item.sideq > .shortwrap { padding:6px 8px; }
+  .item.sideq > .shortwrap input.shortbox { padding:5px 8px; border:2px solid #111; border-radius:4px; }
+  .item.sideq > textarea.correct, .item.sideq > .shortwrap input.shortbox.correct { background: var(--green); border-color:#38761d; }
+  .item.sideq > textarea.partial { background: var(--yellow); border-color:#bf9000; }
+  .item.sideq > textarea.incorrect, .item.sideq > .shortwrap input.shortbox.incorrect { background: var(--red); border-color:#cc0000; }
+  .item.sideq > .fbbar { min-height:0; padding:4px 6px 4px 12px; }
+  .item.sideq:not(:has(.triesleft)) > .fbbar:has(.fb:empty):has(.meta:empty):not(:has(.hpbtn)) { display:none; }   /* like the boxes: no black bar until there's something to say (Enter or clicking out checks) */
+  html[data-theme="dark"] .item.sideq > .qtext { border-color:#5f6670; }
+  html[data-theme="dark"] .item.sideq > textarea, html[data-theme="dark"] .item.sideq > .shortwrap input.shortbox { background:#14171c; border-color:#5f6670; }
+  html[data-theme="dark"] .item.sideq > textarea.correct, html[data-theme="dark"] .item.sideq > .shortwrap input.shortbox.correct { background:var(--green); }
+  html[data-theme="dark"] .item.sideq > textarea.partial { background:var(--yellow); }
+  html[data-theme="dark"] .item.sideq > textarea.incorrect, html[data-theme="dark"] .item.sideq > .shortwrap input.shortbox.incorrect { background:var(--red); }
   input.pbox.partial, .boxlist input.pbox.partial { background: var(--yellow); border-color:#bf9000; }
   /* a copy of another question's data table under a question's text (Table config {"showTable": 9}); only to read */
   .tcopy { margin-top:10px; font-weight:400; }
@@ -2200,6 +2221,15 @@ function timerButton(label, secs) {
   return panel;
 }
 function isBoxQ(i) { return !!(S.questions[i].boxes && S.questions[i].boxes.length); }
+/** ONE OR TWO WORDS (2026.11.15b, Donny: "I always want 1 or 2 words responses on the side"): a short answer (one line, limited tries), or a
+ *  typed answer the sheet marks side (Answer type exact or elements, or Allow short answer with no Minimum sentences) gets its box beside the
+ *  question, like boxes with no picture. A short answer goes beside the question even with an older Code.gs. */
+function isSideQ(i) {
+  var q = S.questions[i];
+  if (q.table || q.upload || q.draw || (q.boxes && q.boxes.length)) return false;
+  if (q.kind) return q.kind === "short";
+  return !!q.side;
+}
 function isUploadQ(i) { return !!S.questions[i].upload; }
 /** Not graded: a picture upload, or a graph with "labels": false (it only shows the student's data). */
 function isUngradedQ(i) { var q = S.questions[i]; return !!(q.upload || (q.table && q.table.graph && q.table.graph.labels === false)); }
@@ -2325,6 +2355,7 @@ function renderQuestions(box) {
       ta = el("textarea"); ta.id = "a" + i; ta.value = S.answers[i] || ""; ta.placeholder = "Type your answer here…"; ta.rows = 1; growAnswer(ta);
       ta.disabled = S.locked;
     }
+    if (isSideQ(i)) item.className += " sideq";   // ONE OR TWO WORDS: the box sits beside the question (questions.css .sideq)
     var fb = el("div", "fb"); fb.id = "f" + i;
     var row = el("div", "fbbar"), fbt = el("div", "fbtext");   // the black bar: feedback and the save status on the left, Check on the right
     var meta = el("div", "meta"); meta.id = "m" + i;
@@ -2354,7 +2385,7 @@ function renderQuestions(box) {
         // Picture boxes: check once the student leaves the whole diagram (Tab between boxes doesn't check yet).
         setTimeout(function () { if (fields.indexOf(document.activeElement) === -1) check(i, false); }, 0);
       });
-      if (isBoxQ(i)) f.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); check(i, true); } });
+      if (isBoxQ(i) || isSideQ(i)) f.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); check(i, true); } });
       if (isBoxQ(i)) { setTimeout(function () { fitBox(f); }, 0); window.addEventListener("resize", function () { fitBox(f); }); }
       f.addEventListener("input", function () {
         if (isBoxQ(i)) { f.className = "pbox"; fitBox(f); }   // clear this box's color while it's being changed
@@ -3724,7 +3755,7 @@ function render() {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.15";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.15b";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.

@@ -267,7 +267,7 @@ var ITEMS = [];   // website releases carry no starter questions or answer keys:
 // Used by Self-Check > Check for skill updates. Claude bumps SKILL_VERSION (YYYY.MM.DD)
 // every time the auto-grading-activity skill's template changes.
 var SKILL_NAME = "friction-speed-lab";   // a one-off Self-Check with its own page (self-check\custom\friction-speed-lab\)
-var SKILL_VERSION = "2026.11.15";
+var SKILL_VERSION = "2026.11.15b";
 var SKILL_UPDATES_FOLDER = "Claude Skill Updates";
 var SKILL_UPDATES_URL = "https://physical-science-8.pages.dev/pass/releases/";   // releases on the class website (<kind>/latest.json); "" = only the Drive folder
 
@@ -626,7 +626,8 @@ function parseQuestions_(rows) {
       if (tc.table) item.table = tc.table;
       else warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): " + tc.error + " So it's a typed answer for now.");
     }
-    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, dropdown, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
+    else if (answerRule_(ty)) item.rule = answerRule_(ty);   // ONE OR TWO WORDS: exact, elements, element word (see ruleFeedback_)
+    else if (ty && !/^(text|typed|answer|rubric)$/.test(ty)) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): Answer type \"" + ty + "\" isn't one this version knows (blank = typed answer, choice, truefalse, short, exact, elements, element word, dropdown, table, draw = drawing pad, upload = picture upload), so it's a typed answer.");
     var stc = cell(r, c.table);   // SHOW A TABLE (2026.11.14): {"showTable": 9} on any other question = a copy of Q9's data table under its text
     if (stc && !item.table && item.kind !== "dropdown" && /showTable/.test(stc)) {
       var sj = null;
@@ -672,6 +673,11 @@ function parseQuestions_(rows) {
     ideas.forEach(function (idea) {
       if (item.kind === "dropdown") return;   // (its Idea hints are its boxes' hints, read above)
       var keys = cell(r, idea.keys), hint = cell(r, idea.hint);
+      if (item.rule) {   // ONE OR TWO WORDS: the key words cells are kept as typed (capital letters count), Idea 1 hint = the hint for a wrong answer
+        if (keys) (item.ruleKeys = item.ruleKeys || []).push(keys);
+        if (idea.n === 1 && hint) item.ruleHint = hint.slice(0, 1000);
+        return;
+      }
       if (!keys) {
         if (hint) warnings.push("Row " + rowNo + " (Q" + (items.length + 1) + "): Idea " + idea.n + " has a hint but no key words, so it's ignored.");
         return;
@@ -705,7 +711,8 @@ function parseQuestions_(rows) {
       if (item.boxes) { warnings.push(at + " is a short answer (one line), so its picture boxes are ignored."); delete item.boxes; }
       if (!item.criteria.length) warnings.push(at + " is a short answer with no key words, so any answer counts as right on the first try. Type the right answer's key words in Idea 1 key words.");
     }
-    if (item.boxes) {
+    if (item.rule) ruleSetUp_(item, at, warnings);   // ONE OR TWO WORDS: its answers, its boxes, and what it ignores
+    if (item.boxes && !item.rule) {
       if (item.boxes.length !== item.criteria.length) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has " + item.boxes.length + " boxes on the picture but " + item.criteria.length + " ideas with key words. Box 1 uses Idea 1, box 2 uses Idea 2, and so on, so these should match.");
       if (!item.img) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has picture boxes but no picture yet, so students see the boxes as a plain list until you paste the picture link.");
     }
@@ -722,7 +729,7 @@ function parseQuestions_(rows) {
       if (item.criteria.length) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") is a picture upload, so its key words are ignored (uploads aren't graded).");
       if (item.boxes) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") is a picture upload, so its picture boxes are ignored.");
       item.criteria = []; delete item.boxes;
-    } else if (!item.criteria.length && !item.table && !item.choices && !item.kind) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has no key words, so any answer at least the minimum length counts as green.");
+    } else if (!item.criteria.length && !item.table && !item.choices && !item.kind && !item.rule) warnings.push("Q" + (items.length + 1) + " (row " + rowNo + ") has no key words, so any answer at least the minimum length counts as green.");
     if (item.mis && (item.upload || item.table || item.boxes)) {
       warnings.push("Q" + (items.length + 1) + " (row " + rowNo + "): misconceptions only check typed answers (not tables, picture boxes or uploads), so this question's are ignored.");
       delete item.mis;
@@ -1439,7 +1446,7 @@ function seedConfigTabs_() {
     qs = qs || ss.insertSheet(SH_QUESTIONS, 0);
     var ideaCount = IDEA_COLS, misCount = MIS_COLS, choiceCount = TRY_CHOICE_COLS;
     ITEMS.forEach(function (it) {
-      ideaCount = Math.max(ideaCount, it.criteria.length, Math.min(20, (it.dhints || []).length)); misCount = Math.max(misCount, (it.mis || []).length);
+      ideaCount = Math.max(ideaCount, it.criteria.length, Math.min(20, (it.dhints || []).length), it.rule ? Math.max(1, Math.min(20, (it.ruleKeys || []).length)) : 0); misCount = Math.max(misCount, (it.mis || []).length);
       if (it.kind && it.choices) choiceCount = Math.max(choiceCount, Math.min(6, it.choices.length));
     });
     var head = [Q_COLS.section, Q_COLS.secLabel, Q_COLS.secUrl, Q_COLS.secImg, Q_COLS.secCap, Q_COLS.q, Q_COLS.img, Q_COLS.cap, Q_COLS.btnLabel, Q_COLS.btnUrl, Q_COLS.boxes];
@@ -1457,13 +1464,14 @@ function seedConfigTabs_() {
     ITEMS.forEach(function (it, i) {
       var s = secAt[i], sl = s && s.links && s.links[0], ql = it.links && it.links[0];
       var row = [s ? s.title : "", sl ? sl.label : "", sl ? sl.url : "", s && s.img ? s.img : "", s && s.imgCaption ? s.imgCaption : "", it.q, it.img || "", it.imgCaption || "",
-                 ql ? ql.label : "", ql ? ql.url : "", boxesText_(it.boxes)];
+                 ql ? ql.label : "", ql ? ql.url : "", it.rule ? "" : boxesText_(it.boxes)];
       for (var n = 0; n < ideaCount; n++) {
         var cr = it.criteria[n];
         if (!cr && it.kind === "dropdown") { row.push((it.dhints || [])[n] || "", ""); continue; }   // a dropdown: Idea N hint = box N's hint
+        if (it.rule) { row.push(n === 0 ? it.ruleHint || "" : "", (it.ruleKeys || [])[n] || ""); continue; }   // ONE OR TWO WORDS: the key words as typed
         row.push(cr ? (cr.row ? "[" + cr.row + "] " : "") + cr.nudge : "", cr ? keyWordsText_(cr.need) : "");
       }
-      row.push(it.kind ? it.kind : it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : "",
+      row.push(it.kind ? it.kind : it.draw ? "draw" : it.upload ? "upload" : it.table ? "table" : it.rule ? answerRuleName_(it.rule) : "",
                it.table ? JSON.stringify(it.table.graph ? { graph: it.table.graph } : it.table.lab ? { lab: it.table.lab } : tableConfigOut_(it.table)) :
                it.kind === "dropdown" && it.dtable ? JSON.stringify(it.dtable) : it.showTable ? JSON.stringify({ showTable: it.showTable }) : "",
                it.minSentences || "", it.short ? "x" : "", it.points == null ? "" : it.points);
@@ -1516,7 +1524,7 @@ function seedConfigTabs_() {
       if (h === Q_COLS.type) return TYPE_NOTE_;
       if (h === Q_COLS.table) return TABLE_NOTE_;
       if (h === Q_COLS.sentences) return "OPTIONAL: the fewest complete sentences an answer needs to turn green, e.g. 3. A sentence ends with a period (or ! or ?) and has at least 3 words.";
-      if (h === Q_COLS.short) return "Type x to let a short answer turn green (skips the Minimum characters rule), e.g. a one-word answer.";
+      if (h === Q_COLS.short) return "Type x to let a short answer turn green (skips the Minimum characters rule), e.g. a one-word answer. Its box then sits beside the question (unless it has Minimum sentences).";
       if (h === Q_COLS.points) return POINTS_NOTE_;
       return "";
     });
@@ -1537,7 +1545,7 @@ function seedConfigTabs_() {
     if (typeCol_(heads) === -1) addCol(Q_COLS.type, TYPE_NOTE_);
     if (!has(/^table config/)) addCol(Q_COLS.table, TABLE_NOTE_);
     if (!has(/^minimum sentences/)) addCol(Q_COLS.sentences, "OPTIONAL: the fewest complete sentences an answer needs to turn green, e.g. 3.");
-    if (!has(/^allow short answer/)) addCol(Q_COLS.short, "Type x to let a short answer turn green (skips the Minimum characters rule).");
+    if (!has(/^allow short answer/)) addCol(Q_COLS.short, "Type x to let a short answer turn green (skips the Minimum characters rule). Its box then sits beside the question.");
     if (!has(/^points\b/)) addCol(Q_COLS.points, POINTS_NOTE_);
     if (!has(/^misconception \d+ (hint|key words)$/)) {
       for (var mn = 1; mn <= MIS_COLS; mn++) {
@@ -1641,7 +1649,7 @@ var POINTS_NOTE_ = "OPTIONAL: what this question is worth. Blank = 1, the same a
 var MIS_HINT_NOTE_ = "OPTIONAL: what students see when their answer shows this WRONG idea (the misconception's key words are in it), e.g. Seconds only measure time. Speed also needs a distance unit, like cm. Coach them toward the right idea instead of just saying it's wrong. They see it as  Check this: ...  and the box can't turn green until they fix that part.";
 var MIS_KEYS_NOTE_ = "OPTIONAL: words that show a common WRONG idea (misconception) for this question. Typed the same way as the Idea key words: commas mean OR, + means AND, capital NOT forbids words. Example for the units of speed (a time unit with no distance unit):\n  second, sec + NOT cm, meter, mile, per\nWhen an answer has these words, the student sees this misconception's hint, and the box can't turn green (it earns at most the yellow share of its points). Only typed answers are checked (not tables, picture boxes or uploads). Leave blank when there's no common wrong idea. Try it with Self-Check > Test an answer against the key.";
 var TABLE_NOTE_ = "For Answer type  dropdown: OPTIONAL, a small table shown above the sentences, only for reading (no boxes, not graded, no graph), e.g.\n{\"cols\":[\"Mammal\",\"Mass (kg)\",\"Speed (m/s)\"],\"rows\":[[\"lion\",125,16],[\"wildebeest\",250,16]]}\nFor Answer type  table: JSON with the column names and rows. A number is a fixed cell, null is a box students fill in, e.g.\n{\"cols\":[\"Mass (g)\",\"Force (N)\"],\"rows\":[[0,0],[200,null],[400,null]]}\nThe graph plots the first column (x) against the second (y). Add \"pairs\":true (4, 6 or 8 columns) to graph columns 1+2, 3+4, ... as separate colored lines with a key, e.g. Trial 1 and Trial 2. Add \"origin\":true when the data go through 0, 0 (directly proportional): the line then starts at 0, 0. Idea 1 checks the graph title, Idea 2 the x-axis label, Idea 3 the y-axis label.\nAdd \"noGraph\":true for just the table (no graph, title or axis labels; graded on its data only).\nAdd \"calc\" to check the student's own math box by box (column numbers counted from 0, each optional), e.g. {\"blocks\":0,\"mass\":1,\"length\":2,\"width\":3,\"height\":4,\"volume\":5,\"density\":6,\"edge\":[2.4,2.5]}: volume = their length x width x height, density = their mass / volume; each box turns green, yellow (a rounding slip) or red.\nA column formula in \"calc\" checks a column the student works out, like a difference: {\"col3\":\"col1 - col2\"} (column 3 = column 1 minus column 2, counted from 0) or {\"col3\":\"95 - col1\"}; numbers, + - * / and ( ) work.\nAny other question: {\"showTable\":9} shows a copy of question 9's data table under the question, filled in with what the student typed there.\nA graph of numbers typed in an earlier question (no table): {\"graph\":{\"lines\":[{\"name\":\"Experiment 1\",\"from\":1,\"x\":[1,2,3]}]}} (from = that question's number, x = one number for each of its boxes; \"top\":true puts a second line's numbers along the top; lines start at 0, 0 unless \"origin\":false). Idea 1 checks the x-axis label, Idea 2 the y-axis label, Idea 3 the top axis label.\nA graph of data tables: lines like {\"name\":\"Brass\",\"from\":1,\"col\":1,\"xcol\":5,\"color\":\"#3366cc\"} (col = the column up the side, xcol = the column along the bottom, counted from 0; up to 8 lines). \"title\":true adds a title box (the idea after the axis labels checks it); \"labels\":false = no label boxes, and the graph isn't graded.";
-var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count), or  dropdown  for sentences with dropdowns in them (like IXL): type ___ in the question where each dropdown goes (Ctrl+Enter starts a new line), the options in the Choice columns, and one Right choice per ___ (2, 3, 2); one Check sends them all. These show their Explanation once done, and their Hint columns under a light bulb. Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
+var TYPE_NOTE_ = "Leave blank for a typed answer (students revise until it's right). Limited tries (Settings: Tries for ..., Credit by try): type  choice  for multiple choice (the Choice columns and Right choice),  truefalse  for TRUE / FALSE (Right choice TRUE or FALSE), or  short  for a one-line answer checked by its key words (all numbers = a number answer: 25, 25 J and 25.0 all count), or  dropdown  for sentences with dropdowns in them (like IXL): type ___ in the question where each dropdown goes (Ctrl+Enter starts a new line), the options in the Choice columns, and one Right choice per ___ (2, 3, 2); one Check sends them all. These show their Explanation once done, and their Hint columns under a light bulb. One or two words (no tries, each sits beside its question):  exact  = Idea 1 key words is the answer, letter for letter (capital letters count, like MoUSe);  elements  = Idea 1 key words are element NAMES with commas between (carbon, oxygen), listed in any order;  element word  = two boxes, a word of at least 5 letters and the same word in element symbols (bacon | BaCoN). Type  table  for a data table with a live graph (set it up in Table config). Type  draw  to give this question a drawing pad (pen, marker, shapes, arrows, labels, colors) that students draw on right on the page. A drawing question's Picture (like blank graphs) becomes the paper they draw on. Type  upload  to make it a picture upload box instead: students drag a picture in, paste one (Ctrl+V), or choose a file. Drawings and uploads aren't graded, and their key words are ignored. Pictures are saved privately in a \"student pictures\" folder in your Google Drive, next to this spreadsheet.";
 
 /** Existing Settings tab: add any settings that are newer than the tab (existing values are never changed).
     Returns how many rows were added. */
@@ -2786,6 +2794,7 @@ function getMyUpload(idx, token) {
 /** What students receive for each question: text, picture, links. Never the criteria. */
 function questionsForClient_() {
   return ITEMS.map(function (it) {
+    ruleReady_(it);   // ONE OR TWO WORDS: an element word's two boxes
     var o = { text: it.q, img: imageUrl_(it.img), imgCaption: it.imgCaption || "", upload: !!it.upload, draw: !!it.draw,
              table: it.table ? { cols: it.table.cols, rows: it.table.rows, lab: it.table.lab || null, graph: it.table.graph || null, pairs: !!it.table.pairs, origin: !!it.table.origin, noGraph: !!it.table.noGraph } : null, minSentences: it.minSentences || 0,
              points: it.points == null ? null : it.points,
@@ -2798,6 +2807,7 @@ function questionsForClient_() {
              boxes: (it.boxes || []).map(function (b) { return { label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }; }),
              links: (it.links || []).filter(function (l) { return l && buttonUrl_(l.url); }) };
     if (it.showTable) o.showTable = it.showTable;   // SHOW A TABLE: the page draws a copy of that question's table under this one's text
+    if (sideAnswer_(it)) o.side = true;   // ONE OR TWO WORDS: the answer box sits beside the question (never which answer is right)
     if (triesPage_() && helpersFit_(it)) {   // HELPERS: the buttons that type a sentence starter or a word into the answer (only when there are some)
       if (it.starters && it.starters.length) o.starters = it.starters.slice(0, HELPER_MAX_STARTERS);
       if (it.words && it.words.length) o.words = it.words.slice(0, HELPER_MAX_WORDS);
@@ -3682,6 +3692,7 @@ function feedbackFor_(idx, answer) {
   if (ITEMS[idx].choices) return choiceFeedback_(ITEMS[idx], answer);
   if (ITEMS[idx].upload) return { status: "correct", message: ITEMS[idx].draw ? "Drawing saved. Thanks!" : "Picture added. Thanks! (This one isn't graded.)" };
   if (ITEMS[idx].table) return tableFeedback_(ITEMS[idx], answer);
+  if (ITEMS[idx].rule) return ruleFeedback_(ITEMS[idx], answer);   // exact, elements, element word (before boxes: an element word has two)
   if (ITEMS[idx].boxes && ITEMS[idx].boxes.length) return boxFeedback_(ITEMS[idx], answer);
   return helperRule_(ITEMS[idx], answer, sentenceRule_(ITEMS[idx], answer, textFeedback_(ITEMS[idx], answer)));
 }
@@ -3778,6 +3789,187 @@ function boxFeedback_(item, answer) {
   if (score === n) return { status: "correct", message: sc + "Nice work, every box is right!", parts: marks, frac: frac };
   if (score === 0) return { status: "incorrect", message: sc + unmet.join(" "), parts: marks, frac: frac };
   return { status: "partial", message: sc + "Good start! Still missing: " + unmet.join(" "), parts: marks, frac: frac };
+}
+
+// ============================== ONE OR TWO WORDS (2026.11.15b) ==============================
+// Donny, 2026-11-15: "I always want 1 or 2 words responses on the side." His "Atomic Animals" sheet had three answer types that
+// claude.ai built into that one sheet only (exact, elements, element word); a skill update replaced its code, so they became
+// plain typed answers in a big box under the question. Now every Self-Check has them, and every one- or two-word answer sits beside its
+// question (sideAnswer_ -> the page's .sideq; boxes with no picture already did):
+//   exact         Idea 1 key words = the answer, letter for letter: capital letters count (MoUSe). More right answers: Idea 2, 3 ...
+//                 key words, or a line break / ; in the cell. Spaces around it and subscripts (CO2 = CO₂) don't matter.
+//   elements      Idea 1 key words = the element NAMES, commas between (carbon, oxygen). Students list the names in any order;
+//                 green = all of them and nothing else. Symbols instead of names, extra elements and misspellings are named in the hint.
+//   element word  two boxes, "Your word" and "In element symbols": a word of at least 5 letters (a number in Idea 1 key words changes
+//                 that) spelled with real element symbols, capitals right (bacon | BaCoN). Whether it is a real word is for the teacher.
+// None of them has a minimum length, sentences or misconceptions. Idea 1 hint (if any) is the hint for a wrong answer.
+var ELEMENT_LIST_ = ("H Hydrogen He Helium Li Lithium Be Beryllium B Boron C Carbon N Nitrogen O Oxygen F Fluorine Ne Neon Na Sodium " +
+  "Mg Magnesium Al Aluminum Si Silicon P Phosphorus S Sulfur Cl Chlorine Ar Argon K Potassium Ca Calcium Sc Scandium Ti Titanium " +
+  "V Vanadium Cr Chromium Mn Manganese Fe Iron Co Cobalt Ni Nickel Cu Copper Zn Zinc Ga Gallium Ge Germanium As Arsenic Se Selenium " +
+  "Br Bromine Kr Krypton Rb Rubidium Sr Strontium Y Yttrium Zr Zirconium Nb Niobium Mo Molybdenum Tc Technetium Ru Ruthenium " +
+  "Rh Rhodium Pd Palladium Ag Silver Cd Cadmium In Indium Sn Tin Sb Antimony Te Tellurium I Iodine Xe Xenon Cs Cesium Ba Barium " +
+  "La Lanthanum Ce Cerium Pr Praseodymium Nd Neodymium Pm Promethium Sm Samarium Eu Europium Gd Gadolinium Tb Terbium " +
+  "Dy Dysprosium Ho Holmium Er Erbium Tm Thulium Yb Ytterbium Lu Lutetium Hf Hafnium Ta Tantalum W Tungsten Re Rhenium Os Osmium " +
+  "Ir Iridium Pt Platinum Au Gold Hg Mercury Tl Thallium Pb Lead Bi Bismuth Po Polonium At Astatine Rn Radon Fr Francium Ra Radium " +
+  "Ac Actinium Th Thorium Pa Protactinium U Uranium Np Neptunium Pu Plutonium Am Americium Cm Curium Bk Berkelium Cf Californium " +
+  "Es Einsteinium Fm Fermium Md Mendelevium No Nobelium Lr Lawrencium Rf Rutherfordium Db Dubnium Sg Seaborgium Bh Bohrium " +
+  "Hs Hassium Mt Meitnerium Ds Darmstadtium Rg Roentgenium Cn Copernicium Nh Nihonium Fl Flerovium Mc Moscovium Lv Livermorium " +
+  "Ts Tennessine Og Oganesson").split(" ");
+var ELEMENT_SYMBOLS_ = {}, ELEMENT_NAMES_ = {};   // "Na" -> "sodium"; "sodium" -> "Na"
+for (var elx = 0; elx < ELEMENT_LIST_.length; elx += 2) { ELEMENT_SYMBOLS_[ELEMENT_LIST_[elx]] = ELEMENT_LIST_[elx + 1].toLowerCase(); ELEMENT_NAMES_[ELEMENT_LIST_[elx + 1].toLowerCase()] = ELEMENT_LIST_[elx]; }
+var ELEMENT_SPELLINGS_ = { aluminium: "aluminum", sulphur: "sulfur", caesium: "cesium" };
+var ELEMENT_WORD_MIN_ = 5;
+var RULE_FILLER_ = /^(and|or|the|a|an|of|is|are|it|its|has|have|in|with|contains?|made|atoms?|elements?|plus|also|then|amount|amounts)$/;
+
+/** An Answer type for a one- or two-word answer: "exact", "elements", "elementword", or "" for any other. */
+function answerRule_(ty) {
+  ty = String(ty || "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+  if (/^exact( match| answer| spelling)?$/.test(ty)) return "exact";
+  if (/^(elements?|element names?|elements list|list (of )?elements)$/.test(ty)) return "elements";
+  if (/^(element ?words?|element spelling|elements? spelling|spell with elements)$/.test(ty)) return "elementword";
+  return "";
+}
+/** The name an Answer type cell gets back (Check the Questions tab, a new Questions tab). */
+function answerRuleName_(rule) { return rule === "elementword" ? "element word" : rule; }
+/** "CO₂" -> "CO2", curly quotes straight, spaces squeezed: what exact answers compare. */
+function ruleSquish_(s) {
+  return String(s == null ? "" : s).replace(/[₀-₉]/g, function (c) { return String(c.charCodeAt(0) - 0x2080); })
+    .replace(/[⁰¹²³⁴-⁹]/g, function (c) { return String("⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)); })
+    .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, " ").trim();
+}
+/** An element name as typed -> its standard name ("Aluminium" -> "aluminum"), or "" when it isn't one. */
+function elementName_(w) {
+  w = String(w || "").toLowerCase();
+  w = ELEMENT_SPELLINGS_[w] || w;
+  return Object.prototype.hasOwnProperty.call(ELEMENT_NAMES_, w) ? w : "";
+}
+/** Finishes a one- or two-word question while the Questions tab is read: its answers, its boxes, and what it ignores (with warnings). */
+function ruleSetUp_(item, at, warnings) {
+  var keys = item.ruleKeys || [], kind = answerRuleName_(item.rule);
+  item.ruleDone = true;
+  if (item.mis) { warnings.push(at + " is an " + kind + " question, so its Misconception key words are ignored."); delete item.mis; }
+  if (item.minSentences) { warnings.push(at + " is an " + kind + " question, so its Minimum sentences is ignored."); delete item.minSentences; }
+  item.criteria = [];
+  if (item.rule === "exact") {
+    var ans = [];
+    keys.forEach(function (k) { String(k).split(/\r?\n|;/).forEach(function (a) { a = ruleSquish_(a); if (a && ans.indexOf(a) === -1) ans.push(a); }); });
+    item.exact = ans;
+    if (!ans.length) warnings.push(at + " is an exact answer with no answer yet, so every answer is red. Type the right answer, exactly, in Idea 1 key words.");
+    if (item.boxes) { warnings.push(at + " is an exact answer (one box beside the question), so its picture boxes are ignored."); delete item.boxes; }
+  } else if (item.rule === "elements") {
+    var names = [], bad = [];
+    keys.forEach(function (k) {
+      String(k).split(/[^A-Za-z]+/).forEach(function (w) {
+        if (!w || RULE_FILLER_.test(w.toLowerCase())) return;
+        var nm = elementName_(w);
+        if (!nm) { if (bad.indexOf(w) === -1) bad.push(w); return; }
+        if (names.indexOf(nm) === -1) names.push(nm);
+      });
+    });
+    item.elements = names;
+    if (bad.length) warnings.push(at + ": \"" + bad.join("\", \"") + "\" in its key words " + (bad.length === 1 ? "isn't an element name" : "aren't element names") + ", so " + (bad.length === 1 ? "it's" : "they're") + " left out. Type the element NAMES, commas between (like carbon, oxygen).");
+    if (!names.length) warnings.push(at + " is an elements question with no elements yet, so every answer is red. Type the element names in Idea 1 key words, commas between (like carbon, oxygen).");
+    if (item.boxes) { warnings.push(at + " is an elements question (one box beside the question), so its picture boxes are ignored."); delete item.boxes; }
+  } else if (item.rule === "elementword") {
+    var mn = parseInt(keys[0], 10);
+    item.minLetters = mn >= 1 && mn <= 20 ? mn : ELEMENT_WORD_MIN_;
+    if (keys[0] && !(mn >= 1 && mn <= 20)) warnings.push(at + " is an element word: its Idea 1 key words can only be the fewest letters a word needs (like 5), so it uses " + ELEMENT_WORD_MIN_ + ".");
+    if (item.img && !item.boxes) { warnings.push(at + " is an element word, whose two boxes sit beside the question, so its picture is left out."); delete item.img; delete item.imgCaption; }
+    if (!item.boxes) item.boxes = [{ label: "Your word", x: 0, y: 0, w: 0, h: 0 }, { label: "In element symbols", x: 0, y: 0, w: 0, h: 0 }];
+    else if (item.boxes.length !== 2) { warnings.push(at + " is an element word, which has exactly two boxes (the word, then its symbols), so its picture boxes are ignored."); item.boxes = [{ label: "Your word", x: 0, y: 0, w: 0, h: 0 }, { label: "In element symbols", x: 0, y: 0, w: 0, h: 0 }]; delete item.img; delete item.imgCaption; }
+  }
+}
+/** Questions still only in this file's ITEMS (no Questions tab yet) skip the tab's reading, so set them up on first use. */
+function ruleReady_(item) { if (item && item.rule && !item.ruleDone) ruleSetUp_(item, "", []); return item; }
+/** Grades a one- or two-word answer (exact, elements, element word). Same shape as textFeedback_ / boxFeedback_. */
+function ruleFeedback_(item, answer) {
+  ruleReady_(item);
+  if (item.rule === "exact") return exactFeedback_(item, answer);
+  if (item.rule === "elements") return elementsFeedback_(item, answer);
+  return elementWordFeedback_(item, answer);
+}
+function exactFeedback_(item, answer) {
+  var a = ruleSquish_(answer), keys = item.exact || [];
+  if (!a) return { status: "blank", message: "" };
+  for (var k = 0; k < keys.length; k++) if (a === keys[k]) return { status: "correct", message: "Exactly right!", frac: 1 };
+  var low = a.toLowerCase(), close = keys.some(function (x) { return x.toLowerCase() === low; });
+  if (close) return { status: "incorrect", message: "So close! Check your capital and lowercase letters: they have to match exactly.", frac: 0 };
+  var noSp = low.replace(/\s/g, ""), spaced = keys.some(function (x) { return x.toLowerCase().replace(/\s/g, "") === noSp; });
+  if (spaced) return { status: "incorrect", message: "So close! Check the spaces in your answer.", frac: 0 };
+  return { status: "incorrect", message: item.ruleHint || "Not yet. Check each part of your answer and try again.", frac: 0 };
+}
+function elementsFeedback_(item, answer) {
+  var want = item.elements || [], raw = String(answer || "").trim();
+  if (!raw) return { status: "blank", message: "" };
+  var named = [], symbols = [], unknown = [];
+  raw.split(/[^A-Za-z]+/).forEach(function (w) {
+    if (!w) return;
+    var nm = elementName_(w);
+    if (nm) { if (named.indexOf(nm) === -1) named.push(nm); return; }
+    if (RULE_FILLER_.test(w.toLowerCase())) return;
+    if (Object.prototype.hasOwnProperty.call(ELEMENT_SYMBOLS_, w)) { if (symbols.indexOf(w) === -1) symbols.push(w); return; }
+    if (unknown.indexOf(w) === -1) unknown.push(w);
+  });
+  var right = named.filter(function (n) { return want.indexOf(n) !== -1; }), extra = named.length - right.length, tips = [];
+  if (symbols.length) tips.push("Write the NAMES of the elements, not their symbols (" + symbols.slice(0, 3).join(", ") + ").");
+  if (unknown.length) tips.push("Check the spelling of: " + unknown.slice(0, 3).join(", ") + ".");
+  if (extra) tips.push(extra === 1 ? "One element you listed isn't in it." : extra + " of the elements you listed aren't in it.");
+  if (!want.length) return { status: "incorrect", message: "This question has no answer yet. Tell your teacher.", frac: 0 };
+  var frac = right.length / want.length;
+  if (right.length === want.length && !tips.length) return { status: "correct", message: "All " + want.length + " elements, nice work!", frac: 1 };
+  if (right.length < want.length) tips.push(right.length ? "You named " + right.length + " of the " + want.length + " elements." : (item.ruleHint || "Look at each capital letter in the formula: each one starts a new element."));
+  if (!right.length) return { status: "incorrect", message: tips.join(" "), frac: 0 };
+  if (right.length === want.length) frac = capFrac_(frac);
+  return { status: "partial", message: "Good start! " + tips.join(" "), frac: frac };
+}
+/** "BaCoN" -> ["Ba","Co","N"], or null with bad = the pieces that aren't element symbols. Spaces and dashes between symbols are fine. */
+function elementSymbols_(s) {
+  var t = String(s || "").replace(/[\s\-–·.,]+/g, ""), out = [], bad = [];
+  if (/[^A-Za-z]/.test(t)) return { list: null, bad: [], other: true };
+  var lead = /^[a-z]+/.exec(t);
+  if (lead) { bad.push(lead[0]); t = t.slice(lead[0].length); }
+  (t.match(/[A-Z][a-z]*/g) || []).forEach(function (p) {
+    if (Object.prototype.hasOwnProperty.call(ELEMENT_SYMBOLS_, p)) out.push(p);
+    else bad.push(p);
+  });
+  return bad.length ? { list: null, bad: bad } : { list: out, bad: [] };
+}
+function elementWordFeedback_(item, answer) {
+  var parts = splitBoxes_(answer, 2), word = parts[0].replace(/\s+/g, ""), sym = parts[1], min = item.minLetters || ELEMENT_WORD_MIN_;
+  if (!word && !sym) return { status: "blank", message: "", parts: ["blank", "blank"] };
+  var marks = ["blank", "blank"], tips = [];
+  if (word) {
+    var wordOk = /^[A-Za-z]+$/.test(word) && word.length >= min;
+    marks[0] = wordOk ? "correct" : "incorrect";
+    if (!wordOk) tips.push(/[^A-Za-z]/.test(word) ? "Your word should be letters only." : "Your word needs at least " + min + " letters (\"" + word + "\" has " + word.length + ").");
+  } else tips.push("Type your word in the first box.");
+  if (sym) {
+    var sp = elementSymbols_(sym);
+    if (!sp.list) {
+      marks[1] = "incorrect";
+      tips.push(sp.other ? "Use only element symbols in the second box (letters, no numbers)." :
+        (sp.bad.length === 1 ? "\"" + sp.bad[0] + "\" isn't an element symbol." : "These aren't element symbols: " + sp.bad.slice(0, 3).join(", ") + ".") +
+        " Each symbol starts with a capital letter, like C or Ba.");
+    } else {
+      var spelled = sp.list.join("").toLowerCase();
+      if (word && spelled !== word.toLowerCase()) { marks[1] = "incorrect"; tips.push("Your symbols spell \"" + spelled + "\", but your word is \"" + word.toLowerCase() + "\"."); }
+      else marks[1] = "correct";
+    }
+  } else tips.push("Spell your word with element symbols in the second box.");
+  var score = (marks[0] === "correct" ? 1 : 0) + (marks[1] === "correct" ? 1 : 0);
+  if (score === 2) return { status: "correct", message: "Nice! " + word.toLowerCase() + " = " + elementSymbols_(sym).list.join("") + ", all real element symbols.", parts: marks, frac: 1 };
+  if (!score) return { status: "incorrect", message: tips.join(" "), parts: marks, frac: 0 };
+  return { status: "partial", message: "Good start! " + tips.join(" "), parts: marks, frac: score / 2 };
+}
+/** A one- or two-word answer: its box sits beside the question (the page's .sideq). Short answers (one line, limited tries), exact
+ *  and elements answers, and a typed answer marked "Allow short answer" with no Minimum sentences. (Boxes with no picture, an element
+ *  word's too, are beside the question already.) */
+function sideAnswer_(it) {
+  if (!it || it.upload || it.table) return false;
+  if (it.kind) return it.kind === "short" && isTried_(it);
+  if (it.boxes && it.boxes.length) return false;
+  if (it.rule === "exact" || it.rule === "elements") return true;
+  return !!it.short && !it.minSentences;
 }
 
 function statusesOf_(results) { return results.map(function (r) { return r.status; }); }
@@ -5705,6 +5897,8 @@ function testAnswer() {
     : isTried_(it) && it.choices
     ? "\n\nType the number of a choice to try it:\n" + it.choices.map(function (c, k) { return (k + 1) + ". " + (c.img ? "(picture)" : c.t); }).join("\n")
     : isTried_(it) ? "\n\nType a sample student answer (one try; " + (isNumberQ_(it) ? "a number question: 25, 25 J and 25.0 all read 25" : "no minimum length") + "):"
+    : it.rule === "elementword" ? "\n\nType a word, then | , then the word in element symbols   e.g.  bacon | BaCoN"
+    : it.rule === "exact" ? "\n\nType a sample student answer (capital letters count):"
     : it.boxes && it.boxes.length
     ? "\n\nThis question has " + it.boxes.length + " boxes on the picture (" + it.boxes.map(function (b) { return b.label; }).join(", ") +
       "). Type one answer per box, separated by |   e.g.  answer one | answer two | answer three"

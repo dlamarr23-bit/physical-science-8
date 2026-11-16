@@ -1,6 +1,10 @@
-review-game v2026.11.15
+review-game v2026.11.15b
 
-Optional update: the class website's Review page can show this game above the flashcard folders, with a countdown to each period's due time.
+Optional update: nothing new for the review game (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).
+
+- Nothing changes for the review game (it only has multiple choice questions). Your questions, settings and student work are not touched.
+
+Also from 2026.11.15 (optional), if this sheet skipped it:
 
 The current review game on the class website's Review page
 - On the Review page (signed in with the teacher password), a new box "Current review game" lists your review games. Pick
