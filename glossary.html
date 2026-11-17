@@ -18,10 +18,18 @@
 <script src="./assets/app.js" defer></script>
 <script src="./assets/pass-menu.js" defer></script>
 <style>
-/* Show vocabulary illustrations and matching Review artwork beside glossary entries. */
+/* Reuse the matching Review flashcard image at the right of each glossary entry. */
 .gterm-with-art{display:grid;grid-template-columns:minmax(0,1fr) 160px;align-items:center;gap:20px;}
 .gterm-text{min-width:0;}
 .glossary-art{display:block;width:160px;height:120px;object-fit:contain;border-radius:8px;}
+.glossary-zoom{display:block;justify-self:end;padding:0;border:0;border-radius:8px;background:transparent;cursor:zoom-in;}
+.glossary-zoom:focus-visible{outline:3px solid var(--accent-dark);outline-offset:4px;}
+.glossary-viewer{box-sizing:border-box;width:min(900px,calc(100vw - 32px));max-height:90vh;max-height:90dvh;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);box-shadow:0 16px 60px #0006;}
+.glossary-viewer::backdrop{background:rgba(0,0,0,.75);}
+.glossary-viewer-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;}
+.glossary-viewer h2{font-size:1.15rem;margin:0;}
+.glossary-viewer-close{flex:none;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit;font:inherit;cursor:pointer;}
+.glossary-viewer-image{display:block;width:100%;height:auto;max-height:calc(90vh - 110px);max-height:calc(90dvh - 110px);object-fit:contain;}
 @media(max-width:600px){
   .gterm-with-art{grid-template-columns:minmax(0,1fr) 88px;gap:12px;}
   .glossary-art{width:88px;height:66px;}
@@ -85,14 +93,12 @@
     document.querySelectorAll('.gterm').forEach(function(el){
       el.style.display = el.getAttribute('data-term').includes(this.value.toLowerCase()) ? '' : 'none';
     }.bind(this))">
-  <div class="glossary-letter">A</div><div class="gterm gterm-with-art" data-term="absolute zero">
-        <div class="gterm-text"><b>Absolute Zero</b>The lowest temperature possible, 0 K or about -273 degrees Celsius, where particle motion is at its absolute minimum.
-        <div class="gunit"><a href="./energy-transfer-and-temperature.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/absolute-zero.webp" alt="A cold sample at 0 K with a magnified view of its particles." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="absorption">
-        <div class="gterm-text"><b>Absorption</b>When a material takes in a wave's energy instead of reflecting or transmitting it, often converting it into heat.
-        <div class="gunit"><a href="./light-waves.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/absorption.webp" alt="Light enters a dark panel and warms it." width="160" height="90" loading="lazy" decoding="async">
+  <div class="glossary-letter">A</div><div class="gterm" data-term="absolute zero">
+        <b>Absolute Zero</b>The lowest temperature possible, 0 K or about -273 degrees Celsius, where particle motion is at its absolute minimum.
+        <div class="gunit"><a href="./energy-transfer-and-temperature.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
+      </div><div class="gterm" data-term="absorption">
+        <b>Absorption</b>When a material takes in a wave's energy instead of reflecting or transmitting it, often converting it into heat.
+        <div class="gunit"><a href="./light-waves.html">Waves Transmitting Energy &amp; Information &middot; Light Waves</a></div>
       </div><div class="gterm gterm-with-art" data-term="acceleration">
         <div class="gterm-text"><b>Acceleration</b>The rate at which an object's speed or direction changes over time.
         <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div></div>
@@ -101,43 +107,37 @@
         <div class="gterm-text"><b>Acceleration Due to Gravity</b>The rate at which gravity speeds up a falling object, about 9.8 meters per second squared near Earth's surface, the same for all masses in a vacuum.
         <div class="gunit"><a href="./universal-law-of-gravity.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/b029f6dba847274b7288b5476b6292e7dac5c5acc3441bea4a11fb54a355ebdc" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="action-reaction pair">
-        <div class="gterm-text"><b>Action-Reaction Pair</b>Two equal, opposite forces that occur when two objects interact, each acting on a different object.
-        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/action-reaction-pair.webp" alt="Two skateboarders push apart with equal arrows pointing in opposite directions." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="action-reaction pair">
+        <b>Action-Reaction Pair</b>Two equal, opposite forces that occur when two objects interact, each acting on a different object.
+        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
       </div><div class="gterm gterm-with-art" data-term="air resistance">
         <div class="gterm-text"><b>Air Resistance</b>A force caused by air pushing back against a moving object, which can slow falling objects depending on their shape and surface area.
         <div class="gunit"><a href="./universal-law-of-gravity.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/fc68ccec5433fd97cf3fd41b7974d1fda58a3f832a0a6f5fae79b0dc7a99721e" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="airbag">
-        <div class="gterm-text"><b>Airbag</b>A safety device that inflates during a crash to slow a passenger's motion more gently and absorb energy.
-        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/airbag.webp" alt="An inflated airbag cushions a passenger wearing a seat belt." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="airbag">
+        <b>Airbag</b>A safety device that inflates during a crash to slow a passenger's motion more gently and absorb energy.
+        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
       </div><div class="gterm gterm-with-art" data-term="alternating current">
         <div class="gterm-text"><b>Alternating Current</b>Electric current that reverses direction many times each second. It is the kind of current supplied to homes.
         <div class="gunit"><a href="./electromagnetic-fields.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/2b726809d810400dd21e5f3bab49eab26570b1cde186d972df17cf5de1471e70" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="am (amplitude modulation)">
-        <div class="gterm-text"><b>AM (Amplitude Modulation)</b>Encoding a signal by varying the height, or amplitude, of a carrier wave.
-        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/am-amplitude-modulation.webp" alt="A radio carrier wave changes amplitude while its frequency stays steady." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="amorphous">
-        <div class="gterm-text"><b>Amorphous</b>Describing a solid material whose atoms or molecules are arranged in a disordered, non-repeating way, like glass or plastic.
-        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/amorphous.webp" alt="A glass tumbler with a magnified disordered particle arrangement." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="am (amplitude modulation)">
+        <b>AM (Amplitude Modulation)</b>Encoding a signal by varying the height, or amplitude, of a carrier wave.
+        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="amorphous">
+        <b>Amorphous</b>Describing a solid material whose atoms or molecules are arranged in a disordered, non-repeating way, like glass or plastic.
+        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
       </div><div class="gterm gterm-with-art" data-term="amplitude">
         <div class="gterm-text"><b>Amplitude</b>The height of a wave from its resting position to its peak; bigger amplitude means the wave carries more energy.
         <div class="gunit"><a href="./intro-to-wave-properties.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/ea4208cefa6ba90c84af035926943dd790398a80266477cdd9bd2b651cc5e104" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="analog signal">
-        <div class="gterm-text"><b>Analog Signal</b>A signal that represents information as a smooth, continuously varying wave, like the vibration of a guitar string or the grooves on a vinyl record.
+      </div><div class="gterm" data-term="analog signal">
+        <b>Analog Signal</b>A signal that represents information as a smooth, continuously varying wave, like the vibration of a guitar string or the grooves on a vinyl record.
         <div class="gunit"><a href="./intro-to-wave-properties.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
-        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/analog-signal.webp" alt="A vibrating guitar string produces a smoothly varying wave." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="applied force">
-        <div class="gterm-text"><b>Applied Force</b>A force put on an object by a person or another object that is pushing or pulling on it directly.
-        <div class="gunit"><a href="./inertia-and-net-forces.html">Energy of Motion &middot; Inertia and Net Forces</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/applied-force.webp" alt="A student pushes a box in the direction of an arrow." width="160" height="90" loading="lazy" decoding="async">
+        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="applied force">
+        <b>Applied Force</b>A force put on an object by a person or another object that is pushing or pulling on it directly.
+        <div class="gunit"><a href="./inertia-and-net-forces.html">Energy of Motion &middot; Inertia and Net Forces</a></div>
       </div><div class="gterm gterm-with-art" data-term="atom">
         <div class="gterm-text"><b>Atom</b>The smallest basic unit of an element, like a single tiny building block of matter.
         <div class="gunit"><a href="./molecular-composition.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div></div>
@@ -146,10 +146,9 @@
         <div class="gterm-text"><b>Attract</b>To pull toward something else, like opposite magnetic poles pulling toward each other.
         <div class="gunit"><a href="./magnetism.html">Electricity &amp; Magnetism &middot; Magnetism</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/f1fdec8f5e13cb911089a49530a0bce7fefec55f93c08f3f883b34a6c16f4122" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="attractive force">
-        <div class="gterm-text"><b>Attractive Force</b>A force that pulls objects toward each other rather than pushing them apart; gravity is always attractive.
-        <div class="gunit"><a href="./universal-law-of-gravity.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/attractive-force.webp" alt="Opposite magnetic poles pull toward each other." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="attractive force">
+        <b>Attractive Force</b>A force that pulls objects toward each other rather than pushing them apart; gravity is always attractive.
+        <div class="gunit"><a href="./universal-law-of-gravity.html">Gravity &amp; Energy Related to Position &middot; Universal Law of Gravity</a></div>
       </div><div class="gterm gterm-with-art" data-term="aurora">
         <div class="gterm-text"><b>Aurora</b>A natural light display near Earth's magnetic poles, caused by charged particles from the Sun colliding with atoms high in the atmosphere.
         <div class="gunit"><a href="./magnetism.html">Electricity &amp; Magnetism &middot; Magnetism</a></div></div>
@@ -158,10 +157,9 @@
         <div class="gterm-text"><b>Average Speed</b>The total distance traveled divided by the total time taken, which smooths out any speeding up and slowing down along the way.
         <div class="gunit"><a href="./speed-and-distance-time-graphs.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/445f379b5caed46b34c2437330c10327473081d8811cbe4c600be1f45a4af469" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="glossary-letter">B</div><div class="gterm gterm-with-art" data-term="balanced chemical equation">
-        <div class="gterm-text"><b>Balanced Chemical Equation</b>A chemical equation where the same number of each type of atom appears on both sides of the arrow.
-        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/balanced-chemical-equation.webp" alt="Two hydrogen molecules and one oxygen molecule form two water molecules, conserving every atom." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="glossary-letter">B</div><div class="gterm" data-term="balanced chemical equation">
+        <b>Balanced Chemical Equation</b>A chemical equation where the same number of each type of atom appears on both sides of the arrow.
+        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
       </div><div class="gterm gterm-with-art" data-term="balanced forces">
         <div class="gterm-text"><b>Balanced Forces</b>Forces acting on an object that cancel each other out, resulting in no change in motion.
         <div class="gunit"><a href="./inertia-and-net-forces.html">Energy of Motion &middot; Inertia and Net Forces</a></div></div>
@@ -170,38 +168,32 @@
         <div class="gterm-text"><b>Biodegradable</b>Able to break down naturally into harmless substances over time through the action of living organisms.
         <div class="gunit"><a href="./synthetic-vs-natural.html">Chemical Energy &amp; Reactions &middot; Synthetic vs. Natural</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/030b536f3a425b6ef453deb7338896c4c66f40f331d3a6836d0ad43860dea304" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="bit">
-        <div class="gterm-text"><b>Bit</b>The smallest unit of digital information, represented as either a 1 or a 0.
-        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/bit.webp" alt="One memory cell has two possible states, zero or one." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="braking distance">
-        <div class="gterm-text"><b>Braking Distance</b>The distance a vehicle travels while slowing to a stop.
-        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/braking-distance.webp" alt="Successive car positions and a bracket show the distance traveled while braking." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="glossary-letter">C</div><div class="gterm gterm-with-art" data-term="carrier wave">
-        <div class="gterm-text"><b>Carrier Wave</b>The steady wave a station broadcasts, which is then altered to carry a signal.
-        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/carrier-wave.webp" alt="A broadcast tower sends a wave with steady amplitude and frequency." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="bit">
+        <b>Bit</b>The smallest unit of digital information, represented as either a 1 or a 0.
+        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
+      </div><div class="gterm" data-term="braking distance">
+        <b>Braking Distance</b>The distance a vehicle travels while slowing to a stop.
+        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div>
+      </div><div class="glossary-letter">C</div><div class="gterm" data-term="carrier wave">
+        <b>Carrier Wave</b>The steady wave a station broadcasts, which is then altered to carry a signal.
+        <div class="gunit"><a href="./waves-and-information-technology.html">Waves Transmitting Energy &amp; Information &middot; Waves &amp; Information Technology</a></div>
       </div><div class="gterm gterm-with-art" data-term="catalyst">
         <div class="gterm-text"><b>Catalyst</b>A substance that speeds up a chemical reaction without being used up or permanently changed by it.
         <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/aaffdd049cdeb8ef5ddbde29bd34771abf213fcc6576207b4efe1af3f6ede74c" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="chemical energy">
-        <div class="gterm-text"><b>Chemical Energy</b>Energy stored in the bonds between atoms, released when those bonds are broken and new ones form.
-        <div class="gunit"><a href="./gravitational-potential-energy.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/chemical-energy.webp" alt="Burning fuel releases energy that heats a pot of water." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="chemical makeup">
-        <div class="gterm-text"><b>Chemical Makeup</b>The specific type of particles a substance is made of, which determines properties like the temperature at which it changes state.
-        <div class="gunit"><a href="./changes-in-energy-at-the-molecular-level.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/chemical-makeup.webp" alt="Two solid samples have different types of constituent particles." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="chemical energy">
+        <b>Chemical Energy</b>Energy stored in the bonds between atoms, released when those bonds are broken and new ones form.
+        <div class="gunit"><a href="./gravitational-potential-energy.html">Gravity &amp; Energy Related to Position &middot; Gravitational Potential Energy</a></div>
+      </div><div class="gterm" data-term="chemical makeup">
+        <b>Chemical Makeup</b>The specific type of particles a substance is made of, which determines properties like the temperature at which it changes state.
+        <div class="gunit"><a href="./changes-in-energy-at-the-molecular-level.html">Thermal Energy &amp; Heat Flow &middot; Changes in Energy at the Molecular Level</a></div>
       </div><div class="gterm gterm-with-art" data-term="chemical property">
         <div class="gterm-text"><b>Chemical Property</b>A trait that only shows up when a substance undergoes a chemical change, such as flammability or reactivity with acid.
         <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/38d85bf9a875c655b2e7934f88d5557178d973d6c60b4a0d1bb0e00584c9c482" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="chemical reaction">
-        <div class="gterm-text"><b>Chemical Reaction</b>A process where atoms rearrange to form one or more new substances with different properties than the starting materials.
-        <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/chemical-reaction.webp" alt="Hydrogen and oxygen atoms rearrange into water molecules." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="chemical reaction">
+        <b>Chemical Reaction</b>A process where atoms rearrange to form one or more new substances with different properties than the starting materials.
+        <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
       </div><div class="gterm gterm-with-art" data-term="circuit">
         <div class="gterm-text"><b>Circuit</b>A complete path that allows electric current to flow from a power source, through components, and back again.
         <div class="gunit"><a href="./electromagnetic-fields.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div></div>
@@ -214,26 +206,22 @@
         <div class="gterm-text"><b>Coefficient</b>The large number written in front of a chemical formula, showing how many whole units of that substance take part. Only coefficients may be changed when balancing.
         <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/e7ffcc0879cefba6c60b8eb69600be4ebe9cb174e0c7ef4b1cbfbb793be70034" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="collision">
-        <div class="gterm-text"><b>Collision</b>An event in which two or more objects strike each other, often transferring energy and force between them.
-        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/collision.webp" alt="A moving billiard ball strikes another ball and transfers motion." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="collision damage">
-        <div class="gterm-text"><b>Collision Damage</b>The harm caused during an impact, influenced heavily by speed and, to a lesser degree, mass.
-        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/collision-damage.webp" alt="The front of a car is damaged after striking a barrier." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="collision">
+        <b>Collision</b>An event in which two or more objects strike each other, often transferring energy and force between them.
+        <div class="gunit"><a href="./collisions-and-newtons-third-law.html">Energy of Motion &middot; Collisions and Newton&#x27;s Third Law</a></div>
+      </div><div class="gterm" data-term="collision damage">
+        <b>Collision Damage</b>The harm caused during an impact, influenced heavily by speed and, to a lesser degree, mass.
+        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div>
       </div><div class="gterm gterm-with-art" data-term="compass">
         <div class="gterm-text"><b>Compass</b>A tool with a free-spinning magnetized needle that lines up with Earth's magnetic field to point toward magnetic north.
         <div class="gunit"><a href="./magnetism.html">Electricity &amp; Magnetism &middot; Magnetism</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/a388b17385780da972112d95f71c91b1b96f3f2c757e242fa2463a2e6795df97" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="compressional wave">
-        <div class="gterm-text"><b>Compressional Wave</b>A wave in which the matter of the medium moves forward and backward along the same direction the wave travels.
-        <div class="gunit"><a href="./intro-to-wave-properties.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/compressional-wave.webp" alt="A spring has alternating compressions and spread-out coils; its motion is parallel to wave travel." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="concentration">
-        <div class="gterm-text"><b>Concentration</b>How much of a substance is present in a given volume. Higher concentration usually speeds up a reaction.
-        <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/concentration.webp" alt="Equal liquid volumes contain different numbers of dissolved particles." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="compressional wave">
+        <b>Compressional Wave</b>A wave in which the matter of the medium moves forward and backward along the same direction the wave travels.
+        <div class="gunit"><a href="./intro-to-wave-properties.html">Waves Transmitting Energy &amp; Information &middot; Intro to Wave Properties</a></div>
+      </div><div class="gterm" data-term="concentration">
+        <b>Concentration</b>How much of a substance is present in a given volume. Higher concentration usually speeds up a reaction.
+        <div class="gunit"><a href="./physical-and-chemical-properties.html">Chemical Energy &amp; Reactions &middot; Physical and Chemical Properties</a></div>
       </div><div class="gterm gterm-with-art" data-term="condensation">
         <div class="gterm-text"><b>Condensation</b>The phase change from gas to liquid as particles lose energy and pull closer together.
         <div class="gunit"><a href="./phase-changes-and-energy-transfer.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div></div>
@@ -246,46 +234,37 @@
         <div class="gterm-text"><b>Constant Speed</b>Moving the same distance in each equal time interval, shown as a straight line on a distance vs. time graph.
         <div class="gunit"><a href="./speed-and-distance-time-graphs.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/0f2e983a2afe9d888483b34d981f59ba18f8aaad0010c5165993afa50581027e" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="constants">
-        <div class="gterm-text"><b>Constants</b>Every factor deliberately kept the same in all trials of an experiment, so the test stays fair.
-        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/constants.webp" alt="Three trials use matching water volumes, temperatures, timers, and solid samples." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="control">
-        <div class="gterm-text"><b>Control</b>The trial where the independent variable is left unchanged, used as a baseline to compare the other trials against.
-        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/control.webp" alt="An untreated plant is highlighted beside plants receiving different amounts of fertilizer." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="controlled experiment">
-        <div class="gterm-text"><b>Controlled Experiment</b>An experiment that changes one factor and observes its effect on another, while keeping every other factor the same.
-        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/controlled-experiment.webp" alt="Matching toy cars and ramps test different ramp heights." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="constants">
+        <b>Constants</b>Every factor deliberately kept the same in all trials of an experiment, so the test stays fair.
+        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="control">
+        <b>Control</b>The trial where the independent variable is left unchanged, used as a baseline to compare the other trials against.
+        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div>
+      </div><div class="gterm" data-term="controlled experiment">
+        <b>Controlled Experiment</b>An experiment that changes one factor and observes its effect on another, while keeping every other factor the same.
+        <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div>
       </div><div class="gterm gterm-with-art" data-term="core">
         <div class="gterm-text"><b>Core</b>A piece of material, often iron, placed inside a coil of wire to strengthen the magnetic field it produces.
         <div class="gunit"><a href="./electromagnetic-fields.html">Electricity &amp; Magnetism &middot; Electromagnetic Fields</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/13633dc8f39b1045189ea8903a850ae9b83f803b6f6741e211c243bd197bb678" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="covalent bond">
-        <div class="gterm-text"><b>Covalent Bond</b>A chemical bond formed when nonmetal atoms share electrons rather than transferring them.
-        <div class="gunit"><a href="./molecular-composition.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/covalent-bond.webp" alt="Two atoms share two electrons in the overlap of their electron clouds." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="crumple zone">
-        <div class="gterm-text"><b>Crumple Zone</b>A part of a car designed to crush during a crash, absorbing and spreading out kinetic energy to protect passengers.
-        <div class="gunit"><a href="./energy-transfer-via-friction.html">Energy of Motion &middot; Energy Transfer via Friction</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/crumple-zone.webp" alt="Folded front car structures absorb impact while the passenger cabin remains intact." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="crystal lattice">
-        <div class="gterm-text"><b>Crystal Lattice</b>A repeating, orderly 3D pattern of atoms or ions, like the structure found in table salt or diamond.
-        <div class="gunit"><a href="./molecular-composition.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/crystal-lattice.webp" alt="A repeating three-dimensional grid of alternating ions beside salt crystals." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="crystalline structure">
-        <div class="gterm-text"><b>Crystalline Structure</b>A solid material with atoms or ions arranged in an orderly, repeating 3D pattern.
-        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/crystalline-structure.webp" alt="A faceted crystal has a magnified orderly repeating interior." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="glossary-letter">D</div><div class="gterm gterm-with-art" data-term="data">
-        <div class="gterm-text"><b>Data</b>Recorded measurements, like distance and time, used to study and predict motion.
-        <div class="gunit"><a href="./speed-and-distance-time-graphs.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/data.webp" alt="A notebook records time and distance measurements beside a stopwatch and toy car." width="160" height="90" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="deceleration">
-        <div class="gterm-text"><b>Deceleration</b>A decrease in speed over time, a type of acceleration in the opposite direction of motion.
-        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/deceleration.webp" alt="Successive car positions get closer together as velocity arrows shorten." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="covalent bond">
+        <b>Covalent Bond</b>A chemical bond formed when nonmetal atoms share electrons rather than transferring them.
+        <div class="gunit"><a href="./molecular-composition.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="crumple zone">
+        <b>Crumple Zone</b>A part of a car designed to crush during a crash, absorbing and spreading out kinetic energy to protect passengers.
+        <div class="gunit"><a href="./energy-transfer-via-friction.html">Energy of Motion &middot; Energy Transfer via Friction</a></div>
+      </div><div class="gterm" data-term="crystal lattice">
+        <b>Crystal Lattice</b>A repeating, orderly 3D pattern of atoms or ions, like the structure found in table salt or diamond.
+        <div class="gunit"><a href="./molecular-composition.html">Chemical Energy &amp; Reactions &middot; Molecular Composition</a></div>
+      </div><div class="gterm" data-term="crystalline structure">
+        <b>Crystalline Structure</b>A solid material with atoms or ions arranged in an orderly, repeating 3D pattern.
+        <div class="gunit"><a href="./conservation-of-matter.html">Chemical Energy &amp; Reactions &middot; Conservation of Matter</a></div>
+      </div><div class="glossary-letter">D</div><div class="gterm" data-term="data">
+        <b>Data</b>Recorded measurements, like distance and time, used to study and predict motion.
+        <div class="gunit"><a href="./speed-and-distance-time-graphs.html">Energy of Motion &middot; Speed and Distance/Time Graphs</a></div>
+      </div><div class="gterm" data-term="deceleration">
+        <b>Deceleration</b>A decrease in speed over time, a type of acceleration in the opposite direction of motion.
+        <div class="gunit"><a href="./mass-and-acceleration.html">Energy of Motion &middot; Mass and Acceleration</a></div>
       </div><div class="gterm gterm-with-art" data-term="density">
         <div class="gterm-text"><b>Density</b>How much mass is packed into a given amount of space (mass divided by volume). Water is unusual because its solid form, ice, is less dense than its liquid form.
         <div class="gunit"><a href="./phase-changes-and-energy-transfer.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
@@ -295,10 +274,9 @@
         <div class="gterm-text"><b>Dependent Variable</b>The factor you measure in an experiment, which changes in response to the independent variable. Also called the responding variable.
         <div class="gunit"><a href="./frames-of-reference.html">Energy of Motion &middot; Frames of Reference</a></div></div>
         <img class="glossary-art" src="https://vocabulary-room901.pages.dev/api/images/2f8bd8d98fb3c55aa2a0884841d75add529d5038ee2fb3adbc4edb0b71c8e715" alt="" width="160" height="120" loading="lazy" decoding="async">
-      </div><div class="gterm gterm-with-art" data-term="deposition">
-        <div class="gterm-text"><b>Deposition</b>When a gas turns directly into a solid without becoming a liquid first, like frost forming on a cold window.
-        <div class="gunit"><a href="./phase-changes-and-energy-transfer.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div></div>
-        <img class="glossary-art" src="./assets/glossary/deposition.webp" alt="Branching solid frost forms on a cold window." width="160" height="90" loading="lazy" decoding="async">
+      </div><div class="gterm" data-term="deposition">
+        <b>Deposition</b>When a gas turns directly into a solid without becoming a liquid first, like frost forming on a cold window.
+        <div class="gunit"><a href="./phase-changes-and-energy-transfer.html">Thermal Energy &amp; Heat Flow &middot; Phase Changes and Energy Transfer</a></div>
       </div><div class="gterm" data-term="design constraint">
         <b>Design Constraint</b>A limit an engineer must work within when building something, such as cost, size, or available materials.
         <div class="gunit"><a href="./energy-transfer-and-temperature.html">Thermal Energy &amp; Heat Flow &middot; Energy Transfer and Temperature</a></div>
@@ -870,5 +848,39 @@
 <footer>
   <div class="container">Physical Science - An interactive middle school science experience and companion to the course textbook. &middot; <a href="https://physical-science-8.pages.dev/chromebook-help?theme=dark">Chromebook Help</a></div>
 </footer>
+<dialog class="glossary-viewer" id="glossaryViewer" aria-labelledby="glossaryViewerTitle">
+  <div class="glossary-viewer-head">
+    <h2 id="glossaryViewerTitle"></h2>
+    <button class="glossary-viewer-close" type="button" autofocus>Close</button>
+  </div>
+  <img class="glossary-viewer-image" alt="">
+</dialog>
+<script>
+(function(){
+  var viewer = document.getElementById('glossaryViewer');
+  var largeImage = viewer.querySelector('img');
+  var title = document.getElementById('glossaryViewerTitle');
+  document.querySelectorAll('.glossary-art').forEach(function(image){
+    var term = image.closest('.gterm').querySelector('b').textContent;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'glossary-zoom';
+    button.setAttribute('aria-label', 'Enlarge image for ' + term);
+    button.setAttribute('aria-haspopup', 'dialog');
+    image.before(button);
+    button.appendChild(image);
+    button.addEventListener('click', function(){
+      title.textContent = term;
+      largeImage.src = image.currentSrc || image.src;
+      viewer.showModal();
+    });
+  });
+  viewer.querySelector('button').addEventListener('click', function(){ viewer.close(); });
+  viewer.addEventListener('click', function(event){
+    var rect = viewer.getBoundingClientRect();
+    if(event.target === viewer && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) viewer.close();
+  });
+})();
+</script>
 </body>
 </html>
