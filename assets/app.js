@@ -336,7 +336,7 @@
     if(!rail) return;
 
     // Everything in the rail lives in this sticky block so it travels with the
-    // reader: the vocabulary pop-out slots in above the nav when one is open.
+    // reader: the vocabulary pop-out opens below the nav when one is open.
     var sticky = document.createElement("div");
     sticky.className = "rail-sticky";
     rail.appendChild(sticky);
@@ -590,9 +590,8 @@
       if(isDesktop() && el.closest(".chapter-body")){
         var sticky = rail.querySelector(".rail-sticky");
         if(sticky){
-          // ride above the section nav inside the sticky block, so the definition
-          // stays beside the reader instead of scrolling away up the rail
-          sticky.insertBefore(pop, sticky.firstChild);
+          // Keep the section navigation in place; definitions open below it.
+          sticky.appendChild(pop);
         } else {
           rail.appendChild(pop);
           var railRect = rail.getBoundingClientRect();

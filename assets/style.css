@@ -501,14 +501,15 @@ html:not([data-theme="dark"]) main > h2 mark.find-hit{ color:#1b1f2a; }
 .chapter-body .prose{ max-width:none; }
 .margin-rail{ position:relative; }
 
-/* the rail travels with the reader: pop-out on top, section nav beneath it */
+/* the rail travels with the reader: section nav first, definition beneath it */
 /* max-height keeps a pop-out plus a long nav from overflowing a short laptop screen */
 .rail-sticky{
   position:sticky; top:80px; display:flex; flex-direction:column; gap:14px;
-  max-height:calc(100vh - 100px); overflow-y:auto;
+  max-height:calc(100vh - 100px); overflow-y:auto; scrollbar-gutter:stable; overflow-anchor:none;
 }
-.rail-sticky .term-popout{ position:static; }
+.rail-sticky .term-popout{ position:relative; left:auto; right:auto; flex:none; }
 .rail-nav{
+  flex:none;
   background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
   padding:14px 12px; box-shadow:var(--shadow-sm);
 }
@@ -544,17 +545,18 @@ html:not([data-theme="dark"]) main > h2 mark.find-hit{ color:#1b1f2a; }
 .gloss-term:hover{ background:var(--accent-tint); }
 .gloss-term.active{ background:var(--accent-tint); }
 .term-popout{
-  position:absolute; left:0; right:0; background:var(--card); border:1px solid var(--line);
+  position:absolute; left:0; right:0; background:var(--accent); color:var(--on-accent); border:1px solid var(--accent);
   border-left:5px solid var(--accent); border-radius:12px; padding:16px 18px 18px;
   box-shadow:var(--shadow); font-size:.86rem; z-index:30; animation:popIn .16s ease;
 }
-.term-popout .pt-term{ font-weight:800; margin-bottom:6px; color:var(--ink); font-size:.95rem; padding-right:20px; }
-.term-popout .pt-def{ color:var(--ink-soft); line-height:1.55; margin:0; }
+.term-popout .pt-term{ font-weight:800; margin-bottom:6px; color:inherit; font-size:.95rem; padding-right:20px; }
+.term-popout .pt-def{ color:inherit; line-height:1.55; margin:0; }
 .term-popout .pt-close{
   position:absolute; top:10px; right:12px; border:none; background:none; font-size:1.15rem;
-  line-height:1; cursor:pointer; color:var(--ink-soft); padding:2px 4px;
+  line-height:1; cursor:pointer; color:inherit; padding:2px 4px;
 }
-.term-popout .pt-close:hover{ color:var(--ink); }
+.term-popout .pt-close:hover{ color:inherit; background:rgba(127,127,127,.2); border-radius:4px; }
+.term-popout .pt-close:focus-visible{ outline:2px solid currentColor; outline-offset:2px; }
 @keyframes popIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
 /* mobile: pop-out becomes a bottom sheet since there's no side margin to use */
