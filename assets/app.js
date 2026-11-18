@@ -74,7 +74,136 @@
     });
   }
 
-  /* ---------- quiz engine ---------- */
+  /* ---------- section layouts (2026-11-18 redesign) ----------
+     Explore More: one featured video, the other videos as "Up next", articles and sims as a list.
+     Chapter Review: one question at a time. Design the Experiment: picture, then the four parts as tabs.
+     CAST Practice: scenario (and its table or picture) on the left, the question on the right.
+     The scripts only move and add to the markup in the files, so the data and wording stay where they are. */
+  var LETTERS = "ABCDEFGH";
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+  // a letter bubble in front of each answer (the radio button stays, hidden, for the keyboard)
+  function letterChoices(root){
+    root.querySelectorAll(".quiz-choices").forEach(function(box){
+      box.querySelectorAll(".qchoice").forEach(function(c, i){
+        if(c.querySelector(".qletter")) return;
+        var b = el("span", "qletter", LETTERS.charAt(i));
+        b.setAttribute("aria-hidden", "true");
+        var input = c.querySelector("input");
+        if(input && input.nextSibling) c.insertBefore(b, input.nextSibling); else c.appendChild(b);
+      });
+    });
+  }
+  var ICONS = {
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+    sim: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
+  };
+  function svgIcon(name){
+    return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+  }
+  function ytId(src){
+    var m = String(src || "").match(/(?:embed\/|[?&]v=|youtu\.be\/)([\w-]{11})/);
+    return m ? m[1] : "";
+  }
+
+  /* ---------- Explore More ---------- */
+  function initExplore(){
+    document.querySelectorAll(".resource-grid").forEach(function(grid){
+      var cards = Array.prototype.filter.call(grid.children, function(c){ return c.classList.contains("rcard"); });
+      if(!cards.length) return;
+      var videos = cards.filter(function(c){ return c.querySelector(".video-embed iframe"); });
+      var others = cards.filter(function(c){ return videos.indexOf(c) < 0; });
+      grid.classList.add("explore");
+
+      // articles and simulations: a compact row with an icon; the whole row opens the link
+      others.forEach(function(c){
+        c.classList.add("rcard--practice");
+        var tag = (c.querySelector(".rtag") || {}).textContent || "";
+        var icon = el("span", "ricon");
+        icon.innerHTML = svgIcon(/read/i.test(tag) ? "book" : /sim/i.test(tag) ? "sim" : "link");
+        c.insertBefore(icon, c.firstChild);
+      });
+
+      // videos: a thumbnail button on each, shown when the card sits in "Up next"
+      videos.forEach(function(c){
+        var frame = c.querySelector(".video-embed iframe");
+        var btn = el("button", "rnext-thumb");
+        btn.type = "button";
+        var img = el("img");
+        img.alt = "";
+        img.loading = "lazy";
+        btn.appendChild(img);
+        var play = el("span", "rnext-play");
+        play.setAttribute("aria-hidden", "true");
+        play.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
+        btn.appendChild(play);
+        function paint(){
+          var id = ytId(frame.getAttribute("src"));
+          var want = id ? "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg" : "";
+          if(want && img.getAttribute("src") !== want) img.setAttribute("src", want);
+          var h = c.querySelector("h4:not([hidden])");
+          var label = "Play here: " + (h ? h.textContent : "video");
+          if(btn.getAttribute("aria-label") !== label) btn.setAttribute("aria-label", label);
+        }
+        paint();
+        // a replacement video (page-text.js) can change the frame or heading after this runs;
+        // only the frame and the card's text are watched (not the thumbnail this sets)
+        if(window.MutationObserver){
+          var mo = new MutationObserver(paint);
+          mo.observe(frame, {attributes:true, attributeFilter:["src"]});
+          var rb = c.querySelector(".rbody");
+          if(rb) mo.observe(rb, {subtree:true, childList:true, attributes:true, attributeFilter:["hidden"]});
+        }
+        c.insertBefore(btn, c.firstChild);
+      });
+
+      var main = null, nextBox = null;
+      if(videos.length){
+        main = el("div", "explore-main");
+        main.appendChild(el("p", "explore-label", "Start here"));
+        videos[0].classList.add("rcard--feature");
+        main.appendChild(videos[0]);
+        if(videos.length > 1){
+          main.appendChild(el("p", "explore-label", "Up next"));
+          nextBox = el("div", "explore-next");
+          videos.slice(1).forEach(function(c){ c.classList.add("rcard--next"); nextBox.appendChild(c); });
+          main.appendChild(nextBox);
+        }
+        grid.appendChild(main);
+      }
+      if(others.length){
+        var side = el("div", "explore-side");
+        side.appendChild(el("p", "explore-label", "Read & practice"));
+        others.forEach(function(c){ side.appendChild(c); });
+        grid.appendChild(side);
+      }
+      if(!main || !others.length) grid.classList.add("explore--single");
+
+      // "Up next": the picked video trades places with the featured one
+      grid.addEventListener("click", function(e){
+        var btn = e.target.closest(".rnext-thumb");
+        if(!btn) return;
+        var card = btn.closest(".rcard--next");
+        var feature = grid.querySelector(".rcard--feature");
+        if(!card || !feature) return;
+        var mark = document.createComment("");
+        feature.parentNode.insertBefore(mark, feature);
+        card.parentNode.insertBefore(feature, card);
+        mark.parentNode.replaceChild(card, mark);
+        card.classList.remove("rcard--next"); card.classList.add("rcard--feature");
+        feature.classList.remove("rcard--feature"); feature.classList.add("rcard--next");
+        var top = card.getBoundingClientRect().top;
+        if(top < 0) card.scrollIntoView({block:"start", behavior:"smooth"});
+      });
+    });
+  }
+
+  /* ---------- quiz engine: Chapter Review, one question at a time ---------- */
   function initQuizzes(){
     document.querySelectorAll(".quiz").forEach(function(quizEl){
       var chapterId = quizEl.getAttribute("data-chapter");
@@ -86,18 +215,81 @@
       var checkBtn = quizEl.querySelector(".js-check");
       var retryBtn = quizEl.querySelector(".js-retry");
       var scoreEl = quizEl.querySelector(".quiz-score");
+      var actions = quizEl.querySelector(".quiz-actions");
       var checked = false;
+      var results = [];   // after checking: true / false per question
+
+      function qEl(i){ return quizEl.querySelector('.quiz-q[data-index="'+i+'"]'); }
+      function chosenOf(i){ var q = qEl(i); return q && q.querySelector('input[name="q'+i+'-'+chapterId+'"]:checked'); }
+
+      /* the stepper: a count, a bar with one step per question, Back and Next */
+      var n = questions.length, at = 0, warnedFor = "";
+      quizEl.classList.add("quiz-stepper");
+      letterChoices(quizEl);
+      var head = el("div", "qstep-head");
+      var count = el("span", "qstep-count");
+      count.setAttribute("aria-live", "polite");
+      var bar = el("div", "qstep-bar");
+      var steps = [];
+      for(var s = 0; s < n; s++){
+        (function(i){
+          var b = el("button", "qstep");
+          b.type = "button";
+          b.setAttribute("aria-label", "Question " + (i + 1));
+          b.addEventListener("click", function(){ show(i); });
+          bar.appendChild(b);
+          steps.push(b);
+        })(s);
+      }
+      head.appendChild(count);
+      head.appendChild(bar);
+      quizEl.insertBefore(head, quizEl.firstChild);
+
+      var backBtn = el("button", "btn secondary qstep-back", "← Back");
+      backBtn.type = "button";
+      var nextBtn = el("button", "btn qstep-next", "Next →");
+      nextBtn.type = "button";
+      if(actions){
+        actions.insertBefore(backBtn, actions.firstChild);
+        actions.insertBefore(nextBtn, checkBtn);
+      }
+      backBtn.addEventListener("click", function(){ show(at - 1); });
+      nextBtn.addEventListener("click", function(){ show(at + 1); });
+      quizEl.addEventListener("change", paint);
+
+      function paint(){
+        count.textContent = "Question " + (at + 1) + " of " + n;
+        for(var i = 0; i < n; i++){
+          var q = qEl(i);
+          if(q) q.classList.toggle("is-current", i === at);
+          var b = steps[i];
+          b.classList.toggle("on", i === at);
+          b.classList.toggle("done", !checked && !!chosenOf(i));
+          b.classList.toggle("right", checked && results[i] === true);
+          b.classList.toggle("wrong", checked && results[i] === false);
+          if(i === at) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+        }
+        backBtn.disabled = at === 0;
+        nextBtn.style.display = at < n - 1 ? "inline-block" : "none";
+        if(checkBtn) checkBtn.style.display = !checked && at === n - 1 ? "inline-block" : "none";
+        if(retryBtn) retryBtn.style.display = checked ? "inline-block" : "none";
+      }
+      function show(i){
+        at = Math.max(0, Math.min(n - 1, i));
+        paint();
+      }
 
       function grade(){
         if(checked) return;
         checked = true;
         var correctCount = 0;
         questions.forEach(function(q, i){
-          var qEl = quizEl.querySelector('.quiz-q[data-index="'+i+'"]');
-          var chosen = qEl.querySelector('input[name="q'+i+'-'+chapterId+'"]:checked');
-          var choiceEls = qEl.querySelectorAll(".qchoice");
-          var feedback = qEl.querySelector(".qfeedback");
+          var qe = qEl(i);
+          var chosen = chosenOf(i);
+          var choiceEls = qe.querySelectorAll(".qchoice");
+          var feedback = qe.querySelector(".qfeedback");
           var isCorrect = chosen && parseInt(chosen.value,10) === q.answerIndex;
+          results[i] = !!isCorrect;
           if(isCorrect) correctCount++;
           choiceEls.forEach(function(cEl, idx){
             cEl.classList.remove("correct","incorrect");
@@ -113,64 +305,81 @@
         });
         var pct = Math.round((correctCount/questions.length)*100);
         scoreEl.textContent = "You scored " + correctCount + " / " + questions.length + " (" + pct + "%)";
+        scoreEl.classList.remove("good","bad");
         scoreEl.classList.add(pct >= 60 ? "good" : "bad");
-        checkBtn.style.display = "none";
-        retryBtn.style.display = "inline-block";
 
         var prevBest = (getProgress()[chapterId] || {}).best || 0;
         setProgress(chapterId, {visited:true, best: Math.max(prevBest, correctCount), total: questions.length});
         paintNavChecks();
+        // go back through the answers from the first one missed
+        var firstMiss = results.indexOf(false);
+        show(firstMiss < 0 ? 0 : firstMiss);
       }
 
       function reset(){
         checked = false;
+        results = [];
+        warnedFor = "";
         questions.forEach(function(q,i){
-          var qEl = quizEl.querySelector('.quiz-q[data-index="'+i+'"]');
-          qEl.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
-          qEl.querySelectorAll(".qchoice").forEach(function(cEl){ cEl.classList.remove("correct","incorrect"); cEl.style.pointerEvents=""; });
-          var feedback = qEl.querySelector(".qfeedback");
+          var qe = qEl(i);
+          qe.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
+          qe.querySelectorAll(".qchoice").forEach(function(cEl){ cEl.classList.remove("correct","incorrect"); cEl.style.pointerEvents=""; });
+          var feedback = qe.querySelector(".qfeedback");
           if(feedback){ feedback.classList.remove("show","right","wrong"); }
         });
         scoreEl.textContent = "";
         scoreEl.classList.remove("good","bad");
-        checkBtn.style.display = "inline-block";
-        retryBtn.style.display = "none";
+        show(0);
       }
 
-      if(checkBtn) checkBtn.addEventListener("click", grade);
+      // skipped questions get one reminder before the quiz is checked
+      if(checkBtn) checkBtn.addEventListener("click", function(){
+        if(checked) return;
+        var blank = [];
+        for(var i = 0; i < n; i++){ if(!chosenOf(i)) blank.push(i); }
+        var skipped = blank.length ? blank[0] : -1;
+        // the same questions still blank after the reminder: check anyway
+        if(skipped >= 0 && blank.join() !== warnedFor){
+          warnedFor = blank.join();
+          scoreEl.classList.remove("good");
+          scoreEl.classList.add("bad");
+          scoreEl.textContent = "Question " + (skipped + 1) + " has no answer yet. Answer it, or press Check again to finish.";
+          show(skipped);
+          return;
+        }
+        grade();
+      });
       if(retryBtn) retryBtn.addEventListener("click", reset);
+      show(0);
     });
   }
 
-  /* ---------- CAST-style practice item: single question, check + reveal explanation ---------- */
   /* ---------- design-the-experiment challenge ----------
      Rendered from JSON rather than hand-written markup: every chapter carries
      the same four-part structure (testable question, independent variable,
-     dependent variable, constants/control), so the page only supplies data. */
+     dependent variable, constants/control), so the page only supplies data.
+     Layout (2026-11-18): the picture across the top, the situation, the toolkit
+     terms as buttons, then the four parts as tabs. */
   function initLabItems(){
-    document.querySelectorAll(".lab-item").forEach(function(el){
-      var dataEl = document.getElementById(el.getAttribute("data-source"));
+    document.querySelectorAll(".lab-item").forEach(function(box){
+      var dataEl = document.getElementById(box.getAttribute("data-source"));
       if(!dataEl) return;
       var data;
       try { data = JSON.parse(dataEl.textContent); } catch(e){ return; }
       if(!data.parts || !data.parts.length) return;
 
-      var id = el.getAttribute("data-source");
-      // no "Design the Experiment" pill in the box: the heading bar above it already says so (2026-11-11)
-      var scenario = document.createElement("p");
-      scenario.className = "lab-scenario";
-      scenario.innerHTML = data.scenario || "";
-      el.appendChild(scenario);
+      var id = box.getAttribute("data-source");
+      box.classList.add("lab-tabbed");
 
       // a picture of the setup, when the lab has one; click to open it full size
       if(data.image && data.image.src){
-        var fig = document.createElement("figure");
-        fig.className = "lab-figure";
-        var link = document.createElement("a");
+        var fig = el("figure", "lab-figure");
+        var link = el("a");
         link.href = data.image.src;
         link.target = "_blank";
         link.rel = "noopener";
-        var pic = document.createElement("img");
+        link.setAttribute("aria-label", "Open the picture full size");
+        var pic = el("img");
         pic.src = data.image.src;
         pic.alt = data.image.alt || "";
         if(data.image.width){ pic.width = data.image.width; pic.height = data.image.height; }
@@ -178,42 +387,57 @@
         pic.decoding = "async";
         link.appendChild(pic);
         fig.appendChild(link);
-        el.appendChild(fig);
+        box.appendChild(fig);
       }
 
+      var body = el("div", "lab-body");
+      box.appendChild(body);
+      var scenario = el("p", "lab-scenario");
+      scenario.innerHTML = data.scenario || "";
+      body.appendChild(scenario);
+
       // the shared vocabulary, on every chapter, tappable for a definition
-      var kit = document.createElement("div");
-      kit.className = "lab-toolkit";
+      var kit = el("div", "lab-toolkit");
       kit.innerHTML =
-        '<p class="lab-toolkit-title">Variables toolkit</p>' +
-        '<p>In a <span class="gloss-term" data-def="An experiment that changes one factor and observes its effect on another, while keeping every other factor the same.">controlled experiment</span> you change one thing on purpose. ' +
-        'The <span class="gloss-term" data-def="The one factor the experimenter deliberately changes. Also called the manipulated variable.">independent variable</span> (or manipulated variable) is what you change. ' +
-        'The <span class="gloss-term" data-def="The factor you measure, which changes in response to the independent variable. Also called the responding variable.">dependent variable</span> (or responding variable) is what you measure. ' +
-        'The <span class="gloss-term" data-def="Every factor deliberately kept the same in all trials, so the test stays fair.">constants</span> are everything you deliberately keep the same, and the ' +
-        '<span class="gloss-term" data-def="The trial where the independent variable is left unchanged, used as a baseline to compare the other trials against.">control</span> is the trial you leave unchanged to compare against.</p>';
-      el.appendChild(kit);
+        '<span class="lab-toolkit-title">Toolkit &middot; tap a term</span>' +
+        '<span class="gloss-term" data-def="An experiment that changes one factor and observes its effect on another, while keeping every other factor the same.">controlled experiment</span>' +
+        '<span class="gloss-term" data-def="The one factor the experimenter deliberately changes. Also called the manipulated variable.">independent variable</span>' +
+        '<span class="gloss-term" data-def="The factor you measure, which changes in response to the independent variable. Also called the responding variable.">dependent variable</span>' +
+        '<span class="gloss-term" data-def="Every factor deliberately kept the same in all trials, so the test stays fair.">constants</span>' +
+        '<span class="gloss-term" data-def="The trial where the independent variable is left unchanged, used as a baseline to compare the other trials against.">control</span>';
+      body.appendChild(kit);
 
-      var parts = [];
+      var panel = el("div", "lab-steps");
+      var tabs = el("div", "lab-tabs");
+      tabs.setAttribute("role", "tablist");
+      tabs.setAttribute("aria-label", "Parts of the experiment");
+      panel.appendChild(tabs);
+      body.appendChild(panel);
+
+      var parts = [], at = 0, checked = false;
       data.parts.forEach(function(part, i){
-        var wrap = document.createElement("div");
-        wrap.className = "lab-q";
-        var q = document.createElement("p");
-        q.className = "qtext";
-        if(part.tag){
-          var tag = document.createElement("span");
-          tag.className = "qtag";
-          tag.textContent = part.tag;
-          q.appendChild(tag);
-        }
-        q.appendChild(document.createTextNode((i + 1) + ". " + part.prompt));
-        wrap.appendChild(q);
+        var tab = el("button", "lab-tab");
+        tab.type = "button";
+        tab.id = id + "-tab" + i;
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-controls", id + "-part" + i);
+        var dot = el("span", "lab-dot", String(i + 1));
+        dot.setAttribute("aria-hidden", "true");
+        tab.appendChild(dot);
+        tab.appendChild(el("span", "lab-tab-text", part.tag || ("Part " + (i + 1))));
+        tab.addEventListener("click", function(){ show(i); });
+        tabs.appendChild(tab);
 
-        var choices = document.createElement("div");
-        choices.className = "quiz-choices";
+        var wrap = el("div", "lab-q");
+        wrap.id = id + "-part" + i;
+        wrap.setAttribute("role", "tabpanel");
+        wrap.setAttribute("aria-labelledby", tab.id);
+        wrap.appendChild(el("p", "qtext", (i + 1) + ". " + part.prompt));
+
+        var choices = el("div", "quiz-choices");
         part.choices.forEach(function(text, idx){
-          var label = document.createElement("label");
-          label.className = "qchoice";
-          var input = document.createElement("input");
+          var label = el("label", "qchoice");
+          var input = el("input");
           input.type = "radio";
           input.name = "lab" + i + "-" + id;
           input.value = idx;
@@ -223,35 +447,62 @@
         });
         wrap.appendChild(choices);
 
-        var fb = document.createElement("div");
-        fb.className = "qfeedback";
+        var fb = el("div", "qfeedback");
         wrap.appendChild(fb);
-        el.appendChild(wrap);
-        parts.push({wrap: wrap, feedback: fb, data: part});
+        panel.appendChild(wrap);
+        parts.push({tab: tab, dot: dot, wrap: wrap, feedback: fb, data: part, right: null});
+      });
+      letterChoices(panel);
+
+      var actions = el("div", "quiz-actions lab-actions");
+      var backBtn = el("button", "btn secondary", "← Back");
+      var nextBtn = el("button", "btn", "Next →");
+      var checkBtn = el("button", "btn", "Check My Answers");
+      var retryBtn = el("button", "btn secondary", "Try Again");
+      [backBtn, nextBtn, checkBtn, retryBtn].forEach(function(b){ b.type = "button"; actions.appendChild(b); });
+      var scoreEl = el("span", "lab-score");
+      actions.appendChild(scoreEl);
+      panel.appendChild(actions);
+
+      function chosenOf(i){ return parts[i].wrap.querySelector('input[name="lab' + i + '-' + id + '"]:checked'); }
+      function paint(){
+        var last = parts.length - 1;
+        parts.forEach(function(p, i){
+          var on = i === at;
+          p.wrap.hidden = !on;
+          p.tab.setAttribute("aria-selected", on ? "true" : "false");
+          p.tab.tabIndex = on ? 0 : -1;
+          p.tab.classList.toggle("done", !checked && !!chosenOf(i));
+          p.tab.classList.toggle("right", checked && p.right === true);
+          p.tab.classList.toggle("wrong", checked && p.right === false);
+          p.dot.textContent = checked ? (p.right ? "✓" : "✗") : String(i + 1);
+        });
+        backBtn.disabled = at === 0;
+        nextBtn.style.display = at < last ? "inline-block" : "none";
+        checkBtn.style.display = !checked && at === last ? "inline-block" : "none";
+        retryBtn.style.display = checked ? "inline-block" : "none";
+      }
+      function show(i){ at = Math.max(0, Math.min(parts.length - 1, i)); paint(); }
+      backBtn.addEventListener("click", function(){ show(at - 1); });
+      nextBtn.addEventListener("click", function(){ show(at + 1); });
+      panel.addEventListener("change", paint);
+      // arrow keys move between the tabs
+      tabs.addEventListener("keydown", function(e){
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if(!d) return;
+        e.preventDefault();
+        show(at + d);
+        parts[at].tab.focus();
       });
 
-      var actions = document.createElement("div");
-      actions.className = "quiz-actions";
-      var checkBtn = document.createElement("button");
-      checkBtn.className = "btn";
-      checkBtn.textContent = "Check My Answers";
-      var retryBtn = document.createElement("button");
-      retryBtn.className = "btn secondary";
-      retryBtn.textContent = "Try Again";
-      retryBtn.style.display = "none";
-      var scoreEl = document.createElement("span");
-      scoreEl.className = "lab-score";
-      actions.appendChild(checkBtn);
-      actions.appendChild(retryBtn);
-      actions.appendChild(scoreEl);
-      el.appendChild(actions);
-
       checkBtn.addEventListener("click", function(){
+        checked = true;
         var correctCount = 0;
         parts.forEach(function(p, i){
-          var chosen = p.wrap.querySelector('input[name="lab' + i + '-' + id + '"]:checked');
+          var chosen = chosenOf(i);
           var choiceEls = p.wrap.querySelectorAll(".qchoice");
           var isCorrect = chosen && parseInt(chosen.value, 10) === p.data.answerIndex;
+          p.right = !!isCorrect;
           if(isCorrect) correctCount++;
           choiceEls.forEach(function(cEl, idx){
             cEl.classList.remove("correct", "incorrect");
@@ -264,13 +515,17 @@
         });
         var pct = Math.round((correctCount / parts.length) * 100);
         scoreEl.textContent = "You scored " + correctCount + " / " + parts.length + " (" + pct + "%)";
+        scoreEl.classList.remove("good", "bad");
         scoreEl.classList.add(pct >= 60 ? "good" : "bad");
-        checkBtn.style.display = "none";
-        retryBtn.style.display = "inline-block";
+        var firstMiss = -1;
+        parts.forEach(function(p, i){ if(firstMiss < 0 && !p.right) firstMiss = i; });
+        show(firstMiss < 0 ? 0 : firstMiss);
       });
 
       retryBtn.addEventListener("click", function(){
+        checked = false;
         parts.forEach(function(p){
+          p.right = null;
           p.wrap.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
           p.wrap.querySelectorAll(".qchoice").forEach(function(cEl){
             cEl.classList.remove("correct", "incorrect");
@@ -281,26 +536,61 @@
         });
         scoreEl.textContent = "";
         scoreEl.classList.remove("good", "bad");
-        checkBtn.style.display = "inline-block";
-        retryBtn.style.display = "none";
+        show(0);
       });
+      show(0);
     });
   }
 
+  /* ---------- CAST-style practice item: single question, check + reveal explanation ----------
+     Layout (2026-11-18): the scenario, with its data table or picture ("image" in the item's
+     JSON, like a lab's), on the left in the chapter's pale color; the question on the right. */
   function initCastItems(){
-    document.querySelectorAll(".cast-item").forEach(function(el){
-      var dataEl = document.getElementById(el.getAttribute("data-source"));
+    document.querySelectorAll(".cast-item").forEach(function(box){
+      var dataEl = document.getElementById(box.getAttribute("data-source"));
       if(!dataEl) return;
       var data;
       try { data = JSON.parse(dataEl.textContent); } catch(e){ return; }
 
-      var checkBtn = el.querySelector(".js-cast-check");
-      var retryBtn = el.querySelector(".js-cast-retry");
-      var feedback = el.querySelector(".qfeedback");
-      var choiceEls = el.querySelectorAll(".qchoice");
+      var firstQ = box.querySelector(".qtext");
+      if(firstQ && firstQ.parentNode === box){
+        var left = el("div", "cast-scenario");
+        var right = el("div", "cast-answer");
+        left.appendChild(el("p", "cast-label", "Scenario"));
+        var before = [];
+        for(var k = box.firstChild; k && k !== firstQ; k = k.nextSibling) before.push(k);
+        var stim = null;
+        before.forEach(function(k){
+          left.appendChild(k);
+          if(!stim && k.nodeType === 1 && k.classList.contains("cast-stimulus")) stim = k;
+        });
+        if(data.image && data.image.src){
+          var fig = el("figure", "cast-figure");
+          var pic = el("img");
+          pic.src = data.image.src;
+          pic.alt = data.image.alt || "";
+          if(data.image.width){ pic.width = data.image.width; pic.height = data.image.height; }
+          pic.decoding = "async";
+          fig.appendChild(pic);
+          left.insertBefore(fig, stim || null);
+        }
+        right.appendChild(el("p", "cast-label", "Question"));
+        while(firstQ){ var nx = firstQ.nextSibling; right.appendChild(firstQ); firstQ = nx; }
+        firstQ = right.querySelector(".qtext");
+        if(firstQ) firstQ.removeAttribute("style");
+        box.appendChild(left);
+        box.appendChild(right);
+        box.classList.add("cast-split");
+        letterChoices(right);
+      }
+
+      var checkBtn = box.querySelector(".js-cast-check");
+      var retryBtn = box.querySelector(".js-cast-retry");
+      var feedback = box.querySelector(".qfeedback");
+      var choiceEls = box.querySelectorAll(".qchoice");
 
       function grade(){
-        var chosen = el.querySelector('input[type="radio"]:checked');
+        var chosen = box.querySelector('input[type="radio"]:checked');
         if(!chosen) return;
         var chosenIndex = parseInt(chosen.value, 10);
         var isCorrect = chosenIndex === data.answerIndex;
@@ -317,7 +607,7 @@
       }
 
       function reset(){
-        el.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
+        box.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked = false; });
         choiceEls.forEach(function(cEl){ cEl.classList.remove("correct", "incorrect"); cEl.style.pointerEvents = ""; });
         feedback.classList.remove("show", "right", "wrong");
         feedback.innerHTML = "";
@@ -329,7 +619,6 @@
       if(retryBtn) retryBtn.addEventListener("click", reset);
     });
   }
-
   /* ---------- margin rail: sticky section nav, highlighted as you scroll ---------- */
   function initRailNav(){
     var rail = document.getElementById("marginRail");
@@ -894,6 +1183,7 @@
     initDrawer();
     initVocab();
     initRailNav();
+    initExplore();
     initLabItems();   // renders before the glossary pass, so its terms get wired up
     initGlossaryTerms();
     initQuizzes();
