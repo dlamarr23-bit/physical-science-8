@@ -744,7 +744,7 @@
     });
     var phrases = Object.keys(byPhrase).sort(function(a,b){return b.length - a.length;});
     var patterns = phrases.map(function(phrase){
-      return phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\  /* ---------- in-text glossary terms: click to pop out a definition ---------- */').replace(/'/g, "['’‘]").replace(/-/g, '[-–—]').replace(/ /g, '\\s+');
+      return phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/'/g, "['’‘]").replace(/-/g, '[-–—]').replace(/ /g, '\\s+');
     });
     chapterGlossary = {ids:ids, byPhrase:byPhrase, pattern:new RegExp('(^|[^A-Za-z0-9])(' + patterns.join('|') + ')(?=$|[^A-Za-z0-9])', 'gi')};
     return chapterGlossary;
@@ -1182,13 +1182,12 @@
     initSiteSearch();
     initDrawer();
     initVocab();
-    initRailNav();
-    initExplore();
-    initLabItems();   // renders before the glossary pass, so its terms get wired up
-    initGlossaryTerms();
-    initQuizzes();
-    initCastItems();
-    initCharts();
+    // each part runs on its own, so a problem in one (e.g. the glossary) can't stop the rest of the page
+    [initRailNav, initExplore,
+     initLabItems,   // renders before the glossary pass, so its terms get wired up
+     initGlossaryTerms, initQuizzes, initCastItems, initCharts].forEach(function(fn){
+      try { fn(); } catch(e){ if(window.console) console.error(e); }
+    });
     var bodyChapter = document.body.getAttribute("data-chapter-id");
     if(bodyChapter) markVisited(bodyChapter);
     paintNavChecks();
