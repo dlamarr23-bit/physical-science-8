@@ -1,7 +1,7 @@
 {
   "kind": "friction-speed-lab",
-  "version": "2026.11.15b",
-  "optional": "one- and two-word answers sit beside their question, and three new answer types for them (exact, elements, element word).",
+  "version": "2026.11.17",
+  "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

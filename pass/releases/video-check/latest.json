@@ -1,7 +1,7 @@
 {
   "kind": "video-check",
-  "version": "2026.11.15b",
-  "optional": "nothing new for Video Check (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).",
+  "version": "2026.11.17",
+  "optional": "nothing new for Video Check (this release fixes answers that went missing after a drawing or picture saved on Self-Check sheets, and adds Restore answers from the Answer Log there).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

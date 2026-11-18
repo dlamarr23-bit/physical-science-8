@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.15b",
-  "optional": "nothing new for the escape room (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).",
+  "version": "2026.11.17",
+  "optional": "the escape room has no drawing or picture questions, so the save fix doesn't matter here; it adds Self-Check > Restore answers from the Answer Log.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

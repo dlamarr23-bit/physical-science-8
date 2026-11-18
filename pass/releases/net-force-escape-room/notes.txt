@@ -1,6 +1,16 @@
-net-force-escape-room v2026.11.15b
+net-force-escape-room v2026.11.17
 
-Optional update: nothing new for the escape room (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).
+Optional update: the escape room has no drawing or picture questions, so the save fix doesn't matter here; it adds Self-Check > Restore answers from the Answer Log.
+
+- Recalculate all grades, Live Results, the Question Summary and grade uploads now always use a student's real saved work, and
+  Recalculate folds in a second copy if a sheet ever had one. (On sheets with drawing questions, a drawing saved a few seconds
+  after another answer could put that answer back blank and make a second copy; that is fixed for every kind.)
+- New: Self-Check > Restore answers from the Answer Log puts each student's newest saved answer back wherever their work is now
+  blank or an older version. It shows you the list first (Yes or No) and says "Nothing to restore" when nothing is missing.
+- To use it: Update now on the Launchpad, or paste the new Code.gs and Index and make a New version. No Set up / repair needed
+  and no new permission. Your questions, settings and student work are not touched.
+
+Also from 2026.11.15b (optional), if this sheet skipped it:
 
 - Nothing changes for the escape room. Your questions, settings and student work are not touched.
 

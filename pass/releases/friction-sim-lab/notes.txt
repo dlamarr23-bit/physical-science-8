@@ -1,6 +1,33 @@
-friction-sim-lab v2026.11.15b
+friction-sim-lab v2026.11.17
 
-Optional update: one- and two-word answers sit beside their question, and three new answer types for them (exact, elements, element word).
+Fix: answers that went missing after a drawing or picture saved
+- A drawing or picture that saved a few seconds after another answer could put that answer back blank, or back to an older
+  version. When it happened on a student's very first answer, the sheet also made a second copy of that student's saved work,
+  and Recalculate all grades could later copy that old second copy over their real work, so most of it disappeared.
+  (Found on the Sim: Sled Collisions sheet.)
+- Now a drawing or picture saves on top of the student's latest work. Recalculate all grades, Live Results, the Question
+  Summary and grade uploads always use the student's real copy, and Recalculate folds any second copy into the real one
+  and takes it out.
+
+New: Self-Check > Restore answers from the Answer Log
+- The Answer Log keeps every answer a student checked and every drawing or picture they saved. This puts each student's
+  newest saved answer back wherever their work is now blank, or an older version of it. A drawing whose file went to your
+  Drive trash comes back out of it.
+- It shows you the list first (each student and their question numbers). Yes puts them back, No changes nothing.
+- It leaves alone: anything the Answer Log doesn't have, an answer the student cleared on purpose, multiple choice,
+  true/false and short answers with tries (their tries are saved separately), and your own test copy.
+- Work saved by the due date still counts as on time, so a restored answer doesn't get the late penalty.
+- While its window is open, students' new answers wait to save (their pages keep trying by themselves), so after school is best.
+- Run it once on every sheet with drawing or picture questions that students have already used. Running it again is safe:
+  it says "Nothing to restore" when nothing is missing.
+
+To use it: Update now on the Assignment Launchpad, or paste the new Code.gs and Index and create the New version
+(Deploy > Manage deployments > pencil > New version > Deploy). Then reload the sheet to see the new menu item, right under
+Take back full credit. No Set up / repair needed and no new permission. The student pages look the same.
+Until a sheet with drawing questions has this update, please don't run Recalculate all grades on it.
+Updating doesn't change your questions, answer keys, settings or student work.
+
+Also from 2026.11.15b (optional), if this sheet skipped it:
 
 One- and two-word answers sit beside the question
 - A short answer (Answer type short), and a typed answer with x in Allow short answer (and no Minimum sentences), now has a

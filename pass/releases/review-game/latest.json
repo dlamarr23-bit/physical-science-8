@@ -1,7 +1,7 @@
 {
   "kind": "review-game",
-  "version": "2026.11.15b",
-  "optional": "nothing new for the review game (this release puts one- and two-word answers beside their question on the Self-Check pages and adds the exact, elements and element word answer types).",
+  "version": "2026.11.17",
+  "optional": "a review game has no drawing or picture questions, so the save fix in this release doesn't matter here.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",
