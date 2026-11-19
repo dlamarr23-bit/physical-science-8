@@ -1,7 +1,7 @@
 {
   "kind": "video-check",
-  "version": "2026.11.17",
-  "optional": "nothing new for Video Check (this release fixes answers that went missing after a drawing or picture saved on Self-Check sheets, and adds Restore answers from the Answer Log there).",
+  "version": "2026.11.18",
+  "optional": "nothing new for Video Check (this release fixes drawings that stopped saving on Self-Check sheets).",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

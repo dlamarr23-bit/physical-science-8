@@ -1,4 +1,28 @@
-friction-speed-lab v2026.11.17
+friction-speed-lab v2026.11.18
+
+Fix: drawings that stopped saving (students at home on Macs reported it)
+- The drawing pad saved a new copy of the drawing every time a student paused for 2.5 seconds, even in the middle of the
+  next stroke. The sheet takes only so many saves from one student in an hour (it was 40), so a student drawing slow strokes
+  (with a trackpad, say) used them all up in a few minutes, and nothing they drew after that saved for the rest of the hour.
+  The page then said to reload, which threw away what they had drawn since. (Found on the Sim: Sled Collisions sheet: two
+  students stopped at exactly 40 saves in one hour, one of them at home today.)
+- Now the pad never saves in the middle of a stroke, saves at most once every 20 seconds while a student keeps drawing, and
+  saves right away when the student switches tabs, closes the laptop or presses I'm finished.
+- If a save doesn't go through, the pad keeps trying by itself (in about 15 seconds, then about once a minute) and says
+  "It keeps trying by itself, so keep this page open." It no longer tells students to reload.
+- The sheet now takes up to 240 saves of drawings and pictures from one student in an hour (it was 40).
+
+When it reaches students
+- Students who open the assignment through the class website (the Class Pass link: home computers and Macs) get the new
+  drawing pad as soon as this release is published, on every sheet.
+- The higher limit, and the new pad on the sheet's own link (school Chromebooks), need this sheet updated: Update now on the
+  Assignment Launchpad, or paste the new Code.gs and Index and create the New version (Deploy > Manage deployments > pencil >
+  New version > Deploy). No Set up / repair needed and no new permission. Please update every sheet with drawing questions
+  (Sim: Sled Collisions first). Until a sheet is updated it keeps the old limit of 40, so a student drawing for a long time
+  can still reach it; the new pad then saves by itself once the hour turns, as long as the page stays open.
+- Updating doesn't change your questions, answer keys, settings or student work. Drawings already saved stay saved.
+
+Also from 2026.11.17, if this sheet skipped it:
 
 Fix: answers that went missing after a drawing or picture saved
 - A drawing or picture that saved a few seconds after another answer could put that answer back blank, or back to an older

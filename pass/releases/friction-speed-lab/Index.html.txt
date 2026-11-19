@@ -3748,7 +3748,7 @@ function render() {
 }
 
 /* ---------- light / dark mode ---------- */
-var PAGE_VERSION = "2026.11.17";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
+var PAGE_VERSION = "2026.11.18";   // shown small at the bottom with the sheet's version, to spot an old page or deployment
 var THEME_ICONS = { dark: '<path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/>',
                     light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
 // The Help button opens the class website's Chromebook help page (read aloud, dictation, translate, ctrl + F) in the same mode as this page.
@@ -3782,7 +3782,12 @@ function setTheme(t) {
    Pen, marker, spray, eraser, fill, line, arrow, rectangle, oval and text labels, with colors (18 swatches, Any color and
    the last 3 colors picked with it), a size slider, undo, redo, clear and download. The drawing saves itself (as a PNG,
    through the same uploadPicture call as a picture upload) PAD_SAVE_MS after the student stops drawing, and comes back
-   on the pad when the page is opened again. */
+   on the pad when the page is opened again.
+   WHEN IT SAVES (2026.11.18): students at home said their drawings stopped saving. The pad saved after every 2.5 s pause, even in the
+   middle of the next stroke, and the sheet takes only so many saves per student per hour (40 until 2026.11.18), so a student drawing
+   slow strokes (a trackpad) used it up in minutes and nothing saved for the rest of the hour (Sim: Sled Collisions, 2026-11-13 and 11-18).
+   Now a pad never saves in the middle of a stroke, saves at most once every PAD_SAVE_GAP_MS, saves at once when the student leaves the
+   tab or presses I'm finished, and a save that fails keeps trying by itself (padSaveLater) instead of waiting for more drawing. */
 /** A drawing question's background picture, as an image the pad can save (never a cross-site one, which would block saving).
     A Drive picture comes through the sheet (getPicture); another https picture only if its site allows it. done(img or null). */
 function padBackground(i, src, done) {
@@ -3800,7 +3805,8 @@ function padBackground(i, src, done) {
 }
 function padMeta(i, t, c) { if (document.getElementById("m" + i)) setMeta(i, t, c); }   // the pad is built before its status line
 var PAD_BG_W = 1380;   // a pad with a background picture is this many pixels wide (its height follows the picture)
-var PAD_W = 1000, PAD_H = 650, PAD_UNDO = 15, PAD_SAVE_MS = 2500, pads = {};
+var PAD_W = 1000, PAD_H = 650, PAD_UNDO = 15, PAD_SAVE_MS = 2500, PAD_SAVE_GAP_MS = 20000, pads = {};
+var PAD_QUICK_RETRY = [1500, 4000, 9000], PAD_RETRY_MS = 15000;   // a busy moment: try again this soon (not when the sheet says this hour's saves are used up)
 var PAD_COLORS = ["#1f2430", "#ffffff", "#8a8f98", "#e03131", "#f76707", "#fcc419", "#94d82d", "#2f9e44", "#15aabf",
                   "#1c7ed6", "#4263eb", "#7048e8", "#ae3ec9", "#f06595", "#8b5a2b", "#e0b07a", "#ffd8a8", "#a5d8ff"];
 /* The toolbar icons (2026.11.12: one set, 24 x 24, stroke 2, round ends, drawn in currentColor so the blue "on" state and dark mode color them). */
@@ -3889,7 +3895,8 @@ function padBtn(title, svg, onClick) {
 }
 function drawBox(i) {
   var zone = el("div", "drawpad"); zone.id = "a" + i;
-  var P = pads[i] = { w: PAD_W, h: PAD_H, bg: null, bgPat: null, bgWait: false, loadAfter: false, tool: "pen", color: PAD_COLORS[0], colorFrom: "swatch", size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0 };
+  var P = pads[i] = { w: PAD_W, h: PAD_H, bg: null, bgPat: null, bgWait: false, loadAfter: false, tool: "pen", color: PAD_COLORS[0], colorFrom: "swatch", size: 6, undo: [], redo: [], ink: false, dirty: false, timer: 0, shot: null, start: null, last: null, spray: 0,
+                   lastSave: 0, waitN: 0, saveNext: false };   // when this pad last started a save; failed saves in a row; save again right after this one
   var bar = el("div", "padbar"), tools = el("div", "padgroup");
   PAD_TOOLS.forEach(function (t) {
     var b = padBtn(t[1], t[2], function () { P.tool = t[0]; tools.querySelectorAll(".padbtn").forEach(function (x) { x.classList.toggle("on", x === b); }); commitText(i); });
@@ -3987,6 +3994,7 @@ function drawBox(i) {
     if (S.locked || e.button > 0 || P.bgWait || P.loading) return;
     e.preventDefault();
     if (P.tool === "text") return;   // labels start on click (below), after the pointer is let go
+    clearTimeout(P.timer);   // never save in the middle of a stroke: it saves after this one ends
     var p = pt(e);
     commitText(i);
     padPush(i);
@@ -4151,33 +4159,67 @@ function padChanged(i, keepInk) {
   padButtons(i);
   clearTimeout(P.timer);
   if (!P.ink) { setMeta(i, saved[i] ? "Your pad is empty. Your last saved drawing stays until you draw something new." : "", "#b45f06"); P.dirty = false; return; }
-  setMeta(i, "Not saved yet…", "#b45f06");
-  P.timer = setTimeout(function () { saveDrawing(i); }, PAD_SAVE_MS);
+  setMeta(i, "Not saved yet. It saves by itself in a moment.", "#b45f06");
+  P.timer = setTimeout(function () { saveDrawing(i); }, padSaveDelay(P));
   updateReminders();
 }
-function saveDrawing(i) {
+/** How long until this pad saves: PAD_SAVE_MS after the student stops, and never sooner than PAD_SAVE_GAP_MS after its last save. */
+function padSaveDelay(P) { return Math.max(PAD_SAVE_MS, P.lastSave + PAD_SAVE_GAP_MS - Date.now()); }
+/** Saves the drawing (see WHEN IT SAVES). now = right away: the student is leaving the tab or pressed I'm finished. */
+function saveDrawing(i, now) {
   var P = pads[i];
-  clearTimeout(P.timer);
+  if (!P) return;
+  clearTimeout(P.timer); P.timer = 0;
   if (S.locked || P.loading || !P.ink || !P.dirty) return;   // P.loading: the saved drawing isn't back on the pad yet
-  if (uploading[i]) { P.timer = setTimeout(function () { saveDrawing(i); }, 1000); return; }
+  if (uploading[i]) { if (now) P.saveNext = true; return; }   // when this save ends, the next one is set up (padSaveMore)
+  if (!now && P.down) { P.timer = setTimeout(function () { saveDrawing(i); }, PAD_SAVE_MS); return; }
+  if (!now && Date.now() - P.lastSave < PAD_SAVE_GAP_MS) { P.timer = setTimeout(function () { saveDrawing(i); }, padSaveDelay(P)); return; }
   var url = P.cv.toDataURL("image/png"), mime = "image/png";
   if (url.length > 2500000) { url = P.cv.toDataURL("image/jpeg", 0.9); mime = "image/jpeg"; }
-  P.dirty = false;
+  P.dirty = false; P.saveNext = false; P.lastSave = Date.now();
   uploading[i] = true; saving["u" + i] = true;
   setMeta(i, "Saving your drawing…", "#666");
-  withRetry(function (ok, fail) { api.upload(i, url.split(",")[1], mime, ok, fail); }, function (resp) {
-    uploading[i] = false; saving["u" + i] = false;
+  padUpload(i, url.split(",")[1], mime, 0, function (resp) {
+    uploading[i] = false; saving["u" + i] = false; P.waitN = 0;
     saved[i] = draftSaved[i] = resp.url || "drawn";
     paint(i, resp.result);
     if (typeof resp.grade === "number") S.grade = resp.grade;
     updateProgress(); updateReminders();
     if (!P.dirty) setMeta(i, "Drawing saved " + stamp() + ".", "#38761d");
+    padSaveMore(i);
   }, function (err) {
     uploading[i] = false; saving["u" + i] = false; P.dirty = true;
-    if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, and your drawing saves by itself.", "#cc0000"); return; }
-    if (closedMidway(err)) { setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
-    setMeta(i, (String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") || "Your drawing didn't save.") + " It tries again when you draw more.", "#cc0000");
-  }, 0, function () { setMeta(i, "Saving your drawing… (lots of students saving, so hang on)", "#666"); });
+    if (closedMidway(err)) { P.saveNext = false; setMeta(i, "Not saved: this assignment is closed.", "#cc0000"); return; }
+    if (cpIsSignInError(err)) { signedOutMidway(); setMeta(i, "Not saved: sign in again, and your drawing saves by itself.", "#cc0000"); padSaveLater(i); return; }
+    if (!isRetryable(err)) { P.saveNext = false; setMeta(i, String((err && err.message) || err || "").replace(/^(UPLOAD|BUSY|NETWORK): /, "") || "Your drawing didn't save.", "#cc0000"); return; }
+    setMeta(i, "Your drawing isn't saved yet. It keeps trying by itself, so keep this page open.", "#cc0000");
+    padSaveLater(i);
+  });
+}
+/** One save, tried again quickly a few times when the sheet is busy. Not when it says this hour's saves are used up (padTooMany):
+    trying again in a second can't help then, so padSaveLater waits longer. */
+function padUpload(i, data, mime, n, ok, fail) {
+  api.upload(i, data, mime, ok, function (err) {
+    if (n < PAD_QUICK_RETRY.length && isRetryable(err) && !padTooMany(err)) {
+      setMeta(i, "Saving your drawing… (lots of students saving, so hang on)", "#666");
+      setTimeout(function () { padUpload(i, data, mime, n + 1, ok, fail); }, PAD_QUICK_RETRY[n] + Math.floor(Math.random() * PAD_QUICK_RETRY[n] / 2));
+    } else fail(err);
+  });
+}
+/** The sheet refused the save because this student already saved a lot this hour (Code.gs UPLOAD_LIMIT_NOTE, or an older sheet's message). */
+function padTooMany(err) { return /\ba lot\b/i.test(String((err && err.message) || err || "")); }
+/** A save just ended: save again at once if the student is leaving (saveNext), or soon if they drew more meanwhile. */
+function padSaveMore(i) {
+  var P = pads[i];
+  if (P.saveNext) saveDrawing(i, true);
+  else if (P.dirty) { clearTimeout(P.timer); P.timer = setTimeout(function () { saveDrawing(i); }, padSaveDelay(P)); }
+}
+/** A save that failed tries again by itself: in about 15 s (PAD_RETRY_MS), then 30, 45, and every minute after that (more drawing tries sooner). */
+function padSaveLater(i) {
+  var P = pads[i], n = P.waitN = (P.waitN || 0) + 1;
+  P.saveNext = false;
+  clearTimeout(P.timer);
+  P.timer = setTimeout(function () { saveDrawing(i); }, Math.min(4 * PAD_RETRY_MS, PAD_RETRY_MS * n) + Math.floor(Math.random() * PAD_RETRY_MS / 3));
 }
 /** After a reload: put the saved drawing back on the pad so the student can keep working on it.
     Until it's back the pad is covered and takes no drawing (2026.11.05c): before, the pad was blank and open for a few seconds,
@@ -4236,8 +4278,12 @@ function padLoadFailed(i, why) {
   padCover(i, why + " It is still saved.", true);
   setMeta(i, why + " Press Try again.", "#cc0000");
 }
-/** I'm finished: save any drawing that hasn't been saved yet. */
-function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k)); }); }
+/** I'm finished, or the student leaves the tab: save any drawing that hasn't been saved yet, right away. */
+function flushDrawings() { Object.keys(pads).forEach(function (k) { if (pads[k].dirty) saveDrawing(Number(k), true); }); }
+/** Another tab, the laptop lid, the app switcher, closing the page: drawings that haven't saved save now (see WHEN IT SAVES). */
+function padLeaving() { if (S && !S.locked && document.visibilityState === "hidden") flushDrawings(); }
+document.addEventListener("visibilitychange", padLeaving);
+window.addEventListener("pagehide", function () { if (S && !S.locked) flushDrawings(); });
 /* ============================== (@@PAD-END) ============================== */
 
 /* ============================== HELPERS AND SMALL WINS (@@BOOST-BEGIN) ==============================

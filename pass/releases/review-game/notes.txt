@@ -1,4 +1,11 @@
-review-game v2026.11.17
+review-game v2026.11.18
+
+Optional update: a review game has no drawing questions, so this release's drawing fix doesn't matter here.
+
+- Nothing you can see changes. (The sheet now takes up to 240 saves of drawings and pictures from one student in an hour,
+  up from 40; a review game doesn't use them.) Your questions, settings and student work are not touched.
+
+Also from 2026.11.17 (optional), if this sheet skipped it:
 
 Optional update: a review game has no drawing or picture questions, so the save fix in this release doesn't matter here.
 

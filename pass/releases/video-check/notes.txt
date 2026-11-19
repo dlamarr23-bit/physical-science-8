@@ -1,4 +1,10 @@
-video-check v2026.11.17
+video-check v2026.11.18
+
+Optional update: nothing new for Video Check (this release fixes drawings that stopped saving on Self-Check sheets).
+
+- Nothing changes for Video Check. Your questions, settings and student work are not touched.
+
+Also from 2026.11.17 (optional), if this sheet skipped it:
 
 Optional update: nothing new for Video Check (this release fixes answers that went missing after a drawing or picture saved on Self-Check sheets, and adds Restore answers from the Answer Log there).
 

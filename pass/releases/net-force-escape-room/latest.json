@@ -1,7 +1,7 @@
 {
   "kind": "net-force-escape-room",
-  "version": "2026.11.17",
-  "optional": "the escape room has no drawing or picture questions, so the save fix doesn't matter here; it adds Self-Check > Restore answers from the Answer Log.",
+  "version": "2026.11.18",
+  "optional": "the escape room has no drawing questions, so this release's drawing fix doesn't matter here.",
   "files": {
     "Code.gs": "Code.gs.txt",
     "Index.html": "Index.html.txt",

@@ -1,6 +1,6 @@
 {
   "kind": "friction-speed-lab",
-  "version": "2026.11.17",
+  "version": "2026.11.18",
   "optional": "",
   "files": {
     "Code.gs": "Code.gs.txt",
