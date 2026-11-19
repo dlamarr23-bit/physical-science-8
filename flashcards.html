@@ -86,10 +86,34 @@
   function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
   // student view (the Class Pass menu, 2026-11-10): the teacher sees the framed page the way a student does
   function sv(){ try { return localStorage.getItem("ps8-student-view") === "1" ? "1" : "0"; } catch(e){ return "0"; } }
+  // Each game has its own address here (Donny, 2026-11-18: "it would be nice if all the games had their own url"):
+  // /flashcards?go=mole-hunt opens Mole Hunt's setup, ?go=blast opens Host a game with Blast picked, and so on.
+  // A student in a game shows /flashcards?go=join&code=ABC123, so reloading the page goes back into that game.
+  // ?go=live is the older name for Host a game (the Class Pass menu links to it).
+  var GAMES = {
+    "host": ["/live/", "Host a game"], "live": ["/live/", "Host a game"],
+    "vocab-live": ["/live/?game=volley", "Vocab Live"], "blast": ["/live/?game=blast", "Blast"], "match": ["/live/?game=match", "Match"],
+    "battle-royale": ["/royale/", "Battle Royale"], "surge-showdown": ["/surge/", "Surge Showdown"], "mole-hunt": ["/molehunt/", "Mole Hunt"],
+    "join": ["/join/", "Join a game"], "leaderboard": ["/leaderboard/", "Leaderboard"]
+  };
+  // The address for a page of the vocabulary site, or "" for one with no address of its own.
+  function gameName(info){
+    var path = info.path, search = typeof info.search === "string" ? info.search : "";
+    if(path === "/join/" || /^\/(royale|surge|molehunt)\/play\/$/.test(path)) return "join";
+    if(path === "/live/"){
+      var g = (search.match(/[?&]game=(volley|blast|match)\b/) || [])[1];
+      return g ? {volley: "vocab-live", blast: "blast", match: "match"}[g] : "host";
+    }
+    return {"/royale/": "battle-royale", "/surge/": "surge-showdown", "/molehunt/": "mole-hunt", "/leaderboard/": "leaderboard"}[path] || "";
+  }
   function open(){
-    var go = (location.search.match(/[?&]go=(live|join|leaderboard)\b/) || [])[1];
+    var go = (location.search.match(/[?&]go=([a-z-]+)/) || [])[1];
     var code = (location.search.match(/[?&]code=([A-Za-z2-9]{6})\b/) || [])[1];
-    if(go){ frame.src = VOCAB + "/" + go + "/?theme=" + theme() + "&sv=" + sv() + (go === "join" && code ? "&code=" + code.toUpperCase() : ""); return; }
+    if(go && GAMES.hasOwnProperty(go)){
+      var to = GAMES[go][0];
+      frame.src = VOCAB + to + (to.indexOf("?") < 0 ? "?" : "&") + "theme=" + theme() + "&sv=" + sv() + (go === "join" && code ? "&code=" + code.toUpperCase() : "");
+      return;
+    }
     var m = location.pathname.match(/^\/flashcards(\/[\w\/.-]*)?$/);
     frame.src = VOCAB + "/flashcards" + (m && m[1] ? m[1] : "/") + "?theme=" + theme() + "&sv=" + sv() + location.hash;
   }
@@ -104,13 +128,17 @@
     if(!info || typeof info.path !== "string") return;
     // a page of the vocabulary site just opened: it shows this site's mode
     tellTheme();
-    // pages outside the flashcards (hosting or joining a game) keep the plain address
     var inside = /^\/flashcards\/[\w\/.-]+$/.test(info.path);
     var hash = typeof info.hash === "string" && /^#[\w-]*$/.test(info.hash) ? info.hash : "";
-    var address = (inside ? info.path : "/flashcards") + (inside || /^#folder-/.test(hash) ? hash : "");
+    // a game has its own address (above); other pages outside the flashcards (signing in) keep the plain one
+    var game = inside ? "" : gameName(info);
+    var code = game === "join" ? ((hash.match(/^#([A-Za-z2-9]{6})$/) || [])[1] || ((typeof info.search === "string" ? info.search : "").match(/[?&]code=([A-Za-z2-9]{6})\b/) || [])[1] || "") : "";
+    var address = game ? "/flashcards?go=" + game + (code ? "&code=" + code.toUpperCase() : "")
+      : (inside ? info.path : "/flashcards") + (inside || /^#folder-/.test(hash) ? hash : "");
     // replace, not push: the frame's own move is already a step in the Back button's history
-    if(location.pathname + location.hash !== address) history.replaceState(null, "", address);
-    var name = inside && typeof info.title === "string" ? info.title.split(" | ")[0].trim().slice(0, 120) : "";
+    if(location.pathname + location.search + location.hash !== address) history.replaceState(null, "", address);
+    var playing = {"/royale/play/": "Battle Royale", "/surge/play/": "Surge Showdown", "/molehunt/play/": "Mole Hunt"}[info.path];
+    var name = inside && typeof info.title === "string" ? info.title.split(" | ")[0].trim().slice(0, 120) : game ? playing || GAMES[game][1] : "";
     document.title = name ? name + " · " + siteName : pageTitle;
   });
 })();
