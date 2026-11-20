@@ -3,6 +3,8 @@
 # Since 2026-11-19 it is the game-server/ folder of the physical-science-8 repository (it was in the vocabulary
 # repository): Workers & Pages > vocab-live > Settings > Build has that repository, root directory game-server,
 # and build watch path game-server/*, so other changes to the class site do not restart running games.
+# Its deploy command is `npx wrangler deploy --config wrangler.toml`: the top folder of the repository has an old
+# Surge Showdown wrangler.jsonc, and wrangler without --config picks that one (Cloudflare refused that deploy).
 # If you name the Worker something else, change `name` below to match.
 # It has no web address of its own: your Pages site
 # reaches it through a Durable Object binding called LIVE.
