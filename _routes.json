@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "include": [
+    "/api/*",
+    "/app/flashcards",
+    "/app/flashcards/*",
+    "/app/live",
+    "/app/live/*",
+    "/pass",
+    "/pass/",
+    "/app-source/*",
+    "/game-server/*"
+  ],
+  "exclude": []
+}

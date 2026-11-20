@@ -69,17 +69,18 @@
 </div>
 <iframe class="embed-frame" id="vocabFrame" title="Class leaderboard" allow="fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
 <script>
-/* The class leaderboard (Donny, 2026-10-20): the vocabulary site keeps it, with Class Pass, and shows it here
-   under this site's top bar (its own top bar is hidden inside this site). Signing in is the Class Pass button.
+/* The class leaderboard (Donny, 2026-10-20): the review pages keep it, with Class Pass (this site's app/ folder since
+   2026-11-19; it was the vocabulary site), and it shows here under this site's top bar (its own top bar is hidden
+   inside this site). Signing in is the Class Pass button.
    Light or dark: it opens in this site's mode (?theme=) and follows the Class Pass menu's switch ({vocabTheme}). */
 (function(){
-  var VOCAB = "https://vocabulary-room901.pages.dev";
+  var VOCAB = location.origin;
   var frame = document.getElementById("vocabFrame");
   function theme(){ return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
   function tellTheme(){ try { frame.contentWindow.postMessage({vocabTheme: theme()}, VOCAB); } catch(e){ /* still loading */ } }
   // student view (the Class Pass menu, 2026-11-10): the teacher sees the framed page the way a student does
   function sv(){ try { return localStorage.getItem("ps8-student-view") === "1" ? "1" : "0"; } catch(e){ return "0"; } }
-  frame.src = VOCAB + "/leaderboard/?theme=" + theme() + "&sv=" + sv();
+  frame.src = "/app/leaderboard/?theme=" + theme() + "&sv=" + sv();
   window.addEventListener("ps8:theme", tellTheme);
   window.addEventListener("message", function(e){
     if(e.origin === VOCAB && e.source === frame.contentWindow && e.data && e.data.vocabSite) tellTheme();

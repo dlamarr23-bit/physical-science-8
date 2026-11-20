@@ -2,7 +2,7 @@
 
    This site is plain files, so the changes are kept on the vocabulary site (KV entry book-text:<page>,
    see its server/worker.js), and every page asks for its own as it opens:
-   GET https://vocabulary-room901.pages.dev/api/book-text/<page>  ->  { edits: { <box>: <words> }, saved }
+   GET /api/book-text/<page>  ->  { edits: { <box>: <words> }, saved }   (this site's server, app-source/server/worker.js)
    Saving goes through the Class Pass bridge (pass-menu.js), which holds the teacher sign-in.
 
    A "box" is one heading, paragraph, list item, caption or table cell that holds only words (no pictures,
@@ -33,7 +33,7 @@
 (function(){
   "use strict";
 
-  var VOCAB = "https://vocabulary-room901.pages.dev";
+  var VOCAB = location.origin;
   var CACHE = "ps8-text-v1:";
   var BOX = "h1, h2, h3, h4, p, li, figcaption, dt, dd, td, th, blockquote, .eyebrow, .connection-note > span";
   // not words to edit: widgets, the parts this site's scripts write, and boxes made by a script

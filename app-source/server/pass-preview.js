@@ -1,4 +1,6 @@
-/* LINK PREVIEWS for Class Pass student links (Donny, 2026-11-13).
+/* LINK PREVIEWS for Class Pass student links (Donny, 2026-11-13). Moved here from functions/pass/index.js on 2026-11-19, when
+   the vocabulary site moved into this one: a site with a _worker.js runs no functions/ folder, so build.mjs puts this file
+   in front of server/worker.js in /_worker.js, which sends /pass/ here (passPreview).
    Every student link is /pass/?app=<deployment ID>, the same page for every assignment, so the picture Google Classroom
    shows next to a link can't be written into pass/index.html. This Pages Function adds it on the way out:
    og:image (one of /assets/previews/<type>.jpg), og:title and the <title>, then serves the page as before.
@@ -37,7 +39,8 @@ function typeOf(word) {
   return WORDS[w] || "";
 }
 function fromSheet(info) {
-  const m = /^\s*([A-Za-z][A-Za-z -]{1,18}?)\s*[:|–—-]\s+/.exec(String(info.title || ""));
+  // a colon, bar, dash or long dash after the type (the long dashes written as codes)
+  const m = /^\s*([A-Za-z][A-Za-z -]{1,18}?)\s*[:|\u2013\u2014-]\s+/.exec(String(info.title || ""));
   return (m && typeOf(m[1])) || BY_CODE[String(info.kind || "")] || "";
 }
 function esc(s) {
@@ -69,9 +72,9 @@ async function askSheet(app, origin, ctx) {
   return { cached: false, work };
 }
 
-export async function onRequestGet(ctx) {
-  const { request } = ctx;
-  const page = await ctx.next();
+async function passPreview(request, env, ctx) {
+  const page = await env.ASSETS.fetch(request);
+  if (request.method !== "GET") return page;
   const type0 = (page.headers.get("Content-Type") || "").includes("text/html");
   if (!type0 || page.status !== 200) return page;
 

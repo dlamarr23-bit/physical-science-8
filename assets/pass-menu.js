@@ -1,14 +1,15 @@
 /* Physical Science 8: the Class Pass button in the top bar (Donny, 2026-10-20).
 
-   Class Pass and the leaderboard live on the vocabulary site (vocabulary-room901.pages.dev), which the Review
-   and Leaderboard pages show in a frame with its own top bar hidden. So this site's top bar has the button:
+   Class Pass and the leaderboard are the review pages' (this site's app/ folder since 2026-11-19; until then they were
+   the vocabulary site, vocabulary-room901.pages.dev), which the Review, Join a game and Leaderboard pages show in a
+   frame with their own top bar hidden. So this site's top bar has the button:
    - signed out: "Class Pass / Sign in", with a menu: Sign in, Leaderboard, Teacher sign in;
    - a student: a round button with their first letter; the menu says who is signed in, links to the
      Leaderboard and Review, and signs out;
    - the teacher (the teacher password, the same one that edits flashcard sets): Mr. LaMarr's picture; the
      menu adds Edit this page (page-text.js), Assignment Launchpad (launchpad.html) and Host a game.
 
-   How this page knows who is signed in: every page keeps the vocabulary site's bridge/ page in a hidden
+   How this page knows who is signed in: every page keeps the review pages' bridge (app/bridge/) in a hidden
    frame (its assets/book-bridge.js). That page tells this one who is signed in there, now and whenever it
    changes, and does the signing in and out and the saving of changed words for this page. The sign-in
    window opens from here (a frame cannot open one from a button out here) with a random number, and the
@@ -47,7 +48,7 @@
 (function(){
   "use strict";
 
-  var VOCAB = "https://vocabulary-room901.pages.dev";
+  var VOCAB = location.origin;   // the review pages are this site's app/ folder
   var VIEW_KEY = "ps8-pass-view-v1";
 
   function readView(){
@@ -139,7 +140,7 @@
   function startBridge(){
     if(bridge) return;
     bridge = document.createElement("iframe");
-    bridge.src = VOCAB + "/bridge/";
+    bridge.src = VOCAB + "/app/bridge/";
     bridge.title = "Class Pass";
     bridge.setAttribute("aria-hidden", "true");
     bridge.tabIndex = -1;
@@ -186,7 +187,7 @@
   function signIn(){
     if(signingIn && signingIn.win && !signingIn.win.closed){ try { signingIn.win.focus(); } catch(e){} return; }
     var n = nonce(), win = null;
-    try { win = window.open(VOCAB + "/signin/?n=" + n, "classpass", "popup,width=520,height=700"); } catch(e){ win = null; }
+    try { win = window.open(VOCAB + "/app/signin/?n=" + n, "classpass", "popup,width=520,height=700"); } catch(e){ win = null; }
     if(!win){
       toast("Your browser blocked the sign-in window. Allow pop-ups for this site, then press Sign in again.", true);
       gateMsg("Your browser blocked the sign-in window. Allow pop-ups for this site, then press Sign in again.", true);

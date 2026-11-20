@@ -13,3 +13,13 @@
 /video/*
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
+# The review pages (app/: flashcards, live class games, Class Pass sign-in, the leaderboard; the vocabulary site until
+# 2026-11-19, built by app-source/build.mjs in physical-science-8): only that site may show them in a frame (its Review,
+# Join a game and Leaderboard pages do), and search engines skip them.
+/app/*
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+/app/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
