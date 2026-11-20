@@ -2,7 +2,7 @@
   "name": "vocab-live",
   "private": true,
   "type": "module",
-  "description": "Live game server (Durable Object) for Vocab Live, Blast and Match.",
+  "description": "Live game server (Durable Objects) for the class site physical-science-8: Vocab Live, Blast, Match, Battle Royale, Surge Showdown, Mole Hunt and the class leaderboard.",
   "scripts": {
     "deploy": "wrangler deploy"
   },
