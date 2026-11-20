@@ -241,6 +241,13 @@
   .ec-form-band{ display:block; padding:16px 20px 14px; color:#fff; border-bottom:5px solid #F5B400; }
   .ec-form-card.fic .ec-form-band{ background:#1F5C44; }
   .ec-form-card.non .ec-form-band{ background:#123C5E; }
+  .ec-form-card.fic .ec-form-band, .ec-form-card.non .ec-form-band{ background:#f6f1e6; color:#26333c; border-bottom:1px solid #d8d1c2; }
+  .ec-form-band{ display:flex; align-items:center; gap:16px; }
+  .ec-form-band img{ width:112px; height:100px; object-fit:cover; flex:none; }
+  .ec-form-card .ec-form-body .btn{ background:#edbf59; color:#26333c; border:1px solid #bd9035; border-radius:12px; box-shadow:none; }
+  html[data-theme="dark"] .ec-form-card .ec-form-band{ background-color:#262b2d; color:#f3ecdd; border-color:#4a504c; }
+  html[data-theme="dark"] .ec-form-band img{ background:#f6f1e6; border-radius:10px; }
+  @media(max-width:420px){ .ec-form-band img{ width:80px; height:80px; } .ec-form-band{ padding:14px; gap:10px; } }
   .ec-form-band b{ display:block; font-size:1.15rem; font-weight:800; }
   .ec-form-band small{ display:block; font-size:.84rem; opacity:.9; margin-top:2px; }
   .ec-form-body{ display:flex; flex-direction:column; align-items:flex-start; gap:14px; padding:16px 20px 20px; flex:1; }
@@ -338,14 +345,14 @@
     <p class="ec-turn-lede">Finished reading and passed the AR test? Pick the form that matches your book. Each question tells you what to write about, and there is a spot for a picture of your AR test.</p>
     <div class="ec-form-cards">
       <a class="ec-form-card fic" href="./extra-credit-fiction.html">
-        <span class="ec-form-band"><b>Fiction Book Form</b><small>Novels and made-up stories</small></span>
+        <span class="ec-form-band"><img src="./assets/editorial/fiction-book.webp" width="112" height="100" alt=""><span><b>Fiction Book Form</b><small>Novels and made-up stories</small></span></span>
         <span class="ec-form-body">
           <span class="ec-form-what">The setting, the main character, the problem, the story in three parts, and where science shows up in it.</span>
           <span class="btn">Start the Fiction form</span>
         </span>
       </a>
       <a class="ec-form-card non" href="./extra-credit-nonfiction.html">
-        <span class="ec-form-band"><b>Nonfiction Book Form</b><small>True books: people, events, how things work</small></span>
+        <span class="ec-form-band"><img src="./assets/editorial/nonfiction-book.webp" width="112" height="100" alt=""><span><b>Nonfiction Book Form</b><small>True books: people, events, how things work</small></span></span>
         <span class="ec-form-body">
           <span class="ec-form-what">The main idea, the book in three parts, three facts you learned, an important person, and how it connects to our class.</span>
           <span class="btn">Start the Nonfiction form</span>
