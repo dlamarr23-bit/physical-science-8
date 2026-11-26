@@ -6,7 +6,10 @@
    clock. Question sets are made here: import a Wayground quiz or a Google
    Sheet by its link, paste rows, or open a file; they are kept on the site
    (/api/qsets) for next time. Answers can have pictures (the Google Sheets
-   template has a picture column for the question and every answer).
+   template has a picture column for the question and every answer). In the
+   editor every question is a card with its pictures: Show all, Edit, Delete
+   and Add a question, with pictures pasted, dropped, uploaded or searched
+   for (Donny, 2026-11-26).
 
    Then the board: the join code, the students and their heroes, and each
    round as it happens (the groups, the question, the results), with the
@@ -240,6 +243,9 @@
   // [img: link] tag in any cell, or a bare picture link. A Google Drive share
   // link becomes a picture link.
   var IMG_TAG = /\[img:\s*([^\]\s]+)\s*\]/i;
+  // An empty question or right answer in an unfinished line, written so the
+  // cells after it keep their places (questionRows).
+  var BLANK = '[blank]';
   function fixImg(u) {
     u = String(u || '').trim();
     var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/i);
@@ -249,6 +255,7 @@
     var t = String(cell == null ? '' : cell).trim(), img = '', bare = false;
     var m = t.match(IMG_TAG);
     if (m) { img = m[1]; t = t.replace(IMG_TAG, '').trim(); }
+    else if (t.toLowerCase() === BLANK) t = '';
     else if (/^https?:\/\/\S+$/i.test(t) && (/\.(png|jpe?g|gif|webp|svg|bmp)(\?|#|$)/i.test(t) || /drive\.google\.com|googleusercontent\.com|imgur\.com|wikimedia\.org|unsplash\.com|quizizz\.com|wayground\.com/i.test(t))) { img = t; t = ''; bare = true; }
     return { t: t, img: fixImg(img), bare: bare };
   }
@@ -257,6 +264,10 @@
   function headerRoles(row) {
     var cells = row.map(function (c) { return String(c || '').trim().toLowerCase(); });
     if (!cells.some(function (c) { return /^question/.test(c); })) return null;
+    // Every cell of a top row is a short label, so a question that starts
+    // with the word "Question" is not taken for one (Donny, 2026-11-26).
+    var labels = cells.filter(Boolean);
+    if (labels.length < 2 || !labels.every(function (c) { return c.length <= 40 && /question|answer|correct|right|wrong|incorrect|option|distractor|choice|image|picture|img|photo|pic\b|time|type|#/.test(c); })) return null;
     var w = -1;
     return cells.map(function (c) {
       var pic = /image|picture|img|photo|pic\b/.test(c);
@@ -275,6 +286,9 @@
   // options and the right one's number) is read by its top row; so is the
   // template; otherwise the columns are question, right answer, then up to 3
   // wrong answers. Each question: q, img, a, ai, w, wi.
+  // items is every line in order, { x, ok, line }: a line the game cannot use
+  // yet (no wrong answer, say) is there too, as a card to finish or delete.
+  // skipped is the lines left out on purpose (not multiple choice).
   function parse(text) {
     var list = rows(text).filter(function (r) { return r.some(function (c) { return c; }); });
     var head = -1, cols = null;
@@ -291,7 +305,7 @@
         break;
       }
     }
-    var questions = [], skipped = [], roles = null;
+    var questions = [], skipped = [], items = [], roles = null;
     var take = function (x, line) {
       var w = [], wi = [];
       x.w.forEach(function (t, j) {
@@ -300,8 +314,10 @@
         w.push(t || '');
         wi.push(p);
       });
-      if ((!x.q && !x.img) || (!x.a && !x.ai) || !w.length) { skipped.push(line); return; }
-      questions.push({ q: x.q, img: x.img, a: x.a, ai: x.ai, w: w, wi: wi });
+      var one = { q: x.q || '', img: x.img || '', a: x.a || '', ai: x.ai || '', w: w, wi: wi };
+      var ok = !!((one.q || one.img) && (one.a || one.ai) && w.length);
+      items.push({ x: one, ok: ok, line: line });
+      if (ok) questions.push(one);
     };
     list.forEach(function (raw, i) {
       if (i <= head) return;
@@ -348,14 +364,15 @@
           if (f.bare && fields.length && !fields[fields.length - 1].img) fields[fields.length - 1].img = f.img;
           else fields.push(f);
         });
-        if (fields.length < 2) { skipped.push(i + 1); return; }
+        if (!fields.length) return;
+        if (fields.length < 2) { take({ q: fields[0].t, img: fields[0].img, a: '', ai: '', w: [], wi: [] }, i + 1); return; }
         x = { q: fields[0].t, img: fields[0].img, a: fields[1].t, ai: fields[1].img,
           w: fields.slice(2).map(function (f) { return f.t; }), wi: fields.slice(2).map(function (f) { return f.img; }) };
       }
       if (/^question$/i.test(x.q)) return;
       take(x, i + 1);
     });
-    return { questions: questions, skipped: skipped };
+    return { questions: questions, skipped: skipped, items: items };
   }
 
   // Questions as lines for the box, a tab between cells, pictures as [img: link].
@@ -363,7 +380,9 @@
   function withPic(t, img) { return [t || '', img ? '[img: ' + img + ']' : ''].filter(Boolean).join(' '); }
   function questionRows(list) {
     return list.map(function (x) {
-      var cells = [withPic(x.q, x.img), withPic(x.a, x.ai)].concat(x.w.map(function (w, i) { return withPic(w, (x.wi || [])[i]); }));
+      var w = (x.w || []).map(function (t, i) { return withPic(t, (x.wi || [])[i]); }).filter(Boolean);
+      var cells = [withPic(x.q, x.img) || BLANK, withPic(x.a, x.ai) || BLANK].concat(w);
+      while (cells.length > 1 && cells[cells.length - 1] === BLANK) cells.pop();
       return cells.map(cellText).join('\t');
     }).join('\n');
   }
@@ -377,6 +396,7 @@
     $('rbEdName').value = '';
     $('rbEdText').value = '';
     $('rbEdLink').value = '';
+    warnedSave = '';
     $('rbImportHelp').hidden = true;
     $('rbEditor').hidden = false;
     fillAddSets();
@@ -390,33 +410,596 @@
       preview();
     }, function (err) { $('rbEdError').textContent = err.message; });
   }
-  function thumb(src) { var i = mk('img', 'rb-pq-img'); i.alt = ''; i.src = src; i.referrerPolicy = 'no-referrer'; return i; }
+  /* ---------------- the question cards (Donny, 2026-11-26) ----------------
+     Every question in the box is a card with its pictures (the question's
+     big). Show all opens the whole list; each card has Edit and Delete, and
+     Add a question makes a new one. A picture can be pasted (Ctrl+V) or
+     dropped on any line, uploaded, found with a picture search, or come from
+     a web address; it is copied to this site like a flashcard's picture.
+     The box above is still what is saved: a card's change is written back
+     into it as rows. A line the game cannot use yet (no wrong answer, say)
+     is a red card to finish or delete, so nothing pasted is lost. */
+
+  var SHOW_FIRST = 4;
+  var edItems = [], cardsAll = !!readSaved().showAll, openForm = null, warnedSave = '';
+
+  function picImg(src, cls) {
+    var i = mk('img', cls);
+    i.alt = '';
+    i.loading = 'lazy';
+    i.referrerPolicy = 'no-referrer';
+    i.title = 'Click to see it bigger';
+    i.addEventListener('error', function () {
+      var bad = mk('span', 'rb-pic-bad', 'Picture did not load');
+      bad.title = src;
+      if (i.parentNode) i.parentNode.replaceChild(bad, i);
+    });
+    i.addEventListener('click', function () { zoomPic(src); });
+    i.src = src;
+    return i;
+  }
+  function zoomPic(src) {
+    var d = $('rbPicZoom');
+    if (!d) {
+      d = mk('dialog', 'rb-zoom');
+      d.id = 'rbPicZoom';
+      d.addEventListener('click', function () { d.close(); });
+      document.body.appendChild(d);
+    }
+    d.textContent = '';
+    var im = mk('img');
+    im.alt = 'The picture, bigger';
+    im.referrerPolicy = 'no-referrer';
+    im.src = src;
+    d.appendChild(im);
+    d.appendChild(mk('p', 'rb-zoom-note', 'Click anywhere to close it.'));
+    if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  }
+
   function preview() {
     var r = parse($('rbEdText').value);
-    var n = r.questions.length;
-    $('rbEdCount').textContent = n ? n + (n === 1 ? ' question' : ' questions') + (r.skipped.length ? '. Skipped line' + (r.skipped.length === 1 ? ' ' : 's ') + r.skipped.slice(0, 8).join(', ') + (r.skipped.length > 8 ? '...' : '') + ' (each needs a question, a right answer and a wrong one).' : '') : '';
-    var box = $('rbEdPreview');
-    box.textContent = '';
-    r.questions.slice(0, 4).forEach(function (x, i) {
-      var card = mk('div', 'rb-pq');
-      var q = mk('p', 'rb-pq-q', (i + 1) + '. ' + x.q);
-      if (x.img) q.appendChild(thumb(x.img));
-      card.appendChild(q);
-      var ans = mk('p', 'rb-pq-a');
-      var one = function (cls, mark, t, img) {
-        var s = mk('span', cls, mark + ' ' + (t || ''));
-        if (img) s.appendChild(thumb(img));
-        ans.appendChild(s);
-      };
-      one('rb-ok', '✔', x.a, x.ai);
-      x.w.forEach(function (w, j) { one('rb-no', '✖', w, x.wi[j]); });
-      card.appendChild(ans);
-      box.appendChild(card);
-    });
-    if (n > 4) box.appendChild(mk('p', 'lv-small', 'and ' + (n - 4) + ' more.'));
+    edItems = r.items;
+    var n = r.questions.length, bad = r.items.length - n;
+    var t = [];
+    if (n) t.push(n + (n === 1 ? ' question' : ' questions'));
+    if (bad) t.push(bad + (bad === 1 ? ' is' : ' are') + ' not finished yet (the red ' + (bad === 1 ? 'card' : 'cards') + ' below)');
+    if (r.skipped.length) t.push('Skipped line' + (r.skipped.length === 1 ? ' ' : 's ') + r.skipped.slice(0, 8).join(', ') + (r.skipped.length > 8 ? '...' : '') + ' (not multiple choice)');
+    $('rbEdCount').textContent = t.length ? t.join('. ') + '.' : '';
+    drawCards();
     return r;
   }
-  $('rbEdText').addEventListener('input', preview);
+  // A change from the cards, back into the box.
+  function writeItems(list) {
+    $('rbEdText').value = questionRows(list);
+    warnedSave = '';
+    return preview();
+  }
+  function itemList() { return edItems.map(function (it) { return it.x; }); }
+  function cardAt(i) { return $('rbEdPreview').querySelector('.rb-pq[data-i="' + i + '"]'); }
+
+  function drawCards() {
+    openForm = null;
+    var box = $('rbEdPreview');
+    box.textContent = '';
+    var upTo = cardsAll ? edItems.length : Math.min(edItems.length, SHOW_FIRST);
+    for (var i = 0; i < upTo; i++) box.appendChild(card(edItems[i], i));
+    var foot = mk('div', 'rb-pq-foot');
+    if (edItems.length > SHOW_FIRST) {
+      var more = mk('button', 'btn secondary fc-small rb-pq-more', cardsAll ? 'Show only the first ' + SHOW_FIRST : 'Show all ' + edItems.length + ' questions');
+      more.type = 'button';
+      more.setAttribute('aria-expanded', String(cardsAll));
+      more.addEventListener('click', function () {
+        if (!leaveForm()) return;
+        cardsAll = !cardsAll;
+        keep(function (s) { s.showAll = cardsAll; });
+        drawCards();
+        var again = box.querySelector('.rb-pq-more');
+        if (!cardsAll) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        if (again) again.focus({ preventScroll: !cardsAll });
+      });
+      foot.appendChild(more);
+    }
+    var add = mk('button', 'btn fc-small rb-pq-add', '+ Add a question');
+    add.type = 'button';
+    add.addEventListener('click', addCard);
+    foot.appendChild(add);
+    box.appendChild(foot);
+  }
+
+  function card(it, i) {
+    var x = it.x;
+    var c = mk('div', 'rb-pq' + (it.ok ? '' : ' bad'));
+    c.setAttribute('data-i', i);
+    var head = mk('div', 'rb-pq-head');
+    head.appendChild(mk('p', 'rb-pq-q', (i + 1) + '. ' + (x.q || (x.img ? '' : '(no question yet)'))));
+    var btns = mk('div', 'rb-pq-btns');
+    var ed = mk('button', 'btn secondary fc-small rb-pq-edit', 'Edit');
+    ed.type = 'button';
+    ed.setAttribute('aria-label', 'Edit question ' + (i + 1));
+    ed.addEventListener('click', function () { editCard(i); });
+    var del = mk('button', 'btn secondary fc-small rb-danger', 'Delete');
+    del.type = 'button';
+    del.setAttribute('aria-label', 'Delete question ' + (i + 1));
+    del.addEventListener('click', function () { sureThen(del, 'Delete', function () { removeItem(i); }); });
+    btns.appendChild(ed);
+    btns.appendChild(del);
+    head.appendChild(btns);
+    c.appendChild(head);
+    if (x.img) {
+      var qp = mk('div', 'rb-pq-qpic');
+      qp.appendChild(picImg(x.img, 'rb-pq-pic'));
+      c.appendChild(qp);
+    }
+    var ans = mk('div', 'rb-pq-a');
+    var one = function (cls, mark, said, t, img) {
+      var s = mk('span', 'rb-pq-opt ' + cls);
+      var m = mk('span', 'rb-pq-mark', mark);
+      m.setAttribute('aria-hidden', 'true');
+      s.appendChild(m);
+      s.appendChild(mk('span', 'rb-sr', said));
+      if (t) s.appendChild(mk('span', '', t));
+      if (img) s.appendChild(picImg(img, 'rb-pq-apic'));
+      ans.appendChild(s);
+    };
+    if (x.a || x.ai) one('rb-ok', '✔', 'Right answer: ', x.a, x.ai);
+    x.w.forEach(function (w, j) { one('rb-no', '✖', 'Wrong answer: ', w, x.wi[j]); });
+    c.appendChild(ans);
+    if (!it.ok) c.appendChild(mk('p', 'rb-pq-warn', 'Not in the game yet: it needs ' + needs(x) + '. Click Edit to finish it, or Delete.'));
+    return c;
+  }
+  function needs(x) {
+    var n = [];
+    if (!x.q && !x.img) n.push('a question');
+    if (!x.a && !x.ai) n.push('a right answer');
+    if (!x.w.length) n.push('a wrong answer');
+    return n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] : n[0];
+  }
+  // A button that asks "Click again" first, like Delete for a whole set.
+  function sureThen(btn, label, fn) {
+    if (!btn.classList.contains('sure')) {
+      btn.classList.add('sure');
+      btn.textContent = 'Click again to delete';
+      setTimeout(function () { btn.classList.remove('sure'); btn.textContent = label; }, 3000);
+      return;
+    }
+    fn();
+  }
+  function removeItem(i) {
+    if (openForm && openForm.index !== i && !leaveForm()) return;
+    var list = itemList();
+    list.splice(i, 1);
+    writeItems(list);
+    var near = cardAt(Math.min(i, edItems.length - 1));
+    if (near) near.querySelector('.rb-pq-edit').focus({ preventScroll: true });
+    toast('Deleted question ' + (i + 1) + '. Click Save set to keep the change.');
+  }
+
+  function editCard(i) {
+    if (openForm && openForm.index === i) { openForm.focus(); return; }
+    if (!leaveForm()) return;
+    var c = cardAt(i);
+    if (!c) return;
+    var f = questionForm(edItems[i].x, i);
+    c.parentNode.replaceChild(f.node, c);
+    openForm = f;
+    f.focus();
+  }
+  function addCard() {
+    if (openForm && openForm.index < 0) { openForm.focus(); return; }
+    if (!leaveForm()) return;
+    var box = $('rbEdPreview');
+    var f = questionForm(null, -1);
+    box.insertBefore(f.node, box.querySelector('.rb-pq-foot'));
+    openForm = f;
+    f.focus();
+  }
+  // Leaving the open card (for another card, Save set, an import...): with
+  // no change it just closes; a change is kept when the question is complete;
+  // otherwise it stays open and says what is missing.
+  function leaveForm() {
+    if (!openForm) return true;
+    if (!openForm.changed()) { drawCards(); return true; }
+    return openForm.apply(false);
+  }
+
+  // One question's form: the question, the right answer and 3 wrong answers,
+  // each with its own picture.
+  function questionForm(x, index) {
+    x = x || { q: '', img: '', a: '', ai: '', w: [], wi: [] };
+    var node = mk('div', 'rb-qf');
+    var name = index < 0 ? 'New question' : 'Question ' + (index + 1);
+    node.setAttribute('role', 'group');
+    node.setAttribute('aria-label', name);
+    node.appendChild(mk('p', 'rb-qf-title', name));
+    node.appendChild(mk('p', 'rb-qf-tip', 'To add a picture, click + Picture, or paste one (Ctrl+V) in a box, or drop one on a line.'));
+    var lines = [], pending = 0;
+    var msg = mk('p', 'rb-qf-msg');
+    msg.setAttribute('role', 'status');
+    function say(t, bad) { msg.textContent = t || ''; msg.classList.toggle('bad', !!bad); }
+
+    function addLine(kind, label, text, img) {
+      var L = { kind: kind, label: label, img: img || '', busy: false, picker: null };
+      var row = mk('div', 'rb-qf-row rb-qf-' + kind);
+      var lab = mk('label', 'rb-qf-field');
+      var cap = mk('span', 'rb-qf-label');
+      if (kind !== 'q') {
+        var mark = mk('span', 'rb-qf-mark', kind === 'a' ? '✔' : '✖');
+        mark.setAttribute('aria-hidden', 'true');
+        cap.appendChild(mark);
+      }
+      cap.appendChild(document.createTextNode(label));
+      lab.appendChild(cap);
+      var input = mk(kind === 'q' ? 'textarea' : 'input');
+      if (kind === 'q') input.rows = 2; else input.type = 'text';
+      input.maxLength = kind === 'q' ? 600 : 200;
+      input.value = text || '';
+      lab.appendChild(input);
+      row.appendChild(lab);
+      var slot = mk('div', 'rb-qf-pic');
+      row.appendChild(slot);
+      L.row = row;
+      L.input = input;
+      L.draw = function () {
+        slot.textContent = '';
+        if (L.busy) { slot.appendChild(mk('span', 'rb-qf-busy', 'Adding the picture...')); return; }
+        if (L.img) {
+          slot.appendChild(picImg(L.img, 'rb-qf-img'));
+          var acts = mk('span', 'rb-qf-pic-acts');
+          var change = mk('button', 'linkbtn', 'Change');
+          change.type = 'button';
+          change.setAttribute('aria-label', 'Change the picture for ' + label.toLowerCase());
+          change.addEventListener('click', function () { togglePicker(L); });
+          var remove = mk('button', 'linkbtn', 'Remove');
+          remove.type = 'button';
+          remove.setAttribute('aria-label', 'Remove the picture for ' + label.toLowerCase());
+          remove.addEventListener('click', function () { L.img = ''; closePicker(L); L.draw(); });
+          acts.appendChild(change);
+          acts.appendChild(remove);
+          slot.appendChild(acts);
+          return;
+        }
+        var add = mk('button', 'btn secondary fc-small rb-qf-addpic', '+ Picture');
+        add.type = 'button';
+        add.setAttribute('aria-label', 'Add a picture for ' + label.toLowerCase());
+        add.addEventListener('click', function () { togglePicker(L); });
+        slot.appendChild(add);
+      };
+      L.draw();
+      // A picture pasted in the line's box, or dropped on the line, is its picture.
+      input.addEventListener('paste', function (e) {
+        var file = clipImage(e.clipboardData);
+        if (!file) return;
+        e.preventDefault();
+        takePic(L, picFromFile(file));
+      });
+      row.addEventListener('dragover', function (e) { e.preventDefault(); row.classList.add('drop'); });
+      row.addEventListener('dragleave', function (e) { if (!row.contains(e.relatedTarget)) row.classList.remove('drop'); });
+      row.addEventListener('drop', function (e) {
+        e.preventDefault();
+        row.classList.remove('drop');
+        var p = dropPic(e.dataTransfer);
+        if (p) takePic(L, p);
+        else say('Nothing to add there. Drop a picture file, or a picture from another web page.', true);
+      });
+      node.appendChild(row);
+      lines.push(L);
+    }
+
+    function takePic(L, promise) {
+      L.busy = true;
+      pending++;
+      L.draw();
+      say('Adding the picture...');
+      promise.then(function (url) {
+        L.busy = false;
+        L.img = url;
+        L.draw();
+        closePicker(L);
+        say('Picture added.');
+      }, function (err) {
+        L.busy = false;
+        L.draw();
+        say(err.message, true);
+      }).then(function () { pending--; });
+    }
+    function closePicker(L) {
+      if (L.picker) { L.picker.remove(); L.picker = null; }
+    }
+    // Upload a file, paste a picture or its address, or search for one.
+    function togglePicker(L) {
+      if (L.picker) { closePicker(L); return; }
+      lines.forEach(closePicker);
+      var p = mk('div', 'rb-qf-picker');
+      L.picker = p;
+      p.appendChild(mk('p', 'rb-qf-pick-title', 'Picture for ' + L.label.toLowerCase()));
+      var top = mk('div', 'rb-qf-pick-row');
+      var file = mk('input');
+      file.type = 'file';
+      file.accept = 'image/*';
+      file.hidden = true;
+      file.addEventListener('change', function () { if (file.files[0]) takePic(L, picFromFile(file.files[0])); file.value = ''; });
+      var up = mk('button', 'btn fc-small', 'Upload a picture');
+      up.type = 'button';
+      up.addEventListener('click', function () { file.click(); });
+      var paste = mk('input', 'rb-qf-paste');
+      paste.type = 'text';
+      paste.placeholder = 'Or paste a picture or its web address here';
+      paste.setAttribute('aria-label', 'Paste a picture or its web address');
+      paste.addEventListener('paste', function (e) {
+        var f = clipImage(e.clipboardData);
+        if (f) { e.preventDefault(); takePic(L, picFromFile(f)); return; }
+        var t = ((e.clipboardData && e.clipboardData.getData('text')) || '').trim();
+        if (t) { e.preventDefault(); paste.value = t; takePic(L, picFromAddress(t)); }
+      });
+      paste.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (paste.value.trim()) takePic(L, picFromAddress(paste.value.trim()));
+      });
+      var shut = mk('button', 'linkbtn', 'Close');
+      shut.type = 'button';
+      shut.addEventListener('click', function () { closePicker(L); L.input.focus(); });
+      top.appendChild(up);
+      top.appendChild(file);
+      top.appendChild(paste);
+      top.appendChild(shut);
+      p.appendChild(top);
+
+      // Free pictures, the same search the flashcards use (/api/images/search).
+      var bar = mk('form', 'fc-find-bar');
+      var q = mk('input');
+      q.type = 'search';
+      q.placeholder = 'Search for free pictures';
+      q.setAttribute('aria-label', 'Search words for pictures');
+      var words = (L.input.value.trim() || (lines[0].input.value.trim()));
+      q.value = words.length <= 40 ? words : '';
+      var go = mk('button', 'btn secondary fc-small', 'Search');
+      go.type = 'submit';
+      var google = mk('a', 'btn secondary fc-small', 'Google Images');
+      google.target = '_blank';
+      google.rel = 'noopener noreferrer';
+      var setGoogle = function () { google.href = 'https://www.google.com/search?tbm=isch&safe=active&q=' + encodeURIComponent(q.value.trim() || words.slice(0, 80) || 'science'); };
+      setGoogle();
+      q.addEventListener('input', setGoogle);
+      bar.appendChild(q);
+      bar.appendChild(go);
+      bar.appendChild(google);
+      p.appendChild(bar);
+      var fmsg = mk('p', 'fc-find-msg', 'From Google Images: right-click a picture, choose Copy image, then paste it in the box above.');
+      fmsg.setAttribute('role', 'status');
+      p.appendChild(fmsg);
+      var grid = mk('div', 'fc-find-grid');
+      p.appendChild(grid);
+      var more = mk('button', 'btn secondary fc-small', 'Show 5 more');
+      more.type = 'button';
+      more.hidden = true;
+      p.appendChild(more);
+      var page = 1, busy = false;
+      function search(next) {
+        var w = q.value.trim();
+        if (w.length < 2) { fmsg.textContent = 'Type a word to search for.'; q.focus(); return; }
+        if (busy) return;
+        busy = true;
+        page = next ? page + 1 : 1;
+        if (!next) grid.textContent = '';
+        more.hidden = true;
+        fmsg.textContent = 'Finding pictures...';
+        ED.imageSearch(w, page).then(function (r) {
+          var list = (r && r.results) || [];
+          list.forEach(function (found) {
+            var b = mk('button', 'fc-find-pick');
+            b.type = 'button';
+            b.title = found.credit || '';
+            b.setAttribute('aria-label', 'Use this picture: ' + (found.title || ''));
+            var im = mk('img');
+            im.src = found.preview;
+            im.alt = '';
+            b.appendChild(im);
+            b.addEventListener('click', function () { takePic(L, picFromChoices(found.urls || [])); });
+            grid.appendChild(b);
+          });
+          var checked = (r && r.checked) || {};
+          var down = Object.keys(checked).length && Object.keys(checked).every(function (k) { return /^failed/.test(checked[k]); });
+          if (!grid.children.length) fmsg.textContent = down ? 'The picture sites did not answer just now. Try again in a moment.' : 'No pictures found for "' + w + '". Try other words.';
+          else fmsg.textContent = list.length ? 'Click a picture to use it. They are free to use.' : 'No more pictures for "' + w + '".';
+          more.hidden = list.length < 5;
+        }, function (err) { fmsg.textContent = err.message; }).then(function () { busy = false; });
+      }
+      bar.addEventListener('submit', function (e) { e.preventDefault(); search(false); });
+      more.addEventListener('click', function () { search(true); });
+      L.row.parentNode.insertBefore(p, L.row.nextSibling);
+      paste.focus();
+    }
+
+    addLine('q', 'Question', x.q, x.img);
+    addLine('a', 'Right answer', x.a, x.ai);
+    for (var k = 0; k < 3; k++) addLine('w', 'Wrong answer ' + (k + 1), (x.w || [])[k], (x.wi || [])[k]);
+    node.appendChild(msg);
+
+    function clean(v) { return String(v || '').replace(/\s+/g, ' ').trim(); }
+    function read() {
+      var y = { q: clean(lines[0].input.value), img: lines[0].img, a: clean(lines[1].input.value), ai: lines[1].img, w: [], wi: [] };
+      for (var k = 2; k < lines.length; k++) {
+        var t = clean(lines[k].input.value), p = lines[k].img;
+        if (t || p) { y.w.push(t); y.wi.push(p); }
+      }
+      return y;
+    }
+    var start = JSON.stringify(read());
+    function problem(y) {
+      if (!y.q && !y.img) return [0, 'Type the question, or add a picture for it.'];
+      if (!y.a && !y.ai) return [1, 'Type the right answer, or add a picture for it.'];
+      if (!y.w.length) return [2, 'Add at least one wrong answer.'];
+      for (var k = 2; k < lines.length; k++) {
+        var t = clean(lines[k].input.value);
+        if (t && y.a && t.toLowerCase() === y.a.toLowerCase()) return [k, 'Wrong answer ' + (k - 1) + ' is the same as the right answer.'];
+      }
+      return null;
+    }
+    function apply(another) {
+      if (pending) { say('Wait a moment: a picture is still being added.', true); node.scrollIntoView({ block: 'nearest' }); return false; }
+      var y = read();
+      var bad = problem(y);
+      if (bad) {
+        say(bad[1], true);
+        lines[bad[0]].input.focus();
+        return false;
+      }
+      var list = itemList();
+      if (index < 0) list.push(y); else list[index] = y;
+      var at = index < 0 ? list.length - 1 : index;
+      if (at >= SHOW_FIRST) cardsAll = true;
+      writeItems(list);
+      var c = cardAt(at);
+      if (c) {
+        c.classList.add('flash');
+        if (!another) { c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); c.querySelector('.rb-pq-edit').focus({ preventScroll: true }); }
+      }
+      toast((index < 0 ? 'Added question ' : 'Changed question ') + (at + 1) + '. Click Save set to keep it.');
+      if (another) addCard();
+      return true;
+    }
+    function cancel() {
+      drawCards();
+      var c = index < 0 ? null : cardAt(index);
+      var back = c ? c.querySelector('.rb-pq-edit') : $('rbEdPreview').querySelector('.rb-pq-add');
+      if (back) back.focus();
+    }
+    var acts = mk('div', 'rb-qf-acts');
+    var button = function (text, cls, fn) {
+      var b = mk('button', cls, text);
+      b.type = 'button';
+      b.addEventListener('click', fn);
+      acts.appendChild(b);
+      return b;
+    };
+    if (index < 0) {
+      button('Add question', 'btn fc-small', function () { apply(false); });
+      button('Add and start another', 'btn secondary fc-small', function () { apply(true); });
+      button('Cancel', 'btn secondary fc-small', cancel);
+    } else {
+      button('Done', 'btn fc-small', function () { apply(false); });
+      button('Cancel', 'btn secondary fc-small', cancel);
+      var del = button('Delete question', 'btn secondary fc-small rb-danger rb-qf-del', function () {
+        sureThen(del, 'Delete question', function () { openForm = null; removeItem(index); });
+      });
+    }
+    node.appendChild(acts);
+    // Ctrl+Enter is the same as Done.
+    node.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); apply(false); }
+    });
+
+    return {
+      node: node,
+      index: index,
+      changed: function () { return pending > 0 || JSON.stringify(read()) !== start; },
+      apply: apply,
+      focus: function () { node.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); lines[0].input.focus({ preventScroll: true }); }
+    };
+  }
+
+  /* ---------------- pictures for the questions (Donny, 2026-11-26) ---------------- */
+
+  // Each picture is copied to this site (/api/images, like a flashcard's), so
+  // it never disappears from another website. A big photo is made smaller
+  // first (at most 1200 pixels across), so it loads fast on every
+  // Chromebook; GIFs and SVGs are kept as they are.
+  var BIG_PIC = 1200;
+  function shrinkBlob(src) {
+    return new Promise(function (resolve, reject) {
+      var im = new Image();
+      im.onload = function () {
+        try {
+          var s = Math.min(1, BIG_PIC / Math.max(im.naturalWidth, im.naturalHeight));
+          var cv = document.createElement('canvas');
+          cv.width = Math.max(1, Math.round(im.naturalWidth * s));
+          cv.height = Math.max(1, Math.round(im.naturalHeight * s));
+          var g = cv.getContext('2d');
+          g.drawImage(im, 0, 0, cv.width, cv.height);
+          cv.toBlob(function (b) {
+            if (b && b.type === 'image/webp') { resolve(b); return; }
+            g.globalCompositeOperation = 'destination-over';
+            g.fillStyle = '#fff';
+            g.fillRect(0, 0, cv.width, cv.height);
+            cv.toBlob(function (j) { if (j) resolve(j); else reject(new Error('That picture could not be made smaller.')); }, 'image/jpeg', 0.86);
+          }, 'image/webp', 0.85);
+        } catch (err) { reject(err); }
+      };
+      im.onerror = function () { reject(new Error('That picture could not be opened.')); };
+      im.src = src;
+    });
+  }
+  function upload(blob) { return ED.uploadImage(blob).then(function (r) { return r.url; }); }
+  function picFromFile(file) {
+    if (!ED) return Promise.reject(new Error('This page did not load properly. Reload it to try again.'));
+    if (!file || !/^image\//.test(file.type)) return Promise.reject(new Error('That file is not a picture. Use a PNG, JPG, GIF, WebP or SVG.'));
+    if (/gif|svg/.test(file.type) || file.size < 300000) return upload(file);
+    var u = URL.createObjectURL(file);
+    return shrinkBlob(u).then(function (b) { return upload(b.size < file.size ? b : file); }, function () { return upload(file); })
+      .then(function (url) { URL.revokeObjectURL(u); return url; }, function (err) { URL.revokeObjectURL(u); throw err; });
+  }
+  // A picture from its web address: copied to the site. If the site cannot
+  // copy it but this browser can show it (a Google Drive picture only the
+  // school can see, say), the question links to it instead.
+  function picFromAddress(address) {
+    address = String(address || '').trim();
+    var tag = address.match(IMG_TAG);
+    if (tag) address = tag[1];
+    if (/^data:image\//i.test(address)) return fetch(address).then(function (r) { return r.blob(); }).then(picFromFile);
+    if (/^\/api\/images\/[0-9a-f]{64}$/.test(address)) return Promise.resolve(address);
+    address = fixImg(address);
+    if (!/^https?:\/\//i.test(address)) return Promise.reject(new Error('Paste a picture, or a web address that starts with https://'));
+    if (!ED) return Promise.reject(new Error('This page did not load properly. Reload it to try again.'));
+    return ED.imageFromUrl(address).then(function (r) {
+      if (r.bytes > 400000 && !r.animated && !/svg|gif/.test(r.type || '')) {
+        return shrinkBlob(r.url).then(upload).then(null, function () { return r.url; });
+      }
+      return r.url;
+    }, function (err) {
+      return canShow(address).then(function (ok) {
+        if (ok && /^https:\/\//i.test(address)) return address;
+        throw err;
+      });
+    });
+  }
+  // A search result has a few addresses for its picture; the first one that copies is used.
+  function picFromChoices(urls) {
+    var left = urls.slice();
+    return (function next(lastErr) {
+      var u = left.shift();
+      if (!u) return Promise.reject(lastErr || new Error('That picture could not be copied. Pick another.'));
+      return picFromAddress(u).then(null, next);
+    })();
+  }
+  function canShow(u) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      var t = setTimeout(function () { resolve(false); }, 8000);
+      im.referrerPolicy = 'no-referrer';
+      im.onload = function () { clearTimeout(t); resolve(im.naturalWidth > 0); };
+      im.onerror = function () { clearTimeout(t); resolve(false); };
+      im.src = u;
+    });
+  }
+  function clipImage(cd) {
+    var items = (cd && cd.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file' && /^image\//.test(items[i].type)) return items[i].getAsFile();
+    }
+    return null;
+  }
+  // A dropped file, or a picture dragged in from another tab (it comes as an address).
+  function dropPic(dt) {
+    if (!dt) return null;
+    if (dt.files && dt.files.length) return picFromFile(dt.files[0]);
+    var html = dt.getData('text/html');
+    var m = html && /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+    var url = m ? m[1].replace(/&amp;/g, '&') : (dt.getData('text/uri-list') || '').split(/\r?\n/).filter(function (l) { return l && l.charAt(0) !== '#'; })[0] || '';
+    return /^(https?:|data:image\/)/i.test(url) ? picFromAddress(url) : null;
+  }
+
+  $('rbEdText').addEventListener('input', function () { warnedSave = ''; preview(); });
   $('rbEdFile').addEventListener('change', function () {
     var f = this.files && this.files[0];
     if (!f) return;
@@ -437,15 +1020,17 @@
   // same right answer is only kept once.
   function sameKey(x) { return [x.q, x.img, x.a, x.ai].map(function (v) { return String(v || '').trim().toLowerCase(); }).join('|'); }
   function addQuestions(list, title) {
-    var had = parse($('rbEdText').value).questions;
+    leaveForm();
+    // Unfinished lines stay too, as their red cards.
+    var had = parse($('rbEdText').value).items;
     var seen = {};
-    had.forEach(function (x) { seen[sameKey(x)] = true; });
+    had.forEach(function (it) { if (it.ok) seen[sameKey(it.x)] = true; });
     var fresh = list.filter(function (x) { var k = sameKey(x); if (seen[k]) return false; seen[k] = true; return true; });
-    $('rbEdText').value = questionRows(had.concat(fresh));
+    writeItems(had.map(function (it) { return it.x; }).concat(fresh));
     if (title && !$('rbEdName').value) $('rbEdName').value = title;
-    preview();
     var dupes = list.length - fresh.length;
-    return { added: fresh.length, total: had.length + fresh.length, dupes: dupes };
+    var total = edItems.filter(function (it) { return it.ok; }).length;
+    return { added: fresh.length, total: total, dupes: dupes };
   }
   function addedText(r) {
     return (r.added ? 'Added ' + r.added + (r.added === 1 ? ' question' : ' questions') : 'No new questions') +
@@ -467,6 +1052,7 @@
   $('rbEdAdd').addEventListener('click', function () {
     var id = $('rbEdAddSet').value;
     if (!id) return;
+    if (!leaveForm()) { $('rbEdError').textContent = 'Finish the question that is open (or click its Cancel) first.'; return; }
     var btn = this;
     btn.disabled = true;
     call('qsets/' + id).then(function (s) {
@@ -501,6 +1087,7 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
   $('rbEdCsv').addEventListener('click', function () {
+    if (!leaveForm()) return;
     var r = parse($('rbEdText').value);
     if (!r.questions.length) { $('rbEdError').textContent = 'There are no questions to download yet.'; return; }
     downloadCsv($('rbEdName').value.trim(), r.questions);
@@ -522,6 +1109,7 @@
     help.hidden = true;
     $('rbEdError').textContent = '';
     if (!/^https?:\/\//.test(link)) { $('rbEdError').textContent = 'Paste the whole link, starting with https://'; return; }
+    if (!leaveForm()) { $('rbEdError').textContent = 'Finish the question that is open (or click its Cancel) first.'; return; }
     btn.disabled = true;
     btn.textContent = 'Importing...';
     var done = function () { btn.disabled = false; btn.textContent = 'Import'; };
@@ -577,11 +1165,24 @@
   $('rbQsetEdit').addEventListener('click', function () { if ($('rbQset').value) openEditor($('rbQset').value); });
   $('rbEdCancel').addEventListener('click', function () { $('rbEditor').hidden = true; });
   $('rbEdSave').addEventListener('click', function () {
+    // A card still open is kept first (or says what it is missing).
+    if (!leaveForm()) { $('rbEdError').textContent = 'Finish the question that is open (or click its Cancel), then click Save set.'; return; }
     var r = preview();
     var title = $('rbEdName').value.trim();
     $('rbEdError').textContent = '';
     if (!title) { $('rbEdError').textContent = 'Give the set a name.'; $('rbEdName').focus(); return; }
     if (!r.questions.length) { $('rbEdError').textContent = 'Add at least one question with its right answer and a wrong answer.'; return; }
+    // Red cards: one warning, then a second click saves without them.
+    var bad = r.items.length - r.questions.length;
+    if (bad && warnedSave !== $('rbEdText').value) {
+      warnedSave = $('rbEdText').value;
+      cardsAll = true;
+      drawCards();
+      var first = $('rbEdPreview').querySelector('.rb-pq.bad');
+      if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      $('rbEdError').textContent = bad + (bad === 1 ? ' question is' : ' questions are') + ' not finished (the red ' + (bad === 1 ? 'card' : 'cards') + '). Fix or delete ' + (bad === 1 ? 'it' : 'them') + ', or click Save set again to save without ' + (bad === 1 ? 'it.' : 'them.');
+      return;
+    }
     var btn = this;
     btn.disabled = true;
     btn.textContent = 'Saving...';

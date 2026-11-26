@@ -38,12 +38,70 @@
 .rb-editor textarea{ width:100%; box-sizing:border-box; font:.92rem/1.45 ui-monospace, Consolas, monospace; padding:.7rem; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:var(--radius-sm); resize:vertical; tab-size:18; }
 .rb-ed-tools{ display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:.5rem 0; }
 .rb-file{ cursor:pointer; }
-.rb-preview{ display:grid; gap:.5rem; margin:.5rem 0; }
-.rb-pq{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:.5rem .75rem; }
-.rb-pq-q{ margin:0 0 .3rem; font-weight:700; }
-.rb-pq-a{ margin:0; display:flex; flex-wrap:wrap; gap:.3rem .9rem; font-size:.92rem; }
 .rb-ok{ color:var(--good-ink); font-weight:700; }
 .rb-no{ color:var(--bad-ink); }
+
+/* The question cards: every question with its pictures, Edit, Delete and Add a question (Donny, 2026-11-26). */
+.rb-preview{ display:grid; gap:.6rem; margin:.75rem 0; }
+.rb-pq{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:.6rem .8rem .7rem; background:var(--card); }
+.rb-pq.bad{ border-color:var(--bad-ink); background:var(--bad-tint); }
+.rb-pq.flash{ animation:rbPqFlash 1.8s ease-out; }
+@keyframes rbPqFlash{ from{ box-shadow:0 0 0 4px var(--accent); } to{ box-shadow:0 0 0 4px transparent; } }
+.rb-pq-head{ display:flex; align-items:flex-start; gap:.6rem; }
+.rb-pq-q{ flex:1; min-width:0; margin:.15rem 0 .4rem; font-weight:700; overflow-wrap:anywhere; }
+.rb-pq-btns{ display:flex; gap:.35rem; flex:none; }
+.rb-pq-btns .btn{ padding:.3rem .85rem; font-size:.82rem; }
+.rb-pq-qpic{ margin:0 0 .55rem; }
+.rb-pq-pic{ display:block; max-height:11rem; max-width:min(100%, 24rem); object-fit:contain; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:zoom-in; }
+.rb-pq-a{ display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .5rem; font-size:.94rem; }
+.rb-pq-opt{ display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .55rem; border-radius:8px; overflow-wrap:anywhere; }
+.rb-pq-opt.rb-ok{ background:var(--good-tint); }
+.rb-pq-apic{ height:4.5rem; max-width:8rem; object-fit:contain; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:zoom-in; }
+.rb-pic-bad{ font-size:.8rem; font-weight:700; color:var(--bad-ink); border:1px dashed var(--bad-ink); border-radius:6px; padding:.15rem .45rem; }
+.rb-pq-warn{ margin:.5rem 0 0; font-size:.88rem; font-weight:700; color:var(--bad-ink); }
+.rb-pq-foot{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; }
+
+/* One question open to change, or a new one. */
+.rb-qf{ border:2px solid var(--accent); border-radius:var(--radius-sm); padding:.75rem .9rem .85rem; background:var(--card); display:grid; gap:.45rem; }
+.rb-qf-title{ margin:0; font-weight:800; font-size:1.05rem; }
+.rb-qf-tip{ margin:-.2rem 0 0; font-size:.84rem; color:var(--ink-soft); }
+.rb-qf-row{ display:grid; grid-template-columns:minmax(0, 1fr) 11rem; gap:.6rem; align-items:end; padding:.25rem .3rem; border-radius:8px; border:2px dashed transparent; }
+.rb-qf-row.drop{ border-color:var(--accent); background:var(--accent-tint); }
+.rb-qf-field{ display:grid; gap:.2rem; min-width:0; }
+.rb-qf-label{ display:flex; align-items:center; gap:.3rem; font-size:.86rem; font-weight:700; color:var(--ink-soft); }
+.rb-qf-a .rb-qf-mark{ color:var(--good-ink); }
+.rb-qf-w .rb-qf-mark{ color:var(--bad-ink); }
+.rb-editor .rb-qf textarea, .rb-qf input[type=text], .rb-qf input[type=search]{ width:100%; box-sizing:border-box; font:inherit; tab-size:normal; padding:.5rem .65rem; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card); color:var(--ink); }
+.rb-qf-a input[type=text]{ border-color:var(--good-ink); }
+.rb-qf-pic{ display:flex; align-items:center; gap:.45rem; min-height:2.6rem; }
+.rb-qf-img{ height:3.6rem; max-width:6.5rem; object-fit:contain; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:zoom-in; }
+.rb-qf-q .rb-qf-img{ height:5rem; max-width:7.5rem; }
+.rb-qf-pic-acts{ display:flex; flex-direction:column; align-items:flex-start; }
+.rb-qf-pic-acts .linkbtn{ font-size:.84rem; }
+.rb-qf-addpic{ white-space:nowrap; }
+.rb-qf-busy{ font-size:.85rem; font-weight:700; color:var(--ink-soft); }
+.rb-qf-picker{ border:2px dashed var(--line); border-radius:var(--radius-sm); padding:.7rem; display:grid; gap:.5rem; }
+.rb-qf-pick-title{ margin:0; font-weight:700; }
+.rb-qf-pick-row{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.rb-qf input.rb-qf-paste{ flex:1 1 16rem; width:auto; min-width:0; }
+.rb-qf-picker .fc-find-msg{ margin:0; }
+.rb-qf-picker .fc-find-bar a.btn{ text-decoration:none; }
+.rb-qf-picker .fc-find-bar input{ flex:1 1 12rem; width:auto; }
+.rb-qf-msg{ margin:0; min-height:1.2em; font-size:.9rem; font-weight:700; color:var(--ink-soft); }
+.rb-qf-msg.bad{ color:var(--bad-ink); }
+.rb-qf-acts{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.rb-qf-del{ margin-left:auto; }
+@media (max-width:600px){
+  .rb-qf-row{ grid-template-columns:minmax(0, 1fr); }
+  .rb-pq-head{ flex-direction:column; gap:.2rem; }
+  .rb-qf-del{ margin-left:0; }
+}
+
+/* A picture, bigger. */
+.rb-zoom{ border:0; border-radius:var(--radius); padding:.75rem; background:var(--card); color:var(--ink); max-width:min(92vw, 70rem); cursor:zoom-out; }
+.rb-zoom::backdrop{ background:rgba(10, 12, 20, .72); }
+.rb-zoom img{ display:block; max-width:100%; max-height:80vh; margin:0 auto; background:#fff; border-radius:8px; }
+.rb-zoom-note{ margin:.4rem 0 0; text-align:center; font-size:.85rem; color:var(--ink-soft); }
 .rb-ed-actions{ display:flex; gap:.6rem; margin-top:.5rem; }
 .rb-opts .lv-opt select{ font:inherit; font-weight:600; padding:.45rem .6rem; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card); color:var(--ink); }
 
@@ -325,7 +383,6 @@ html[data-theme="dark"] .rp-pick.mine{ background:#3a3216; }
 .rb-tile-body{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:.35rem; min-width:0; }
 .rb-tile-img{ max-height:7rem; max-width:100%; border-radius:8px; background:#fff; }
 .rb-res-top .rb-tile-img{ max-height:3.5rem; }
-.rb-pq-img{ height:2.4rem; max-width:5rem; object-fit:contain; vertical-align:middle; margin-left:.35rem; border-radius:4px; border:1px solid var(--line); background:#fff; }
 .rp-answer.has-img{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.35rem; }
 .rp-answer-img{ max-height:7rem; max-width:100%; border-radius:8px; background:#fff; }
 #rpVsThem.rp-many{ display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; flex:0 1 26rem; }
