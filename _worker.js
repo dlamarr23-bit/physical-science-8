@@ -967,8 +967,16 @@ function cleanLessonPlan(p) {
   const id = (v) => (/^[A-Za-z0-9]{1,24}$/.test(String(v || '')) ? String(v) : '');
   const link = (v) => { const u = text(v, 2000).trim(); return /^https?:\/\/[^\s"'<>]+$/i.test(u) ? u : ''; };
   const date = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : '');
+  // h: the link's highlight (a color, or "none" to turn off a test's color), Donny 2026-11-25
+  const color = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : '');
+  const highlight = (v) => (v === 'none' ? 'none' : color(v));
   const items = (a, max) => (Array.isArray(a) ? a.slice(0, max) : [])
-    .map((x) => (x && typeof x === 'object' ? { id: id(x.id), t: text(x.t, 500).trim(), u: link(x.u) } : null))
+    .map((x) => {
+      if (!x || typeof x !== 'object') return null;
+      const it = { id: id(x.id), t: text(x.t, 500).trim(), u: link(x.u) };
+      if (highlight(x.h)) it.h = highlight(x.h);
+      return it;
+    })
     .filter((x) => x && x.id && (x.t || x.u));
   const topics = (Array.isArray(p.topics) ? p.topics.slice(0, 80) : [])
     .map((t) => (t && typeof t === 'object' ? { id: id(t.id), emoji: text(t.emoji, 16), name: text(t.name, 120).trim(), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#868e96' } : null))
@@ -987,7 +995,8 @@ function cleanLessonPlan(p) {
     cal[y] = { first: date(c.first), last: date(c.last), est: Boolean(c.est), off, notes };
   }
   if (!Object.keys(cal).length) return null;
-  return { v: 1, topics, lessons, quick: items(p.quick, 400), tray: items(p.tray, 600), cal };
+  const testColor = highlight(p.settings && p.settings.testColor) || '#ff922b';
+  return { v: 1, settings: { testColor }, topics, lessons, quick: items(p.quick, 400), tray: items(p.tray, 600), cal };
 }
 
 /* ---------------- the guest code for the physical science site ---------------- */

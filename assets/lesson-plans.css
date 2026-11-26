@@ -1,13 +1,13 @@
 /* Lesson Plans (lesson-plans.html, assets/lesson-plans.js), Donny 2026-11-25. Every rule is under .lp (the page's
    main), so nothing here changes the rest of the site. Colors come from style.css (--ink, --card, --line, --u0,
    --good, --bad and their dark-mode values) plus the few below. Made from scratch planning files with the em dash rule. */
-.lp-page{max-width:1380px}
+.lp-page{max-width:none}
 .lp [hidden]{display:none!important}
 .lp-page h1{font-size:1.9rem;margin:0 0 4px}
 .lp{--card2:var(--paper-soft);--soft:var(--ink-soft);--line2:#cdd3e0;--navy:var(--u0);--navy-on:var(--u0-on);--blue:#1D6EA5;--blue-ink:#185d8b;
-  --week:#dbe7fb;--week-ink:#163a63;--flag:#8a4400;--flagbg:#ffefd6;--sel:#1D6EA5;--danger:var(--bad);--today:#c2255c;--tint2:27%}
+  --week:#dbe7fb;--week-ink:#163a63;--flag:#8a4400;--flagbg:#ffefd6;--sel:#1D6EA5;--danger:var(--bad);--today:#c2255c;--tint2:27%;--hlmix:22%}
 html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--week:#1e3448;--week-ink:#cfe2ff;--flag:#ffc078;--flagbg:#3a2a10;
-  --sel:#67b2e4;--today:#f783ac;--tint2:34%}
+  --sel:#67b2e4;--today:#f783ac;--tint2:34%;--hlmix:32%}
 @media (max-width:480px){ .lp-page h1{font-size:1.5rem} }
 /* page */
 .lp .lp-sub{color:var(--ink-soft);margin:0 0 14px;max-width:80ch}
@@ -44,7 +44,7 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .sw input:checked::after{transform:translateX(16px)}
 
 /* the planner: shelf + day list */
-.lp .planner{display:grid;grid-template-columns:300px minmax(0,1fr);height:100%}
+.lp .planner{display:grid;grid-template-columns:330px minmax(0,1fr);height:100%}
 .lp .planner.closed{grid-template-columns:48px minmax(0,1fr)}
 .lp .shelf{border-right:1px solid var(--line);background:var(--card);overflow:auto;padding:12px 10px 24px;min-width:0}
 .lp .shelf.rail{padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:14px;overflow:hidden}
@@ -52,11 +52,11 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .railbtn:hover{border-color:var(--blue)}
 .lp .railtxt{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);cursor:pointer}
 .lp .shead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.lp .shead h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
-.lp .shelf input[type=search]{width:100%;border:1px solid var(--line2);border-radius:10px;padding:7px 10px;background:var(--card2);color:var(--ink);font:inherit;font-size:13px;margin-bottom:6px}
-.lp .lp-hint{font-size:11.5px;color:var(--soft);margin:0 2px 6px;line-height:1.45}
+.lp .shead h2{margin:0;font-size:15px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.lp .shelf input[type=search]{width:100%;border:1px solid var(--line2);border-radius:10px;padding:7px 10px;background:var(--card2);color:var(--ink);font:inherit;font-size:15px;font-weight:600;margin-bottom:6px}
+.lp .lp-hint{font-size:13.5px;color:var(--soft);margin:0 2px 6px;line-height:1.45}
 .lp .shelf details{border-top:1px solid var(--line);padding:4px 0}
-.lp .shelf summary{cursor:pointer;font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:7px;padding:6px 2px;list-style:none;line-height:1.3}
+.lp .shelf summary{cursor:pointer;font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:7px;padding:6px 2px;list-style:none;line-height:1.3}
 .lp .shelf summary::-webkit-details-marker{display:none}
 .lp .shelf summary::before{content:"\25B8";color:var(--soft);font-size:11px;transition:transform .15s}
 .lp .shelf details[open]>summary::before{transform:rotate(90deg)}
@@ -65,41 +65,44 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .add.wide{display:block;width:calc(100% - 4px);text-align:left;margin:4px 2px 0}
 .lp .agenda{overflow:auto;padding:0 16px 60px;min-width:0;position:relative}
 .lp .mbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:10px 0 8px;background:var(--card2);border-bottom:1px solid var(--line)}
-.lp .mbar button:not(.lp-btn){border:1px solid var(--line2);background:var(--card);color:var(--ink);border-radius:8px;padding:2px 9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.lp .mbar button:not(.lp-btn){border:1px solid var(--line2);background:var(--card);color:var(--ink);border-radius:8px;padding:3px 10px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
 .lp .mbar button:not(.lp-btn):hover{border-color:var(--blue)}
-.lp .week{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 6px;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
-.lp .lateh{margin:24px 0 4px;padding:8px 12px;border-radius:10px;background:var(--flagbg);color:var(--flag);font-size:13px;font-weight:700}
-.lp .day{display:grid;grid-template-columns:62px minmax(0,1fr);background:var(--card);border:1px solid color-mix(in srgb,var(--tc) 30%,var(--line));border-radius:12px;overflow:hidden;margin-bottom:7px}
+.lp .week{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:20px 0 7px;font-size:13.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.lp .lateh{margin:24px 0 4px;padding:8px 12px;border-radius:10px;background:var(--flagbg);color:var(--flag);font-size:15px;font-weight:700}
+.lp .day{display:grid;grid-template-columns:72px minmax(0,1fr);background:var(--card);border:1px solid color-mix(in srgb,var(--tc) 30%,var(--line));border-radius:12px;overflow:hidden;margin-bottom:7px}
 .lp .day.late{opacity:.75;border-style:dashed}
 .lp .date{background:var(--tc);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;line-height:1.1;text-align:center}
-.lp .date span{font-size:10.5px;font-weight:700;letter-spacing:.1em}
-.lp .date b{font-size:22px;font-weight:800}
+.lp .date span{font-size:12.5px;font-weight:700;letter-spacing:.1em}
+.lp .date b{font-size:27px;font-weight:800}
 .lp .body{background:color-mix(in srgb,var(--tc) 7%,var(--card));min-width:0}
 .lp .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 6px 0 12px}
-.lp .top small{font-size:11px;color:var(--soft)}
+.lp .top small{font-size:13px;font-weight:600;color:var(--soft)}
 .lp .top .dots{margin-left:auto;padding:2px 8px}
-.lp .offrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--soft);font-weight:600;padding:6px 12px;margin-bottom:7px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.lp .offrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14.5px;color:var(--soft);font-weight:700;padding:7px 12px;margin-bottom:7px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
 .lp .offrow b{color:var(--ink)}
 .lp .offrow .dots{margin-left:auto;padding:0 8px}
 
 /* links and notes */
 .lp .items{min-width:0}
-.lp .it{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;font-size:12.5px;line-height:1.3;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:3px 8px 3px 4px;text-decoration:none;cursor:pointer;position:relative;user-select:none}
+.lp .it{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;font-size:14.5px;font-weight:700;line-height:1.3;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:3px 8px 3px 4px;text-decoration:none;cursor:pointer;position:relative;user-select:none}
 .lp a.it:hover{border-color:var(--blue);text-decoration:none}
 .lp .it .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lp .it .kn{display:none}
 .lp .it.note{background:transparent;border-style:dashed;font-style:italic}
-.lp .it.test{border-color:var(--flag);background:var(--flagbg);font-weight:600}
+/* a highlight (his pick per link, or the test color): --hl is set on the link */
+.lp .it.hl{border-color:var(--hl);background:color-mix(in srgb,var(--hl) var(--hlmix),var(--card));box-shadow:inset 4px 0 0 var(--hl)}
 .lp .it.sel{outline:2px solid var(--sel);outline-offset:1px;background:color-mix(in srgb,var(--sel) 14%,var(--card))}
 .lp .it.dragging{opacity:.35}
 .lp .it[hidden]{display:none}
-.lp .b{flex:none;width:18px;height:18px;border-radius:5px;display:inline-grid;place-items:center;font-style:normal;font-size:9px;font-weight:800;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.02em}
-.lp .b.e{background:none;font-size:13px}
+.lp .b{flex:none;width:20px;height:20px;border-radius:5px;display:inline-grid;place-items:center;font-style:normal;font-size:10px;font-weight:800;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.02em}
+.lp .b.e{background:none;font-size:15px}
 /* open and remove float over the right end of the link on hover, so pointing at a link never changes its size */
 .lp .it .acts{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;gap:4px;visibility:hidden}
 .lp .it:hover .acts,.lp .it:focus-within .acts{visibility:visible}
 .lp .it:has(.acts):hover .kn,.lp .it:has(.acts):focus-within .kn{visibility:hidden}
-.lp .it .acts a,.lp .it .acts button{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--line2);background:var(--card);color:var(--soft);font:inherit;font-size:12px;line-height:1;text-decoration:none;padding:0;cursor:pointer;box-sizing:border-box}
+.lp .it .acts a,.lp .it .acts button{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--line2);background:var(--card);color:var(--soft);font:inherit;font-size:13px;line-height:1;text-decoration:none;padding:0;cursor:pointer;box-sizing:border-box}
+.lp .it .acts .hlb svg{width:14px;height:14px}
+.lp .it .acts .hlb:hover{background:var(--flagbg);color:var(--flag);border-color:var(--flag)}
 .lp .it .acts .rm{font-size:15px}
 .lp .it .acts .go:hover{background:var(--navy);color:var(--navy-on);border-color:var(--navy)}
 .lp .it .acts .rm:hover{background:color-mix(in srgb,var(--danger) 16%,var(--card));color:var(--danger);border-color:var(--danger)}
@@ -108,23 +111,28 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .stack .it{display:flex;align-items:flex-start;padding:6px 8px 6px 6px}
 .lp .stack .it .tt{flex:1;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .lp .slim{padding:6px 2px}
-.lp .slim .it{font-size:12px;padding:4px 6px 4px 4px}
-.lp .list{display:flex;flex-direction:column;gap:1px;padding:2px 8px 8px}
-.lp .list .it{display:flex;border:0;background:transparent;border-radius:6px;padding:4px 6px;width:100%}
+.lp .slim .it{font-size:14px;padding:4px 6px 4px 4px}
+/* a day's links run in columns on a wide screen, one under another on a narrow one */
+.lp .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:2px 14px;padding:3px 8px 9px;align-items:start}
+.lp .list .it{display:flex;border:0;background:transparent;border-radius:6px;padding:5px 8px;width:100%}
 .lp .list .it:hover{background:color-mix(in srgb,var(--tc,var(--blue)) 12%,var(--card))}
-.lp .list .it .kn{display:block;margin-left:auto;padding-left:10px;color:var(--soft);font-size:11px;white-space:nowrap}
+.lp .list .it .kn{display:block;margin-left:auto;padding-left:10px;color:var(--soft);font-size:13px;font-weight:500;white-space:nowrap}
 .lp .list .it.sel{background:color-mix(in srgb,var(--sel) 14%,var(--card))}
-.lp .list .it.test{background:var(--flagbg)}
-.lp .add{font:inherit;font-size:12px;color:var(--soft);background:transparent;border:1px dashed var(--line2);border-radius:8px;padding:3px 10px;align-self:flex-start;cursor:pointer}
+.lp .list .it.hl,.lp .list .it.hl:hover{background:color-mix(in srgb,var(--hl) var(--hlmix),var(--card))}
+.lp .list .it.hl.sel{background:color-mix(in srgb,var(--sel) 18%,var(--card))}
+.lp .add{font:inherit;font-size:14px;font-weight:600;color:var(--soft);background:transparent;border:1px dashed var(--line2);border-radius:8px;padding:3px 10px;align-self:flex-start;cursor:pointer}
 .lp .add:hover{color:var(--blue-ink);border-color:var(--blue)}
-.lp .empty{font-size:12px;color:var(--soft);font-style:italic;padding:3px 2px}
+.lp .list .add,.lp .list .empty{justify-self:start}
+.lp .empty{font-size:14px;color:var(--soft);font-style:italic;padding:3px 2px}
 .lp .items.drop-on{background:color-mix(in srgb,var(--sel) 10%,transparent);outline:2px dashed var(--sel);outline-offset:-3px;border-radius:8px}
 .lp .items.active{outline:2px solid var(--sel);outline-offset:-3px;border-radius:8px}
 .lp .stack .it.drop-before,.lp .list .it.drop-before{box-shadow:0 -3px 0 0 var(--sel)}
 .lp .stack .it.drop-after,.lp .list .it.drop-after{box-shadow:0 3px 0 0 var(--sel)}
+.lp .list .it.drop-x.drop-before{box-shadow:-4px 0 0 0 var(--sel)}
+.lp .list .it.drop-x.drop-after{box-shadow:4px 0 0 0 var(--sel)}
 .lp [data-date].drop-date{outline:2px dashed var(--sel);outline-offset:2px}
-.lp .tpill{display:inline-flex;align-items:center;gap:5px;font-style:normal;font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--tc) var(--tint2),var(--card));color:color-mix(in srgb,var(--tc) 55%,var(--ink));white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.lp .flag{position:relative;display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:6px;background:var(--flagbg);color:var(--flag);white-space:nowrap}
+.lp .tpill{display:inline-flex;align-items:center;gap:5px;font-style:normal;font-size:13.5px;font-weight:700;letter-spacing:0;text-transform:none;padding:2px 10px;border-radius:999px;background:color-mix(in srgb,var(--tc) var(--tint2),var(--card));color:color-mix(in srgb,var(--tc) 55%,var(--ink));white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.lp .flag{position:relative;display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:6px;background:var(--flagbg);color:var(--flag);white-space:nowrap}
 .lp .flag[draggable="true"]{cursor:grab}
 .lp .flag.fixed{background:var(--week);color:var(--week-ink)}
 .lp .flag[draggable="true"]:hover{filter:brightness(.95)}
@@ -132,7 +140,7 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .flag:hover .x,.lp .flag:focus-within .x{visibility:visible}
 .lp .flag .x:hover{color:var(--danger);border-color:var(--danger)}
 .lp .flag.dragging{opacity:.4}
-.lp .today{display:inline-block;font-style:normal;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:6px;background:var(--today);color:#fff;letter-spacing:.04em;text-transform:uppercase}
+.lp .today{display:inline-block;font-style:normal;font-size:12.5px;font-weight:800;padding:1px 7px;border-radius:6px;background:var(--today);color:#fff;letter-spacing:.04em;text-transform:uppercase}
 .lp .dots{border:0;background:transparent;color:var(--soft);font-size:18px;line-height:1;padding:6px 10px;border-radius:8px;cursor:pointer}
 .lp .dots:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
 
@@ -164,6 +172,9 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .pt-sw button{width:22px;height:22px;border-radius:50%;border:2px solid var(--card);background:var(--c);box-shadow:0 0 0 1px var(--line2);padding:0;cursor:pointer}
 .lp .pt-sw button.on{box-shadow:0 0 0 2px var(--ink)}
 .lp .pt-sw input[type=color]{width:26px;height:24px;border:0;padding:0;background:none;cursor:pointer}
+.lp .pt-sw .none{width:auto;height:24px;border-radius:999px;background:var(--card);border:1px solid var(--line2);box-shadow:none;font:inherit;font-size:12px;font-weight:600;color:var(--ink);padding:0 10px}
+.lp .pt-sw .none.on{box-shadow:0 0 0 2px var(--ink)}
+.lp .pop h5{margin:12px 0 2px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
 
 /* the school calendar */
 .lp .dlg-back{position:fixed;inset:0;z-index:150;background:rgba(8,12,20,.5);display:grid;place-items:center;padding:16px}

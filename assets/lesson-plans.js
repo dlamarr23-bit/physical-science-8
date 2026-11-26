@@ -22,6 +22,11 @@
   if(!document.getElementById("lp")) return;
 
   var SWATCHES = ["#e03131","#e8590c","#f59f00","#5c940d","#2f9e44","#0c8599","#1971c2","#4263eb","#7048e8","#9c36b5","#c2255c","#868e96"];
+  // highlights (Donny 2026-11-25): any link can have one (item.h = a color, or "none"); tests get the test color unless he picks another
+  var HL = ["#ffd43b","#ff922b","#ff6b6b","#f06595","#cc5de8","#845ef7","#4dabf7","#38d9a9","#69db7c","#adb5bd"];
+  var TEST_COLOR = "#ff922b";
+  var HL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l5 5-8 8H7v-5z"/><path d="M7 12l5 5"/><path d="M4 21h9"/></svg>';
+  var isColor = function(v){ return /^#[0-9a-f]{6}$/i.test(String(v || "")); };
   var KINDS = [
     {re:/docs\.google\.com\/document/, name:"Doc", bg:"#4285f4", g:"D"},
     {re:/docs\.google\.com\/spreadsheets/, name:"Sheet", bg:"#0f9d58", g:"S"},
@@ -122,8 +127,9 @@
     var okDate = function(v){ return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? String(v) : ""; };
     var str = function(v, max){ return typeof v === "string" ? v.slice(0, max) : ""; };
     var objs = function(a){ return (Array.isArray(a) ? a : []).filter(function(x){ return x && typeof x === "object"; }); };
-    var items = function(a){ return objs(a).map(function(x){ return {id:okId(x.id), t:str(x.t, 500), u:safeUrl(x.u)}; }).filter(function(x){ return x.t || x.u; }); };
-    var q = {v:1, quick:items(p.quick), tray:items(p.tray), cal:{}};
+    var items = function(a){ return objs(a).map(function(x){ var it = {id:okId(x.id), t:str(x.t, 500), u:safeUrl(x.u)}; if(x.h === "none" || isColor(x.h)) it.h = x.h; return it; }).filter(function(x){ return x.t || x.u; }); };
+    var ps = p.settings && typeof p.settings === "object" ? p.settings : {};
+    var q = {v:1, settings:{testColor:ps.testColor === "none" || isColor(ps.testColor) ? ps.testColor : TEST_COLOR}, quick:items(p.quick), tray:items(p.tray), cal:{}};
     q.topics = objs(p.topics).map(function(t){ return {id:okId(t.id), emoji:str(t.emoji, 16), name:str(t.name, 120) || "Topic", color:/^#[0-9a-f]{6}$/i.test(t.color) ? t.color : "#868e96"}; });
     q.lessons = objs(p.lessons).map(function(l){ return {id:okId(l.id), topic:/^[A-Za-z0-9]{1,24}$/.test(String(l.topic || "")) ? String(l.topic) : "", items:items(l.items)}; });
     Object.keys(p.cal && typeof p.cal === "object" ? p.cal : {}).forEach(function(k){
@@ -194,19 +200,27 @@
   var dayLabel = function(li){ return CAL.lessonDate[li] ? fShort(CAL.lessonDate[li]) : "lesson " + (li + 1); };
   var contName = function(c){ return c[0] === "L" ? dayLabel(+c.slice(1)) : c === "quick" ? "Quick links" : "the holding tray"; };
 
+  function hlOf(it, k){ /* the highlight a link shows: his pick, else the test color for a test */
+    if(it.h === "none") return "";
+    if(isColor(it.h)) return it.h;
+    var tc = S.settings && S.settings.testColor;
+    return k === TEST && isColor(tc) ? tc : "";
+  }
   function itemHTML(it, o){
     o = o || {};
-    var k = kindOf(it), name = it.t || k.name, url = safeUrl(it.u);
-    var cls = "it" + (url ? "" : " note") + (k === TEST ? " test" : "") + (sel.has(it.id) ? " sel" : "");
+    var k = kindOf(it), name = it.t || k.name, url = safeUrl(it.u), hl = hlOf(it, k);
+    var cls = "it" + (url ? "" : " note") + (k === TEST ? " test" : "") + (hl ? " hl" : "") + (sel.has(it.id) ? " sel" : "");
+    var st = hl ? ' style="--hl:' + hl + '"' : "";
     var inner = badge(k) + '<span class="tt">' + esc(name) + '</span><small class="kn">' + esc(k.name) + "</small>";
     if(!editing){
-      return url ? '<a class="' + cls + '" data-id="' + it.id + '" href="' + esc(url) + '" target="_blank" rel="noopener" title="' + esc(name) + '">' + inner + "</a>"
-        : '<span class="' + cls + '" data-id="' + it.id + '" title="' + esc(name) + '">' + inner + "</span>";
+      return url ? '<a class="' + cls + '"' + st + ' data-id="' + it.id + '" href="' + esc(url) + '" target="_blank" rel="noopener" title="' + esc(name) + '">' + inner + "</a>"
+        : '<span class="' + cls + '"' + st + ' data-id="' + it.id + '" title="' + esc(name) + '">' + inner + "</span>";
     }
     var acts = (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link" draggable="false">↗</a>' : "") +
-      (o.copy ? "" : '<button class="rm" data-lpa="rm" data-id="' + it.id + '" title="Remove" aria-label="Remove ' + esc(name) + '">×</button>');
-    // open and remove float over the right end on hover (.acts), so pointing at a link never moves anything
-    return '<div class="' + cls + '" data-id="' + it.id + '" draggable="true" tabindex="0" title="' + esc(name) + '">' + inner + (acts ? '<span class="acts">' + acts + "</span>" : "") + "</div>";
+      (o.copy ? "" : '<button class="hlb" data-lpa="hl" data-id="' + it.id + '" title="Highlight" aria-label="Highlight ' + esc(name) + '">' + HL_ICON + "</button>" +
+        '<button class="rm" data-lpa="rm" data-id="' + it.id + '" title="Remove" aria-label="Remove ' + esc(name) + '">×</button>');
+    // open, highlight and remove float over the right end on hover (.acts), so pointing at a link never moves anything
+    return '<div class="' + cls + '"' + st + ' data-id="' + it.id + '" draggable="true" tabindex="0" title="' + esc(name) + '">' + inner + (acts ? '<span class="acts">' + acts + "</span>" : "") + "</div>";
   }
   function itemsHTML(c, cls, o){
     o = o || {};
@@ -302,7 +316,7 @@
     if(!editing) return "Editing is off: links open when you click them.";
     if(sel.size) return plural(sel.size, "link") + " picked. Ctrl+C copies, Delete removes, or drag to move. Double-click to rename.";
     if(active) return "Day picked. Ctrl+V pastes here, or use + Add.";
-    return "Drag a link to move it. Hold Ctrl when you drop to copy. Point at a link for × and ↗.";
+    return "Drag a link to move it. Hold Ctrl when you drop to copy. Point at a link to open ↗, highlight or remove × it.";
   }
   function renderToolbar(){
     var ys = years(), next = yearKey(+ys[ys.length - 1].slice(0, 4) + 1);
@@ -311,7 +325,7 @@
       '<button class="addy" data-lpa="addyear" title="Add the ' + next + ' school year">+ ' + next + "</button></div>" +
       '<button class="lp-btn" data-lpa="calendar">School calendar</button>' +
       '<label class="sw"><input type="checkbox" id="lpEditSw"' + (editing ? " checked" : "") + "><span>Editing</span></label>" +
-      '<button class="lp-btn" data-lpa="topics">Topic colors</button>' +
+      '<button class="lp-btn" data-lpa="topics" title="Topic colors and the test highlight">Colors</button>' +
       '<button class="lp-btn" data-lpa="undo"' + (undo.length ? "" : " disabled") + ">Undo</button>" +
       '<button class="lp-btn" data-lpa="backup">Backup</button>' +
       '<span class="save" id="lpSave"></span>' +
@@ -381,7 +395,7 @@
     var target = getList(to); if(!target) return;
     change(function(){
       var moved = [];
-      ids.forEach(function(id){ var f = findItem(id); if(f) moved.push(copy ? {id:nid(), t:f.it.t, u:f.it.u} : f.it); });
+      ids.forEach(function(id){ var f = findItem(id); if(f) moved.push(copy ? {id:nid(), t:f.it.t, u:f.it.u, h:f.it.h} : f.it); });
       if(!copy) ids.forEach(function(id){ var f = findItem(id); if(!f) return; if(f.list === target && f.i < idx) idx--; f.list.splice(f.i, 1); });
       target.splice(Math.max(0, Math.min(idx, target.length)), 0, ...moved);
       if(copy){ sel = new Set(moved.map(function(m){ return m.id; })); selShelf = false; }
@@ -416,7 +430,7 @@
   }
   function moveNote(id, d){ var n = findNote(id); if(!n || n.d === d) return; change(function(){ findNote(id).d = d; }, "Moved " + n.t + " to " + fShort(d) + ". Date notes stay on their date when lessons move."); }
   function removeNote(id){ var n = findNote(id); if(!n) return; change(function(){ var C = S.cal[year]; C.notes = C.notes.filter(function(x){ return x.id !== id; }); }, "Removed " + n.t + " from " + fShort(n.d) + "."); }
-  function setClip(items){ var plain = items.map(function(x){ return x.u ? (x.t ? x.t + " " + x.u : x.u) : x.t; }).join("\n"); clip = {items:items.map(function(x){ return {t:x.t, u:x.u}; }), sig:plain}; return plain; }
+  function setClip(items){ var plain = items.map(function(x){ return x.u ? (x.t ? x.t + " " + x.u : x.u) : x.t; }).join("\n"); clip = {items:items.map(function(x){ return {t:x.t, u:x.u, h:x.h}; }), sig:plain}; return plain; }
   function parseClip(html, txt){
     var out = [];
     if(html && /<a\s/i.test(html)){
@@ -442,7 +456,7 @@
   function pasteItems(dest, items){
     if(!items.length){ toast("Nothing to paste."); return; }
     change(function(){
-      var made = items.map(function(x){ return {id:nid(), t:x.t, u:safeUrl(x.u)}; });
+      var made = items.map(function(x){ var it = {id:nid(), t:x.t, u:safeUrl(x.u)}; if(x.h === "none" || isColor(x.h)) it.h = x.h; return it; });
       getList(dest.c).splice.apply(getList(dest.c), [dest.i, 0].concat(made));
       sel = new Set(made.map(function(m){ return m.id; })); selShelf = false;
     }, "Pasted " + plural(items.length, "link") + " into " + contName(dest.c) + ".");
@@ -549,10 +563,43 @@
       });
     });
   }
+  // a row of highlight colors; attr is "hl" (the links picked) or "tc" (every test); auto adds a first button that means "no pick"
+  function hlRow(attr, chosen, auto){
+    return '<div class="pt-sw">' + (auto ? '<button type="button" class="none' + (chosen === "" ? " on" : "") + '" data-' + attr + '="">' + auto + "</button>" : "") +
+      '<button type="button" class="none' + (chosen === "none" ? " on" : "") + '" data-' + attr + '="none">None</button>' +
+      HL.map(function(c){ return '<button type="button" data-' + attr + '="' + c + '" style="--c:' + c + '" class="' + (chosen === c ? "on" : "") + '" aria-label="Color ' + c + '"></button>'; }).join("") +
+      '<input type="color" data-' + attr + '-pick value="' + (isColor(chosen) ? chosen : "#ffd43b") + '" aria-label="Any color" title="Any color"></div>';
+  }
+  function openHighlight(anchor, id){
+    var ids = sel.has(id) && !selShelf ? Array.from(sel) : [id];
+    var targets = ids.map(findItem).filter(Boolean).map(function(f){ return f.it; });
+    if(!targets.length) return;
+    var hasTest = targets.some(function(it){ return kindOf(it) === TEST; });
+    var one = targets.length === 1 ? targets[0] : null;
+    var chosen = one ? (one.h || (hasTest ? "" : "none")) : null;
+    openPop(anchor, "<h4>Highlight " + (one ? esc(one.t || kindOf(one).name) : plural(targets.length, "link")) + "</h4>" + hlRow("hl", chosen, hasTest ? "Test color" : "") +
+      (hasTest ? '<h5>Every test</h5><p class="tip">Tests get this color unless you pick a different one above.</p>' + hlRow("tc", S.settings.testColor, "") : "") +
+      '<p class="tip">The highlight stays with the link when you move or copy it. To highlight several at once, Ctrl+click them first.</p>', function(w){
+      var setH = function(v){
+        change(function(){ ids.forEach(function(i){ var f = findItem(i); if(!f) return; if(!v || (v === "none" && kindOf(f.it) !== TEST)) delete f.it.h; else f.it.h = v; }); },
+          v === "none" ? "Highlight taken off." : v ? "Highlighted." : "Back to the test color.");
+      };
+      var setT = function(v){ change(function(){ S.settings.testColor = v; }, v === "none" ? "Tests are not highlighted now." : "Every test has that highlight now."); };
+      w.addEventListener("click", function(e){
+        e.stopPropagation(); var b = e.target.closest("[data-hl],[data-tc]"); if(!b || b.tagName === "INPUT") return;
+        closePop(); if(b.hasAttribute("data-hl")) setH(b.dataset.hl); else setT(b.dataset.tc);
+      });
+      w.addEventListener("change", function(e){
+        var t = e.target; if(!isColor(t.value)) return;
+        if(t.hasAttribute("data-hl-pick")){ closePop(); setH(t.value); }
+        if(t.hasAttribute("data-tc-pick")){ closePop(); setT(t.value); }
+      });
+    });
+  }
   function openTopics(anchor, focus){
     topicsDirty = false;
     var draw = function(){
-      return "<h4>Topic colors</h4>" + S.topics.map(function(t, i){
+      return "<h4>Colors</h4><h5>Every test</h5>" + hlRow("tc", S.settings.testColor, "") + '<p class="tip">To highlight any other link, point at it and click the highlighter.</p><h5>Topics</h5>' + S.topics.map(function(t, i){
         return '<div class="pt-row" data-i="' + i + '"><div class="pt-top"><input type="text" class="pt-emoji" data-f="emoji" value="' + esc(t.emoji) + '" aria-label="Emoji"><input type="text" data-f="name" value="' + esc(t.name) + '" aria-label="Topic name"></div>' +
           '<div class="pt-sw">' + SWATCHES.map(function(c){ return '<button type="button" data-sw="' + c + '" style="--c:' + c + '" class="' + (c === t.color ? "on" : "") + '" aria-label="Color ' + c + '"></button>'; }).join("") +
           '<input type="color" data-f="color" value="' + esc(t.color) + '" aria-label="Any color" title="Any color"></div></div>';
@@ -562,12 +609,16 @@
       var mark = function(){ if(!topicsDirty){ snapshot(); topicsDirty = true; } };
       if(focus){ var i0 = S.topics.findIndex(function(t){ return t.id === focus; }), row = $('.pt-row[data-i="' + i0 + '"]', w); if(row) row.scrollIntoView({block:"nearest"}); }
       w.addEventListener("input", function(e){
+        if(e.target.hasAttribute("data-tc-pick") && isColor(e.target.value)){ mark(); S.settings.testColor = e.target.value; $$("[data-tc]", w).forEach(function(b){ b.classList.remove("on"); }); render(); queueSave(); return; }
         var f = e.target.dataset.f; if(!f) return; var i = +e.target.closest(".pt-row").dataset.i; mark();
         S.topics[i][f] = f === "name" ? e.target.value.slice(0, 120) : e.target.value; render(); queueSave();
         if(f === "color") $$('.pt-row[data-i="' + i + '"] [data-sw]', w).forEach(function(b){ b.classList.toggle("on", b.dataset.sw === e.target.value); });
       });
       w.addEventListener("click", function(e){
-        e.stopPropagation(); var sw = e.target.closest("[data-sw]");
+        e.stopPropagation();
+        var tb = e.target.closest("[data-tc]");
+        if(tb && tb.tagName !== "INPUT"){ mark(); S.settings.testColor = tb.dataset.tc; $$("[data-tc]", w).forEach(function(b){ b.classList.toggle("on", b === tb); }); render(); queueSave(); return; }
+        var sw = e.target.closest("[data-sw]");
         if(sw){ var row = sw.closest(".pt-row"), i = +row.dataset.i; mark(); S.topics[i].color = sw.dataset.sw; $$("[data-sw]", row).forEach(function(b){ b.classList.toggle("on", b === sw); }); $('[data-f="color"]', row).value = sw.dataset.sw; render(); queueSave(); return; }
         if(e.target.closest('[data-pt="add"]')){ mark(); S.topics.push({id:nid(), emoji:"⭐", name:"New topic", color:SWATCHES[S.topics.length % SWATCHES.length]}); w.innerHTML = draw(); render(); queueSave(); toast("Added a topic. Pick it from any day's ⋯ menu."); }
       });
@@ -663,6 +714,7 @@
     rmoff: function(b){ removeOff(b.dataset.id); },
     rmnote: function(b){ removeNote(b.dataset.id); },
     rm: function(b){ removeItem(b.dataset.id); },
+    hl: function(b){ openHighlight(b, b.dataset.id); },
     offmenu: function(b){ openOffMenu(b, b.dataset.d); },
     shelf: function(){ ui.shelfClosed = !ui.shelfClosed; store.set("lp-shelf", ui.shelfClosed ? "closed" : "open"); closePop(); render(); },
     topics: function(b){ openTopics(b, b.dataset.t); },
@@ -767,13 +819,25 @@
 
   /* ---------------- drag and drop ---------------- */
   var flipTimer = null, flipEl = null;
-  function clearMarks(){ $$(".drop-on,.drop-before,.drop-after,.drop-date").forEach(function(el){ el.classList.remove("drop-on", "drop-before", "drop-after", "drop-date"); }); }
+  function clearMarks(){ $$(".drop-on,.drop-before,.drop-after,.drop-date,.drop-x").forEach(function(el){ el.classList.remove("drop-on", "drop-before", "drop-after", "drop-date", "drop-x"); }); }
   function endDrag(){ drag = null; clearMarks(); $$(".dragging").forEach(function(el){ el.classList.remove("dragging"); }); clearTimeout(flipTimer); flipEl = null; }
   function dropBox(t){ if(!t || !t.closest) return null; var b = t.closest("[data-drop]"); if(b) return b; var db = t.closest("[data-daybox]"); return db ? $("[data-drop]", db) : null; }
+  // where a drop lands: next to the nearest link (left or right of it when the links run in columns, above or below when not)
   function dropPos(box, e){
     var items = $$(":scope > .it", box).filter(function(x){ return !x.classList.contains("dragging"); });
-    for(var i = 0; i < items.length; i++){ var r = items[i].getBoundingClientRect(); if(e.clientY <= r.bottom) return {el:items[i], after:e.clientY > r.top + r.height / 2}; }
-    return {el:null};
+    if(!items.length) return {el:null};
+    var rects = items.map(function(x){ return x.getBoundingClientRect(); });
+    var cols = rects.length > 1 && Math.abs(rects[0].top - rects[1].top) < 3;
+    var last = rects[rects.length - 1];
+    if(e.clientY > last.bottom + 3) return {el:null};
+    var best = 0, bd = Infinity;
+    rects.forEach(function(r, i){
+      var dx = e.clientX < r.left ? r.left - e.clientX : e.clientX > r.right ? e.clientX - r.right : 0;
+      var dy = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+      var d = dx * dx + dy * dy * 9; if(d < bd){ bd = d; best = i; }
+    });
+    var r = rects[best];
+    return {el:items[best], cols:cols, after:cols ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2};
   }
   document.addEventListener("dragstart", function(e){
     if(!S || !editing) return;
@@ -799,7 +863,7 @@
     }
     var box = dropBox(e.target); if(!box) return;
     e.preventDefault(); e.dataTransfer.dropEffect = (drag.shelf || e.ctrlKey || e.altKey || e.metaKey) ? "copy" : "move";
-    box.classList.add("drop-on"); var p = dropPos(box, e); if(p.el) p.el.classList.add(p.after ? "drop-after" : "drop-before");
+    box.classList.add("drop-on"); var p = dropPos(box, e); if(p.el){ p.el.classList.add(p.after ? "drop-after" : "drop-before"); if(p.cols) p.el.classList.add("drop-x"); }
     // near the top or bottom of the day list, scroll it
     var ag = $(".agenda"); if(ag){ var r = ag.getBoundingClientRect(); if(e.clientY < r.top + 50) ag.scrollTop -= 18; else if(e.clientY > r.bottom - 50) ag.scrollTop += 18; }
   });
