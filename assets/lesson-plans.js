@@ -203,9 +203,10 @@
       return url ? '<a class="' + cls + '" data-id="' + it.id + '" href="' + esc(url) + '" target="_blank" rel="noopener" title="' + esc(name) + '">' + inner + "</a>"
         : '<span class="' + cls + '" data-id="' + it.id + '" title="' + esc(name) + '">' + inner + "</span>";
     }
-    return '<div class="' + cls + '" data-id="' + it.id + '" draggable="true" tabindex="0" title="' + esc(name) + '">' + inner +
-      (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link" draggable="false">↗</a>' : "") +
-      (o.copy ? "" : '<button class="rm" data-lpa="rm" data-id="' + it.id + '" title="Remove" aria-label="Remove ' + esc(name) + '">×</button>') + "</div>";
+    var acts = (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link" draggable="false">↗</a>' : "") +
+      (o.copy ? "" : '<button class="rm" data-lpa="rm" data-id="' + it.id + '" title="Remove" aria-label="Remove ' + esc(name) + '">×</button>');
+    // open and remove float over the right end on hover (.acts), so pointing at a link never moves anything
+    return '<div class="' + cls + '" data-id="' + it.id + '" draggable="true" tabindex="0" title="' + esc(name) + '">' + inner + (acts ? '<span class="acts">' + acts + "</span>" : "") + "</div>";
   }
   function itemsHTML(c, cls, o){
     o = o || {};
@@ -262,9 +263,10 @@
     CAL.weeks.forEach(function(w){
       var k = addDays(w.mon, 3).slice(0, 7), anchor = seenMonth[k] ? "" : ' id="lpm-' + k + '"'; seenMonth[k] = 1;
       var ts = []; w.days.forEach(function(d){ if(d.li != null && ts.indexOf(S.lessons[d.li].topic) < 0) ts.push(S.lessons[d.li].topic); });
-      if(!lateShown && w.days.some(function(d){ return d.late && d.li != null; })){ lateShown = true; ag += '<h3 class="lateh">After the last day of school (' + fShort(CAL.C.last) + "). These lessons don't fit in " + esc(year) + ".</h3>"; }
       ag += '<h3 class="week"' + anchor + ' data-week="' + w.mon + '"' + (w.mon === target ? " data-target" : "") + ">Week of " + fMD(w.mon) + " " + ts.map(tpill).join("") + "</h3>";
       w.days.forEach(function(d){
+        // right above the first lesson that falls after the last day of school
+        if(!lateShown && d.late && d.li != null){ lateShown = true; ag += '<h3 class="lateh">After the last day of school (' + fShort(CAL.C.last) + "). These lessons don't fit in " + esc(year) + ".</h3>"; }
         if(d.off){ ag += '<div class="offrow" data-date="' + d.d + '"><b>' + fShort(d.d) + "</b> \u{1F5D3}️ No School: " + esc(d.off) + " " + flags(d) + dots("offmenu", "d", d.d, "Day off options") + "</div>"; return; }
         if(d.li == null){ ag += '<div class="offrow" data-date="' + d.d + '"><b>' + fShort(d.d) + "</b> " + (d.late ? "After the last day of school" : "No lesson planned") + " " + flags(d) + "</div>"; return; }
         var L = S.lessons[d.li];
