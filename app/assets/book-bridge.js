@@ -18,6 +18,9 @@
      saves its list of assignments (/api/launchpad, teacher only), and asks
      about the Class List sheet (/api/classlist, teacher only): its web app
      updates assignment sheets' code (Update now);
+   - the teacher's Lesson Plans on that site (/lesson-plans) gets and saves
+     his day-by-day plan (/api/lesson-plans, teacher only): lessonPlans,
+     saveLessonPlans, and lessonPlansEarlier (the copy from before today);
    - a guest (a teacher from another school, Donny 2026-11-03) types the
      guest code on that site's sign-in screen; the key it gives is kept on
      this device (is8-guest-v1) and checked each time a page opens, so a new
@@ -180,6 +183,10 @@
       // the teacher's Assignment Launchpad (/launchpad on that site): the list, and saving it
       case 'launchpad': reply(call('GET', 'launchpad').catch(signedOut)); break;
       case 'saveLaunchpad': reply(call('PUT', 'launchpad', { items: m.items || [], base: m.base || 0 }).catch(signedOut)); break;
+      // the teacher's Lesson Plans (/lesson-plans on that site): the plan, saving it, and the copy from before today
+      case 'lessonPlans': reply(call('GET', 'lesson-plans').catch(signedOut)); break;
+      case 'lessonPlansEarlier': reply(call('GET', 'lesson-plans/earlier').catch(signedOut)); break;
+      case 'saveLessonPlans': reply(call('PUT', 'lesson-plans', { plan: m.plan || null, base: Number(m.base) || 0, force: Boolean(m.force) }).catch(signedOut)); break;
       // the Class List sheet (2026-11-10): is it sending the class list, its web app (the Launchpad's helper for Update now) and the key it needs
       case 'classList': reply(call('GET', 'classlist').catch(signedOut)); break;
       case 'refresh': session(); break;

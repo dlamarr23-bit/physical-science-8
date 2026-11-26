@@ -171,6 +171,8 @@ return passPreview;
 //     pages (/api/book-text/<page>), which those pages ask for as they open
 //   - keeps the teacher's Assignment Launchpad list for that site's
 //     /launchpad page (/api/launchpad), which only the teacher can see
+//   - keeps the teacher's day-by-day lesson plans for that site's
+//     /lesson-plans page (/api/lesson-plans), which only the teacher can see
 //   - takes the class list from the teacher's Class List Google Sheet
 //     (/api/classlist/sync, with the Class list key; /api/classlist for the teacher)
 //   - keeps the guest code that lets a teacher from another school into that
@@ -735,6 +737,9 @@ async function api(request, env, url) {
   if (a === 'book-text' && b && !c && method === 'PUT') return putBookText(request, env, b);
   if (a === 'launchpad' && !b && method === 'GET') return getLaunchpad(env);
   if (a === 'launchpad' && !b && method === 'PUT') return putLaunchpad(request, env);
+  if (a === 'lesson-plans' && !b && method === 'GET') return getLessonPlans(env);
+  if (a === 'lesson-plans' && !b && method === 'PUT') return putLessonPlans(request, env);
+  if (a === 'lesson-plans' && b === 'earlier' && !c && method === 'GET') return getLessonPlansEarlier(env);
   if (a === 'guest' && b === 'code' && !c) return guestCodeApi(request, env);
   if (a === 'roster') return rosterApi(request, env, url, b);
   if (a === 'feedback' && !c) return feedbackApi(request, env, url, b);
@@ -914,6 +919,75 @@ async function putLaunchpad(request, env) {
   const saved = Date.now();
   await env.FLASHCARDS.put('launchpad', JSON.stringify({ items, saved }));
   return json({ ok: true, count: items.length, saved });
+}
+
+/* ---------------- the teacher's Lesson Plans ---------------- */
+
+// The physical science site's /lesson-plans page (Donny, 2026-11-25): his day-by-day lesson plans (the links and notes
+// for each school day, by topic, plus each school year's calendar, which turns the days into dates), moved there from
+// his LESSON PLANS Google Doc. Like the Launchpad, the plan is kept here (KV lesson-plans) and only goes to a browser
+// signed in with the teacher password, through the bridge. The page sends the whole plan each time; base is the saved
+// time it started from, so a plan changed on another device since is not overwritten (force says "keep mine anyway").
+// The first save of each day also keeps the plan as it was (KV lesson-plans-earlier), for "Go back to the copy from
+// before today". Every link must be http(s), so nothing saved here can run code on the page.
+const MAX_LESSON_PLANS = 4 * 1024 * 1024;
+
+async function getLessonPlans(env) {
+  const saved = await env.FLASHCARDS.get('lesson-plans', 'json');
+  return json({ plan: (saved && saved.plan) || null, saved: (saved && saved.saved) || 0 });
+}
+
+async function getLessonPlansEarlier(env) {
+  const saved = await env.FLASHCARDS.get('lesson-plans-earlier', 'json');
+  return json({ plan: (saved && saved.plan) || null, saved: (saved && saved.saved) || 0 });
+}
+
+async function putLessonPlans(request, env) {
+  const buf = await readLimited(request, MAX_LESSON_PLANS);
+  if (!buf) return json({ error: 'The lesson plans are too big to save.' }, 413);
+  let body;
+  try { body = JSON.parse(new TextDecoder().decode(buf)); } catch { body = null; }
+  const plan = cleanLessonPlan(body && body.plan);
+  if (!plan) return json({ error: 'The lesson plans could not be saved. Reload the page and try again.' }, 400);
+  const now = await env.FLASHCARDS.get('lesson-plans', 'json');
+  if (now && now.saved && now.saved !== body.base && !body.force) {
+    return json({ error: 'The lesson plans were changed on another device.' }, 409);
+  }
+  const saved = Date.now();
+  const day = (t) => new Date(t - 8 * 3600e3).toISOString().slice(0, 10); // a California day, near enough
+  if (now && now.plan && day(now.saved) !== day(saved)) await env.FLASHCARDS.put('lesson-plans-earlier', JSON.stringify(now));
+  await env.FLASHCARDS.put('lesson-plans', JSON.stringify({ plan, saved }));
+  return json({ ok: true, saved });
+}
+
+// Only the parts the page uses, each trimmed to a sensible size.
+function cleanLessonPlan(p) {
+  if (!p || typeof p !== 'object' || !Array.isArray(p.lessons) || !p.cal || typeof p.cal !== 'object') return null;
+  const text = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
+  const id = (v) => (/^[A-Za-z0-9]{1,24}$/.test(String(v || '')) ? String(v) : '');
+  const link = (v) => { const u = text(v, 2000).trim(); return /^https?:\/\/[^\s"'<>]+$/i.test(u) ? u : ''; };
+  const date = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : '');
+  const items = (a, max) => (Array.isArray(a) ? a.slice(0, max) : [])
+    .map((x) => (x && typeof x === 'object' ? { id: id(x.id), t: text(x.t, 500).trim(), u: link(x.u) } : null))
+    .filter((x) => x && x.id && (x.t || x.u));
+  const topics = (Array.isArray(p.topics) ? p.topics.slice(0, 80) : [])
+    .map((t) => (t && typeof t === 'object' ? { id: id(t.id), emoji: text(t.emoji, 16), name: text(t.name, 120).trim(), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#868e96' } : null))
+    .filter((t) => t && t.id && t.name);
+  const lessons = p.lessons.slice(0, 400).map((l) => (l && typeof l === 'object' ? { id: id(l.id), topic: id(l.topic), items: items(l.items, 120) } : null))
+    .filter((l) => l && l.id);
+  const cal = {};
+  for (const [y, c] of Object.entries(p.cal).slice(0, 40)) {
+    if (!/^\d{4}-\d{2}$/.test(y) || !c || typeof c !== 'object' || !date(c.first)) continue;
+    const off = (Array.isArray(c.off) ? c.off.slice(0, 150) : [])
+      .map((o) => (o && typeof o === 'object' ? { id: id(o.id), a: date(o.a), b: date(o.b) || date(o.a), t: text(o.t, 120).trim() || 'No School' } : null))
+      .filter((o) => o && o.id && o.a && o.b >= o.a);
+    const notes = (Array.isArray(c.notes) ? c.notes.slice(0, 400) : [])
+      .map((n) => (n && typeof n === 'object' ? { id: id(n.id), d: date(n.d), t: text(n.t, 120).trim() } : null))
+      .filter((n) => n && n.id && n.d && n.t);
+    cal[y] = { first: date(c.first), last: date(c.last), est: Boolean(c.est), off, notes };
+  }
+  if (!Object.keys(cal).length) return null;
+  return { v: 1, topics, lessons, quick: items(p.quick, 400), tray: items(p.tray, 600), cal };
 }
 
 /* ---------------- the guest code for the physical science site ---------------- */
