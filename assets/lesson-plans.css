@@ -101,7 +101,9 @@ html[data-theme="dark"] .lp{--line2:#363c4d;--blue:#67b2e4;--blue-ink:#8cc4ec;--
 .lp .it:hover .acts,.lp .it:focus-within .acts{visibility:visible}
 .lp .it:has(.acts):hover .kn,.lp .it:has(.acts):focus-within .kn{visibility:hidden}
 .lp .it .acts a,.lp .it .acts button{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--line2);background:var(--card);color:var(--soft);font:inherit;font-size:13px;line-height:1;text-decoration:none;padding:0;cursor:pointer;box-sizing:border-box}
-.lp .it .acts .hlb svg{width:14px;height:14px}
+.lp .it .acts .hlb svg,.lp .it .acts .ed svg{width:14px;height:14px}
+.lp .it .acts .ed:hover{background:var(--navy);color:var(--navy-on);border-color:var(--navy)}
+.lp .flag[data-note]{cursor:pointer}
 .lp .it .acts .hlb:hover{background:var(--flagbg);color:var(--flag);border-color:var(--flag)}
 .lp .it .acts .rm{font-size:15px}
 .lp .it .acts .go:hover{background:var(--navy);color:var(--navy-on);border-color:var(--navy)}

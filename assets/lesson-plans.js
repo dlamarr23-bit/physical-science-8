@@ -26,6 +26,7 @@
   var HL = ["#ffd43b","#ff922b","#ff6b6b","#f06595","#cc5de8","#845ef7","#4dabf7","#38d9a9","#69db7c","#adb5bd"];
   var TEST_COLOR = "#ff922b";
   var HL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l5 5-8 8H7v-5z"/><path d="M7 12l5 5"/><path d="M4 21h9"/></svg>';
+  var EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
   var isColor = function(v){ return /^#[0-9a-f]{6}$/i.test(String(v || "")); };
   var KINDS = [
     {re:/docs\.google\.com\/document/, name:"Doc", bg:"#4285f4", g:"D"},
@@ -217,6 +218,7 @@
         : '<span class="' + cls + '"' + st + ' data-id="' + it.id + '" title="' + esc(name) + '">' + inner + "</span>";
     }
     var acts = (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link" draggable="false">↗</a>' : "") +
+      '<button class="ed" data-lpa="edit" data-id="' + it.id + '"' + (o.copy ? ' data-all="1"' : "") + ' title="Edit the name or link" aria-label="Edit ' + esc(name) + '">' + EDIT_ICON + "</button>" +
       (o.copy ? "" : '<button class="hlb" data-lpa="hl" data-id="' + it.id + '" title="Highlight" aria-label="Highlight ' + esc(name) + '">' + HL_ICON + "</button>" +
         '<button class="rm" data-lpa="rm" data-id="' + it.id + '" title="Remove" aria-label="Remove ' + esc(name) + '">×</button>');
     // open, highlight and remove float over the right end on hover (.acts), so pointing at a link never moves anything
@@ -231,7 +233,7 @@
   }
   var noteHTML = function(n){
     return '<i class="flag" data-note="' + n.id + '"' + (editing ? ' draggable="true" tabindex="0"' : "") + ' title="Date note: it stays on this date when lessons move.' +
-      (editing ? " Drag it to another date. Double-click to rename." : "") + '">' + esc(n.t) +
+      (editing ? " Click to change it, or drag it to another date." : "") + '">' + esc(n.t) +
       (editing ? '<button class="x" data-lpa="rmnote" data-id="' + n.id + '" aria-label="Remove ' + esc(n.t) + '">×</button>' : "") + "</i>";
   };
   var flags = function(d){
@@ -316,7 +318,7 @@
     if(!editing) return "Editing is off: links open when you click them.";
     if(sel.size) return plural(sel.size, "link") + " picked. Ctrl+C copies, Delete removes, or drag to move. Double-click to rename.";
     if(active) return "Day picked. Ctrl+V pastes here, or use + Add.";
-    return "Drag a link to move it. Hold Ctrl when you drop to copy. Point at a link to open ↗, highlight or remove × it.";
+    return "Point at a link to open ↗, edit (pencil), highlight or remove × it. Drag a link to move it; hold Ctrl when you drop to copy. Click a date note to change it.";
   }
   function renderToolbar(){
     var ys = years(), next = yearKey(+ys[ys.length - 1].slice(0, 4) + 1);
@@ -477,13 +479,23 @@
     p.style.left = x + "px"; p.style.top = y + "px"; if(mount) mount(w);
   }
   function closePop(){ var p = $("#lpPop"); if(!p.hidden){ p.hidden = true; p.innerHTML = ""; popOpener = null; } }
-  function openEdit(anchor, c, id){
+  // every link in the plan with this address (the shelf shows each address of a topic once)
+  function everyWith(u){
+    var out = [];
+    S.lessons.forEach(function(l){ l.items.forEach(function(x){ if(x.u === u) out.push(x); }); });
+    S.quick.concat(S.tray).forEach(function(x){ if(x.u === u) out.push(x); });
+    return out;
+  }
+  // all: edit from the shelf, which changes every link with that address
+  function openEdit(anchor, c, id, all){
     var f = id ? findItem(id) : null, it = f ? f.it : {t:"", u:""};
-    openPop(anchor, "<form><h4>" + (f ? "Edit link" : "Add to " + esc(contName(c))) + "</h4>" +
+    var oldU = it.u, many = all && f && oldU ? everyWith(oldU).length : 0;
+    openPop(anchor, "<form><h4>" + (f ? (many > 1 ? "Edit link (used in " + many + " places)" : "Edit link") : "Add to " + esc(contName(c))) + "</h4>" +
       '<label>Link<input type="url" id="lpPfU" value="' + esc(it.u) + '" placeholder="Paste a link, or leave empty for a note"></label><div class="kd" id="lpPfK"></div>' +
       '<label>Name<input type="text" id="lpPfT" value="' + esc(it.t) + '" placeholder="What it should say"></label>' +
-      '<div class="row"><button class="primary" type="submit">' + (f ? "Save" : "Add") + "</button>" + (f ? '<button class="lp-btn danger" type="button" data-pf="del">Remove</button>' : "") +
-      '<button class="lp-btn" type="button" data-pf="x">Cancel</button></div>' + (f ? "" : '<p class="tip">Tip: to add many at once, click the day and press Ctrl+V.</p>') + "</form>", function(w){
+      '<div class="row"><button class="primary" type="submit">' + (f ? "Save" : "Add") + "</button>" + (f && !all ? '<button class="lp-btn danger" type="button" data-pf="del">Remove</button>' : "") +
+      '<button class="lp-btn" type="button" data-pf="x">Cancel</button></div>' +
+      (f ? (many > 1 ? '<p class="tip">Saving changes it everywhere it is used. To change just one day, use the pencil on that day instead.</p>' : "") : '<p class="tip">Tip: to add many at once, click the day and press Ctrl+V.</p>') + "</form>", function(w){
       var u = $("#lpPfU", w), t = $("#lpPfT", w), k = $("#lpPfK", w);
       var sk = function(){ var v = u.value.trim(), kk = kindOf({u:v, t:t.value}); k.innerHTML = badge(kk) + " " + (!v ? "No link: this will be a note" : safeUrl(v) ? "This is a " + esc(kk.name) + " link" : "That link has to start with https://"); };
       sk(); u.addEventListener("input", sk); (f ? t : u).focus();
@@ -492,7 +504,8 @@
         var raw = u.value.trim(), nu = safeUrl(raw), nt = t.value.trim();
         if(raw && !nu){ sk(); u.focus(); return; }
         closePop(); if(!nu && !nt) return;
-        if(f) change(function(){ var g = findItem(id); if(g){ g.it.t = nt || kindOf({u:nu}).name; g.it.u = nu; } }, "Saved.");
+        if(f && many > 1) change(function(){ everyWith(oldU).forEach(function(x){ x.t = nt || kindOf({u:nu}).name; x.u = nu; }); }, "Saved in all " + many + " places.");
+        else if(f) change(function(){ var g = findItem(id); if(g){ g.it.t = nt || kindOf({u:nu}).name; g.it.u = nu; } }, "Saved.");
         else change(function(){ getList(c).push({id:nid(), t:nt || kindOf({u:nu, t:nt}).name, u:nu}); }, "Added to " + contName(c) + ".");
       });
       w.addEventListener("click", function(e){ var b = e.target.closest("[data-pf]"); if(!b) return; closePop(); if(b.dataset.pf === "del") removeItem(id); });
@@ -714,6 +727,7 @@
     rmoff: function(b){ removeOff(b.dataset.id); },
     rmnote: function(b){ removeNote(b.dataset.id); },
     rm: function(b){ removeItem(b.dataset.id); },
+    edit: function(b){ var f = findItem(b.dataset.id); if(f) openEdit(b, f.c, f.it.id, b.dataset.all === "1"); },
     hl: function(b){ openHighlight(b, b.dataset.id); },
     offmenu: function(b){ openOffMenu(b, b.dataset.d); },
     shelf: function(){ ui.shelfClosed = !ui.shelfClosed; store.set("lp-shelf", ui.shelfClosed ? "closed" : "open"); closePop(); render(); },
@@ -736,6 +750,8 @@
     var t = e.target;
     if(!$("#lpPop").hidden && !t.closest("#lpPop") && !(popOpener && popOpener.contains(t))) closePop();
     var act = t.closest("[data-lpa]"), it = t.closest(".it[data-id]");
+    var note = t.closest("[data-note]"); /* a date note opens to rename or move it */
+    if(editing && note && !t.closest(".x")){ e.preventDefault(); openNoteEdit(note, null, note.dataset.note); return; }
     if(editing && it && !t.closest(".go") && (!act || act.contains(it))){
       e.preventDefault();
       var id = it.dataset.id, shelf = Boolean(it.closest("[data-shelf-copy]"));
@@ -752,7 +768,7 @@
   document.addEventListener("dblclick", function(e){
     if(!S || !editing) return;
     var nt = e.target.closest("[data-note]"); if(nt && !e.target.closest(".x")){ e.preventDefault(); openNoteEdit(nt, null, nt.dataset.note); return; }
-    var it = e.target.closest(".it[data-id]"); if(it && !it.closest("[data-shelf-copy]")){ e.preventDefault(); var f = findItem(it.dataset.id); if(f) openEdit(it, f.c, f.it.id); }
+    var it = e.target.closest(".it[data-id]"); if(it && !e.target.closest(".acts")){ e.preventDefault(); var f = findItem(it.dataset.id); if(f) openEdit(it, f.c, f.it.id, Boolean(it.closest("[data-shelf-copy]"))); }
   });
   document.addEventListener("change", function(e){
     if(e.target.id === "lpEditSw"){ editing = e.target.checked; store.set("lp-editing", editing ? "on" : "off"); sel.clear(); active = null; closePop(); render(); }
@@ -792,7 +808,7 @@
     if((e.key === "Delete" || e.key === "Backspace") && sel.size){ e.preventDefault(); deleteSel(); return; }
     if(e.key === "Enter"){
       var nt = e.target.closest && e.target.closest("[data-note]"); if(nt){ e.preventDefault(); openNoteEdit(nt, null, nt.dataset.note); return; }
-      var it = e.target.closest && e.target.closest(".it[data-id]"); if(it && !it.closest("[data-shelf-copy]")){ e.preventDefault(); var f = findItem(it.dataset.id); if(f) openEdit(it, f.c, f.it.id); }
+      var it = e.target.closest && e.target.closest(".it[data-id]"); if(it && e.target === it){ e.preventDefault(); var f = findItem(it.dataset.id); if(f) openEdit(it, f.c, f.it.id, Boolean(it.closest("[data-shelf-copy]"))); }
     }
     if(mod && (k === "c" || k === "x") && sel.size){
       if(k === "x" && selShelf) return;
