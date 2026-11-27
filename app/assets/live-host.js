@@ -78,6 +78,11 @@
     // Opened from a set page's game card: live/?game=blast#<set>
     var kind = (location.search.match(/[?&]game=(volley|blast|match|royale|surge|molehunt)/) || [])[1];
     if (kind) document.querySelector('input[name="lvGame"][value="' + kind + '"]').checked = true;
+    // With both a game and a set in the address (a set page's Play with the
+    // class box, or Change game in a lobby), the page is that game's settings:
+    // its name and the set at the top, the game and set pickers out of the way
+    // (Donny, 2026-11-27: "I want to be directed to a page with the settings").
+    focusOn(kind && /^(volley|blast|match)$/.test(kind) && want && sets.some(function (s) { return s.id === want; }) ? kind : '');
     // The question sets come from the site; the saved pick waits for them.
     $('lvQset').dataset.want = (defaults && defaults.lvQset) || '';
     loadQsets();
@@ -87,6 +92,27 @@
     // Players per team follows the game unless his default is for this game.
     if (defaults && defaults.lvGame === (picked('lvGame') || 'volley') && defaults.lvSize) $('lvSize').value = defaults.lvSize;
   }
+
+  // The settings card: the game's picture and name, and the set it plays.
+  var GAME_NAMES = { volley: 'Vocab Live', blast: 'Blast', match: 'Match' };
+  function focusOn(kind) {
+    var box = $('lvFocus');
+    $('lvSetup').classList.toggle('lv-focused', !!kind);
+    box.hidden = !kind;
+    if (!kind) return;
+    var pics = {};
+    try { pics = JSON.parse(box.getAttribute('data-pics')) || {}; } catch (e) { /* no picture */ }
+    $('lvFocusPic').textContent = '';
+    if (pics[kind]) { var img = mk('img'); img.src = pics[kind]; img.alt = ''; $('lvFocusPic').appendChild(img); }
+    $('lvFocusName').textContent = GAME_NAMES[kind];
+    var set = sets.filter(function (s) { return s.id === $('lvSet').value; })[0];
+    $('lvFocusSet').textContent = set ? 'with ' + set.title + ' · ' + set.count + (set.count === 1 ? ' term' : ' terms') : '';
+    document.title = GAME_NAMES[kind] + ' settings | ' + document.title.split(' | ').slice(-1)[0];
+  }
+  $('lvFocusChange').addEventListener('click', function () {
+    focusOn('');
+    $('lvWhich').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   // Save these as my default settings (Gennaro, 2026-09-29): every choice on
   // the setup screen, kept in this browser and filled in next time.
@@ -244,7 +270,8 @@
     if ($('lvSaveDefault').checked) { var sd = readSaved(); sd.defaults = collectDefaults(); writeSaved(sd); }
     else { var sn = readSaved(); delete sn.defaults; writeSaved(sn); }
     ED.liveCreate($('lvSet').value, opts, picked('lvGame') || 'volley').then(function (r) {
-      game = { code: r.code, key: r.hostKey, at: Date.now() };
+      // The set is kept too, for the lobby's Change game.
+      game = { code: r.code, key: r.hostKey, at: Date.now(), set: $('lvSet').value };
       saveHost(game);
       connect();
     }, function (err) {
@@ -880,10 +907,25 @@
   // The join page with the code already filled in.
   function joinLink(code) { return location.origin + '/join#' + code; }
 
+  // Change game in the lobby ends this game first (host-name.js).
+  function endForChange() {
+    leaving = true;
+    forgetHost();
+    var sock = ws;
+    return window.IS8HostName.closeVia(sock);
+  }
   function drawLobby(b) {
     show('lvLobby');
     $('lvJoinUrl').textContent = location.host + '/join';
     $('lvCode').textContent = b.code;
+    if (window.IS8HostName) {
+      var mine = sets.filter(function (s) { return s.title === b.title; })[0];
+      window.IS8HostName.show($('lvNameBar'), {
+        kind: b.kind, code: b.code, title: b.title, count: b.cardCount, unit: b.cardCount === 1 ? 'term' : 'terms',
+        flash: (game && game.set) || (mine && mine.id) || '', players: b.players.filter(function (p) { return !p.bot; }).length,
+        end: endForChange
+      });
+    }
     // Google Classroom's own share page: the teacher picks the class and posts.
     $('lvClassroom').href = 'https://classroom.google.com/share?url=' + encodeURIComponent(joinLink(b.code)) +
       '&title=' + encodeURIComponent('Vocab Live: ' + b.title) +

@@ -975,3 +975,37 @@ html[data-theme="dark"] .lv-page .editorial-game-art, html[data-theme="dark"] .l
 html[data-theme="dark"] .lv-page .rb-hero-head .lv-lede, html[data-theme="dark"] .lv-page .sg-setup-head .lv-lede, html[data-theme="dark"] .lv-page .mh-hero-head .lv-lede{ color:#d4d8d2; }
 html[data-theme="dark"] .lv-page .mh-hero-head .mh-t-sci{ color:#b2ca96; } html[data-theme="dark"] .lv-page .mh-hero-head .mh-t-mole{ color:#f3a483; }
 @media(max-width:600px){ .lv-page .rb-hero-head, .lv-page .sg-setup-head, .lv-page .mh-hero-head{ flex-direction:column; align-items:flex-start; gap:1rem; padding:1.25rem; } .lv-page .editorial-game-art, .lv-page .mh-logo{ width:7.5rem; height:7rem; } }
+
+/* ---- The game's name above the join code, with Change game (host-name.js, Donny 2026-11-27) ---- */
+.hn-bar{ display:flex; align-items:center; gap:14px 18px; flex-wrap:wrap; background:var(--card, #fff); color:var(--ink, #1b1f2a); border:2.5px solid var(--accent, #1d4ed8); border-radius:18px; padding:10px 18px 10px 10px; margin:0 0 14px; box-shadow:var(--shadow-sm); }
+.hn-bar[hidden]{ display:none; }
+.hn-pic{ width:76px; height:76px; border-radius:16px; background:#fbf3e3; display:grid; place-items:center; flex:none; overflow:hidden; }
+.hn-pic img{ width:92%; height:92%; object-fit:contain; }
+.hn-text{ display:grid; gap:1px; flex:1 1 240px; min-width:0; }
+.hn-eyebrow{ font-size:.74rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent-dark, #15379b); }
+.hn-name{ font-size:clamp(1.5rem, 3vw, 2.1rem); font-weight:800; line-height:1.1; }
+.hn-set{ font-size:.95rem; font-weight:600; color:var(--ink-soft, #4a5063); overflow-wrap:anywhere; }
+.hn-side{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.9rem; color:var(--ink-soft, #4a5063); }
+.hn-dialog{ max-width:560px; }
+.hn-games{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; margin:4px 0 14px; }
+.hn-game{ display:flex; align-items:center; gap:10px; text-align:left; border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:5px 10px 5px 5px; font:inherit; font-size:.88rem; cursor:pointer; }
+.hn-game:not(:disabled):hover{ border-color:var(--accent); background:var(--accent-tint); }
+.hn-game:disabled{ cursor:default; opacity:.5; }
+.hn-game.on{ border-color:var(--accent); background:var(--accent-tint); opacity:1; }
+.hn-game-pic{ width:42px; height:42px; border-radius:10px; background:#fbf3e3; display:grid; place-items:center; flex:none; overflow:hidden; }
+.hn-game-pic img{ width:90%; height:90%; object-fit:contain; }
+.hn-game-text{ display:grid; line-height:1.25; }
+.hn-game-text small{ font-size:.72rem; color:var(--ink-soft); font-weight:600; }
+/* Surge Showdown's dark arena */
+.sg-arena .hn-bar{ margin-bottom:14px; }
+
+/* ---- Host a game opened for one game and set: its settings card (2026-11-27) ---- */
+.lv-focus{ display:flex; align-items:center; gap:14px 18px; flex-wrap:wrap; background:var(--card); border:2.5px solid var(--accent); border-radius:18px; padding:12px 18px 12px 12px; margin:0 0 18px; box-shadow:var(--shadow-sm); }
+.lv-focus[hidden]{ display:none; }
+.lv-focus-pic{ width:92px; height:92px; border-radius:18px; background:#fbf3e3; display:grid; place-items:center; flex:none; overflow:hidden; }
+.lv-focus-pic img{ width:92%; height:92%; object-fit:contain; }
+.lv-focus-text{ flex:1 1 240px; min-width:0; }
+.lv-focus-eyebrow{ margin:0; font-size:.74rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent-dark); }
+.lv-focus-name{ margin:0; font-size:clamp(1.6rem, 3.2vw, 2.2rem); line-height:1.1; }
+.lv-focus-set{ margin:2px 0 0; font-weight:600; color:var(--ink-soft); overflow-wrap:anywhere; }
+.lv-focused .lv-setup-head, .lv-focused .lv-sets, .lv-focused .lv-which{ display:none; }

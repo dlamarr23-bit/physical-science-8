@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 190" width="250" height="190">
+  <!-- A question set: a stack of quiz cards with a question mark and multiple choice answers,
+       drawn to match the hand-drawn review icons (Donny, 2026-11-27). -->
+  <g stroke="#2e2a27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="34" y="26" width="150" height="116" rx="16" fill="#a9b994" transform="rotate(-9 109 84)"/>
+    <rect x="46" y="38" width="158" height="120" rx="16" fill="#9db4c6" transform="rotate(-4 125 98)"/>
+    <rect x="58" y="50" width="164" height="124" rx="16" fill="#f8ecd6"/>
+    <circle cx="106" cy="110" r="30" fill="#e8875a"/>
+    <path d="M94 101c0-10 6-16 13-16s13 5 13 12c0 8-7 10-10 13-2 2-3 4-3 8" fill="none" stroke="#fff8ec" stroke-width="7"/>
+    <circle cx="107" cy="128" r="1" fill="#fff8ec" stroke="#fff8ec" stroke-width="8"/>
+    <circle cx="154" cy="84" r="7" fill="#ffffff"/>
+    <path d="M168 84h34"/>
+    <circle cx="154" cy="112" r="7" fill="#79b36f"/>
+    <path d="M168 112h28"/>
+    <circle cx="154" cy="140" r="7" fill="#ffffff"/>
+    <path d="M168 140h32"/>
+  </g>
+  <g stroke="#2e2a27" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M214 34l9-15M229 50l15-6M200 26l-2-15"/>
+  </g>
+</svg>

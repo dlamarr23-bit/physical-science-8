@@ -132,7 +132,49 @@
   var qsets = [], flashSets = [];
   var DEFAULT_SELECTS = ['rbEnergy', 'rbSize', 'rbSeconds', 'rbClock'];
   var DEFAULT_CHECKS = ['rbComeback', 'rbShield'];
+
+  /* ---------------- a question set's own page (Donny, 2026-11-27) ----------------
+     flashcards/questions/#<id> (#new&folder=<f> for a new one in a folder) is
+     this page with only the question set editor showing, under the set's
+     name, its Review folder and the three games that play it. */
+  var QPAGE = !!document.querySelector('[data-qpage]');
+  var qFolder = '';
+  function qpageSetup() {
+    show('rbSetup');
+    var hash = location.hash;
+    var id = (hash.match(/^#(q[0-9a-f]{10})\b/) || [])[1] || '';
+    qFolder = (hash.match(/[#&]folder=(f-[a-z0-9-]+)/) || [])[1] || '';
+    $('rbEdCancel').textContent = 'Back to Review';
+    qpageHead(id);
+    openEditor(id);
+    loadQsets(id).then(function () { qpageHead(id); });
+  }
+  function qpageHead(id) {
+    var s = qsets.filter(function (x) { return x.id === id; })[0];
+    if (s && s.folder) qFolder = s.folder;
+    var title = s ? s.title : (id ? 'Question set' : 'New question set');
+    $('rbQTitle').textContent = title;
+    $('rbQMeta').textContent = s ? s.count + (s.count === 1 ? ' question' : ' questions') + ' ·' : (id ? '' : 'Not saved yet ·');
+    document.title = title + ' | ' + document.title.split(' | ').slice(-1)[0];
+    $('rbQPlay').hidden = !s;
+    ['royale', 'surge', 'molehunt'].forEach(function (k) { $('rbQGo-' + k).href = '../../' + k + '/#qset=' + encodeURIComponent(id); });
+    $('rbQFolder').href = '../' + (qFolder ? '#folder-' + qFolder : '');
+    $('rbQFolderBit').hidden = true;
+    if (qFolder && ED && ED.library) {
+      ED.library().then(function (lib) {
+        var f = (lib.folders || []).filter(function (x) { return x.id === qFolder; })[0];
+        if (!f) return;
+        $('rbQFolder').textContent = f.name;
+        $('rbQFolderBit').hidden = false;
+      }, function () { /* the folder name is only a nicety */ });
+    }
+  }
+  function backToReview() { location.href = '../' + (qFolder ? '#folder-' + qFolder : ''); }
+  // Another set's address typed in (or Back to one) opens that set.
+  if (QPAGE) window.addEventListener('hashchange', function () { location.reload(); });
+
   function setup() {
+    if (QPAGE) { qpageSetup(); return; }
     show('rbSetup');
     musicFor('');
     var saved = readSaved();
@@ -401,8 +443,9 @@
     $('rbEditor').hidden = false;
     fillAddSets();
     preview();
-    $('rbEditor').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if (!id) { $('rbEdName').focus(); return; }
+    // On a question set's own page the editor is already the page; its name and games stay in view.
+    if (!QPAGE) $('rbEditor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!id) { $('rbEdName').focus({ preventScroll: QPAGE }); return; }
     $('rbEdCount').textContent = 'Opening...';
     call('qsets/' + id).then(function (s) {
       $('rbEdName').value = s.title;
@@ -1163,7 +1206,10 @@
 
   $('rbQsetNew').addEventListener('click', function () { openEditor(''); });
   $('rbQsetEdit').addEventListener('click', function () { if ($('rbQset').value) openEditor($('rbQset').value); });
-  $('rbEdCancel').addEventListener('click', function () { $('rbEditor').hidden = true; });
+  $('rbEdCancel').addEventListener('click', function () {
+    if (QPAGE) { backToReview(); return; }
+    $('rbEditor').hidden = true;
+  });
   $('rbEdSave').addEventListener('click', function () {
     // A card still open is kept first (or says what it is missing).
     if (!leaveForm()) { $('rbEdError').textContent = 'Finish the question that is open (or click its Cancel), then click Save set.'; return; }
@@ -1186,7 +1232,18 @@
     var btn = this;
     btn.disabled = true;
     btn.textContent = 'Saving...';
-    call(editing ? 'qsets/' + editing : 'qsets', editing ? 'PUT' : 'POST', { title: title, questions: r.questions }).then(function (s) {
+    var payload = { title: title, questions: r.questions };
+    // A new set made on its own page starts in the Review folder it was made from.
+    if (QPAGE && !editing && qFolder) payload.folder = qFolder;
+    call(editing ? 'qsets/' + editing : 'qsets', editing ? 'PUT' : 'POST', payload).then(function (s) {
+      if (QPAGE) {
+        // The editor stays open on its own page; a new set gets its address.
+        editing = s.id;
+        warnedSave = '';
+        if (location.hash !== '#' + s.id) { try { history.replaceState(null, '', location.pathname + location.search + '#' + s.id); } catch (e) { /* the address stays */ } }
+        toast('Saved "' + s.title + '" with ' + s.count + (s.count === 1 ? ' question.' : ' questions.'));
+        return loadQsets(s.id).then(function () { qpageHead(s.id); });
+      }
       $('rbEditor').hidden = true;
       document.querySelector('input[name="rbSource"][value="qset"]').checked = true;
       syncSource();
@@ -1254,7 +1311,8 @@
     btn.textContent = 'Making the game...';
     call('live/create', 'POST', body).then(function (r) {
       game = { code: r.code, key: r.hostKey };
-      keep(function (s) { s.host = { code: r.code, key: r.hostKey, at: Date.now() }; });
+      // The set is kept too, for the lobby's Change game.
+      keep(function (s) { s.host = { code: r.code, key: r.hostKey, at: Date.now(), qset: body.qsetId || '', flash: body.setId || '' }; });
       $('rbResume').hidden = true;
       if (location.hash) history.replaceState(null, '', location.pathname + location.search);
       connect();
@@ -1338,8 +1396,25 @@
   function joinLink(code) { return location.origin + '/join#' + code; }
   var seen = {};
 
+  // The bar above the code that names the game and set, with Change game (host-name.js).
+  function endForChange() {
+    leaving = true;
+    keep(function (s) { delete s.host; });
+    return window.IS8HostName.closeVia(ws);
+  }
   function drawLobby(b) {
     $('rbCode').textContent = b.code;
+    if (window.IS8HostName) {
+      var h = readSaved().host || {};
+      var q = h.code === b.code ? h.qset : '';
+      if (!q && !b.setId) q = (qsets.filter(function (s) { return s.title === b.title; })[0] || {}).id || '';
+      window.IS8HostName.show($('rbNameBar'), {
+        kind: 'royale', code: b.code, title: b.title, count: b.questions,
+        unit: b.setId ? (b.questions === 1 ? 'term' : 'terms') : (b.questions === 1 ? 'question' : 'questions'),
+        qset: b.setId ? '' : q, flash: b.setId || (h.code === b.code ? h.flash : '') || '',
+        players: b.players.filter(function (p) { return !p.bot; }).length, end: endForChange
+      });
+    }
     if (qrFor !== b.code && window.qrcode) {
       try {
         var qr = window.qrcode(0, 'M');

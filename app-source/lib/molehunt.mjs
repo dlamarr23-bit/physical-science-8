@@ -7,13 +7,13 @@
 // Royale (assets/heroes.js).
 import { site } from '../content/site.mjs';
 import { head, topbar, drawer, footer, assetVersion } from './render.mjs';
-import { whoChoices, lobbyRoll, passStep } from './live.mjs';
+import { whoChoices, lobbyRoll, passStep, nameBar } from './live.mjs';
 
 const tag = (up, file) => file.endsWith('.css')
   ? `<link rel="stylesheet" href="${up}assets/${file}?v=${assetVersion(file)}">\n`
   : `<script src="${up}assets/${file}?v=${assetVersion(file)}" defer></script>\n`;
 
-const HOST_FILES = ['flashcards.css', 'live.css', 'royale.css', 'molehunt.css', 'molehunt-notebook.css', 'editor.js', 'vendor/qrcode.js', 'live-celebrate.js', 'heroes.js', 'live-roster.js', 'molehunt-common.js', 'molehunt-ink.js', 'molehunt-host.js'];
+const HOST_FILES = ['flashcards.css', 'live.css', 'royale.css', 'molehunt.css', 'molehunt-notebook.css', 'editor.js', 'vendor/qrcode.js', 'live-celebrate.js', 'heroes.js', 'live-roster.js', 'molehunt-common.js', 'molehunt-ink.js', 'host-name.js', 'molehunt-host.js'];
 const PLAY_FILES = ['flashcards.css', 'live.css', 'royale.css', 'molehunt.css', 'molehunt-notebook.css', 'live-celebrate.js', 'heroes.js', 'royale-zoom.js', 'molehunt-common.js', 'molehunt-ink.js', 'molehunt-play.js'];
 const REMOTE_FILES = ['flashcards.css', 'live.css', 'royale.css', 'molehunt.css', 'molehunt-notebook.css', 'editor.js', 'heroes.js', 'molehunt-common.js', 'molehunt-ink.js', 'molehunt-remote.js'];
 
@@ -161,6 +161,7 @@ ${sw('mhX-second', '9 Second Chance and streaks', 'A missed question comes back 
 </section>
 
 <section class="lv-step" id="mhLobby" hidden>
+${nameBar('mh')}
 <div class="lv-joinbox">
 <div class="lv-join-text">
 <p class="lv-join-step">Go to <strong class="mh-join-url"></strong></p>

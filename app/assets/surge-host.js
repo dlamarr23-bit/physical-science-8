@@ -447,9 +447,24 @@
           : p.guest ? '<span class="sg-guest-tag">Guest</span>' : '';
   }
   const pickingMove = () => document.activeElement && document.activeElement.matches && document.activeElement.matches('select[data-move]');
+  // The bar above the code that names the game and set, with Change game (host-name.js).
+  function endForChange() {
+    keep((s) => { delete s.host; });
+    if (conn) conn.send({ t: 'close' });
+    return new Promise((done) => setTimeout(done, 400));
+  }
   function renderLobby(url) {
     $('#sgJoinUrl').textContent = url;
     $('#sgJoinCode').textContent = S.code;
+    if (window.IS8HostName) {
+      const isQ = playing.startsWith('q:');
+      window.IS8HostName.show(document.getElementById('sgNameBar'), {
+        kind: 'surge', code: S.code, title: S.setTitle, count: S.qCount,
+        unit: isQ ? (S.qCount === 1 ? 'question' : 'questions') : (S.qCount === 1 ? 'term' : 'terms'),
+        qset: isQ ? playing.slice(2) : '', flash: playing.startsWith('f:') ? playing.slice(2) : '',
+        players: S.players.filter((p) => !p.bot).length, end: endForChange
+      });
+    }
     $('#sgCount').textContent = S.players.length + (S.players.length === 1 ? ' player' : ' players');
     $('#sgStart').disabled = S.players.length === 0;
     $('#sgDemoLobby').textContent = S.settings.demo ? '🎭 Take out pretend students' : '🎭 Add 40 pretend students';

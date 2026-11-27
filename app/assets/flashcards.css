@@ -600,3 +600,26 @@ html[data-theme="dark"] .fc-game-pic, html[data-theme="dark"] .fx-card-icon img.
   background-size:1024px 512px, 100% 100%, 100% 100%;
   background-repeat:repeat, no-repeat, no-repeat;
 }
+
+/* ---- A set page's Play with the class box, the teacher's only (Donny, 2026-11-27) ---- */
+.fc-play{ background:#fff8e1; border:1.5px dashed #e5bd4f; border-radius:var(--radius); padding:14px 16px 12px; }
+.fc-play-head{ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:10px; }
+.fc-play-head h2{ margin:0; font-size:1.05rem; }
+.fc-only, .fx-only{ display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.01em; text-transform:none; background:#f6dc86; color:#4a3700; border-radius:999px; padding:2px 10px; vertical-align:middle; }
+.fc-play-games{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+.fc-play-game{ display:flex; align-items:center; gap:12px; background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:8px 14px 8px 8px; color:var(--ink); font-weight:700; font-size:1rem; text-decoration:none; box-shadow:var(--shadow-sm); transition:transform .12s, border-color .12s; }
+.fc-play-game:hover{ border-color:var(--accent); transform:translateY(-1px); text-decoration:none; }
+.fc-play-game:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+.fc-play-pic{ width:56px; height:56px; border-radius:12px; background:#fbf3e3; display:grid; place-items:center; flex:none; overflow:hidden; }
+.fc-play-pic img{ width:92%; height:92%; object-fit:contain; }
+.fc-play-more{ margin:10px 0 0; font-size:.88rem; color:#6b4f00; }
+.fc-play-more a{ font-weight:600; }
+@media (max-width:560px){ .fc-play-games{ grid-template-columns:minmax(0, 1fr); } }
+html[data-theme="dark"] .fc-play{ background:#2b2512; border-color:#6b5a1e; }
+html[data-theme="dark"] .fc-play-more{ color:#f0d68a; }
+html[data-theme="dark"] .fc-only, html[data-theme="dark"] .fx-only{ background:#5a4a17; color:#ffe9a6; }
+
+/* ---- Question sets in the Review folders, the teacher's only (2026-11-27) ---- */
+.fx-head-q{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.fx-card-q .fx-card-meta::before{ content:"Questions"; display:inline-block; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; background:#fff8e1; color:#6b4f00; border:1px solid #e5bd4f; border-radius:6px; padding:0 6px; margin-right:6px; }
+html[data-theme="dark"] .fx-card-q .fx-card-meta::before{ background:#2b2512; color:#f0d68a; border-color:#6b5a1e; }

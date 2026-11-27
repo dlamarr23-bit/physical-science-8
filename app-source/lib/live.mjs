@@ -45,6 +45,20 @@ const ART = {
   molehunt: pic('mole-hunt')
 };
 
+// The game's picture for each kind, for the lobby's name bar and the
+// settings card (assets/host-name.js). Every host page is one folder deep.
+const GAME_PICS = { volley: 'vocab-live', blast: 'blast', match: 'match', royale: 'battle-royale', surge: 'surge-showdown', molehunt: 'mole-hunt' };
+export function gamePics() {
+  const out = {};
+  Object.keys(GAME_PICS).forEach((k) => { out[k] = asset('review-icons/' + GAME_PICS[k] + '.webp'); });
+  return esc(JSON.stringify(out));
+}
+// The bar above the join code that names the game and the set, with Change
+// game (Donny, 2026-11-27). Id: <p>NameBar.
+export function nameBar(p) {
+  return `<div class="hn-bar" id="${p}NameBar" data-pics="${gamePics()}" hidden></div>`;
+}
+
 // Who can join, and the class period playing (Donny, 2026-11-04: students
 // always sign in with Class Pass; guests only when he allows them). Every
 // game's setup uses this (live/, royale/, surge/); assets/live-roster.js
@@ -106,7 +120,7 @@ export function renderLiveHost(chapters, units, sets) {
     description: 'Host Vocab Live, Blast or Match for the class with any flashcard set.',
     unitId: null,
     depth,
-    extraHead: `<link rel="stylesheet" href="${asset('flashcards.css')}">\n<link rel="stylesheet" href="${asset('live.css')}">\n<script src="${asset('editor.js')}" defer></script>\n<script src="${asset('vendor/qrcode.js')}" defer></script>\n<script src="${asset('live-celebrate.js')}" defer></script>\n<script src="${asset('live-roster.js')}" defer></script>\n<script src="${asset('live-host.js')}" defer></script>\n`
+    extraHead: `<link rel="stylesheet" href="${asset('flashcards.css')}">\n<link rel="stylesheet" href="${asset('live.css')}">\n<script src="${asset('editor.js')}" defer></script>\n<script src="${asset('vendor/qrcode.js')}" defer></script>\n<script src="${asset('live-celebrate.js')}" defer></script>\n<script src="${asset('live-roster.js')}" defer></script>\n<script src="${asset('host-name.js')}" defer></script>\n<script src="${asset('live-host.js')}" defer></script>\n`
   }) +
     topbar(depth, null) +
     drawer(depth, chapters, null, null) +
@@ -123,6 +137,15 @@ export function renderLiveHost(chapters, units, sets) {
 <h1>Host a game</h1>
 <p class="lv-lede">Pick a game, a set and how to play. Players join on their own screens with a code.</p>
 </div>
+<div class="lv-focus" id="lvFocus" data-pics="${gamePics()}" hidden>
+<span class="lv-focus-pic" id="lvFocusPic"></span>
+<div class="lv-focus-text">
+<p class="lv-focus-eyebrow">Settings for</p>
+<h1 class="lv-focus-name" id="lvFocusName"></h1>
+<p class="lv-focus-set" id="lvFocusSet"></p>
+</div>
+<button type="button" class="btn secondary fc-small" id="lvFocusChange">Change game or set</button>
+</div>
 <div class="lv-resume" id="lvResume" hidden><span id="lvResumeText"></span> <button type="button" class="btn fc-small" id="lvResumeBtn">Go back to it</button></div>
 <p class="lv-note" id="lvSetupNote" role="status"></p>
 <div class="lv-sets">
@@ -134,7 +157,7 @@ export function renderLiveHost(chapters, units, sets) {
 <span class="lv-small">For Battle Royale, Surge Showdown and Mole Hunt. <a href="../royale/#new">Make a new question set</a></span></div>
 </div>
 
-<fieldset class="lv-group"><legend class="lv-q">Which game?</legend>
+<fieldset class="lv-group lv-which" id="lvWhich"><legend class="lv-q">Which game?</legend>
 <div class="lv-choices lv-choices-5 lv-choices-6">
 ${choiceCard('lvGame', 'volley', 'Vocab Live', 'Teams race to answer in a row. Each teammate holds some of the answers.', ART.volley, true)}
 ${choiceCard('lvGame', 'blast', 'Blast', 'Teams of up to 4 blast the asteroid with the right term before time runs out.', ART.blast, false)}
@@ -206,6 +229,7 @@ ${whoChoices('lvWho', 'lvPeriod')}
 </div>
 
 <section class="lv-step" id="lvLobby" hidden>
+${nameBar('lv')}
 <div class="lv-joinbox">
 <div class="lv-join-text">
 <p class="lv-join-step">Go to <strong id="lvJoinUrl"></strong></p>

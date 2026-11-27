@@ -202,7 +202,8 @@
     btn.textContent = 'Making the game...';
     call('live/create', 'POST', body).then(function (r) {
       game = { code: r.code, key: r.hostKey };
-      keep(function (s) { s.host = { code: r.code, key: r.hostKey, at: Date.now() }; });
+      // The set is kept too, for the lobby's Change game.
+      keep(function (s) { s.host = { code: r.code, key: r.hostKey, at: Date.now(), qset: body.qsetId || '', flash: body.setId || '' }; });
       $('mhResume').hidden = true;
       if (location.hash) history.replaceState(null, '', location.pathname + location.search);
       connect();
@@ -286,8 +287,28 @@
 
   function joinLink(code) { return location.origin + '/join#' + code; }
   var seen = {};
+  // The bar above the code that names the game and set, with Change game (host-name.js).
+  function endForChange() {
+    leaving = true;
+    keep(function (s) { delete s.host; });
+    return window.IS8HostName.closeVia(ws);
+  }
   function drawLobby(b) {
     $('mhCode').textContent = b.code;
+    if (window.IS8HostName) {
+      var h = readSaved().host || {};
+      var q = h.code === b.code ? h.qset : '';
+      if (!q && !b.setId) {
+        var o = [].filter.call($('mhQset').options, function (x) { return x.value && x.textContent.indexOf(b.title + ' (') === 0; })[0];
+        q = o ? o.value : '';
+      }
+      window.IS8HostName.show($('mhNameBar'), {
+        kind: 'molehunt', code: b.code, title: b.title, count: b.questions,
+        unit: b.setId ? (b.questions === 1 ? 'term' : 'terms') : (b.questions === 1 ? 'question' : 'questions'),
+        qset: b.setId ? '' : q, flash: b.setId || (h.code === b.code ? h.flash : '') || '',
+        players: b.players.filter(function (p) { return !p.bot; }).length, end: endForChange
+      });
+    }
     if (qrFor !== b.code && window.qrcode) {
       try {
         var qr = window.qrcode(0, 'M');

@@ -95,13 +95,20 @@ export const TILE = {
   match: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect class="a" x="4" y="5" width="16" height="11" rx="2.5"/><rect class="w" x="7.5" y="9.3" width="9" height="2.4" rx="1.2"/><rect class="b" x="14" y="17" width="14" height="10" rx="2.5"/><rect class="w" x="17" y="20.8" width="8" height="2.4" rx="1.2"/></svg>'
 };
 
-// Games played together live (textbook/live-worker): anyone can host one
-// with this set; the others join with the code. Each has the hand-drawn
-// picture from the Host a game page (assets/review-icons/, Donny 2026-11-15).
+// Games played together live (textbook/live-worker), with the hand-drawn
+// pictures from the Host a game page (assets/review-icons/, Donny 2026-11-15).
+// Only the teacher sees them on a set page (Donny, 2026-11-27: "bringing vocab
+// live, matching and blast to the flashcards page, but don't give students
+// access"): each opens that game's settings with this set picked.
 const GAMES = [
   ['volley', 'Vocab Live', 'vocab-live'],
   ['blast', 'Blast', 'blast'],
-  ['match', 'Multiplayer Match', 'match']
+  ['match', 'Match', 'match']
+];
+const MORE_GAMES = [
+  ['royale', 'Battle Royale'],
+  ['surge', 'Surge Showdown'],
+  ['molehunt', 'Mole Hunt']
 ];
 
 const MODES = [
@@ -268,11 +275,12 @@ ${p.own ? '<label class="fc-own-name" id="fcOwnTitleRow" hidden><span>Set name</
 </div>
 </div>
 
-<section class="fc-hub" aria-labelledby="fcGamesTitle">
-<div class="fc-hub-head"><h2 id="fcGamesTitle">Multiplayer games</h2><a href="${up}join/">Have a code? Join a game</a></div>
-<div class="fc-tiles fc-tiles-3">
-${GAMES.map(([id, name, pic]) => `<div class="fc-tile fc-game-tile"><a class="fc-tile-main" href="${up}live/?game=${id}#${p.id}"><img class="fc-game-pic" src="${asset('review-icons/' + pic + '.webp')}" alt=""><span>${name}</span></a><button type="button" class="linkbtn fc-tile-howto" data-howto="${id}" aria-label="How to play ${name}">How to play</button></div>`).join('\n')}
+<section class="fc-hub fc-play" data-teacher-only aria-labelledby="fcGamesTitle">
+<div class="fc-play-head"><h2 id="fcGamesTitle">Play with the class</h2><span class="fc-only">Only you see this</span></div>
+<div class="fc-play-games">
+${GAMES.map(([id, name, pic]) => `<a class="fc-play-game" href="${up}live/?game=${id}#${p.id}"><span class="fc-play-pic"><img src="${asset('review-icons/' + pic + '.webp')}" alt=""></span><span>${name}</span></a>`).join('\n')}
 </div>
+<p class="fc-play-more">Also with this set: ${MORE_GAMES.map(([id, name]) => `<a href="${up}${id}/#set=${p.id}">${name}</a>`).join(' &middot; ')} &middot; <a href="?edit">Edit cards</a></p>
 </section>
 
 <div class="fc-hub fc-hub-study">
@@ -421,7 +429,7 @@ ${joinBox('../')}
 <input type="search" id="fxFind" placeholder="Type a word" autocomplete="off" spellcheck="false">
 <p class="fx-find-note" id="fxFindNote" aria-live="polite"></p>
 </div>
-<div id="fxTree" data-folder-pic="${v('review-icons/folder.webp')}" data-set-pic="${v('review-icons/question-set.webp')}"></div>
+<div id="fxTree" data-folder-pic="${v('review-icons/folder.webp')}" data-set-pic="${v('review-icons/question-set.webp')}" data-qset-pic="${v('review-icons/question-set-q.svg')}"></div>
 <noscript><p>The flashcards need JavaScript turned on.</p></noscript>
 <div class="fx-signin"><button type="button" class="linkbtn" id="fxSignInBtn">Teacher sign in</button><div id="fxSignIn" hidden></div></div>
 <script type="application/json" id="fxData">${safeJSON(lib)}</script>

@@ -8,13 +8,13 @@
 // reads the same in the site's light and dark modes.
 import { site } from '../content/site.mjs';
 import { head, topbar, drawer, footer, assetVersion } from './render.mjs';
-import { whoChoices, lobbyRoll, passStep } from './live.mjs';
+import { whoChoices, lobbyRoll, passStep, nameBar } from './live.mjs';
 
 const tag = (up, file) => file.endsWith('.css')
   ? `<link rel="stylesheet" href="${up}assets/${file}?v=${assetVersion(file)}">\n`
   : `<script src="${up}assets/${file}?v=${assetVersion(file)}" defer></script>\n`;
 
-const HOST_FILES = ['flashcards.css', 'live.css', 'surge.css', 'editor.js', 'vendor/qrcode.js', 'live-roster.js', 'surge-common.js', 'surge-intro.js', 'surge-host.js', 'surge-music.js'];
+const HOST_FILES = ['flashcards.css', 'live.css', 'surge.css', 'editor.js', 'vendor/qrcode.js', 'live-roster.js', 'surge-common.js', 'surge-intro.js', 'host-name.js', 'surge-host.js', 'surge-music.js'];
 const PLAY_FILES = ['flashcards.css', 'live.css', 'surge.css', 'surge-common.js', 'surge-play.js'];
 
 export function renderSurgeHost(chapters) {
@@ -112,6 +112,7 @@ ${group('Special events', 'events', '<p class="lv-small">Extra twists that keep 
 </section>
 
 <section class="lv-step sg sg-arena" id="sgLobby" hidden>
+${nameBar('sg')}
 <div class="panel joinbox">
 <div class="sg-join-text">
 <div class="muted">Go to</div>

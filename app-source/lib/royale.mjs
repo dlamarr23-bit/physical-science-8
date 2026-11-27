@@ -5,13 +5,13 @@
 // (game-server/src/royale.js). assets/heroes.js draws the superhero avatars.
 import { site } from '../content/site.mjs';
 import { head, topbar, drawer, footer, assetVersion } from './render.mjs';
-import { whoChoices, lobbyRoll, passStep } from './live.mjs';
+import { whoChoices, lobbyRoll, passStep, nameBar } from './live.mjs';
 
 const tag = (up, file) => file.endsWith('.css')
   ? `<link rel="stylesheet" href="${up}assets/${file}?v=${assetVersion(file)}">\n`
   : `<script src="${up}assets/${file}?v=${assetVersion(file)}" defer></script>\n`;
 
-const HOST_FILES = ['flashcards.css', 'live.css', 'royale.css', 'editor.js', 'vendor/qrcode.js', 'live-celebrate.js', 'heroes.js', 'live-roster.js', 'royale-zoom.js', 'royale-host.js'];
+const HOST_FILES = ['flashcards.css', 'live.css', 'royale.css', 'editor.js', 'vendor/qrcode.js', 'live-celebrate.js', 'heroes.js', 'live-roster.js', 'royale-zoom.js', 'host-name.js', 'royale-host.js'];
 const PLAY_FILES = ['flashcards.css', 'live.css', 'royale.css', 'live-celebrate.js', 'heroes.js', 'royale-zoom.js', 'royale-play.js'];
 
 export function renderRoyaleHost(chapters) {
@@ -23,6 +23,41 @@ export function renderRoyaleHost(chapters) {
     depth,
     extraHead: HOST_FILES.map((f) => tag('../', f)).join('')
   }) + topbar(depth, null) + drawer(depth, chapters, null, null) + HOST + footer(depth);
+}
+
+// A question set's own page (Donny, 2026-11-27: question sets sit in the
+// Review folders, only for him, each with its own page): flashcards/questions/#<id>.
+// It is this page's question set editor on its own, under the set's name, its
+// folder and the three games that play it (royale-host.js, QPAGE), so the
+// cards, pictures, imports and merging all work the same as here.
+// The page is two folders deep (flashcards/questions/); the Review page is one up.
+const pic = (file) => `../../assets/review-icons/${file}?v=${assetVersion('review-icons/' + file)}`;
+const QHEAD = `<div class="rb-qhead">
+<nav class="fc-crumbs rb-qcrumbs" aria-label="Where this set is"><a href="../" id="rbQTop">Review</a><span id="rbQFolderBit" hidden><span aria-hidden="true"> › </span><a href="../" id="rbQFolder"></a></span></nav>
+<div class="rb-qtitle"><img class="rb-qpic" src="${pic('question-set-q.svg')}" width="120" height="91" alt="">
+<div><h1 id="rbQTitle">Question set</h1><p class="rb-qmeta"><span id="rbQMeta"></span> <span class="rb-qonly">Only you see this set</span></p></div></div>
+<div class="rb-qplay" id="rbQPlay" hidden><p class="rb-qplay-title">Play with the class</p><div class="rb-qgames">
+<a class="rb-qgame" id="rbQGo-royale" href="../../royale/"><img src="${pic('battle-royale.webp')}" alt=""><span>Battle Royale</span></a>
+<a class="rb-qgame" id="rbQGo-surge" href="../../surge/"><img src="${pic('surge-showdown.webp')}" alt=""><span>Surge Showdown</span></a>
+<a class="rb-qgame" id="rbQGo-molehunt" href="../../molehunt/"><img src="${pic('mole-hunt.webp')}" alt=""><span>Mole Hunt</span></a>
+</div></div>
+</div>
+`;
+export function renderQuestionSetPage(chapters) {
+  const depth = 2;
+  const body = HOST
+    // Two folders deep (flashcards/questions/), not one.
+    .split('../').join('../../')
+    .replace('<main id="main" class="container lv-page rb-page rb-host">', '<main id="main" class="container lv-page rb-page rb-host rb-qpage" data-qpage="1">')
+    .replace('<h1>Battle Royale</h1>', '<h1>Question set</h1>')
+    .replace('<section class="lv-step" id="rbSetup" hidden>', '<section class="lv-step" id="rbSetup" hidden>\n' + QHEAD);
+  return head({
+    title: `Question set | ${site.title}`,
+    description: 'A question set: its questions, and the games that play it.',
+    unitId: null,
+    depth,
+    extraHead: HOST_FILES.map((f) => tag('../../', f)).join('')
+  }) + topbar(depth, null) + drawer(depth, chapters, null, null) + body + footer(depth);
 }
 
 export function renderRoyalePlay(chapters) {
@@ -131,6 +166,7 @@ ${whoChoices('rbWho', 'rbPeriod').replace('class="lv-group lv-who"', 'class="lv-
 </section>
 
 <section class="lv-step" id="rbLobby" hidden>
+${nameBar('rb')}
 <div class="lv-joinbox">
 <div class="lv-join-text">
 <p class="lv-join-step">Go to <strong class="rb-join-url"></strong></p>

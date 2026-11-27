@@ -90,6 +90,66 @@
     var FOLDER_SVG = view.getAttribute('data-folder-pic') ? picTag(view.getAttribute('data-folder-pic')) : '<svg viewBox="0 0 32 32" aria-hidden="true"><path class="b" d="M4 9a3 3 0 0 1 3-3h6l3 3h9a3 3 0 0 1 3 3v2H4z"/><rect class="a" x="4" y="12" width="24" height="15" rx="3"/></svg>';
     var SET_SVG = view.getAttribute('data-set-pic') ? picTag(view.getAttribute('data-set-pic')) : '<svg viewBox="0 0 32 32" aria-hidden="true"><rect class="b" x="10" y="5" width="17" height="14" rx="3"/><rect class="a" x="5" y="11" width="17" height="15" rx="3"/></svg>';
 
+    // Question sets (Battle Royale, Surge Showdown, Mole Hunt) sit in the
+    // folders too, only for the teacher (Donny, 2026-11-27). The site keeps
+    // each one's folder (/api/qsets, folder); one from before that goes where
+    // the flashcard set with the same name is, once. Students never ask for them.
+    var qsets = [];
+    var QSET_PIC = view.getAttribute('data-qset-pic') ? picTag(view.getAttribute('data-qset-pic')) : SET_SVG;
+    function api(path, method, body) {
+      return fetch('/api/' + path, {
+        method: method || 'GET',
+        credentials: 'same-origin',
+        headers: { 'X-IS8-Editor': '1', 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'That did not work. Try again.');
+          return d;
+        });
+      });
+    }
+    var qById = function (id) { return qsets.filter(function (q) { return q.id === id; })[0] || null; };
+    // 'none' is a set the teacher took out of every folder on purpose.
+    var qFolderOf = function (q) { return q && q.folder && folderById(q.folder) ? q.folder : null; };
+    var qsetsIn = function (id) {
+      return qsets.filter(function (q) { return qFolderOf(q) === id; })
+        .sort(function (a, b) { return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }); });
+    };
+    var deepQsets = function (f) { return qsets.filter(function (q) { var at = qFolderOf(q); return at === f.id || kids(f.id).some(function (k) { return k.id === at; }); }); };
+    function plainTitle(t) { return String(t || '').toLowerCase().replace(/^\s*review\s*:\s*/, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+    function guessFolder(q) {
+      var t = plainTitle(q.title);
+      if (!t) return null;
+      var same = lib.sets.filter(function (s) { return plainTitle(s.title) === t; })[0];
+      if (same) return same.folder || null;
+      var near = lib.sets.filter(function (s) { var st = plainTitle(s.title); return st.length > 3 && (t.indexOf(st) !== -1 || st.indexOf(t) !== -1); })
+        .sort(function (a, b) { return plainTitle(b.title).length - plainTitle(a.title).length; })[0];
+      return near ? near.folder || null : null;
+    }
+    function loadQsets() {
+      return api('qsets').then(function (d) {
+        qsets = d.sets || [];
+        var chain = Promise.resolve();
+        qsets.forEach(function (q) {
+          if (q.folder) return;
+          var f = guessFolder(q);
+          if (!f) return;
+          q.folder = f;
+          chain = chain.then(function () { return api('qsets/' + q.id + '/folder', 'PUT', { folder: f }); }).catch(function () { /* it is guessed again next time */ });
+        });
+        draw();
+      }, function () { /* the flashcard sets still show */ });
+    }
+    function moveQset(q, to) {
+      status('Saving...');
+      api('qsets/' + q.id + '/folder', 'PUT', { folder: to || 'none' }).then(function (d) {
+        qsets = d.sets || qsets;
+        status('Moved. Only you see question sets.');
+        draw();
+      }, function (err) { status(err.message, true); draw(); });
+    }
+
     /* ---- drawing ---- */
 
     function tidyLib() {
@@ -148,6 +208,7 @@
         if (!sets.length) g2.appendChild(mk('li', 'fx-empty', 'No sets here yet. Use + Add Set.'));
         view.appendChild(g2);
       }
+      if (teacher) drawQsets(f);
       if (!folders.length && !sets.length && !teacher) view.appendChild(mk('p', 'fx-empty', 'No flashcard sets here yet.'));
       note.textContent = plural(lib.sets.filter(visible).length, 'set', 'sets') + ' in all.';
     }
@@ -179,8 +240,11 @@
       var text = mk('span', 'fx-card-text');
       text.appendChild(mk('span', 'fx-card-title', f.name));
       var n = deepSets(f).length, sub = kids(f.id).filter(shows).length;
-      var bits = [n ? plural(n, 'set', 'sets') : 'Empty'];
+      var nq = teacher ? deepQsets(f).length : 0;
+      var bits = [n || !nq ? (n ? plural(n, 'set', 'sets') : 'Empty') : ''];
+      if (nq) bits.push(plural(nq, 'question set', 'question sets'));
       if (sub) bits.push(plural(sub, 'folder', 'folders'));
+      bits = bits.filter(Boolean);
       text.appendChild(mk('span', 'fx-card-meta', bits.join(' · ')));
       a.appendChild(text);
       li.appendChild(a);
@@ -208,6 +272,46 @@
       return li;
     }
 
+    // The open folder's question sets, under its flashcard sets (the teacher's only).
+    function drawQsets(f) {
+      var list = qsetsIn(here);
+      if (!list.length && !f) return;
+      var h = mk('h3', 'fx-head fx-head-q', f ? 'Question sets ' : 'Question sets not in a folder ');
+      h.appendChild(mk('span', 'fx-only', 'Only you see these'));
+      view.appendChild(h);
+      var g = mk('ul', 'fx-grid fx-grid-q');
+      list.forEach(function (q) { g.appendChild(qsetCard(q)); });
+      if (!list.length) g.appendChild(mk('li', 'fx-empty', 'No question sets here yet. Use + New question set.'));
+      view.appendChild(g);
+    }
+    function qsetCard(q, where) {
+      var li = mk('li', 'fx-card fx-card-set fx-card-q');
+      li.setAttribute('data-qset', q.id);
+      if (accentOf(folderById(qFolderOf(q)))) li.style.setProperty('--unit', accentOf(folderById(qFolderOf(q))));
+      var a = mk('a', 'fx-card-main');
+      a.href = 'questions/#' + q.id;
+      var icon = mk('span', 'fx-card-icon fx-set-icon');
+      icon.innerHTML = QSET_PIC;
+      a.appendChild(icon);
+      var text = mk('span', 'fx-card-text');
+      text.appendChild(mk('span', 'fx-card-title', q.title));
+      text.appendChild(mk('span', 'fx-card-meta', plural(q.count || 0, 'question', 'questions') + (where ? ' · ' + where : '')));
+      a.appendChild(text);
+      li.appendChild(a);
+      var box = mk('div', 'fx-card-tools');
+      var grip = mk('span', 'fx-grip');
+      grip.innerHTML = GRIP;
+      grip.title = 'Drag the card onto a folder to move it';
+      box.appendChild(grip);
+      box.appendChild(mk('span', 'fx-drag-note', 'Drag to a folder'));
+      var more = btn('fx-move-btn fx-more', '⋯', function () { openMenu(more, 'qset', q, q.title); }, 'More options for ' + q.title);
+      more.setAttribute('aria-haspopup', 'true');
+      more.setAttribute('aria-expanded', 'false');
+      box.appendChild(more);
+      li.appendChild(box);
+      return li;
+    }
+
     /* ---- search: every matching set at once ---- */
 
     function drawSearch() {
@@ -218,8 +322,11 @@
         if (!hits.length && s.title.toLowerCase().indexOf(q) === -1) return;
         found.push({ set: s, hits: hits });
       });
+      // The teacher's question sets whose names match.
+      var qFound = teacher ? qsets.filter(function (x) { return x.title.toLowerCase().indexOf(q) !== -1; }) : [];
       var shown = input.value.trim();
-      note.textContent = found.length ? plural(found.length, 'set has', 'sets have') + ' “' + shown + '”.' : 'No set has “' + shown + '” yet.';
+      var all = found.length + qFound.length;
+      note.textContent = all ? plural(all, 'set has', 'sets have') + ' “' + shown + '”.' : 'No set has “' + shown + '” yet.';
       var grid = mk('ul', 'fx-grid');
       found.forEach(function (r) {
         var hits = r.hits.length ? 'Has ' + r.hits.slice(0, 6).join(', ') + (r.hits.length > 6 ? ' and more' : '') : '';
@@ -227,6 +334,14 @@
         grid.appendChild(setCard(r.set, where, hits));
       });
       view.appendChild(grid);
+      if (qFound.length) {
+        var h = mk('h3', 'fx-head fx-head-q', 'Question sets ');
+        h.appendChild(mk('span', 'fx-only', 'Only you see these'));
+        view.appendChild(h);
+        var g2 = mk('ul', 'fx-grid fx-grid-q');
+        qFound.forEach(function (x) { g2.appendChild(qsetCard(x, trail(qFolderOf(x)).map(function (y) { return y.name; }).join(' › '))); });
+        view.appendChild(g2);
+      }
     }
     input.addEventListener('input', draw);
 
@@ -315,6 +430,20 @@
       i.focus();
       i.select();
     }
+    // Only a folder menu (for a question set, which keeps its own name).
+    function askFolder(title, current, run) {
+      var d = dialog(title);
+      var form = mk('form', 'fx-dialog-form');
+      var l = mk('label', 'fx-dialog-label', 'Folder');
+      var sel = folderSelect(current, false);
+      l.appendChild(sel);
+      form.appendChild(l);
+      d.appendChild(form);
+      dialogButtons(form, d, 'Move it');
+      form.addEventListener('submit', function (e) { e.preventDefault(); d.close(); run(sel.value); });
+      d.showModal();
+      sel.focus();
+    }
     function askSure(title, text, yes, run) {
       var d = dialog(title);
       d.appendChild(mk('p', 'fc-dialog-note', text));
@@ -363,6 +492,7 @@
     function folderActions(f) {
       var row = mk('div', 'fx-actions');
       row.appendChild(btn('btn fc-small', '+ Add Set', function () { newSet(f ? f.id : null); }));
+      row.appendChild(btn('btn secondary fc-small', '+ New question set', function () { location.href = 'questions/#new' + (f ? '&folder=' + f.id : ''); }));
       if (!f || !f.parent) {
         row.appendChild(btn('btn secondary fc-small', f ? '+ Add Subfolder' : '+ New folder', function () {
           askName(f ? 'New subfolder in ' + f.name : 'New folder', 'Folder name', '', 'Make the folder', function (v) {
@@ -487,8 +617,10 @@
       moveGhost(e);
       clearDrop();
       drag.into = undefined;
+      // A question set only moves into a folder (they have no order of their own).
+      var isQ = drag.card.classList.contains('fx-card-q');
       var isSet = drag.card.classList.contains('fx-card-set');
-      var myId = drag.card.getAttribute(isSet ? 'data-set' : 'data-folder');
+      var myId = drag.card.getAttribute(isQ ? 'data-qset' : isSet ? 'data-set' : 'data-folder');
       // Into a folder: a folder card's middle, or a folder in the trail.
       var el = document.elementFromPoint(e.clientX, e.clientY);
       var target = el && el.closest('.fx-card-folder, .fx-crumbs a');
@@ -496,13 +628,15 @@
         var into = target.getAttribute('data-folder');
         if (into === null) into = (/^#folder-(.+)$/.exec(target.getAttribute('href') || '') || [null, ''])[1];
         var middle = target.tagName === 'A' || inside(e, target, isSet ? 0.9 : 0.5);
-        var ok = isSet ? into !== (lib.sets.filter(function (s) { return s.id === myId; })[0].folder || '') : canNest(myId, into);
+        var ok = isQ ? into !== (qFolderOf(qById(myId)) || '')
+          : isSet ? into !== (lib.sets.filter(function (s) { return s.id === myId; })[0].folder || '') : canNest(myId, into);
         if (middle && ok) {
           target.classList.add('fx-drop');
           drag.into = into;
           return;
         }
       }
+      if (isQ) return;
       // Otherwise it takes the place of the card of its own kind under the pointer.
       var grid = drag.card.parentNode;
       var over = [].filter.call(grid.children, function (c) { return c !== drag.card && c.classList.contains('fx-card') && inside(e, c, 1); })[0];
@@ -527,6 +661,11 @@
       var stop = function (ev) { ev.preventDefault(); ev.stopPropagation(); };
       window.addEventListener('click', stop, true);
       setTimeout(function () { window.removeEventListener('click', stop, true); }, 60);
+      if (d.card.classList.contains('fx-card-q')) {
+        if (d.into !== undefined) moveQset(qById(d.card.getAttribute('data-qset')), d.into || '');
+        else draw();
+        return;
+      }
       var isSet = d.card.classList.contains('fx-card-set');
       if (d.into !== undefined) {
         if (isSet) lib.sets.filter(function (s) { return s.id === d.card.getAttribute('data-set'); })[0].folder = d.into || null;
@@ -590,6 +729,22 @@
             status('Deleting...');
             (/^my-/.test(x.id) ? ED.resetSet(x.id).then(function () { return ED.library(); }) : ED.removeSet(x.id)).then(function (r) {
               lib = r;
+              status('Deleted.');
+              draw();
+            }, function (err) { status(err.message, true); });
+          });
+        }, true);
+      } else if (kind === 'qset') {
+        item('Open and edit the questions', function () { location.href = 'questions/#' + x.id; });
+        item('Play Battle Royale', function () { location.href = '../royale/#qset=' + x.id; });
+        item('Play Surge Showdown', function () { location.href = '../surge/#qset=' + x.id; });
+        item('Play Mole Hunt', function () { location.href = '../molehunt/#qset=' + x.id; });
+        item('Move to a folder', function () { askFolder('Move “' + x.title + '”', qFolderOf(x), function (to) { moveQset(x, to); }); });
+        item('Delete', function () {
+          askSure('Delete this question set?', 'Delete “' + x.title + '” for good? Its questions cannot be brought back.', 'Yes, delete it', function () {
+            status('Deleting...');
+            api('qsets/' + x.id, 'DELETE').then(function () {
+              qsets = qsets.filter(function (q) { return q.id !== x.id; });
               status('Deleted.');
               draw();
             }, function (err) { status(err.message, true); });
@@ -739,6 +894,7 @@
           $('fxSignInBtn').parentNode.hidden = true;
           teacherBar();
           fromHash();
+          loadQsets();
           // the current review game's teacher box (review-current.js, Donny 2026-11-15)
           try { document.dispatchEvent(new CustomEvent('fx:teacher')); } catch (e) { /* an old browser: no teacher box */ }
         });

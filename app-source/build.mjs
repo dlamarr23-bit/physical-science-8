@@ -16,7 +16,7 @@ import { iconsScript } from './lib/icons.mjs';
 import { esc } from './lib/render.mjs';
 import { renderEditMoved, renderFlashcardIndex, renderOwnSetShell, defaultLibrary, renderDrawTest } from './lib/flashcards.mjs';
 import { renderLiveHost, renderLiveJoin } from './lib/live.mjs';
-import { renderRoyaleHost, renderRoyalePlay } from './lib/royale.mjs';
+import { renderRoyaleHost, renderRoyalePlay, renderQuestionSetPage } from './lib/royale.mjs';
 import { renderSurgeHost, renderSurgePlay } from './lib/surge.mjs';
 import { renderMoleHost, renderMolePlay, renderMoleRemote } from './lib/molehunt.mjs';
 import { renderLeaderboard, renderSignIn, renderBridge } from './lib/leaderboard.mjs';
@@ -65,6 +65,7 @@ write('edit/index.html', renderEditMoved());
 write('live/index.html', renderLiveHost([], [], {}));
 write('join/index.html', renderLiveJoin([]));
 write('royale/index.html', renderRoyaleHost([]));
+write('flashcards/questions/index.html', renderQuestionSetPage([]));
 write('royale/play/index.html', renderRoyalePlay([]));
 // Surge Showdown (Donny, 2026-11-04: moved here from its own site).
 write('surge/index.html', renderSurgeHost([]));

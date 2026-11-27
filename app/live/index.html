@@ -13,13 +13,14 @@
 <script src="../assets/icons.js" defer></script>
 <script src="../assets/book.js" defer></script>
 <script src="../assets/pass.js?v=ecdd6bef" defer></script>
-<link rel="stylesheet" href="../assets/flashcards.css?v=228ef98d">
-<link rel="stylesheet" href="../assets/live.css?v=3e6a2ab6">
+<link rel="stylesheet" href="../assets/flashcards.css?v=6e3fe404">
+<link rel="stylesheet" href="../assets/live.css?v=49908209">
 <script src="../assets/editor.js?v=0dc7395b" defer></script>
 <script src="../assets/vendor/qrcode.js?v=4b6133cb" defer></script>
 <script src="../assets/live-celebrate.js?v=457dddd6" defer></script>
 <script src="../assets/live-roster.js?v=ed68e869" defer></script>
-<script src="../assets/live-host.js?v=9aa890b3" defer></script>
+<script src="../assets/host-name.js?v=f294dafb" defer></script>
+<script src="../assets/live-host.js?v=0f24c421" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to the page</a><div class="topbar"><div class="topbar-inner">
@@ -54,6 +55,15 @@
 <h1>Host a game</h1>
 <p class="lv-lede">Pick a game, a set and how to play. Players join on their own screens with a code.</p>
 </div>
+<div class="lv-focus" id="lvFocus" data-pics="{&quot;volley&quot;:&quot;../assets/review-icons/vocab-live.webp?v=86e5d593&quot;,&quot;blast&quot;:&quot;../assets/review-icons/blast.webp?v=bc549162&quot;,&quot;match&quot;:&quot;../assets/review-icons/match.webp?v=6b22cd4f&quot;,&quot;royale&quot;:&quot;../assets/review-icons/battle-royale.webp?v=12be1ee7&quot;,&quot;surge&quot;:&quot;../assets/review-icons/surge-showdown.webp?v=69a33241&quot;,&quot;molehunt&quot;:&quot;../assets/review-icons/mole-hunt.webp?v=944cc183&quot;}" hidden>
+<span class="lv-focus-pic" id="lvFocusPic"></span>
+<div class="lv-focus-text">
+<p class="lv-focus-eyebrow">Settings for</p>
+<h1 class="lv-focus-name" id="lvFocusName"></h1>
+<p class="lv-focus-set" id="lvFocusSet"></p>
+</div>
+<button type="button" class="btn secondary fc-small" id="lvFocusChange">Change game or set</button>
+</div>
 <div class="lv-resume" id="lvResume" hidden><span id="lvResumeText"></span> <button type="button" class="btn fc-small" id="lvResumeBtn">Go back to it</button></div>
 <p class="lv-note" id="lvSetupNote" role="status"></p>
 <div class="lv-sets">
@@ -65,7 +75,7 @@
 <span class="lv-small">For Battle Royale, Surge Showdown and Mole Hunt. <a href="../royale/#new">Make a new question set</a></span></div>
 </div>
 
-<fieldset class="lv-group"><legend class="lv-q">Which game?</legend>
+<fieldset class="lv-group lv-which" id="lvWhich"><legend class="lv-q">Which game?</legend>
 <div class="lv-choices lv-choices-5 lv-choices-6">
 <label class="lv-choice"><input type="radio" name="lvGame" value="volley" checked>
 <span class="lv-choice-art" aria-hidden="true"><img class="lv-pic" src="../assets/review-icons/vocab-live.webp?v=86e5d593" alt=""></span>
@@ -196,6 +206,7 @@
 </div>
 
 <section class="lv-step" id="lvLobby" hidden>
+<div class="hn-bar" id="lvNameBar" data-pics="{&quot;volley&quot;:&quot;../assets/review-icons/vocab-live.webp?v=86e5d593&quot;,&quot;blast&quot;:&quot;../assets/review-icons/blast.webp?v=bc549162&quot;,&quot;match&quot;:&quot;../assets/review-icons/match.webp?v=6b22cd4f&quot;,&quot;royale&quot;:&quot;../assets/review-icons/battle-royale.webp?v=12be1ee7&quot;,&quot;surge&quot;:&quot;../assets/review-icons/surge-showdown.webp?v=69a33241&quot;,&quot;molehunt&quot;:&quot;../assets/review-icons/mole-hunt.webp?v=944cc183&quot;}" hidden></div>
 <div class="lv-joinbox">
 <div class="lv-join-text">
 <p class="lv-join-step">Go to <strong id="lvJoinUrl"></strong></p>

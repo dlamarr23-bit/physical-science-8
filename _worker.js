@@ -299,7 +299,7 @@ const ownPath = (id) => '/flashcards/my/' + id + '/';
 // works, so links already given out keep working.
 const slugOf = (title) => String(title || '').normalize('NFKD').toLowerCase().replace(/&/g, ' and ')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '');
-const NOT_NAMES = ['my', 'draw-test']; // folders of the flashcard pages themselves
+const NOT_NAMES = ['my', 'draw-test', 'questions']; // folders of the flashcard pages themselves
 function setNames(lib) {
   const used = new Set(NOT_NAMES), names = new Map();
   for (const s of lib.sets) {
@@ -733,6 +733,8 @@ async function api(request, env, url) {
     return res.ok ? json({ hostKey: d.hostKey, kind: d.kind }) : json({ error: d.error || 'There is no game with that code.' }, 404);
   }
   if (a === 'qsets' && !c) return qsetsApi(request, env, b);
+  // Which Review folder a question set shows in (Donny, 2026-11-27: question sets in the folders, only for him).
+  if (a === 'qsets' && b && c === 'folder' && method === 'PUT') return qsetFolder(request, env, b);
 
   if (a === 'book-text' && b && !c && method === 'PUT') return putBookText(request, env, b);
   if (a === 'launchpad' && !b && method === 'GET') return getLaunchpad(env);
@@ -1451,12 +1453,37 @@ async function qsetsApi(request, env, id) {
     const key = id || 'q' + [...crypto.getRandomValues(new Uint8Array(5))].map((x) => x.toString(16).padStart(2, '0')).join('');
     const saved = Date.now();
     await env.FLASHCARDS.put('qset:' + key, JSON.stringify({ title, questions, saved }));
-    const list = (await qsetIndex(env)).filter((s) => s.id !== key);
-    list.unshift({ id: key, title, count: questions.length, saved });
+    const all = await qsetIndex(env);
+    const was = all.find((s) => s.id === key);
+    // A set keeps its Review folder; a new one made inside a folder starts there.
+    const folder = was ? was.folder || '' : qsetFolderId(body && body.folder);
+    const list = all.filter((s) => s.id !== key);
+    const entry = { id: key, title, count: questions.length, saved };
+    if (folder) entry.folder = folder;
+    list.unshift(entry);
     await env.FLASHCARDS.put('qsets', JSON.stringify(list));
-    return json({ id: key, title, count: questions.length, saved });
+    return json(entry);
   }
   return json({ error: 'Not found.' }, 404);
+}
+
+// A folder of the Review page (f-...), 'none' for a set the teacher took out
+// of every folder (so it is not put back in one by its name), or '' for not yet.
+function qsetFolderId(v) {
+  const s = String(v || '');
+  return /^(f-[a-z0-9-]{1,40}|none)$/.test(s) ? s : '';
+}
+async function qsetFolder(request, env, id) {
+  if (!QSET_ID.test(id)) return json({ error: 'There is no question set with that name.' }, 404);
+  let body;
+  try { body = await request.json(); } catch { body = null; }
+  const folder = qsetFolderId(body && body.folder);
+  const list = await qsetIndex(env);
+  const set = list.find((s) => s.id === id);
+  if (!set) return json({ error: 'There is no question set with that name.' }, 404);
+  if (folder) set.folder = folder; else delete set.folder;
+  await env.FLASHCARDS.put('qsets', JSON.stringify(list));
+  return json({ sets: list });
 }
 
 /* ---------------- Class Pass and the class leaderboard ---------------- */
