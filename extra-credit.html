@@ -22,13 +22,15 @@
   /* the page wears the book units' look (Donny picked Layout 2, "Points Quest", 2026-11-27): painted bars for the
      section headings (.painted-h2 in style.css) and a painted Quarter goal card under the picture in the banner */
   .ec-steps .painted-h2{ margin:34px 0 18px; }
-  .ec-hero .hero-inner{ grid-template-columns:minmax(0,1fr) 300px; }
-  .ec-hero-side{ display:grid; gap:14px; justify-items:center; }
-  .ec-hero-side .hero-pic{ justify-self:center; width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
-  .ec-goal{ width:100%; padding:16px 18px 14px; }
+  /* title at the top left, the picture at the top right, and the Quarter goal bar across the whole banner under both */
+  .ec-hero .hero-inner{ grid-template-columns:minmax(0,1fr) 300px; align-items:start; row-gap:20px; padding-top:22px; }
+  .ec-hero .hero-pic{ width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
+  .ec-hero .lede{ margin-bottom:0; }
+  .ec-goal{ grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:8px 30px; padding:16px 28px; }
+  .ec-goal-track{ min-width:0; }
   .ec-goal-label{ display:block; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#F5C451; }
-  .ec-goal-big{ display:block; font-size:1.25rem; font-weight:800; line-height:1.2; margin:2px 0 10px; }
-  .ec-goal-bar{ position:relative; display:flex; height:22px; border-radius:999px; background:rgba(255,255,255,.16); overflow:hidden; }
+  .ec-goal-big{ display:block; font-size:1.2rem; font-weight:800; line-height:1.2; margin:2px 0 0; white-space:nowrap; }
+  .ec-goal-bar{ position:relative; display:flex; height:24px; border-radius:999px; background:rgba(255,255,255,.16); overflow:hidden; }
   .ec-goal-bar .seg{
     display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; font-variant-numeric:tabular-nums;
     background-image:url("./assets/paper-grain.png"), radial-gradient(80% 170% at 6% 0%, rgba(255,255,255,.25), transparent 55%), radial-gradient(70% 160% at 100% 100%, rgba(0,0,0,.18), transparent 60%);
@@ -38,8 +40,9 @@
   .ec-goal-bar .seg.b{ background-color:#EDBF59; color:#3d2c05; border-left:2px solid rgba(8,28,43,.35); }
   .ec-goal-bar i{ position:absolute; top:5px; bottom:5px; width:2px; margin-left:-1px; background:rgba(255,255,255,.4); }
   .ec-goal-scale{ display:flex; justify-content:space-between; font-size:.68rem; font-weight:600; opacity:.8; margin-top:5px; font-variant-numeric:tabular-nums; }
-  .ec-goal-note{ margin:8px 0 0; font-size:.78rem; line-height:1.4; opacity:.92; }
-  @media (max-width:700px){ .ec-hero-side{ justify-items:stretch; max-width:420px; } }
+  .ec-goal-note{ margin:0; font-size:.8rem; line-height:1.4; opacity:.92; max-width:23ch; }
+  @media (max-width:860px){ .ec-goal{ grid-template-columns:minmax(0,1fr); gap:10px; } .ec-goal-note{ max-width:none; } .ec-goal-big{ white-space:normal; } }
+  @media (max-width:700px){ .ec-hero .hero-inner{ grid-template-columns:minmax(0,1fr); padding-top:18px; } }   /* phones hide the picture, so the title gets the whole width */
   /* How to earn your points: a trail of four stops, one hand-drawn picture each */
   .ec-trail{ list-style:none; margin:0 0 20px; padding:0; position:relative; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; text-align:center; }
   .ec-trail::before{ content:""; position:absolute; left:12.5%; right:12.5%; top:45px; border-top:3px dashed #C99522; opacity:.6; }
@@ -51,16 +54,6 @@
   .ec-trail-text{ font-size:.86rem; color:var(--ink-soft); line-height:1.45; max-width:26ch; }
   @media (max-width:700px){ .ec-trail{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 12px; } .ec-trail::before{ display:none; } }
   .ec-steps .connection-note{ margin:0; }
-  /* the point table */
-  .ec-points{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); padding:16px 20px; margin:0 0 14px; }
-  .ec-points h3{ font-size:1.05rem; margin:0 0 4px; }
-  .ec-points p{ margin:0 0 12px; color:var(--ink-soft); font-size:.9rem; line-height:1.5; max-width:70ch; }
-  .ec-ptable{ border-collapse:collapse; width:100%; max-width:440px; font-variant-numeric:tabular-nums; }
-  .ec-ptable th, .ec-ptable td{ padding:7px 12px; border-bottom:1px solid var(--line); text-align:left; font-size:.92rem; }
-  .ec-ptable thead th{ font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); }
-  .ec-ptable tbody th{ font-weight:600; color:var(--ink); }
-  .ec-ptable td{ font-weight:800; color:var(--accent-dark); }
-  .ec-points p.ec-cap{ margin:12px 0 0; color:var(--ink); }
 
   /* the book list uses the whole screen width (like Donny's Digital): a toolbar with Filters,
      Reset all, search, a chip for each filter in use and the count, then the wall of covers */
@@ -441,15 +434,14 @@
       <h1>Science Extra Credit</h1>
       <p class="lede">Read a science book, pass its AR test, and turn in a book form. Every book on this list has an AR test, and you can find it in the Placerita School Library or at the Santa Clarita Public Library. Each book is worth 15 to 50 points.</p>
     </div>
-    <div class="ec-hero-side">
-      <img class="hero-pic" src="./assets/section-icons/extra-credit.webp" width="300" height="200" alt="">
-      <div class="ec-goal painted-box" role="img" aria-label="Quarter goal: up to 100 extra credit points. Example: a 50 point book plus a 30 point book makes 80 points.">
-        <span class="ec-goal-label">Quarter goal</span>
-        <b class="ec-goal-big">Up to 100 extra credit points</b>
+    <img class="hero-pic" src="./assets/section-icons/extra-credit.webp" width="300" height="200" alt="">
+    <div class="ec-goal painted-box" role="img" aria-label="Quarter goal: up to 100 extra credit points. Example: a 50 point book plus a 30 point book makes 80 points.">
+      <div><span class="ec-goal-label">Quarter goal</span><b class="ec-goal-big">Up to 100 extra credit points</b></div>
+      <div class="ec-goal-track">
         <div class="ec-goal-bar"><span class="seg a" style="width:50%">50</span><span class="seg b" style="width:30%">30</span><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div>
         <div class="ec-goal-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
-        <p class="ec-goal-note">Example: a 50-point book + a 30-point book = 80 points</p>
       </div>
+      <p class="ec-goal-note">Example: a 50-point book + a 30-point book = 80 points</p>
     </div>
   </div>
 </div>
@@ -463,21 +455,6 @@
       <li><span class="ec-stop"><img src="./app/assets/review-icons/question-set.webp" width="68" height="68" alt=""></span><b>Test</b><span class="ec-trail-text">Take and pass the book&rsquo;s AR test.</span></li>
       <li><span class="ec-stop ec-stop-trophy"><img src="./app/assets/review-icons/review-trophy.webp" width="68" height="68" alt=""></span><b>Turn in</b><span class="ec-trail-text">Fill out the book form below, or type a one-page, double-spaced summary.</span></li>
     </ol>
-    <div class="ec-points" aria-labelledby="ecPointsTitle">
-      <h3 id="ecPointsTitle">How many points is a book worth?</h3>
-      <p>It depends on the book&rsquo;s AR points: longer and harder books are worth more, and true (nonfiction) books get 5 extra. Every book on the list shows its points on its cover.</p>
-      <table class="ec-ptable">
-        <thead><tr><th scope="col">AR points</th><th scope="col">Fiction</th><th scope="col">Nonfiction</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">0.5 to 1.5</th><td>15</td><td>20</td></tr>
-          <tr><th scope="row">2 to 4.5</th><td>20</td><td>25</td></tr>
-          <tr><th scope="row">5 to 9.5</th><td>30</td><td>35</td></tr>
-          <tr><th scope="row">10 to 14.5</th><td>40</td><td>45</td></tr>
-          <tr><th scope="row">15 or more</th><td>50</td><td>50</td></tr>
-        </tbody>
-      </table>
-      <p class="ec-cap">You can earn up to <b>100 extra credit points</b> each quarter.</p>
-    </div>
     <div class="connection-note"><span class="tag">Good to know</span><span>It may sound like a lot of work, but the book also counts toward your AR points in English class. If there's a different science book you'd like to read that isn't on the list, you can ask me to approve it. Any questions? Come ask me for help.</span></div>
   </section>
 
