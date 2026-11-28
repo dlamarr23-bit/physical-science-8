@@ -486,11 +486,11 @@ main{ padding:36px 0 70px; }
    Since 2026-11-18 the bar is painted (Donny chose "Idea 2: Painted bar"): the paint sits on ::before, which gets
    the paper grain and light and dark pools from the painted look at the end of this file, plus gently wobbly
    hand-painted edges (an SVG outline mask, stretched to the bar; a plain path, so nothing breaks off on phones). */
-main > h2{
+main > h2, .painted-h2{
   position:relative; isolation:isolate; color:var(--on-accent); font-size:1.4rem; line-height:1.3;
   padding:13px 26px; margin:44px 0 14px;
 }
-main > h2::before{
+main > h2::before, .painted-h2::before, .painted-box::before{
   content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background-color:var(--accent);
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 60' preserveAspectRatio='none'%3E%3Cpath d='M10,3.9L20,3.6L30,3L40,2.7L50,2.7L60,2.9L70,2.9L80,2.7L90,2.5L100,2.6L110,3.1L120,3.4L130,3.4L140,3.1L150,2.7L160,2.5L170,2.5L180,2.3L190,1.8L200,1.1L210,0.7L220,0.8L230,1L240,1.2L250,1.1L260,1L270,1.1L280,1.5L290,1.9L300,2L310,1.6L320,1.3L330,1.1L340,1.3L350,1.4L360,1.3L370,1L380,1L390,1.3L400,2L410,2.5L420,2.7L430,2.8L440,2.9L450,3.3L460,3.7L470,3.7L480,3.3L490,2.9L500,2.7L510,2.8L520,3L530,2.9L540,2.7L550,2.6L560,2.9L570,3.4L580,3.7L590,3.6L600,3.3L610,3L620,2.9L630,2.9L640,2.6L650,2L660,1.4L670,1.1L680,1.1L690,1.3L700,1.4L710,1.2L720,1.1L730,1.3L740,1.7L750,2L760,1.9L770,1.5L780,1.1L790,1.1L800,1.2L810,1.2L820,0.9L830,0.6L840,0.7L850,1.1L860,1.8L870,2.2L880,2.3L890,2.4L900,2.6L910,3.1L920,3.4L930,3.4L940,3L950,2.6L960,2.6L970,2.8L980,2.9L990,2.8Q998.6,2.8 998.4,12.8L997.6,30L998.3,47.6Q998.4,57.6 990,57.6L980,57.7L970,57.6L960,57.7L950,58.1L940,58.3L930,58L920,57.6L910,57.5L900,57.8L890,57.9L880,57.6L870,57.4L860,57.7L850,58.2L840,58.6L830,58.6L820,58.6L810,59L800,59.5L790,59.6L780,59.3L770,59L760,59.1L750,59.1L740,58.8L730,58.2L720,57.9L710,58L700,58.2L690,58L680,57.7L670,57.8L660,58.2L650,58.5L640,58.4L630,58.1L620,58.1L610,58.3L600,58.2L590,57.7L580,57.1L570,56.9L560,57L550,56.8L540,56.3L530,56L520,56.2L510,56.7L500,56.8L490,56.7L480,56.7L470,57.2L460,57.7L450,57.7L440,57.3L430,57.2L420,57.4L410,57.5L400,57.2L390,56.8L380,56.7L370,57L360,57.3L350,57.3L340,57.2L330,57.5L320,58.2L310,58.7L300,58.7L290,58.6L280,58.9L270,59.3L260,59.3L250,58.9L240,58.5L230,58.5L220,58.7L210,58.5L200,58.1L190,57.9L180,58.2L170,58.6L160,58.7L150,58.5L140,58.5L130,58.9L120,59.3L110,59.1L100,58.6L90,58.3L80,58.4L70,58.3L60,57.8L50,57.1L40,56.9L30,57L20,57.1L10,56.8Q1.5,56.8 1.7,46.8L2.4,30L1.6,13.9Q1.7,3.9 10,3.9Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat;
           mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 60' preserveAspectRatio='none'%3E%3Cpath d='M10,3.9L20,3.6L30,3L40,2.7L50,2.7L60,2.9L70,2.9L80,2.7L90,2.5L100,2.6L110,3.1L120,3.4L130,3.4L140,3.1L150,2.7L160,2.5L170,2.5L180,2.3L190,1.8L200,1.1L210,0.7L220,0.8L230,1L240,1.2L250,1.1L260,1L270,1.1L280,1.5L290,1.9L300,2L310,1.6L320,1.3L330,1.1L340,1.3L350,1.4L360,1.3L370,1L380,1L390,1.3L400,2L410,2.5L420,2.7L430,2.8L440,2.9L450,3.3L460,3.7L470,3.7L480,3.3L490,2.9L500,2.7L510,2.8L520,3L530,2.9L540,2.7L550,2.6L560,2.9L570,3.4L580,3.7L590,3.6L600,3.3L610,3L620,2.9L630,2.9L640,2.6L650,2L660,1.4L670,1.1L680,1.1L690,1.3L700,1.4L710,1.2L720,1.1L730,1.3L740,1.7L750,2L760,1.9L770,1.5L780,1.1L790,1.1L800,1.2L810,1.2L820,0.9L830,0.6L840,0.7L850,1.1L860,1.8L870,2.2L880,2.3L890,2.4L900,2.6L910,3.1L920,3.4L930,3.4L940,3L950,2.6L960,2.6L970,2.8L980,2.9L990,2.8Q998.6,2.8 998.4,12.8L997.6,30L998.3,47.6Q998.4,57.6 990,57.6L980,57.7L970,57.6L960,57.7L950,58.1L940,58.3L930,58L920,57.6L910,57.5L900,57.8L890,57.9L880,57.6L870,57.4L860,57.7L850,58.2L840,58.6L830,58.6L820,58.6L810,59L800,59.5L790,59.6L780,59.3L770,59L760,59.1L750,59.1L740,58.8L730,58.2L720,57.9L710,58L700,58.2L690,58L680,57.7L670,57.8L660,58.2L650,58.5L640,58.4L630,58.1L620,58.1L610,58.3L600,58.2L590,57.7L580,57.1L570,56.9L560,57L550,56.8L540,56.3L530,56L520,56.2L510,56.7L500,56.8L490,56.7L480,56.7L470,57.2L460,57.7L450,57.7L440,57.3L430,57.2L420,57.4L410,57.5L400,57.2L390,56.8L380,56.7L370,57L360,57.3L350,57.3L340,57.2L330,57.5L320,58.2L310,58.7L300,58.7L290,58.6L280,58.9L270,59.3L260,59.3L250,58.9L240,58.5L230,58.5L220,58.7L210,58.5L200,58.1L190,57.9L180,58.2L170,58.6L160,58.7L150,58.5L140,58.5L130,58.9L120,59.3L110,59.1L100,58.6L90,58.3L80,58.4L70,58.3L60,57.8L50,57.1L40,56.9L30,57L20,57.1L10,56.8Q1.5,56.8 1.7,46.8L2.4,30L1.6,13.9Q1.7,3.9 10,3.9Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat;
@@ -500,7 +500,9 @@ body.pt-editing main > h2[data-pt-changed]::before{ display:none; }
 main > h2:first-child{ margin-top:30px; }  /* right under the banner (home page): main.container has no top padding */
 /* the Vocabulary hint line under its bar has its own pull-up margin in the pages */
 main > h2 + p{ margin-top:0 !important; }
-@media (max-width:640px){ main > h2{ font-size:1.2rem; padding:11px 26px; } }
+@media (max-width:640px){ main > h2, .painted-h2{ font-size:1.2rem; padding:11px 26px; } }
+/* the same painted bar on a heading or box that is not right inside <main> (Extra Credit page) */
+.painted-box{ position:relative; isolation:isolate; color:var(--on-accent); }
 /* readable while the teacher's Edit this page marks a changed heading yellow, or a search marks a word in one */
 body.pt-editing main > h2[data-pt-changed]{ color:var(--ink); }
 html:not([data-theme="dark"]) main > h2 mark.find-hit{ color:#1b1f2a; }
@@ -1115,7 +1117,7 @@ mark.find-hit.current{ background:#ffd23f; box-shadow:0 0 0 2px #ffd23f; }
    started (top left) and a darker pool where it stopped (bottom right). Only the background pictures are set here,
    so every rule above keeps its own color (hovers change background-color only, so the paint stays).
    .btn.secondary sets background, which clears these, so the white buttons stay plain. */
-main > h2::before, .btn, .rcard--feature .rlink, .to-top, .find-next, .jump-label, .term-popout, .vface.back,
+main > h2::before, .painted-h2::before, .painted-box::before, .btn, .rcard--feature .rlink, .to-top, .find-next, .jump-label, .term-popout, .vface.back,
 .ec-chip[aria-pressed="true"], .fi-chip.on, .fi-btn, .sc-btn,
 .scientist-card .sphoto.placeholder{
   background-image:url("paper-grain.png"),
