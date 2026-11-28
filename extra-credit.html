@@ -315,6 +315,7 @@
   .ec-dsteps label{ display:flex; gap:10px; align-items:flex-start; font-size:.9rem; line-height:1.45; color:var(--ink); cursor:pointer; }
   .ec-dsteps input{ accent-color:var(--accent); width:17px; height:17px; margin:2px 0 0; flex:none; }
   .ec-dsteps a{ font-weight:700; }
+  .ec-dsteps .ec-shelf-link{ display:block; width:fit-content; white-space:nowrap; }
   .ec-dfoot{ padding:0 26px 24px; }
   .ec-dfoot .ec-dform{ display:inline-block; padding:11px 22px; font-size:.9rem; text-decoration:none; background-color:#edbf59; color:#26333c; border:1px solid #bd9035; }
 
@@ -888,7 +889,7 @@ function openDetail(id){
   if(pub.length)places.push('the public library'+(br.length?' ('+esc(br.join(', '))+(br.length>1?' branches':' branch')+')':''));
   const fic=b.genre!=='Non-fiction', kind=fic?'Fiction':'Nonfiction';
   const steps=[
-    'Check it out at '+places.join(' or ')+'.'+(pub.length?` <a href="${esc(catalogLink(b))}" target="_blank" rel="noopener">See if it&rsquo;s on the shelf</a>`:''),
+    'Check it out at '+places.join(' or ')+'.'+(pub.length?`<a class="ec-shelf-link" href="${esc(catalogLink(b))}" target="_blank" rel="noopener">See if it&rsquo;s on the shelf</a>`:''),
     b.pages!=null?`Read all ${b.pages} pages.`:'Read the whole book.',
     'Pass the AR test.',
     `Turn in the ${kind} Book Form (or a one-page, double-spaced typed summary) for ${fmtNum(b.points,1)} points.`
