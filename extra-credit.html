@@ -18,15 +18,14 @@
 <script src="./assets/pass-menu.js" defer></script>
 <style>
   /* ---------------- extra credit book list ---------------- */
-  /* How to earn your points: three numbered steps in a row */
   /* the page wears the book units' look (Donny picked Layout 2, "Points Quest", 2026-11-27): painted bars for the
-     section headings (.painted-h2 in style.css) and a painted Quarter goal card under the picture in the banner */
+     section headings (.painted-h2 in style.css) and a painted Quarter goal card below the four steps */
   .ec-steps .painted-h2{ margin:34px 0 18px; }
-  /* title at the top left, the picture at the top right, and the Quarter goal bar across the whole banner under both */
+  /* title at the top left and the picture at the top right */
   .ec-hero .hero-inner{ grid-template-columns:minmax(0,1fr) 300px; align-items:start; row-gap:20px; padding-top:22px; }
   .ec-hero .hero-pic{ width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
   .ec-hero .lede{ margin-bottom:0; }
-  .ec-goal{ grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:8px 30px; padding:16px 28px; }
+  .ec-goal{ margin:0 0 20px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:8px 30px; padding:16px 28px; }
   .ec-goal-track{ min-width:0; }
   .ec-goal-label{ display:block; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#F5C451; }
   .ec-goal-big{ display:block; font-size:1.2rem; font-weight:800; line-height:1.2; margin:2px 0 0; white-space:nowrap; }
@@ -435,14 +434,6 @@
       <p class="lede">Read a science book, pass its AR test, and turn in a book form. Every book on this list has an AR test, and you can find it in the Placerita School Library or at the Santa Clarita Public Library. Each book is worth 15 to 50 points.</p>
     </div>
     <img class="hero-pic" src="./assets/section-icons/extra-credit.webp" width="300" height="200" alt="">
-    <div class="ec-goal painted-box" role="img" aria-label="Quarter goal: up to 100 extra credit points. Example: a 50 point book plus a 30 point book makes 80 points.">
-      <div><span class="ec-goal-label">Quarter goal</span><b class="ec-goal-big">Up to 100 extra credit points</b></div>
-      <div class="ec-goal-track">
-        <div class="ec-goal-bar"><span class="seg a" style="width:50%">50</span><span class="seg b" style="width:30%">30</span><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div>
-        <div class="ec-goal-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
-      </div>
-      <p class="ec-goal-note">Example: a 50-point book + a 30-point book = 80 points</p>
-    </div>
   </div>
 </div>
 <main>
@@ -455,6 +446,15 @@
       <li><span class="ec-stop"><img src="./app/assets/review-icons/question-set.webp" width="68" height="68" alt=""></span><b>Test</b><span class="ec-trail-text">Take and pass the book&rsquo;s AR test.</span></li>
       <li><span class="ec-stop ec-stop-trophy"><img src="./app/assets/review-icons/review-trophy.webp" width="68" height="68" alt=""></span><b>Turn in</b><span class="ec-trail-text">Fill out the book form below, or type a one-page, double-spaced summary.</span></li>
     </ol>
+
+    <div class="ec-goal painted-box" role="img" aria-label="Quarter goal: up to 100 extra credit points. Example: a 50 point book plus a 30 point book makes 80 points.">
+      <div><span class="ec-goal-label">Quarter goal</span><b class="ec-goal-big">Up to 100 extra credit points</b></div>
+      <div class="ec-goal-track">
+        <div class="ec-goal-bar"><span class="seg a" style="width:50%">50</span><span class="seg b" style="width:30%">30</span><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div>
+        <div class="ec-goal-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      </div>
+      <p class="ec-goal-note">Example: a 50-point book + a 30-point book = 80 points</p>
+    </div>
     <div class="connection-note"><span class="tag">Good to know</span><span>It may sound like a lot of work, but the book also counts toward your AR points in English class. If there's a different science book you'd like to read that isn't on the list, you can ask me to approve it. Any questions? Come ask me for help.</span></div>
   </section>
 
